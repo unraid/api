@@ -3,14 +3,9 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { ChevronLeftIcon, CircleStackIcon, InformationCircleIcon } from '@heroicons/vue/24/outline';
-import {
-  ArrowPathIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  ExclamationTriangleIcon,
-} from '@heroicons/vue/24/solid';
-import { BrandButton, Select } from '@unraid/ui';
+import { ChevronLeftIcon, CircleStackIcon } from '@heroicons/vue/24/outline';
+import { ArrowPathIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
+import { BrandButton } from '@unraid/ui';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
@@ -21,7 +16,6 @@ import type {
   OnboardingBootMode,
   OnboardingInternalBootSelection,
 } from '@/components/Onboarding/store/onboardingDraft';
-import type { SelectItemType } from '@unraid/ui';
 import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
 import { GetInternalBootContextDocument } from '~/composables/gql/graphql';
@@ -59,6 +53,12 @@ interface InternalBootTemplateData {
   reservedNames: string[];
   shareNames: string[];
   poolNames: string[];
+}
+
+interface SelectMenuItem {
+  value: string | number;
+  label: string;
+  disabled?: boolean;
 }
 
 type InternalBootTransferState = 'enabled' | 'disabled' | 'unknown';
@@ -409,14 +409,14 @@ const visiblePresetOptions = computed(() => {
   }));
 });
 
-const slotCountItems = computed<SelectItemType[]>(() =>
+const slotCountItems = computed<SelectMenuItem[]>(() =>
   slotOptions.value.map((option) => ({
     value: option,
     label: String(option),
   }))
 );
 
-const bootSizePresetItems = computed<SelectItemType[]>(() => [
+const bootSizePresetItems = computed<SelectMenuItem[]>(() => [
   ...visiblePresetOptions.value.map((option) => ({
     value: option.value,
     label: option.label,
@@ -527,47 +527,24 @@ const isDeviceDisabled = (deviceId: string, index: number) => {
   );
 };
 
-const getDeviceSelectItems = (index: number): SelectItemType[] =>
+const getDeviceSelectItems = (index: number): SelectMenuItem[] =>
   deviceOptions.value.map((option) => ({
     value: option.value,
     label: option.label,
     disabled: isDeviceDisabled(option.value, index),
   }));
 
-const toSelectString = (value: unknown): string => {
-  if (typeof value === 'string') {
-    return value;
+const setBootMode = (mode: OnboardingBootMode) => {
+  if (isStepLocked.value) {
+    return;
   }
 
-  if (typeof value === 'number' || typeof value === 'bigint') {
-    return String(value);
-  }
-
-  return '';
+  bootMode.value = mode;
 };
 
-const handleSlotCountChange = (value: unknown) => {
-  const parsedValue =
-    typeof value === 'number'
-      ? value
-      : typeof value === 'bigint'
-        ? Number(value)
-        : Number.parseInt(toSelectString(value), 10);
-  if (Number.isFinite(parsedValue) && parsedValue >= 1 && parsedValue <= 2) {
-    slotCount.value = parsedValue;
-  }
+const handleUpdateBiosChange = (value: boolean | 'indeterminate') => {
+  updateBios.value = value === true;
 };
-
-const handleDeviceSelection = (index: number, value: unknown) => {
-  selectedDevices.value[index] = toSelectString(value);
-};
-
-const handleBootSizePresetChange = (value: unknown) => {
-  bootSizePreset.value = toSelectString(value);
-};
-
-const onboardingSelectClasses =
-  'w-full border-muted bg-bg text-highlighted data-[placeholder]:text-muted focus:ring-primary focus:ring-offset-0';
 
 const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
   const normalizedPoolName = poolName.value.trim();
@@ -758,49 +735,41 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         </div>
       </div>
 
-      <div class="space-y-3">
-        <label
-          class="border-muted bg-bg/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
+      <div class="grid gap-3">
+        <UButton
+          type="button"
+          class="w-full justify-start rounded-lg px-4 py-4"
+          :color="bootMode === 'usb' ? 'primary' : 'neutral'"
+          :variant="bootMode === 'usb' ? 'soft' : 'outline'"
+          :disabled="isStepLocked"
+          :aria-pressed="bootMode === 'usb'"
+          @click="setBootMode('usb')"
         >
-          <input
-            v-model="bootMode"
-            type="radio"
-            value="usb"
-            class="accent-primary mt-0.5 h-4 w-4"
-            :disabled="isStepLocked"
-          />
-          <div class="space-y-1">
-            <p class="text-highlighted text-sm font-semibold">
-              {{ t('onboarding.internalBootStep.options.usb') }}
-            </p>
-          </div>
-        </label>
-        <label
-          class="border-muted bg-bg/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
+          {{ t('onboarding.internalBootStep.options.usb') }}
+        </UButton>
+        <UButton
+          type="button"
+          class="w-full justify-start rounded-lg px-4 py-4"
+          :color="bootMode === 'storage' ? 'primary' : 'neutral'"
+          :variant="bootMode === 'storage' ? 'soft' : 'outline'"
+          :disabled="isStepLocked"
+          :aria-pressed="bootMode === 'storage'"
+          @click="setBootMode('storage')"
         >
-          <input
-            v-model="bootMode"
-            type="radio"
-            value="storage"
-            class="accent-primary mt-0.5 h-4 w-4"
-            :disabled="isStepLocked"
-          />
-          <div class="space-y-1">
-            <p class="text-highlighted text-sm font-semibold">
-              {{ t('onboarding.internalBootStep.options.storage') }}
-            </p>
-          </div>
-        </label>
+          {{ t('onboarding.internalBootStep.options.storage') }}
+        </UButton>
       </div>
 
-      <blockquote
+      <UAlert
         v-if="isStorageBootSelected && hasEligibleDevices"
         data-testid="internal-boot-intro-panel"
-        class="my-8 rounded-xl border border-sky-200 bg-sky-50 p-5"
+        class="my-8"
+        color="primary"
+        variant="subtle"
+        icon="i-lucide-info"
       >
-        <div class="flex items-start gap-3">
-          <InformationCircleIcon class="mt-0.5 h-6 w-6 flex-shrink-0 text-sky-700" />
-          <div class="space-y-3 text-sm leading-relaxed text-sky-950">
+        <template #description>
+          <div class="space-y-3 text-sm leading-relaxed">
             <p>{{ t('onboarding.internalBootStep.warning.bootablePoolDescription') }}</p>
             <p>{{ t('onboarding.internalBootStep.warning.bootablePoolVolumes') }}</p>
             <ul class="list-disc space-y-1 pl-5">
@@ -815,8 +784,8 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
               {{ t('onboarding.internalBootStep.warning.selectedDevicesFormatted') }}
             </p>
           </div>
-        </div>
-      </blockquote>
+        </template>
+      </UAlert>
 
       <div v-if="isStorageBootSelected && isLoading" class="mt-2">
         <OnboardingLoadingState
@@ -835,16 +804,18 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
       </div>
 
       <div v-if="isStorageBootSelected && !isLoading && !contextError" class="mt-6 flex justify-end">
-        <button
+        <UButton
           data-testid="internal-boot-refresh-button"
           type="button"
-          class="text-muted hover:text-primary inline-flex items-center gap-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+          color="neutral"
+          variant="ghost"
+          size="sm"
           :disabled="isBusy || isRefreshingContext"
           @click="handleRefreshContext"
         >
           <ArrowPathIcon class="h-4 w-4" :class="{ 'animate-spin': isRefreshingContext }" />
           {{ t('onboarding.internalBootStep.actions.refreshState', 'Refresh state') }}
-        </button>
+        </UButton>
       </div>
 
       <div v-if="isStorageBootSelected && !isLoading && !contextError && canConfigure" class="space-y-5">
@@ -853,25 +824,21 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             <span class="text-muted text-sm font-medium">
               {{ t('onboarding.internalBootStep.fields.poolName') }}
             </span>
-            <input
-              v-model="poolName"
-              type="text"
-              maxlength="40"
-              class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-              :disabled="isBusy"
-            />
+            <UInput v-model="poolName" type="text" maxlength="40" :disabled="isBusy" class="w-full" />
           </label>
 
           <label class="space-y-2">
             <span class="text-muted text-sm font-medium">
               {{ t('onboarding.internalBootStep.fields.slots') }}
             </span>
-            <Select
+            <USelectMenu
               :model-value="slotCount"
               :items="slotCountItems"
-              :class="onboardingSelectClasses"
+              label-key="label"
+              value-key="value"
               :disabled="isBusy"
-              @update:model-value="handleSlotCountChange"
+              class="w-full"
+              @update:model-value="slotCount = Number($event)"
             />
           </label>
         </div>
@@ -884,13 +851,14 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             <label class="text-muted text-sm font-medium">{{
               t('onboarding.internalBootStep.fields.deviceSlot', { index })
             }}</label>
-            <Select
-              :model-value="selectedDevices[index - 1] || undefined"
+            <USelectMenu
+              v-model="selectedDevices[index - 1]"
               :items="getDeviceSelectItems(index - 1)"
+              label-key="label"
+              value-key="value"
               :placeholder="t('onboarding.internalBootStep.fields.selectDevice')"
-              :class="onboardingSelectClasses"
               :disabled="isBusy"
-              @update:model-value="handleDeviceSelection(index - 1, $event)"
+              class="w-full"
             />
           </div>
         </div>
@@ -922,12 +890,13 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             <span class="text-muted text-sm font-medium">
               {{ t('onboarding.internalBootStep.fields.bootReservedSize') }}
             </span>
-            <Select
-              :model-value="bootSizePreset"
+            <USelectMenu
+              v-model="bootSizePreset"
               :items="bootSizePresetItems"
-              :class="onboardingSelectClasses"
+              label-key="label"
+              value-key="value"
               :disabled="isBusy"
-              @update:model-value="handleBootSizePresetChange"
+              class="w-full"
             />
           </label>
 
@@ -935,13 +904,13 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             <span class="text-muted text-sm font-medium">
               {{ t('onboarding.internalBootStep.fields.customSizeGb') }}
             </span>
-            <input
+            <UInput
               v-model="customBootSizeGb"
               type="number"
               min="4"
               :max="maxCustomBootSizeGb ?? undefined"
-              class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
               :disabled="isBusy || bootSizePreset !== 'custom'"
+              class="w-full"
             />
           </label>
         </div>
@@ -949,29 +918,28 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         <p class="text-muted text-xs">{{ bootSizeHelpText }}</p>
 
         <label class="flex items-center gap-3 text-sm">
-          <input
-            v-model="updateBios"
-            type="checkbox"
-            class="accent-primary h-4 w-4"
+          <UCheckbox
+            :model-value="updateBios"
             :disabled="isBusy"
+            @update:model-value="handleUpdateBiosChange"
           />
           <span class="text-highlighted font-medium">{{
             t('onboarding.internalBootStep.fields.updateBios')
           }}</span>
         </label>
-        <blockquote
+        <UAlert
           v-if="updateBios"
           data-testid="internal-boot-update-bios-warning"
-          role="alert"
-          class="border-muted bg-muted/40 border-s-orange-dark border-s-4 p-4"
+          color="warning"
+          variant="subtle"
+          icon="i-lucide-triangle-alert"
         >
-          <div class="flex items-start gap-2">
-            <ExclamationTriangleIcon class="text-orange-dark mt-0.5 h-5 w-5 flex-shrink-0" />
-            <p class="text-foreground text-sm leading-relaxed">
+          <template #description>
+            <p class="text-sm leading-relaxed">
               {{ t('onboarding.internalBootStep.warning.updateBios') }}
             </p>
-          </div>
-        </blockquote>
+          </template>
+        </UAlert>
       </div>
 
       <div

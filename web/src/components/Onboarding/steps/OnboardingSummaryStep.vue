@@ -23,7 +23,7 @@ import {
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/vue/24/solid';
-import { BrandButton, Dialog } from '@unraid/ui';
+import { BrandButton } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import {
   applyInternalBootSelection,
@@ -1344,17 +1344,15 @@ const handleBack = () => {
         </p>
       </div>
 
-      <Dialog
-        v-if="showBootDriveWarningDialog"
-        :model-value="showBootDriveWarningDialog"
-        :show-footer="false"
-        :show-close-button="false"
-        size="md"
-        class="max-w-lg"
+      <UModal
+        :open="showBootDriveWarningDialog"
+        :portal="false"
+        :title="t('onboarding.summaryStep.driveWipe.title')"
+        :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-lg' }"
+        @update:open="showBootDriveWarningDialog = $event"
       >
-        <div class="space-y-6 p-2">
+        <template #body>
           <div class="space-y-3">
-            <h3 class="text-lg font-semibold">{{ t('onboarding.summaryStep.driveWipe.title') }}</h3>
             <p class="text-muted-foreground text-sm">
               {{ t('onboarding.summaryStep.driveWipe.selectedDrives') }}
             </p>
@@ -1371,59 +1369,39 @@ const handleBack = () => {
               {{ t('onboarding.summaryStep.driveWipe.confirmPrompt') }}
             </p>
           </div>
-          <div class="flex justify-end gap-3">
-            <button
-              type="button"
-              class="border-muted hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium"
-              @click="handleBootDriveWarningCancel"
-            >
-              {{ t('common.cancel') }}
-            </button>
-            <button
-              type="button"
-              class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
-              @click="handleBootDriveWarningConfirm"
-            >
-              {{ t('onboarding.summaryStep.driveWipe.continue') }}
-            </button>
-          </div>
-        </div>
-      </Dialog>
+        </template>
+        <template #footer>
+          <UButton color="neutral" variant="outline" @click="handleBootDriveWarningCancel">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton @click="handleBootDriveWarningConfirm">
+            {{ t('onboarding.summaryStep.driveWipe.continue') }}
+          </UButton>
+        </template>
+      </UModal>
 
-      <Dialog
-        v-if="showApplyResultDialog"
-        :model-value="showApplyResultDialog"
-        :show-footer="false"
-        :show-close-button="false"
-        size="lg"
-        class="w-[calc(100vw-2rem)] max-w-3xl"
+      <UModal
+        :open="showApplyResultDialog"
+        :portal="false"
+        :title="applyResultTitle"
+        :description="applyResultMessage"
+        :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 w-[calc(100vw-2rem)] max-w-3xl' }"
+        @update:open="showApplyResultDialog = $event"
       >
-        <div class="space-y-6 p-2">
-          <div class="space-y-2">
-            <h3 class="text-lg font-semibold">{{ applyResultTitle }}</h3>
-            <p class="text-muted-foreground text-sm">
-              {{ applyResultMessage }}
-            </p>
-          </div>
-
+        <template #body>
           <div v-if="showDiagnosticLogsInResultDialog" class="space-y-3">
             <h4 class="text-sm font-semibold tracking-wide uppercase">
               {{ t('onboarding.summaryStep.diagnosticLogs') }}
             </h4>
             <OnboardingConsole :logs="logs" :title="t('onboarding.summaryStep.onboardingDiagnostics')" />
           </div>
-
-          <div class="flex justify-end gap-3">
-            <button
-              type="button"
-              class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
-              @click="handleApplyResultConfirm"
-            >
-              {{ t('onboarding.summaryStep.ok') }}
-            </button>
-          </div>
-        </div>
-      </Dialog>
+        </template>
+        <template #footer>
+          <UButton @click="handleApplyResultConfirm">
+            {{ t('onboarding.summaryStep.ok') }}
+          </UButton>
+        </template>
+      </UModal>
 
       <!-- Footer -->
       <div

@@ -14,7 +14,7 @@ import {
   WrenchScrewdriverIcon,
 } from '@heroicons/vue/24/outline';
 import { CheckCircleIcon, EnvelopeIcon } from '@heroicons/vue/24/solid';
-import { BrandButton, Dialog } from '@unraid/ui';
+import { BrandButton } from '@unraid/ui';
 // Use ?raw to import SVG content string
 import UnraidIconSvg from '@/assets/partners/simple-icons-unraid.svg?raw';
 import { submitInternalBootReboot } from '@/components/Onboarding/composables/internalBoot';
@@ -393,46 +393,31 @@ const handleCancelReboot = () => {
         </div>
       </div>
 
-      <Dialog
-        v-if="showRebootWarningDialog"
-        :model-value="showRebootWarningDialog"
-        :show-footer="false"
-        :show-close-button="false"
-        size="md"
-        class="max-w-md"
+      <UModal
+        :open="showRebootWarningDialog"
+        :portal="false"
+        :title="t('onboarding.nextSteps.confirmReboot.title')"
+        :description="t('onboarding.nextSteps.confirmReboot.description')"
+        :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-md' }"
+        @update:open="showRebootWarningDialog = $event"
       >
-        <div class="space-y-6 p-2">
-          <div class="space-y-2">
-            <h3 class="text-lg font-semibold">{{ t('onboarding.nextSteps.confirmReboot.title') }}</h3>
-            <p class="text-muted-foreground text-sm">
-              {{ t('onboarding.nextSteps.confirmReboot.description') }}
-            </p>
-            <blockquote class="border-s-4 border-yellow-500 bg-yellow-100 p-3">
-              <p class="text-sm leading-relaxed text-yellow-900">
-                {{ t('onboarding.nextSteps.confirmReboot.warning') }}
-              </p>
-            </blockquote>
-          </div>
-          <div class="flex justify-end gap-3">
-            <button
-              type="button"
-              class="border-muted hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium"
-              :disabled="isCompleting"
-              @click="handleCancelReboot"
-            >
-              {{ t('common.cancel') }}
-            </button>
-            <button
-              type="button"
-              class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
-              :disabled="isCompleting"
-              @click="handleConfirmReboot"
-            >
-              {{ t('onboarding.nextSteps.confirmReboot.confirm') }}
-            </button>
-          </div>
-        </div>
-      </Dialog>
+        <template #body>
+          <UAlert
+            color="warning"
+            variant="subtle"
+            icon="i-lucide-triangle-alert"
+            :description="t('onboarding.nextSteps.confirmReboot.warning')"
+          />
+        </template>
+        <template #footer>
+          <UButton color="neutral" variant="outline" @click="handleCancelReboot">
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton @click="handleConfirmReboot">
+            {{ t('onboarding.nextSteps.confirmReboot.confirm') }}
+          </UButton>
+        </template>
+      </UModal>
 
       <p v-if="completionError" role="alert" aria-live="polite" class="mt-6 text-sm text-red-600">
         {{ completionError }}

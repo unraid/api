@@ -48,10 +48,6 @@ vi.mock('@unraid/ui', () => ({
     template:
       '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')"><slot />{{ text }}</button>',
   },
-  Dialog: {
-    props: ['modelValue'],
-    template: '<div v-if="modelValue" data-testid="dialog"><slot /></div>',
-  },
 }));
 
 vi.mock('~/components/Onboarding/store/onboardingDraft', () => ({
@@ -88,6 +84,7 @@ vi.mock('@vue/apollo-composable', async () => {
 describe('OnboardingNextStepsStep', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    document.body.innerHTML = '';
     draftStore.internalBootApplySucceeded = false;
     completeOnboardingMock.mockResolvedValue({});
     refetchOnboardingMock.mockResolvedValue({});
@@ -108,6 +105,28 @@ describe('OnboardingNextStepsStep', () => {
       },
       global: {
         plugins: [createTestI18n()],
+        stubs: {
+          UAlert: {
+            props: ['description'],
+            template: '<div>{{ description }}<slot name="description" /></div>',
+          },
+          UButton: {
+            props: ['disabled'],
+            emits: ['click'],
+            template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
+          },
+          UModal: {
+            props: ['open', 'title', 'description'],
+            template: `
+              <div v-if="open" data-testid="dialog">
+                <div>{{ title }}</div>
+                <div>{{ description }}</div>
+                <slot name="body" />
+                <slot name="footer" />
+              </div>
+            `,
+          },
+        },
       },
     });
 

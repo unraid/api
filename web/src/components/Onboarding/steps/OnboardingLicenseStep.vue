@@ -8,7 +8,6 @@ import {
   ArrowTopRightOnSquareIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ExclamationTriangleIcon,
   EyeIcon,
   EyeSlashIcon,
   KeyIcon,
@@ -276,16 +275,14 @@ const doSkip = () => {
       </div>
     </div>
 
-    <!-- Help Dialog (Manual) -->
-    <div v-if="isHelpDialogOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      <!-- Backdrop -->
-      <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" @click="closeHelpDialog" />
-
-      <!-- Panel -->
-      <div class="bg-elevated border-muted relative w-full max-w-md rounded-xl border p-6 shadow-xl">
-        <h3 class="text-highlighted mb-2 text-lg font-bold">
-          {{ lt('onboarding.licenseStep.help.title', 'Contact Support') }}
-        </h3>
+    <UModal
+      :open="isHelpDialogOpen"
+      :portal="false"
+      :title="lt('onboarding.licenseStep.help.title', 'Contact Support')"
+      :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-md' }"
+      @update:open="isHelpDialogOpen = $event"
+    >
+      <template #body>
         <div class="text-muted space-y-4 text-sm">
           <p>
             {{
@@ -314,8 +311,6 @@ const doSkip = () => {
                 )
               }}
             </p>
-
-            <!-- Copy Code in Dialog -->
             <div class="bg-bg border-muted mt-2 flex items-center gap-2 rounded-md border p-2">
               <code class="text-highlighted flex-1 truncate font-mono text-xs">{{
                 activationCode?.code
@@ -323,84 +318,67 @@ const doSkip = () => {
             </div>
           </div>
         </div>
-        <div class="mt-6 flex justify-end">
-          <BrandButton
-            :text="lt('onboarding.licenseStep.actions.close', 'Close')"
-            @click="closeHelpDialog"
-            class="uppercase"
-            variant="outline"
-          />
-        </div>
-      </div>
-    </div>
+      </template>
+      <template #footer>
+        <UButton color="neutral" variant="outline" @click="closeHelpDialog">
+          {{ lt('onboarding.licenseStep.actions.close', 'Close') }}
+        </UButton>
+      </template>
+    </UModal>
 
-    <!-- Skip Confirmation Dialog (Manual) -->
-    <div
-      v-if="isSkipDialogOpen"
-      class="fixed inset-0 z-[9999] flex items-center justify-center p-4 text-left"
+    <UModal
+      :open="isSkipDialogOpen"
+      :portal="false"
+      :title="lt('onboarding.licenseStep.skipDialog.title', 'Are you sure?')"
+      :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-md' }"
+      @update:open="isSkipDialogOpen = $event"
     >
-      <!-- Backdrop -->
-      <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" @click="closeSkipDialog" />
-
-      <!-- Panel -->
-      <div
-        class="bg-elevated border-muted relative w-full max-w-md rounded-xl border p-6 text-left shadow-xl"
-      >
-        <div class="mb-4 flex items-center gap-3">
-          <ExclamationTriangleIcon class="h-8 w-8 flex-shrink-0 text-yellow-500" />
-          <h3 class="text-highlighted text-lg font-bold">
-            {{ lt('onboarding.licenseStep.skipDialog.title', 'Are you sure?') }}
-          </h3>
-        </div>
-
-        <div class="text-muted mt-2 space-y-4 text-sm">
-          <!-- Message if user HAS a code -->
-          <blockquote v-if="hasActivationCode" class="border-primary bg-primary/10 mb-4 border-l-4 p-4">
-            <p class="text-highlighted text-sm leading-relaxed font-medium">
-              {{
-                lt(
-                  'onboarding.licenseStep.skipDialog.licenseDetected',
-                  'It appears you already have a license associated with this server. You can activate it now for free to unlock all features.'
-                )
-              }}
-            </p>
-          </blockquote>
-
-          <!-- Standard Warning (Always Visible) -->
-          <div>
-            <p>
-              {{
-                lt(
-                  'onboarding.licenseStep.skipDialog.warningLine1',
-                  'Skipping activation will severely limit system functionality.'
-                )
-              }}
-            </p>
-            <p>
-              {{
-                lt(
-                  'onboarding.licenseStep.skipDialog.warningLine2',
-                  'You can always activate your server again later through the Unraid dashboard.'
-                )
-              }}
-            </p>
-          </div>
-        </div>
-
-        <div class="mt-6 flex items-center justify-end gap-4">
-          <button
-            @click="closeSkipDialog"
-            class="text-muted hover:text-highlighted text-sm font-medium tracking-wide transition-colors hover:underline"
-          >
-            {{ lt('onboarding.licenseStep.actions.cancel', 'Cancel') }}
-          </button>
-          <BrandButton
-            :text="lt('onboarding.licenseStep.actions.iUnderstand', 'I UNDERSTAND')"
-            @click="doSkip"
-            class="border-none !bg-yellow-600 !text-white hover:!bg-yellow-700"
+      <template #body>
+        <div class="text-muted space-y-4 text-sm">
+          <UAlert
+            v-if="hasActivationCode"
+            color="primary"
+            variant="subtle"
+            icon="i-lucide-info"
+            :description="
+              lt(
+                'onboarding.licenseStep.skipDialog.licenseDetected',
+                'It appears you already have a license associated with this server. You can activate it now for free to unlock all features.'
+              )
+            "
           />
+          <UAlert color="warning" variant="subtle" icon="i-lucide-triangle-alert">
+            <template #description>
+              <div class="space-y-2">
+                <p>
+                  {{
+                    lt(
+                      'onboarding.licenseStep.skipDialog.warningLine1',
+                      'Skipping activation will severely limit system functionality.'
+                    )
+                  }}
+                </p>
+                <p>
+                  {{
+                    lt(
+                      'onboarding.licenseStep.skipDialog.warningLine2',
+                      'You can always activate your server again later through the Unraid dashboard.'
+                    )
+                  }}
+                </p>
+              </div>
+            </template>
+          </UAlert>
         </div>
-      </div>
-    </div>
+      </template>
+      <template #footer>
+        <UButton color="neutral" variant="outline" @click="closeSkipDialog">
+          {{ lt('onboarding.licenseStep.actions.cancel', 'Cancel') }}
+        </UButton>
+        <UButton color="warning" @click="doSkip">
+          {{ lt('onboarding.licenseStep.actions.iUnderstand', 'I UNDERSTAND') }}
+        </UButton>
+      </template>
+    </UModal>
   </div>
 </template>
