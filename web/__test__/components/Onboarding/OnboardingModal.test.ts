@@ -120,11 +120,15 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
     SUMMARY: { template: '<div data-testid="summary-step" />' },
     NEXT_STEPS: {
       props: ['onComplete'],
-      methods: {
-        handleClick() {
+      setup(props: { onComplete: () => void }) {
+        const handleClick = () => {
           cleanupOnboardingStorageMock();
-          this.onComplete();
-        },
+          props.onComplete();
+        };
+
+        return {
+          handleClick,
+        };
       },
       template:
         '<div data-testid="next-step"><button data-testid="next-step-complete" @click="handleClick">finish</button></div>',
