@@ -31,7 +31,6 @@ import usePluginInstaller, {
   INSTALL_OPERATION_TIMEOUT_CODE,
 } from '@/components/Onboarding/composables/usePluginInstaller';
 import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Onboarding/graphql/availableLanguages.query';
-import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import {
   SET_LOCALE_MUTATION,
   SET_THEME_MUTATION,
@@ -41,7 +40,6 @@ import {
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
-import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import { convert } from 'convert';
 
@@ -67,7 +65,6 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
 const { activationCode, isFreshInstall, registrationState } = storeToRefs(useActivationCodeDataStore());
-const { refetchOnboarding } = useOnboardingStore();
 
 // Setup Mutations
 const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
@@ -75,7 +72,6 @@ const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTA
 const { mutate: setTheme } = useMutation(SET_THEME_MUTATION);
 const { mutate: setLocale } = useMutation(SET_LOCALE_MUTATION);
 const { mutate: updateSshSettings } = useMutation(UPDATE_SSH_SETTINGS_MUTATION);
-const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
 
 const { installLanguage, installPlugin } = usePluginInstaller();
 
@@ -654,7 +650,6 @@ const handleComplete = async () => {
     let hadNonOptimisticFailures = false;
     let hadWarnings = !baselineLoaded;
     let hadSshVerificationUncertainty = false;
-    let completionMarked = false;
     let hadInstallTimeout = false;
 
     // 1. Apply Core Settings
@@ -1087,52 +1082,10 @@ const handleComplete = async () => {
       }
     }
 
-    // 5. Mark Complete
-    try {
-      await runWithTransientNetworkRetry(() => completeOnboarding(), shouldRetryNetworkMutations);
-      completionMarked = true;
-    } catch (caughtError: unknown) {
-      hadWarnings = true;
-      addErrorLog(summaryT('logs.completeOnboardingFailed'), caughtError, {
-        operation: 'CompleteOnboarding',
-      });
-    }
-
-    if (completionMarked) {
-      await new Promise((r) => setTimeout(r, 1000));
-    }
-
-    // Avoid blocking completion UI when API is offline/retrying.
-    if (completionMarked && baselineLoaded) {
-      try {
-        await Promise.race([
-          refetchOnboarding(),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Onboarding refresh timed out')), 5500)
-          ),
-        ]);
-      } catch (caughtError: unknown) {
-        hadWarnings = true;
-        addErrorLog(summaryT('logs.refreshOnboardingFailedContinue'), caughtError, {
-          operation: 'OnboardingQuery',
-        });
-      }
-    } else {
-      hadWarnings = true;
-      addLog(summaryT('logs.skipRefreshApiUnavailable'), 'info');
-    }
-
     addLog(summaryT('logs.finalizingSetup'), 'info');
     await applyServerIdentityAtEnd();
-    if (completionMarked) {
-      addLog(summaryT('logs.setupComplete'), 'success');
-    }
 
-    if (!completionMarked) {
-      applyResultSeverity.value = 'warning';
-      applyResultTitle.value = summaryT('result.bestEffortTitle');
-      applyResultMessage.value = summaryT('result.bestEffortApiOffline');
-    } else if (hadInstallTimeout) {
+    if (hadInstallTimeout) {
       applyResultSeverity.value = 'warning';
       applyResultTitle.value = summaryT('result.timeoutTitle');
       applyResultMessage.value = summaryT('result.timeoutMessage');
@@ -1149,6 +1102,7 @@ const handleComplete = async () => {
       applyResultTitle.value = summaryT('result.bestEffortTitle');
       applyResultMessage.value = summaryT('result.bestEffortMessage');
     } else {
+      addLog(summaryT('logs.settingsApplied'), 'success');
       applyResultSeverity.value = 'success';
       applyResultTitle.value = summaryT('result.successTitle');
       applyResultMessage.value = summaryT('result.successMessage');

@@ -123,6 +123,7 @@ To test activation-step gating:
 - The modal automatically switches between fresh-install and version-drift copy
 - There is no server-side per-step completion tracking in this flow
 - Exiting onboarding can call `completeOnboarding`; temporary bypass does not
+- Summary applies and validates draft settings only; final completion happens from Next Steps
 - Version comparison uses semver for reliable ordering
 - The same modal component handles all modes for consistency
 - During apply in the summary step, if baseline core-settings query data is unavailable, onboarding runs in best-effort mode using trusted defaults plus draft values and still proceeds. This behavior is intentional to avoid hard-blocking onboarding when baseline reads are unavailable.
@@ -199,14 +200,13 @@ On mount, summary step starts:
 
 #### Apply Sequence (When User Clicks Confirm)
 
-1. Lock modal visibility (`setIsHidden(false)`).
-2. Compute baseline vs target settings.
-3. Apply core settings (timezone, identity, theme).
-4. Apply locale (with language install when needed).
-5. Install selected plugins not already installed.
-6. Apply SSH settings (optimistic verification).
-7. Call completion mutation and attempt onboarding refetch.
-8. Show final result dialog based on precedence.
+1. Compute baseline vs target settings.
+2. Apply core settings (timezone, identity, theme).
+3. Apply locale (with language install when needed).
+4. Install selected plugins not already installed.
+5. Apply SSH settings (optimistic verification).
+6. Show final result dialog based on apply/result precedence.
+7. Advance to Next Steps after user confirmation.
 
 #### Endpoint/Operation Mapping
 
@@ -222,7 +222,7 @@ On mount, summary step starts:
 | Update SSH | `UpdateSshSettings` |
 | Install plugin | `InstallPlugin` (+ operation tracking query/subscription) |
 | Install language pack | `InstallLanguage` (+ operation tracking query/subscription) |
-| Mark onboarding complete | `CompleteOnboarding` |
+| Final onboarding completion | `CompleteOnboarding` (triggered from Next Steps) |
 
 ### Temporary Bypass Controls
 
@@ -329,20 +329,18 @@ Test file: `web/__test__/components/Onboarding/OnboardingSummaryStep.test.ts`
 | L5 | non-default | present | malformed/unknown status | Keep current locale, warning. |
 | L6 | non-default | present | timeout error | Timeout classification path. |
 
-#### D) Summary Step: Completion/Result Precedence Matrix
+#### D) Summary Step: Apply/Result Precedence Matrix
 
 Test file: `web/__test__/components/Onboarding/OnboardingSummaryStep.test.ts`
 
-| Case | Completion status | Refetch status | Other flags | Expected dialog class |
+| Case | Baseline status | Apply status | Other flags | Expected dialog class |
 | --- | --- | --- | --- | --- |
-| R1 | success | success | none | Setup Applied |
-| R2 | success | fail | warnings | Best-Effort |
-| R3 | success | skipped (baseline unavailable) | warnings | Best-Effort |
-| R4 | fail | skipped | any | Best-Effort |
-| R5 | fail | skipped | timeout present | Best-Effort (completion failure wins) |
-| R6 | success | success | timeout + warnings | Timeout classification wins |
-| R7 | success | success | SSH verified | Fully applied path |
-| R8 | success | success | SSH unverified | Best-Effort |
+| R1 | available | all apply operations succeed | none | Setup Applied |
+| R2 | unavailable | best-effort apply path | warnings | Best-Effort |
+| R3 | available | some apply operations warn/fail | warnings | Warnings |
+| R4 | available or unavailable | timeout during plugin/language install | timeout present | Timeout classification wins |
+| R5 | available | SSH verified | none | Fully applied path |
+| R6 | available | SSH update submitted | SSH unverified | Best-Effort |
 
 #### E) Summary Step: Apply Interaction Matrix
 
