@@ -2,20 +2,66 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FastifyAdapter } from '@nestjs/platform-fastify/index.js';
 
 import fastifyCookie from '@fastify/cookie';
 import fastifyHelmet from '@fastify/helmet';
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
 
+import type { AppReadyEvent } from '@app/unraid-api/app/app-lifecycle.events.js';
 import { apiLogger } from '@app/core/log.js';
 import { LOG_LEVEL, PORT } from '@app/environment.js';
-import { AppModule } from '@app/unraid-api/app/app.module.js';
-import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter.js';
-import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.filter.js';
+import { APP_READY_EVENT } from '@app/unraid-api/app/app-lifecycle.events.js';
+
+const READY_SIGNAL_SENT_SYMBOL = Symbol.for('unraid-api.processReadySignalSent');
+
+type ReadySignalAwareGlobal = typeof globalThis & {
+    [READY_SIGNAL_SENT_SYMBOL]?: boolean;
+};
+
+const readySignalState = globalThis as ReadySignalAwareGlobal;
+
+const signalProcessReady = (reason: string): boolean => {
+    if (readySignalState[READY_SIGNAL_SENT_SYMBOL] === true) {
+        return false;
+    }
+
+    if (!process.send) {
+        apiLogger.warn(
+            new Error('process.send is unavailable'),
+            'Unable to send PM2 ready signal while %s',
+            reason
+        );
+        return false;
+    }
+
+    try {
+        const readySignalSent = process.send('ready');
+
+        if (!readySignalSent) {
+            apiLogger.warn(
+                'process.send returned false while sending PM2 ready signal while %s',
+                reason
+            );
+            return false;
+        }
+
+        readySignalState[READY_SIGNAL_SENT_SYMBOL] = true;
+        apiLogger.info('Sent PM2 ready signal while %s', reason);
+        return true;
+    } catch (error: unknown) {
+        apiLogger.error(error, 'Failed to send PM2 ready signal while %s', reason);
+        return false;
+    }
+};
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
-    apiLogger.debug('Creating Nest Server');
+    const [{ AppModule }, { GraphQLExceptionsFilter }, { HttpExceptionFilter }] = await Promise.all([
+        import('@app/unraid-api/app/app.module.js'),
+        import('@app/unraid-api/exceptions/graphql-exceptions.filter.js'),
+        import('@app/unraid-api/exceptions/http-exceptions.filter.js'),
+    ]);
 
     const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
         bufferLogs: false,
@@ -144,14 +190,12 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     // This 'ready' signal tells pm2 that the api has started.
     // PM2 documents this as Graceful Start or Clean Restart.
     // See https://pm2.keymetrics.io/docs/usage/signals-clean-restart/
-    if (process.send) {
-        process.send('ready');
-    } else {
-        apiLogger.warn(
-            'Warning: process.send is unavailable. This will affect IPC communication with PM2.'
-        );
-    }
+    signalProcessReady('NestJS server is now listening');
     apiLogger.info('Nest Server is now listening');
+    const appReadyEvent: AppReadyEvent = {
+        reason: 'nestjs-server-listening',
+    };
+    app.get(EventEmitter2).emit(APP_READY_EVENT, appReadyEvent);
 
     return app;
 }
