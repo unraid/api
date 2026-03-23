@@ -1,5 +1,24 @@
 # Changelog
 
+## [4.31.0](https://github.com/unraid/api/compare/v4.30.1...v4.31.0) (2026-03-23)
+
+
+### Features
+
+* **api:** support encrypted array start inputs ([#1944](https://github.com/unraid/api/issues/1944)) ([018a8d5](https://github.com/unraid/api/commit/018a8d5251ad4b69bb11763296ca97dbbeb26582))
+* **onboarding:** add shared loading states ([#1945](https://github.com/unraid/api/issues/1945)) ([776c8cc](https://github.com/unraid/api/commit/776c8cc8083c64ab7d682eb9a6dd288214581fb5))
+* Serverside state for onboarding display ([#1936](https://github.com/unraid/api/issues/1936)) ([682d51c](https://github.com/unraid/api/commit/682d51c41ba0e18d07ab63080ae5f4cfa298eb7f))
+
+
+### Bug Fixes
+
+* **api:** reconcile emhttp state without spinning disks ([#1946](https://github.com/unraid/api/issues/1946)) ([d3e0b95](https://github.com/unraid/api/commit/d3e0b9560d3d71348953241fb6ae37c49d645d5a))
+* **onboarding:** auto-open incomplete onboarding on 7.3+ ([#1940](https://github.com/unraid/api/issues/1940)) ([f0241a8](https://github.com/unraid/api/commit/f0241a8ef3f70d3a5a395439513b30e2e9812120))
+* **onboarding:** replace internal boot native selects ([#1942](https://github.com/unraid/api/issues/1942)) ([d6ea032](https://github.com/unraid/api/commit/d6ea032c7f5cc687f7952d4deec39a4c2040ea3a))
+* preserve onboarding resume state on reload ([#1941](https://github.com/unraid/api/issues/1941)) ([91f7fe9](https://github.com/unraid/api/commit/91f7fe9759e0eb84de301b3373bf5eaffd9071b4))
+* recover VM availability after reconnect ([#1947](https://github.com/unraid/api/issues/1947)) ([e064de7](https://github.com/unraid/api/commit/e064de7d3701edbad1b397a8558f16115ea0bb81))
+* Unify callback server payloads ([#1938](https://github.com/unraid/api/issues/1938)) ([f58fcc0](https://github.com/unraid/api/commit/f58fcc028ce745764d28f0409525b5ec08da57ad))
+
 ## [4.30.1](https://github.com/unraid/api/compare/v4.30.0...v4.30.1) (2026-03-18)
 
 
