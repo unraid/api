@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.31.1](https://github.com/unraid/api/compare/v4.31.0...v4.31.1) (2026-03-23)
+
+
+### Bug Fixes
+
+* **onboarding:** separate apply and completion flows ([#1948](https://github.com/unraid/api/issues/1948)) ([5be53a4](https://github.com/unraid/api/commit/5be53a4e53f2daa606dc6d1e27e19471f42cae5d))
+* reload var state when emhttp writes temp files ([#1950](https://github.com/unraid/api/issues/1950)) ([7265105](https://github.com/unraid/api/commit/7265105b0ff5de42cce174c3de1569c629f07721))
+* **state-watch:** watch canonical ini files atomically ([#1953](https://github.com/unraid/api/issues/1953)) ([6471b3f](https://github.com/unraid/api/commit/6471b3f542f549e90e7051f332294ed2b2807890))
+
 ## [4.31.0](https://github.com/unraid/api/compare/v4.30.1...v4.31.0) (2026-03-23)
 
 
