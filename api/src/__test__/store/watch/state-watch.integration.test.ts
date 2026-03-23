@@ -64,6 +64,8 @@ describe('StateManager integration', () => {
         tempRoot = await mkdtemp(join(tmpdir(), 'state-watch-'));
         statesDirectory = join(tempRoot, 'state');
         await mkdir(statesDirectory);
+        await writeFile(join(statesDirectory, 'var.ini'), 'NAME="Before"\n');
+        await writeFile(join(statesDirectory, 'disks.ini'), '[disk1]\nname=disk1\n');
         testContext.states = statesDirectory;
 
         const { StateManager } = await import('@app/store/watch/state-watch.js');
