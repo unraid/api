@@ -10,17 +10,50 @@ import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
 
 import { apiLogger } from '@app/core/log.js';
 import { LOG_LEVEL, PORT } from '@app/environment.js';
-import { AppModule } from '@app/unraid-api/app/app.module.js';
-import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter.js';
-import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.filter.js';
+
+const READY_SIGNAL_SENT_SYMBOL = Symbol.for('unraid-api.processReadySignalSent');
+
+type ReadySignalAwareGlobal = typeof globalThis & {
+    [READY_SIGNAL_SENT_SYMBOL]?: boolean;
+};
+
+const readySignalState = globalThis as ReadySignalAwareGlobal;
+
+const signalProcessReady = (reason: string): boolean => {
+    if (readySignalState[READY_SIGNAL_SENT_SYMBOL] === true) {
+        return false;
+    }
+
+    if (!process.send) {
+        apiLogger.warn(
+            new Error('process.send is unavailable'),
+            'Unable to send PM2 ready signal while %s',
+            reason
+        );
+        return false;
+    }
+
+    process.send('ready');
+    readySignalState[READY_SIGNAL_SENT_SYMBOL] = true;
+    apiLogger.info('Sent PM2 ready signal while %s', reason);
+    return true;
+};
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
-    apiLogger.debug('Creating Nest Server');
+    apiLogger.info('bootstrapNestServer: loading application modules');
+    const [{ AppModule }, { GraphQLExceptionsFilter }, { HttpExceptionFilter }] = await Promise.all([
+        import('@app/unraid-api/app/app.module.js'),
+        import('@app/unraid-api/exceptions/graphql-exceptions.filter.js'),
+        import('@app/unraid-api/exceptions/http-exceptions.filter.js'),
+    ]);
+    apiLogger.info('bootstrapNestServer: application modules loaded');
+    apiLogger.info('bootstrapNestServer: creating Nest application');
 
     const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
         bufferLogs: false,
         ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
     });
+    apiLogger.info('bootstrapNestServer: Nest application created');
     app.enableShutdownHooks(['SIGINT', 'SIGTERM', 'SIGQUIT']);
 
     // Enable validation globally
@@ -48,11 +81,14 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
      * tl;dr different types used by nestjs/platform-fastify and fastify.
      *------------------------------------------------------------------------**/
 
+    apiLogger.info('bootstrapNestServer: registering fastify-cookie');
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Known nestjs x fastify type compatibility issue
     await server.register(fastifyCookie);
+    apiLogger.info('bootstrapNestServer: fastify-cookie registered');
 
     // Minimal Helmet configuration to avoid blocking plugin functionality
+    apiLogger.info('bootstrapNestServer: registering fastify-helmet');
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Known nestjs x fastify type compatibility issue
     await server.register(fastifyHelmet, {
@@ -76,6 +112,7 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         // HSTS disabled to avoid issues with running on local networks
         hsts: false,
     });
+    apiLogger.info('bootstrapNestServer: fastify-helmet registered');
 
     // Add sandbox access control hook
     server.addHook('preHandler', async (request, reply) => {
@@ -111,6 +148,7 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     });
 
     // Allows all origins but still checks authentication
+    apiLogger.info('bootstrapNestServer: configuring CORS and global filters');
     app.enableCors({
         origin: true, // Allows all origins
         credentials: true,
@@ -131,12 +169,16 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
 
     apiLogger.info('Starting Nest Server on Port / Path: %s', PORT);
     app.useGlobalFilters(new GraphQLExceptionsFilter(), new HttpExceptionFilter());
+    apiLogger.info('bootstrapNestServer: initializing Nest application');
     await app.init();
+    apiLogger.info('bootstrapNestServer: Nest application initialized');
 
     if (Number.isNaN(parseInt(PORT))) {
+        apiLogger.info('bootstrapNestServer: listening on unix socket');
         const result = await server.listen({ path: '/var/run/unraid-api.sock' });
         apiLogger.info('Server listening on %s', result);
     } else {
+        apiLogger.info('bootstrapNestServer: listening on TCP port');
         const result = await server.listen({ port: parseInt(PORT), host: '0.0.0.0' });
         apiLogger.info('Server listening on %s', result);
     }
@@ -144,13 +186,14 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     // This 'ready' signal tells pm2 that the api has started.
     // PM2 documents this as Graceful Start or Clean Restart.
     // See https://pm2.keymetrics.io/docs/usage/signals-clean-restart/
-    if (process.send) {
-        process.send('ready');
-    } else {
-        apiLogger.warn(
-            'Warning: process.send is unavailable. This will affect IPC communication with PM2.'
-        );
-    }
+    signalProcessReady('NestJS server is now listening');
+    void import('@app/unraid-api/graph/resolvers/docker/docker-startup-tasks.js')
+        .then(({ scheduleDockerStartupTasks }) => {
+            scheduleDockerStartupTasks(app, apiLogger);
+        })
+        .catch((error: unknown) => {
+            apiLogger.warn(error, 'Failed to load Docker startup task scheduler');
+        });
     apiLogger.info('Nest Server is now listening');
 
     return app;

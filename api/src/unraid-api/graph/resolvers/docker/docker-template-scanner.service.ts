@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Timeout } from '@nestjs/schedule';
 import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 
@@ -33,7 +32,6 @@ export class DockerTemplateScannerService {
         private readonly dockerService: DockerService
     ) {}
 
-    @Timeout(5_000)
     async bootstrapScan(attempt = 1, maxAttempts = 5): Promise<void> {
         if (!ENABLE_NEXT_DOCKER_RELEASE) {
             return;

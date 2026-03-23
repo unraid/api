@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { SchedulerRegistry, Timeout } from '@nestjs/schedule';
+import { SchedulerRegistry } from '@nestjs/schedule';
 
 import { CronJob } from 'cron';
 
@@ -41,7 +41,6 @@ export class ContainerStatusJob {
     /**
      * Refresh container digests 5 seconds after application start.
      */
-    @Timeout(5_000)
     async refreshContainerDigestsAfterStartup() {
         if (!this.dockerConfigService.enabled()) return;
         await this.dockerManifestService.refreshDigests();
