@@ -314,13 +314,20 @@ describe('OnboardingModal.vue', () => {
   });
 
   it('shows a loading state while exit confirmation is closing the modal', async () => {
-    let resolveCloseModal: ((value: boolean) => void) | null = null;
-    onboardingModalStoreState.closeModal.mockImplementation(
-      () =>
-        new Promise<boolean>((resolve) => {
-          resolveCloseModal = resolve;
-        })
-    );
+    let closeModalDeferred:
+      | {
+          promise: Promise<boolean>;
+          resolve: (value: boolean) => void;
+        }
+      | undefined;
+    onboardingModalStoreState.closeModal.mockImplementation(() => {
+      let resolve!: (value: boolean) => void;
+      const promise = new Promise<boolean>((innerResolve) => {
+        resolve = innerResolve;
+      });
+      closeModalDeferred = { promise, resolve };
+      return promise;
+    });
 
     const wrapper = mountComponent();
 
@@ -335,8 +342,8 @@ describe('OnboardingModal.vue', () => {
     expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Closing setup...');
 
-    if (resolveCloseModal) {
-      resolveCloseModal(true);
+    if (closeModalDeferred) {
+      closeModalDeferred.resolve(true);
     }
     await flushPromises();
   });
