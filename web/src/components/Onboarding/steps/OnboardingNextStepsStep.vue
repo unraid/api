@@ -434,7 +434,12 @@ const handleCancelReboot = () => {
         </div>
       </Dialog>
 
-      <p v-if="completionError" class="mt-6 text-sm text-red-600">
+      <p
+        v-if="completionError"
+        role="alert"
+        aria-live="polite"
+        class="mt-6 text-sm text-red-600 dark:text-red-400"
+      >
         {{ completionError }}
       </p>
 

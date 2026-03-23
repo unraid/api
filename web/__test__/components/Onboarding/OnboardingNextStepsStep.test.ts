@@ -177,7 +177,7 @@ describe('OnboardingNextStepsStep', () => {
     await button.trigger('click');
     await flushPromises();
 
-    expect(wrapper.text()).toContain("We couldn't finish onboarding right now. Please try again.");
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true);
     expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
     expect(refetchOnboardingMock).not.toHaveBeenCalled();
     expect(onComplete).not.toHaveBeenCalled();

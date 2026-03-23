@@ -200,14 +200,13 @@ On mount, summary step starts:
 
 #### Apply Sequence (When User Clicks Confirm)
 
-1. Lock modal visibility (`setIsHidden(false)`).
-2. Compute baseline vs target settings.
-3. Apply core settings (timezone, identity, theme).
-4. Apply locale (with language install when needed).
-5. Install selected plugins not already installed.
-6. Apply SSH settings (optimistic verification).
-7. Call completion mutation and attempt onboarding refetch.
-8. Show final result dialog based on precedence.
+1. Compute baseline vs target settings.
+2. Apply core settings (timezone, identity, theme).
+3. Apply locale (with language install when needed).
+4. Install selected plugins not already installed.
+5. Apply SSH settings (optimistic verification).
+6. Show final result dialog based on apply/result precedence.
+7. Advance to Next Steps after user confirmation.
 
 #### Endpoint/Operation Mapping
 
@@ -223,7 +222,7 @@ On mount, summary step starts:
 | Update SSH | `UpdateSshSettings` |
 | Install plugin | `InstallPlugin` (+ operation tracking query/subscription) |
 | Install language pack | `InstallLanguage` (+ operation tracking query/subscription) |
-| Mark onboarding complete | `CompleteOnboarding` |
+| Final onboarding completion | `CompleteOnboarding` (triggered from Next Steps) |
 
 ### Temporary Bypass Controls
 

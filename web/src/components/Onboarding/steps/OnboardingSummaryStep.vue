@@ -1084,7 +1084,6 @@ const handleComplete = async () => {
 
     addLog(summaryT('logs.finalizingSetup'), 'info');
     await applyServerIdentityAtEnd();
-    addLog(summaryT('logs.settingsApplied'), 'success');
 
     if (hadInstallTimeout) {
       applyResultSeverity.value = 'warning';
@@ -1103,6 +1102,7 @@ const handleComplete = async () => {
       applyResultTitle.value = summaryT('result.bestEffortTitle');
       applyResultMessage.value = summaryT('result.bestEffortMessage');
     } else {
+      addLog(summaryT('logs.settingsApplied'), 'success');
       applyResultSeverity.value = 'success';
       applyResultTitle.value = summaryT('result.successTitle');
       applyResultMessage.value = summaryT('result.successMessage');
