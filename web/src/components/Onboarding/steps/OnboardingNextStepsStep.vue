@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useMutation } from '@vue/apollo-composable';
 
 import {
   BookOpenIcon,
@@ -17,8 +18,10 @@ import { BrandButton, Dialog } from '@unraid/ui';
 // Use ?raw to import SVG content string
 import UnraidIconSvg from '@/assets/partners/simple-icons-unraid.svg?raw';
 import { submitInternalBootReboot } from '@/components/Onboarding/composables/internalBoot';
+import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
+import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
 import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
 
 export interface Props {
@@ -31,6 +34,8 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 const store = useActivationCodeDataStore();
 const draftStore = useOnboardingDraftStore();
+const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
+const { refetchOnboarding } = useOnboardingStore();
 
 const partnerInfo = computed(() => store.partnerInfo);
 const activationCode = computed(() => store.activationCode);
@@ -56,6 +61,8 @@ const primaryButtonText = computed(() =>
     : t('onboarding.nextSteps.continueToDashboard')
 );
 const showRebootWarningDialog = ref(false);
+const isCompleting = ref(false);
+const completionError = ref<string | null>(null);
 
 const basicsItems = [
   { label: t('onboarding.nextSteps.basics.shares'), url: 'https://docs.unraid.net/go/shares/' },
@@ -84,19 +91,51 @@ const handleMouseMove = (e: MouseEvent) => {
   el.style.setProperty('--y', `${y}px`);
 };
 
-const handlePrimaryAction = () => {
+const finishOnboarding = async ({ reboot }: { reboot: boolean }) => {
+  if (isCompleting.value) {
+    return;
+  }
+
+  isCompleting.value = true;
+  completionError.value = null;
+
+  try {
+    await completeOnboarding();
+
+    try {
+      await refetchOnboarding();
+    } catch (error: unknown) {
+      console.error('Failed to refresh onboarding state:', error);
+    }
+
+    cleanupOnboardingStorage();
+
+    if (reboot) {
+      submitInternalBootReboot();
+      return;
+    }
+
+    props.onComplete();
+  } catch (error: unknown) {
+    console.error('Failed to complete onboarding:', error);
+    completionError.value = t('onboarding.nextSteps.completionFailed');
+  } finally {
+    isCompleting.value = false;
+  }
+};
+
+const handlePrimaryAction = async () => {
   if (showRebootButton.value) {
     showRebootWarningDialog.value = true;
     return;
   }
 
-  props.onComplete();
+  await finishOnboarding({ reboot: false });
 };
 
-const handleConfirmReboot = () => {
+const handleConfirmReboot = async () => {
   showRebootWarningDialog.value = false;
-  cleanupOnboardingStorage();
-  submitInternalBootReboot();
+  await finishOnboarding({ reboot: true });
 };
 
 const handleCancelReboot = () => {
@@ -378,6 +417,7 @@ const handleCancelReboot = () => {
             <button
               type="button"
               class="border-muted hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium"
+              :disabled="isCompleting"
               @click="handleCancelReboot"
             >
               {{ t('common.cancel') }}
@@ -385,6 +425,7 @@ const handleCancelReboot = () => {
             <button
               type="button"
               class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
+              :disabled="isCompleting"
               @click="handleConfirmReboot"
             >
               {{ t('onboarding.nextSteps.confirmReboot.confirm') }}
@@ -392,6 +433,10 @@ const handleCancelReboot = () => {
           </div>
         </div>
       </Dialog>
+
+      <p v-if="completionError" class="mt-6 text-sm text-red-600">
+        {{ completionError }}
+      </p>
 
       <!-- Footer -->
       <div
@@ -409,6 +454,7 @@ const handleCancelReboot = () => {
 
         <BrandButton
           :text="primaryButtonText"
+          :disabled="isCompleting"
           class="!bg-primary hover:!bg-primary/90 w-full min-w-[200px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
           @click="handlePrimaryAction"
           :icon-right="CheckCircleIcon"
