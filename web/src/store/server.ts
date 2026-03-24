@@ -24,7 +24,7 @@ import dayjs from 'dayjs';
 import prerelease from 'semver/functions/prerelease';
 
 import type { ApolloQueryResult } from '@apollo/client/core/index.js';
-import type { ServerActionTypes, ServerData } from '@unraid/shared-callbacks';
+import type { ConnectState, ServerActionTypes, ServerData } from '@unraid/shared-callbacks';
 import type { Config, PartialCloudFragment, ServerStateQuery } from '~/composables/gql/graphql';
 import type { Error } from '~/store/errors';
 import type { Theme } from '~/themes/types';
@@ -50,12 +50,6 @@ import { CLOUD_STATE_QUERY, SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from '~/
 import { useThemeStore } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
 import { getRegistrationDeviceLimit, normalizeRegistrationType } from '~/utils/registration';
-
-type CallbackConnectState = PartialCloudFragment['minigraphql']['status'];
-type CallbackServerData = ServerData & {
-  connectPluginVersion?: string;
-  connectState?: CallbackConnectState;
-};
 
 export const useServerStore = defineStore('server', () => {
   const { t } = useI18n();
@@ -237,12 +231,25 @@ export const useServerStore = defineStore('server', () => {
     };
   });
 
-  const buildServerCallbackPayload = (
-    overrides: Partial<CallbackServerData> = {}
-  ): CallbackServerData => {
-    const payload: CallbackServerData = {
+  const getConnectState = (): ConnectState | undefined => {
+    const connectState = cloud.value?.minigraphql.status;
+
+    switch (connectState) {
+      case 'PRE_INIT':
+      case 'CONNECTING':
+      case 'CONNECTED':
+      case 'PING_FAILURE':
+      case 'ERROR_RETRYING':
+        return connectState;
+      default:
+        return undefined;
+    }
+  };
+
+  const buildServerCallbackPayload = (overrides: Partial<ServerData> = {}): ServerData => {
+    const payload: ServerData = {
       connectPluginVersion: connectPluginVersion.value || undefined,
-      connectState: cloud.value?.minigraphql.status,
+      connectState: getConnectState(),
       description: description.value,
       deviceCount: deviceCount.value,
       expireTime: expireTime.value,
@@ -287,12 +294,12 @@ export const useServerStore = defineStore('server', () => {
     };
   };
 
-  const serverPurchasePayload = computed((): CallbackServerData => buildServerCallbackPayload());
+  const serverPurchasePayload = computed((): ServerData => buildServerCallbackPayload());
 
-  const serverAccountPayload = computed((): CallbackServerData => buildServerCallbackPayload());
+  const serverAccountPayload = computed((): ServerData => buildServerCallbackPayload());
 
   const serverReplacePayload = computed(
-    (): CallbackServerData => ({
+    (): ServerData => ({
       ...buildServerCallbackPayload({
         guid: replaceFlashGuid.value,
       }),
