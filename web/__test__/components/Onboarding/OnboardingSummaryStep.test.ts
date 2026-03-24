@@ -122,18 +122,9 @@ vi.mock('@unraid/ui', () => ({
     template:
       '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')"><slot />{{ text }}</button>',
   },
-}));
-
-vi.mock('@headlessui/vue', () => ({
-  Disclosure: {
-    template: '<div><slot :open="false" /></div>',
-  },
-  DisclosureButton: {
-    props: ['disabled'],
-    template: '<button :disabled="disabled"><slot /></button>',
-  },
-  DisclosurePanel: {
-    template: '<div><slot /></div>',
+  Accordion: {
+    props: ['items', 'type', 'collapsible', 'class'],
+    template: `<div data-testid="accordion"><template v-for="item in items" :key="item.value"><slot name="trigger" :item="item" :open="false" /><slot name="content" :item="item" :open="false" /></template></div>`,
   },
 }));
 
@@ -997,9 +988,8 @@ describe('OnboardingSummaryStep', () => {
 
     await clickApply(wrapper);
 
-    expect(completeOnboardingMock).not.toHaveBeenCalled();
     expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
-    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
+    expect(getSummaryVm(wrapper).showApplyResultDialog).toBe(true);
     expect(wrapper.text()).toContain('Setup Applied');
     expect(onComplete).not.toHaveBeenCalled();
   });

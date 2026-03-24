@@ -65,6 +65,10 @@ vi.mock('@unraid/ui', () => ({
     template:
       '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')">{{ text }}</button>',
   },
+  Accordion: {
+    props: ['items', 'type', 'collapsible', 'class'],
+    template: `<div data-testid="accordion"><template v-for="item in items" :key="item.value"><slot name="trigger" :item="item" :open="false" /><slot name="content" :item="item" :open="false" /></template></div>`,
+  },
 }));
 
 vi.mock('@vue/apollo-composable', () => ({
