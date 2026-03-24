@@ -92,6 +92,7 @@ const getStore = () => {
   Object.defineProperties(store, {
     apiVersion: { value: '', writable: true },
     array: { value: undefined, writable: true },
+    cloud: { value: undefined, writable: true },
     connectPluginVersion: { value: '', writable: true },
     registered: { value: undefined, writable: true },
     state: { value: undefined, writable: true },
@@ -182,6 +183,7 @@ const getStore = () => {
     serverPurchasePayload: {
       get: () => {
         const payload = {
+          connectState: store.cloud?.minigraphql?.status,
           connectPluginVersion: store.connectPluginVersion || undefined,
           description: store.description,
           deviceCount: store.deviceCount,
@@ -211,6 +213,7 @@ const getStore = () => {
     serverAccountPayload: {
       get: () => {
         const payload = {
+          connectState: store.cloud?.minigraphql?.status,
           connectPluginVersion: store.connectPluginVersion || undefined,
           deviceCount: store.deviceCount,
           description: store.description,
@@ -641,6 +644,9 @@ describe('useServerStore', () => {
     const store = getStore();
 
     store.setServer({
+      cloud: createTestData({
+        minigraphql: { status: 'CONNECTED' },
+      }) as PartialCloudFragment,
       connectPluginVersion: '2024.05.06.1049',
       deviceCount: 6,
       description: 'Test Server',
@@ -664,6 +670,7 @@ describe('useServerStore', () => {
 
     const payload = store.serverPurchasePayload;
 
+    expect(payload.connectState).toBe('CONNECTED');
     expect(payload.connectPluginVersion).toBe('2024.05.06.1049');
     expect(payload.description).toBe('Test Server');
     expect(payload.deviceCount).toBe(6);
@@ -713,6 +720,9 @@ describe('useServerStore', () => {
     const store = getStore();
 
     store.setServer({
+      cloud: createTestData({
+        minigraphql: { status: 'CONNECTED' },
+      }) as PartialCloudFragment,
       connectPluginVersion: '2024.05.06.1049',
       deviceCount: 6,
       description: 'Test Server',
@@ -737,6 +747,7 @@ describe('useServerStore', () => {
 
     const payload = store.serverAccountPayload;
 
+    expect(payload.connectState).toBe('CONNECTED');
     expect(payload.connectPluginVersion).toBe('2024.05.06.1049');
     expect(payload.deviceCount).toBe(6);
     expect(payload.description).toBe('Test Server');
@@ -763,6 +774,10 @@ describe('useServerStore', () => {
     const store = getStore();
 
     store.setServer({
+      cloud: createTestData({
+        minigraphql: { status: 'CONNECTED' },
+      }) as PartialCloudFragment,
+      connectPluginVersion: '2024.05.06.1049',
       flashGuid: '058F-6387-0000-0000F1F1E1C6',
       guid: '058F-6387-0000-0000F1F1E1C6',
       keyfile: '/boot/config/Pro.key',
@@ -770,6 +785,8 @@ describe('useServerStore', () => {
       tpmGuid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
     });
 
+    expect(store.serverReplacePayload.connectState).toBe('CONNECTED');
+    expect(store.serverReplacePayload.connectPluginVersion).toBe('2024.05.06.1049');
     expect(store.serverReplacePayload.guid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
   });
 

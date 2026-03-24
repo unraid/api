@@ -51,6 +51,12 @@ import { useThemeStore } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
 import { getRegistrationDeviceLimit, normalizeRegistrationType } from '~/utils/registration';
 
+type CallbackConnectState = PartialCloudFragment['minigraphql']['status'];
+type CallbackServerData = ServerData & {
+  connectPluginVersion?: string;
+  connectState?: CallbackConnectState;
+};
+
 export const useServerStore = defineStore('server', () => {
   const { t } = useI18n();
   const accountStore = useAccountStore();
@@ -231,9 +237,12 @@ export const useServerStore = defineStore('server', () => {
     };
   });
 
-  const buildServerCallbackPayload = (overrides: Partial<ServerData> = {}): ServerData => {
-    const payload: ServerData = {
-      connectPluginVersion: connectPluginVersion.value,
+  const buildServerCallbackPayload = (
+    overrides: Partial<CallbackServerData> = {}
+  ): CallbackServerData => {
+    const payload: CallbackServerData = {
+      connectPluginVersion: connectPluginVersion.value || undefined,
+      connectState: cloud.value?.minigraphql.status,
       description: description.value,
       deviceCount: deviceCount.value,
       expireTime: expireTime.value,
@@ -278,12 +287,12 @@ export const useServerStore = defineStore('server', () => {
     };
   };
 
-  const serverPurchasePayload = computed((): ServerData => buildServerCallbackPayload());
+  const serverPurchasePayload = computed((): CallbackServerData => buildServerCallbackPayload());
 
-  const serverAccountPayload = computed((): ServerData => buildServerCallbackPayload());
+  const serverAccountPayload = computed((): CallbackServerData => buildServerCallbackPayload());
 
   const serverReplacePayload = computed(
-    (): ServerData => ({
+    (): CallbackServerData => ({
       ...buildServerCallbackPayload({
         guid: replaceFlashGuid.value,
       }),
