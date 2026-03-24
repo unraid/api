@@ -2,7 +2,11 @@ import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { InternalBootApplyResult } from '~/components/Onboarding/composables/internalBoot';
+import type {
+  InternalBootApplyMessages,
+  InternalBootApplyResult,
+  InternalBootSelection,
+} from '~/components/Onboarding/composables/internalBoot';
 
 import OnboardingInternalBootStandalone from '~/components/Onboarding/standalone/OnboardingInternalBoot.standalone.vue';
 import { createTestI18n } from '../../utils/i18n';
@@ -25,7 +29,9 @@ const { draftStore, applyInternalBootSelectionMock, dialogPropsRef, stepPropsRef
 
     return {
       draftStore: store,
-      applyInternalBootSelectionMock: vi.fn<() => Promise<InternalBootApplyResult>>(),
+      applyInternalBootSelectionMock: vi.fn<
+        (selection: InternalBootSelection, messages: InternalBootApplyMessages) => Promise<InternalBootApplyResult>
+      >(),
       dialogPropsRef: { value: null as Record<string, unknown> | null },
       stepPropsRef: { value: null as Record<string, unknown> | null },
       stepperPropsRef: { value: null as Record<string, unknown> | null },
