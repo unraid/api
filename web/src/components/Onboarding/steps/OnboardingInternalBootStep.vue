@@ -533,14 +533,6 @@ const getDeviceSelectItems = (index: number): SelectMenuItem[] =>
     disabled: isDeviceDisabled(option.value, index),
   }));
 
-const setBootMode = (mode: OnboardingBootMode) => {
-  if (isStepLocked.value) {
-    return;
-  }
-
-  bootMode.value = mode;
-};
-
 const handleUpdateBiosChange = (value: boolean | 'indeterminate') => {
   updateBios.value = value === true;
 };
