@@ -48,6 +48,9 @@ const getCssVar = (name: string): string => {
 
 const readDomThemeName = () => getCssVar('--theme-name');
 
+const isDarkThemeName = (themeName: string) =>
+  DARK_UI_THEMES.includes(themeName as (typeof DARK_UI_THEMES)[number]);
+
 const syncDarkClass = (method: 'add' | 'remove') => {
   if (!isDomAvailable()) return;
   document.documentElement.classList[method]('dark');
@@ -97,12 +100,6 @@ export const useThemeStore = defineStore('theme', () => {
   const hasServerTheme = ref(false);
   const devOverride = ref(false);
   const darkMode = ref<boolean>(false);
-
-  // Initialize dark mode from CSS variable set by PHP or any pre-applied .dark class
-  if (isDomAvailable()) {
-    darkMode.value = isDarkModeActive();
-    bootstrapDarkClass(darkMode);
-  }
 
   // Lazy query - only executes when explicitly called
   const { load, onResult, onError } = useLazyQuery<GetThemeQuery>(GET_THEME_QUERY, null, {
@@ -208,16 +205,19 @@ export const useThemeStore = defineStore('theme', () => {
   watch(
     () => theme.value.name,
     (themeName) => {
-      const isDark = DARK_UI_THEMES.includes(themeName as (typeof DARK_UI_THEMES)[number]);
-      applyDarkClass(isDark, darkMode);
+      applyDarkClass(isDarkThemeName(themeName), darkMode);
     },
     { immediate: false }
   );
 
   // Initialize theme from DOM on store creation
-  const domThemeName = themeName.value;
-  if (domThemeName && domThemeName !== DEFAULT_THEME.name) {
-    theme.value.name = domThemeName;
+  const domThemeName = readDomThemeName();
+  if (domThemeName) {
+    setTheme({ name: domThemeName });
+    applyDarkClass(isDarkThemeName(domThemeName), darkMode);
+  } else if (isDomAvailable()) {
+    darkMode.value = isDarkModeActive();
+    bootstrapDarkClass(darkMode);
   }
 
   return {

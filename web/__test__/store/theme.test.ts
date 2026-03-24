@@ -286,5 +286,17 @@ describe('Theme Store', () => {
 
       vi.restoreAllMocks();
     });
+
+    it('should remove stale dark classes when the DOM theme is light', () => {
+      document.documentElement.style.setProperty('--theme-name', 'white');
+      originalDocumentElementAddClass.call(document.documentElement.classList, 'dark');
+      originalAddClassFn.call(document.body.classList, 'dark');
+
+      const store = createStore();
+
+      expect(document.documentElement.classList.remove).toHaveBeenCalledWith('dark');
+      expect(document.body.classList.remove).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(false);
+    });
   });
 });
