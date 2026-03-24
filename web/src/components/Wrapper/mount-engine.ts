@@ -11,6 +11,7 @@ import { createI18nInstance, ensureLocale, getWindowLocale } from '~/helpers/i18
 
 // Import Pinia for use in Vue apps
 import { globalPinia } from '~/store/globalPinia';
+import { enableDropdownIdCompatibility } from '~/utils/dropdownIdCompatibility';
 import { ensureUnapiScope, ensureUnapiScopeForSelectors, observeUnapiScope } from '~/utils/unapiScope';
 
 // Ensure Apollo client is singleton
@@ -128,6 +129,8 @@ function parsePropsFromElement(element: Element): Record<string, unknown> {
 
 // Create and mount unified app with shared context
 export async function mountUnifiedApp() {
+  enableDropdownIdCompatibility();
+
   // Create a minimal app just for context sharing
   const app = createApp({
     name: 'UnifiedContextApp',
