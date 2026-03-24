@@ -726,42 +726,21 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         </div>
       </div>
 
-      <div class="space-y-3">
-        <label
-          class="border-muted bg-bg/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
-        >
-          <input
-            v-model="bootMode"
-            type="radio"
-            value="usb"
-            class="accent-primary mt-0.5 h-4 w-4"
-            :disabled="isStepLocked"
-          />
-          <span class="text-highlighted text-sm font-semibold">
-            {{ t('onboarding.internalBootStep.options.usb') }}
-          </span>
-        </label>
-        <label
-          class="border-muted bg-bg/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
-        >
-          <input
-            v-model="bootMode"
-            type="radio"
-            value="storage"
-            class="accent-primary mt-0.5 h-4 w-4"
-            :disabled="isStepLocked"
-          />
-          <span class="text-highlighted text-sm font-semibold">
-            {{ t('onboarding.internalBootStep.options.storage') }}
-          </span>
-        </label>
-      </div>
+      <URadioGroup
+        v-model="bootMode"
+        :items="[
+          { label: t('onboarding.internalBootStep.options.usb'), value: 'usb' },
+          { label: t('onboarding.internalBootStep.options.storage'), value: 'storage' },
+        ]"
+        :disabled="isStepLocked"
+        variant="card"
+      />
 
       <UAlert
         v-if="isStorageBootSelected && hasEligibleDevices"
         data-testid="internal-boot-intro-panel"
         class="my-8"
-        color="primary"
+        color="info"
         variant="subtle"
         icon="i-lucide-info"
       >
@@ -859,6 +838,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
               :placeholder="t('onboarding.internalBootStep.fields.selectDevice')"
               :disabled="isBusy"
               class="w-full"
+              size="xl"
               :ui="{ content: 'z-[100]' }"
             />
           </div>
@@ -903,7 +883,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             />
           </label>
 
-          <label class="space-y-2">
+          <label v-if="bootSizePreset === 'custom'" class="space-y-2">
             <span class="text-muted text-sm font-medium">
               {{ t('onboarding.internalBootStep.fields.customSizeGb') }}
             </span>
@@ -912,7 +892,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
               type="number"
               min="4"
               :max="maxCustomBootSizeGb ?? undefined"
-              :disabled="isBusy || bootSizePreset !== 'custom'"
+              :disabled="isBusy"
               class="w-full"
             />
           </label>
@@ -934,7 +914,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
           v-if="updateBios"
           data-testid="internal-boot-update-bios-warning"
           color="warning"
-          variant="subtle"
+          variant="outline"
           icon="i-lucide-triangle-alert"
         >
           <template #description>
