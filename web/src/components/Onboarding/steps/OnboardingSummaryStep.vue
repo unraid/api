@@ -41,7 +41,6 @@ import {
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
-import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import { convert } from 'convert';
 
@@ -67,8 +66,6 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
 const { activationCode, isFreshInstall, registrationState } = storeToRefs(useActivationCodeDataStore());
-const { refetchOnboarding } = useOnboardingStore();
-
 // Setup Mutations
 const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
 const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTATION);
@@ -1029,26 +1026,6 @@ const handleComplete = async () => {
 
     if (completionMarked) {
       await new Promise((r) => setTimeout(r, 1000));
-    }
-
-    // Avoid blocking completion UI when API is offline/retrying.
-    if (completionMarked && baselineLoaded) {
-      try {
-        await Promise.race([
-          refetchOnboarding(),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Onboarding refresh timed out')), 5500)
-          ),
-        ]);
-      } catch (caughtError: unknown) {
-        hadWarnings = true;
-        addErrorLog(summaryT('logs.refreshOnboardingFailedContinue'), caughtError, {
-          operation: 'OnboardingQuery',
-        });
-      }
-    } else {
-      hadWarnings = true;
-      addLog(summaryT('logs.skipRefreshApiUnavailable'), 'info');
     }
 
     addLog(summaryT('logs.finalizingSetup'), 'info');

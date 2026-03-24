@@ -35,7 +35,6 @@ const {
   installedPluginsResult,
   availableLanguagesResult,
   refetchInstalledPluginsMock,
-  refetchOnboardingMock,
   setModalHiddenMock,
   updateSystemTimeMock,
   updateServerIdentityMock,
@@ -93,7 +92,6 @@ const {
     },
   },
   refetchInstalledPluginsMock: vi.fn().mockResolvedValue(undefined),
-  refetchOnboardingMock: vi.fn().mockResolvedValue(undefined),
   setModalHiddenMock: vi.fn(),
   updateSystemTimeMock: vi.fn().mockResolvedValue({}),
   updateServerIdentityMock: vi.fn().mockResolvedValue({}),
@@ -168,12 +166,6 @@ vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
 vi.mock('@/components/Onboarding/store/onboardingModalVisibility', () => ({
   useOnboardingModalStore: () => ({
     setIsHidden: setModalHiddenMock,
-  }),
-}));
-
-vi.mock('@/components/Onboarding/store/onboardingStatus', () => ({
-  useOnboardingStore: () => ({
-    refetchOnboarding: refetchOnboardingMock,
   }),
 }));
 
@@ -370,7 +362,6 @@ describe('OnboardingSummaryStep', () => {
       logs: [],
     });
     refetchInstalledPluginsMock.mockResolvedValue(undefined);
-    refetchOnboardingMock.mockResolvedValue(undefined);
   });
 
   it.each([
@@ -856,25 +847,12 @@ describe('OnboardingSummaryStep', () => {
 
   it.each([
     {
-      caseName: 'baseline available + completion/refetch succeed',
+      caseName: 'baseline available + completion succeeds',
       apply: () => {},
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
-        expect(refetchOnboardingMock).toHaveBeenCalledTimes(1);
         expect(wrapper.text()).toContain('Setup Applied');
         expect(wrapper.text()).not.toContain('Setup Saved in Best-Effort Mode');
-      },
-    },
-    {
-      caseName: 'baseline available + onboarding refetch fails',
-      apply: () => {
-        refetchOnboardingMock.mockRejectedValue(new Error('refresh failed'));
-      },
-      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
-        expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
-        expect(refetchOnboardingMock).toHaveBeenCalledTimes(1);
-        expect(wrapper.text()).toContain('Could not refresh onboarding state right now. Continuing.');
-        expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
       },
     },
     {
@@ -885,8 +863,6 @@ describe('OnboardingSummaryStep', () => {
       },
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
-        expect(refetchOnboardingMock).not.toHaveBeenCalled();
-        expect(wrapper.text()).toContain('Skipping onboarding state refresh while API is unavailable.');
         expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
       },
     },
@@ -897,7 +873,6 @@ describe('OnboardingSummaryStep', () => {
       },
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
-        expect(refetchOnboardingMock).not.toHaveBeenCalled();
         expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
         expect(wrapper.text()).toContain(
           'Could not mark onboarding complete right now (API may be offline): offline'
@@ -914,13 +889,16 @@ describe('OnboardingSummaryStep', () => {
     scenario.assertExpected(wrapper);
   });
 
-  it('does not clear onboarding draft after a successful apply while still in the flow', async () => {
-    const { wrapper } = mountComponent();
+  it('keeps the success dialog open after completion instead of advancing immediately', async () => {
+    const { wrapper, onComplete } = mountComponent();
 
     await clickApply(wrapper);
 
     expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
     expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Setup Applied');
+    expect(onComplete).not.toHaveBeenCalled();
   });
 
   it('retries completeOnboarding after transient network errors when SSH changed', async () => {
