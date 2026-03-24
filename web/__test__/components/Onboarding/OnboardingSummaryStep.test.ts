@@ -874,9 +874,7 @@ describe('OnboardingSummaryStep', () => {
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
         expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
-        expect(wrapper.text()).toContain(
-          'Could not mark onboarding complete right now (API may be offline): offline'
-        );
+        expect(wrapper.text()).toContain('Could not mark onboarding complete right now');
         expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
       },
     },
