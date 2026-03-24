@@ -14,6 +14,7 @@ import { applyInternalBootSelection } from '@/components/Onboarding/composables/
 import OnboardingSteps from '@/components/Onboarding/OnboardingSteps.vue';
 import OnboardingInternalBootStep from '@/components/Onboarding/steps/OnboardingInternalBootStep.vue';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
+import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
 import type { InternalBootApplyResult } from '@/components/Onboarding/composables/internalBoot';
@@ -83,6 +84,7 @@ const setResultFromApply = (applyResult: InternalBootApplyResult) => {
 };
 
 const handleClose = () => {
+  cleanupOnboardingStorage();
   isOpen.value = false;
 };
 
