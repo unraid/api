@@ -1,3 +1,7 @@
 {
-  "permissions": {}
+  "permissions": {},
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
 }
