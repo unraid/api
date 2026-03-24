@@ -1026,7 +1026,7 @@ const handleComplete = async () => {
     }
 
     if (completionMarked) {
-      await new Promise((r) => setTimeout(r, 1000));
+      await sleepMs(1000);
     }
 
     addLog(summaryT('logs.finalizingSetup'), 'info');
