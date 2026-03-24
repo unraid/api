@@ -24,7 +24,7 @@ import dayjs from 'dayjs';
 import prerelease from 'semver/functions/prerelease';
 
 import type { ApolloQueryResult } from '@apollo/client/core/index.js';
-import type { ServerActionTypes, ServerData } from '@unraid/shared-callbacks';
+import type { ConnectState, ServerActionTypes, ServerData } from '@unraid/shared-callbacks';
 import type { Config, PartialCloudFragment, ServerStateQuery } from '~/composables/gql/graphql';
 import type { Error } from '~/store/errors';
 import type { Theme } from '~/themes/types';
@@ -231,8 +231,25 @@ export const useServerStore = defineStore('server', () => {
     };
   });
 
+  const getConnectState = (): ConnectState | undefined => {
+    const connectState = cloud.value?.minigraphql.status;
+
+    switch (connectState) {
+      case 'PRE_INIT':
+      case 'CONNECTING':
+      case 'CONNECTED':
+      case 'PING_FAILURE':
+      case 'ERROR_RETRYING':
+        return connectState;
+      default:
+        return undefined;
+    }
+  };
+
   const buildServerCallbackPayload = (overrides: Partial<ServerData> = {}): ServerData => {
     const payload: ServerData = {
+      connectPluginVersion: connectPluginVersion.value || undefined,
+      connectState: getConnectState(),
       description: description.value,
       deviceCount: deviceCount.value,
       expireTime: expireTime.value,
