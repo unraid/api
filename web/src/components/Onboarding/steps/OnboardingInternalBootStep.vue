@@ -5,11 +5,10 @@ import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { ChevronLeftIcon, CircleStackIcon } from '@heroicons/vue/24/outline';
 import { ArrowPathIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { Accordion, BrandButton } from '@unraid/ui';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
-import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import { convert } from 'convert';
 
 import type {
@@ -947,40 +946,40 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         data-testid="internal-boot-eligibility-panel"
         class="border-muted bg-muted/40 text-foreground mt-6 rounded-lg border text-sm"
       >
-        <Disclosure v-slot="{ open }">
-          <DisclosureButton
-            data-testid="internal-boot-eligibility-toggle"
-            class="flex w-full items-start justify-between gap-4 p-4 text-left"
-          >
-            <div class="space-y-1">
-              <p class="font-semibold">{{ eligibilityPanelTitle }}</p>
-              <p v-if="eligibilityPanelDescription">{{ eligibilityPanelDescription }}</p>
+        <Accordion
+          :items="[{ value: 'eligibility', title: eligibilityPanelTitle }]"
+          type="single"
+          collapsible
+          class="border-none"
+        >
+          <template #trigger="{ open }">
+            <div
+              data-testid="internal-boot-eligibility-toggle"
+              class="flex w-full items-start justify-between gap-4 p-4 text-left"
+            >
+              <div class="space-y-1">
+                <p class="font-semibold">{{ eligibilityPanelTitle }}</p>
+                <p v-if="eligibilityPanelDescription">{{ eligibilityPanelDescription }}</p>
+              </div>
+              <div class="flex items-center gap-2 text-sm font-medium whitespace-nowrap">
+                <span>
+                  {{
+                    open
+                      ? t('onboarding.internalBootStep.eligibility.hideDetails')
+                      : t('onboarding.internalBootStep.eligibility.showDetails')
+                  }}
+                </span>
+                <ChevronDownIcon
+                  :class="[
+                    open ? 'rotate-180 transform' : '',
+                    'h-5 w-5 transition-transform duration-200',
+                  ]"
+                />
+              </div>
             </div>
-            <div class="flex items-center gap-2 text-sm font-medium whitespace-nowrap">
-              <span>
-                {{
-                  open
-                    ? t('onboarding.internalBootStep.eligibility.hideDetails')
-                    : t('onboarding.internalBootStep.eligibility.showDetails')
-                }}
-              </span>
-              <ChevronDownIcon
-                :class="[
-                  open ? 'rotate-180 transform' : '',
-                  'h-5 w-5 transition-transform duration-200',
-                ]"
-              />
-            </div>
-          </DisclosureButton>
-          <transition
-            enter-active-class="transition duration-100 ease-out"
-            enter-from-class="transform scale-95 opacity-0"
-            enter-to-class="transform scale-100 opacity-100"
-            leave-active-class="transition duration-75 ease-out"
-            leave-from-class="transform scale-100 opacity-100"
-            leave-to-class="transform scale-95 opacity-0"
-          >
-            <DisclosurePanel class="border-muted space-y-4 border-t px-4 pt-4 pb-4">
+          </template>
+          <template #content>
+            <div class="border-muted space-y-4 border-t px-4 pt-4 pb-4">
               <div v-if="systemEligibilityCodes.length > 0" class="space-y-2">
                 <p class="font-semibold">
                   {{ t('onboarding.internalBootStep.eligibility.systemTitle') }}
@@ -1011,9 +1010,9 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
                   </li>
                 </ul>
               </div>
-            </DisclosurePanel>
-          </transition>
-        </Disclosure>
+            </div>
+          </template>
+        </Accordion>
       </div>
 
       <div

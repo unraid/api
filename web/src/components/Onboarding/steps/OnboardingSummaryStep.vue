@@ -23,7 +23,7 @@ import {
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { Accordion, BrandButton } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import {
   applyInternalBootSelection,
@@ -43,7 +43,6 @@ import {
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
-import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import { convert } from 'convert';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
@@ -1183,50 +1182,55 @@ const handleBack = () => {
 
       <!-- Plugins Summary -->
       <div class="border-muted bg-bg/50 mt-6 rounded-lg border">
-        <Disclosure v-slot="{ open }">
-          <DisclosureButton
-            :disabled="draftPluginsCount === 0"
-            :class="[
-              'flex w-full items-center justify-between p-5 text-left focus:outline-none',
-              draftPluginsCount === 0 ? 'cursor-default' : 'cursor-pointer',
-            ]"
-          >
-            <div class="flex items-center gap-3">
-              <div class="bg-primary/10 rounded-lg p-2">
-                <PuzzlePieceIcon class="text-primary h-6 w-6" />
-              </div>
-              <div>
-                <h3 class="text-highlighted mb-0.5 text-sm font-bold uppercase">
-                  {{ t('onboarding.pluginsStep.title') }}
-                </h3>
-                <p class="text-muted text-xs">
-                  {{ t('onboarding.summaryStep.pluginsSelected', { count: draftPluginsCount }) }}
-                </p>
-              </div>
-            </div>
+        <Accordion
+          :items="[
+            {
+              value: 'plugins',
+              title: t('onboarding.pluginsStep.title'),
+              disabled: draftPluginsCount === 0,
+            },
+          ]"
+          type="single"
+          collapsible
+          class="border-none"
+        >
+          <template #trigger="{ open }">
             <div
-              v-if="draftPluginsCount > 0"
-              class="text-primary hover:text-primary/80 flex items-center gap-2 text-sm font-medium transition-colors"
+              :class="[
+                'flex w-full items-center justify-between p-5 text-left focus:outline-none',
+                draftPluginsCount === 0 ? 'cursor-default' : 'cursor-pointer',
+              ]"
             >
-              <span v-if="!open">{{ t('onboarding.summaryStep.viewSelected') }}</span>
-              <span v-else>{{ t('onboarding.summaryStep.hideSelected') }}</span>
-              <ChevronDownIcon
-                :class="[
-                  open ? 'rotate-180 transform' : '',
-                  'h-5 w-5 transition-transform duration-200',
-                ]"
-              />
+              <div class="flex items-center gap-3">
+                <div class="bg-primary/10 rounded-lg p-2">
+                  <PuzzlePieceIcon class="text-primary h-6 w-6" />
+                </div>
+                <div>
+                  <h3 class="text-highlighted mb-0.5 text-sm font-bold uppercase">
+                    {{ t('onboarding.pluginsStep.title') }}
+                  </h3>
+                  <p class="text-muted text-xs">
+                    {{ t('onboarding.summaryStep.pluginsSelected', { count: draftPluginsCount }) }}
+                  </p>
+                </div>
+              </div>
+              <div
+                v-if="draftPluginsCount > 0"
+                class="text-primary hover:text-primary/80 flex items-center gap-2 text-sm font-medium transition-colors"
+              >
+                <span v-if="!open">{{ t('onboarding.summaryStep.viewSelected') }}</span>
+                <span v-else>{{ t('onboarding.summaryStep.hideSelected') }}</span>
+                <ChevronDownIcon
+                  :class="[
+                    open ? 'rotate-180 transform' : '',
+                    'h-5 w-5 transition-transform duration-200',
+                  ]"
+                />
+              </div>
             </div>
-          </DisclosureButton>
-          <transition
-            enter-active-class="transition duration-100 ease-out"
-            enter-from-class="transform scale-95 opacity-0"
-            enter-to-class="transform scale-100 opacity-100"
-            leave-active-class="transition duration-75 ease-out"
-            leave-from-class="transform scale-100 opacity-100"
-            leave-to-class="transform scale-95 opacity-0"
-          >
-            <DisclosurePanel class="px-5 pt-0 pb-5">
+          </template>
+          <template #content>
+            <div class="px-5 pt-0 pb-5">
               <div class="border-muted space-y-2 border-t pt-4">
                 <div v-if="draftPluginsCount === 0" class="text-muted text-sm italic">
                   {{ t('onboarding.summaryStep.noPluginsSelected') }}
@@ -1261,9 +1265,9 @@ const handleBack = () => {
                   </span>
                 </div>
               </div>
-            </DisclosurePanel>
-          </transition>
-        </Disclosure>
+            </div>
+          </template>
+        </Accordion>
       </div>
 
       <div v-if="showBootConfiguration" class="border-muted bg-bg/50 mt-6 rounded-lg border p-5">
