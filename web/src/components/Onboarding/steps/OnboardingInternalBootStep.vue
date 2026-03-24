@@ -837,6 +837,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
               value-key="value"
               :disabled="isBusy"
               class="w-full"
+              :ui="{ content: 'z-[100]' }"
               @update:model-value="slotCount = Number($event)"
             />
           </label>
@@ -858,6 +859,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
               :placeholder="t('onboarding.internalBootStep.fields.selectDevice')"
               :disabled="isBusy"
               class="w-full"
+              :ui="{ content: 'z-[100]' }"
             />
           </div>
         </div>
@@ -896,6 +898,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
               value-key="value"
               :disabled="isBusy"
               class="w-full"
+              :ui="{ content: 'z-[100]' }"
             />
           </label>
 

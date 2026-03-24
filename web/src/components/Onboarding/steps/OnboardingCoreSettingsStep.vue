@@ -508,6 +508,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             :placeholder="t('onboarding.coreSettings.selectTimezonePlaceholder')"
             :disabled="isBusy"
             class="w-full"
+            :ui="{ content: 'z-[100]' }"
           />
         </div>
 
@@ -526,6 +527,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             "
             :disabled="isBusy || isLanguageDisabled"
             class="w-full"
+            :ui="{ content: 'z-[100]' }"
           />
         </div>
       </div>
@@ -569,6 +571,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
               value-key="value"
               :disabled="isBusy"
               class="w-full"
+              :ui="{ content: 'z-[100]' }"
             />
           </div>
         </div>
