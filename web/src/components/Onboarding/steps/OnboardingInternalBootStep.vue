@@ -734,29 +734,35 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         </div>
       </div>
 
-      <div class="grid gap-3">
-        <UButton
-          type="button"
-          class="w-full justify-start rounded-lg px-4 py-4"
-          :color="bootMode === 'usb' ? 'primary' : 'neutral'"
-          :variant="bootMode === 'usb' ? 'soft' : 'outline'"
-          :disabled="isStepLocked"
-          :aria-pressed="bootMode === 'usb'"
-          @click="setBootMode('usb')"
+      <div class="space-y-3">
+        <label
+          class="border-muted bg-bg/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
         >
-          {{ t('onboarding.internalBootStep.options.usb') }}
-        </UButton>
-        <UButton
-          type="button"
-          class="w-full justify-start rounded-lg px-4 py-4"
-          :color="bootMode === 'storage' ? 'primary' : 'neutral'"
-          :variant="bootMode === 'storage' ? 'soft' : 'outline'"
-          :disabled="isStepLocked"
-          :aria-pressed="bootMode === 'storage'"
-          @click="setBootMode('storage')"
+          <input
+            v-model="bootMode"
+            type="radio"
+            value="usb"
+            class="accent-primary mt-0.5 h-4 w-4"
+            :disabled="isStepLocked"
+          />
+          <span class="text-highlighted text-sm font-semibold">
+            {{ t('onboarding.internalBootStep.options.usb') }}
+          </span>
+        </label>
+        <label
+          class="border-muted bg-bg/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
         >
-          {{ t('onboarding.internalBootStep.options.storage') }}
-        </UButton>
+          <input
+            v-model="bootMode"
+            type="radio"
+            value="storage"
+            class="accent-primary mt-0.5 h-4 w-4"
+            :disabled="isStepLocked"
+          />
+          <span class="text-highlighted text-sm font-semibold">
+            {{ t('onboarding.internalBootStep.options.storage') }}
+          </span>
+        </label>
       </div>
 
       <UAlert
