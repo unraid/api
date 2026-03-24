@@ -505,6 +505,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             :items="timeZoneItems"
             label-key="label"
             value-key="value"
+            :search-input="false"
             :placeholder="t('onboarding.coreSettings.selectTimezonePlaceholder')"
             :disabled="isBusy"
             class="w-full"
@@ -522,6 +523,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             :items="languageItems"
             label-key="label"
             value-key="value"
+            :search-input="false"
             :placeholder="
               isLanguagesLoading ? t('common.loading') : t('onboarding.coreSettings.selectLanguage')
             "
@@ -569,6 +571,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
               :items="themeItems"
               label-key="label"
               value-key="value"
+              :search-input="false"
               :disabled="isBusy"
               class="w-full"
               :ui="{ content: 'z-[100]' }"
