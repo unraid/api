@@ -8,6 +8,8 @@ import { pubsub } from '@app/core/pubsub.js';
 import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
+import { FanControlConfigService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.service.js';
+import { FanControlService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
 import { TemperatureConfigService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.service.js';
 import {
@@ -108,6 +110,12 @@ describe('MetricsResolver', () => {
                     },
                 },
                 {
+                    provide: FanControlService,
+                    useValue: {
+                        getMetrics: vi.fn().mockResolvedValue(null),
+                    },
+                },
+                {
                     provide: ConfigService,
                     useValue: {
                         get: vi.fn((key: string, defaultValue?: unknown) => defaultValue),
@@ -117,6 +125,12 @@ describe('MetricsResolver', () => {
                     provide: TemperatureConfigService,
                     useValue: {
                         getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 5000 }),
+                    },
+                },
+                {
+                    provide: FanControlConfigService,
+                    useValue: {
+                        getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 2000 }),
                     },
                 },
             ],
@@ -222,15 +236,19 @@ describe('MetricsResolver', () => {
                 cpuTopologyServiceMock as unknown as CpuTopologyService,
                 memoryService,
                 temperatureServiceMock as unknown as TemperatureService,
+                { getMetrics: vi.fn().mockResolvedValue(null) } as unknown as FanControlService,
                 subscriptionTracker as unknown as SubscriptionTrackerService,
                 {} as unknown as SubscriptionHelperService,
                 configServiceMock as unknown as ConfigService,
-                temperatureConfigServiceMock as unknown as TemperatureConfigService
+                temperatureConfigServiceMock as unknown as TemperatureConfigService,
+                {
+                    getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 2000 }),
+                } as unknown as FanControlConfigService
             );
 
             testModule.onModuleInit();
 
-            expect(subscriptionTracker.registerTopic).toHaveBeenCalledTimes(4);
+            expect(subscriptionTracker.registerTopic).toHaveBeenCalledTimes(5);
             expect(subscriptionTracker.registerTopic).toHaveBeenCalledWith(
                 'CPU_UTILIZATION',
                 expect.any(Function),
@@ -262,10 +280,14 @@ describe('MetricsResolver', () => {
                 {} as CpuTopologyService,
                 {} as MemoryService,
                 temperatureServiceMock,
+                { getMetrics: vi.fn().mockResolvedValue(null) } as unknown as FanControlService,
                 subscriptionTracker,
                 {} as SubscriptionHelperService,
                 {} as ConfigService,
-                temperatureConfigServiceMock
+                temperatureConfigServiceMock,
+                {
+                    getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 2000 }),
+                } as unknown as FanControlConfigService
             );
 
             testModule.onModuleInit();
@@ -305,10 +327,14 @@ describe('MetricsResolver', () => {
                 {} as CpuTopologyService,
                 {} as MemoryService,
                 temperatureServiceMock,
+                { getMetrics: vi.fn().mockResolvedValue(null) } as unknown as FanControlService,
                 subscriptionTracker,
                 {} as SubscriptionHelperService,
                 {} as ConfigService,
-                temperatureConfigServiceMock
+                temperatureConfigServiceMock,
+                {
+                    getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 2000 }),
+                } as unknown as FanControlConfigService
             );
 
             testModule.onModuleInit();
