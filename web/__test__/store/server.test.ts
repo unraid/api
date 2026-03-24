@@ -692,6 +692,31 @@ describe('useServerStore', () => {
     expect(payload.wanFQDN).toBe('test.myunraid.net');
   });
 
+  it('should fall back when Connect metadata is unavailable', () => {
+    const store = getStore();
+
+    store.setServer({
+      deviceCount: 6,
+      guid: '123456',
+      keyfile: '/boot/config/Plus.key',
+      name: 'TestServer',
+      osVersion: '6.10.3',
+      registered: true,
+      state: 'PLUS' as ServerState,
+    });
+
+    const payload = store.serverPurchasePayload;
+
+    expect(payload.connectState).toBeUndefined();
+    expect(payload.connectPluginVersion).toBeUndefined();
+    expect(payload.guid).toBe('123456');
+    expect(payload.keyfile).toBe('/boot/config/Plus.key');
+    expect(payload.name).toBe('TestServer');
+    expect(payload.osVersion).toBe('6.10.3');
+    expect(payload.registered).toBe(true);
+    expect(payload.state).toBe('PLUS');
+  });
+
   it('should include activationCodeData in server callback payloads when present', () => {
     const store = getStore();
     activationCodeStoreMock.activationCode.value = {
