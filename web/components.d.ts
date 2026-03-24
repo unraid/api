@@ -98,6 +98,7 @@ declare module 'vue' {
     'OnboardingAdminPanel.standalone': typeof import('./src/components/Onboarding/standalone/OnboardingAdminPanel.standalone.vue')['default']
     OnboardingConsole: typeof import('./src/components/Onboarding/components/OnboardingConsole.vue')['default']
     OnboardingCoreSettingsStep: typeof import('./src/components/Onboarding/steps/OnboardingCoreSettingsStep.vue')['default']
+    'OnboardingInternalBoot.standalone': typeof import('./src/components/Onboarding/standalone/OnboardingInternalBoot.standalone.vue')['default']
     OnboardingInternalBootStep: typeof import('./src/components/Onboarding/steps/OnboardingInternalBootStep.vue')['default']
     OnboardingLicenseStep: typeof import('./src/components/Onboarding/steps/OnboardingLicenseStep.vue')['default']
     OnboardingLoadingState: typeof import('./src/components/Onboarding/components/OnboardingLoadingState.vue')['default']

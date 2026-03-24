@@ -25,7 +25,10 @@ import {
 } from '@heroicons/vue/24/solid';
 import { BrandButton, Dialog } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
-import { submitInternalBootCreation } from '@/components/Onboarding/composables/internalBoot';
+import {
+  applyInternalBootSelection,
+  getErrorMessage,
+} from '@/components/Onboarding/composables/internalBoot';
 import { buildOnboardingErrorDiagnostics } from '@/components/Onboarding/composables/onboardingErrorDiagnostics';
 import usePluginInstaller, {
   INSTALL_OPERATION_TIMEOUT_CODE,
@@ -65,7 +68,6 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
 const { activationCode, isFreshInstall, registrationState } = storeToRefs(useActivationCodeDataStore());
-
 // Setup Mutations
 const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
 const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTATION);
@@ -237,24 +239,6 @@ const addLog = (
   logs.value.push({ message, type, timestamp: Date.now(), details });
 };
 
-const getErrorMessage = (caughtError: unknown) => {
-  if (caughtError instanceof Error) {
-    const trimmedMessage = caughtError.message.trim();
-    if (trimmedMessage) {
-      return trimmedMessage;
-    }
-  }
-
-  if (typeof caughtError === 'string') {
-    const trimmedMessage = caughtError.trim();
-    if (trimmedMessage) {
-      return trimmedMessage;
-    }
-  }
-
-  return summaryT('errors.unknownError');
-};
-
 interface OnboardingErrorLogContext {
   operation: string;
   variables?: unknown;
@@ -266,23 +250,6 @@ const addErrorLog = (message: string, caughtError: unknown, context: OnboardingE
     'error',
     buildOnboardingErrorDiagnostics(caughtError, context)
   );
-};
-
-interface InternalBootBiosLogSummary {
-  summaryLine: string | null;
-  failureLines: string[];
-}
-
-const summarizeInternalBootBiosLogs = (output: string): InternalBootBiosLogSummary => {
-  const lines = output
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-  const summaryLine = lines.find((line) => line.startsWith('BIOS boot entry updates completed')) ?? null;
-  const failureLines = Array.from(
-    new Set(lines.filter((line) => line.toLowerCase().includes('efibootmgr failed')))
-  );
-  return { summaryLine, failureLines };
 };
 
 const showDiagnosticLogsInResultDialog = computed(
@@ -977,76 +944,23 @@ const handleComplete = async () => {
         addLog(summaryT('logs.internalBootStillRunning'), 'info');
       }, 10000);
       try {
-        const result = await submitInternalBootCreation(
-          {
-            poolName: selection.poolName,
-            devices: selection.devices,
-            bootSizeMiB: selection.bootSizeMiB,
-            updateBios: selection.updateBios,
-          },
-          { reboot: false }
-        );
-
-        if (result.ok) {
-          draftStore.setInternalBootApplySucceeded(true);
-          addLog(summaryT('logs.internalBootConfigured'), 'success');
-          if (selection.updateBios) {
-            const biosLogSummary = summarizeInternalBootBiosLogs(result.output);
-            const hadBiosWarnings =
-              biosLogSummary.failureLines.length > 0 ||
-              Boolean(biosLogSummary.summaryLine?.toLowerCase().includes('with warnings'));
-            if (hadBiosWarnings) {
-              hadWarnings = true;
-              hadNonOptimisticFailures = true;
-            }
-            if (biosLogSummary.summaryLine) {
-              addLog(biosLogSummary.summaryLine, hadBiosWarnings ? 'error' : 'success');
-            }
-            for (const failureLine of biosLogSummary.failureLines) {
-              addLog(failureLine, 'error');
-            }
-          }
-        } else {
-          hadNonOptimisticFailures = true;
-          hadWarnings = true;
-          addLog(
-            summaryT('logs.internalBootReturnedError', { output: result.output }),
-            'error',
-            buildOnboardingErrorDiagnostics(
-              {
-                message: 'Internal boot setup returned ok=false',
-                code: result.code ?? null,
-                networkError: {
-                  status: result.code ?? null,
-                  result,
-                },
-              },
-              {
-                operation: 'CreateInternalBootPool',
-                variables: {
-                  poolName: selection.poolName,
-                  devices: selection.devices,
-                  bootSizeMiB: selection.bootSizeMiB,
-                  updateBios: selection.updateBios,
-                  reboot: false,
-                },
-              }
-            )
-          );
-        }
-      } catch (caughtError: unknown) {
-        hadNonOptimisticFailures = true;
-        hadWarnings = true;
-        addErrorLog(summaryT('logs.internalBootFailed'), caughtError, {
-          operation: 'CreateInternalBootPool',
-          variables: {
-            poolName: selection.poolName,
-            devices: selection.devices,
-            bootSizeMiB: selection.bootSizeMiB,
-            updateBios: selection.updateBios,
-            reboot: false,
-          },
+        const applyResult = await applyInternalBootSelection(selection, {
+          configured: summaryT('logs.internalBootConfigured'),
+          returnedError: (output) => summaryT('logs.internalBootReturnedError', { output }),
+          failed: summaryT('logs.internalBootFailed'),
+          biosUnverified: summaryT('logs.internalBootBiosUnverified'),
         });
+
+        if (applyResult.applySucceeded) {
+          draftStore.setInternalBootApplySucceeded(true);
+        }
+
+        hadWarnings ||= applyResult.hadWarnings;
+        hadNonOptimisticFailures ||= applyResult.hadNonOptimisticFailures;
+
+        for (const log of applyResult.logs) {
+          addLog(log.message, log.type, log.details);
+        }
       } finally {
         clearInterval(internalBootProgressTimer);
       }

@@ -117,6 +117,13 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'onboarding-admin-panel',
   },
   {
+    component: defineAsyncComponent(
+      () => import('../Onboarding/standalone/OnboardingInternalBoot.standalone.vue')
+    ),
+    selector: 'unraid-onboarding-internal-boot',
+    appId: 'onboarding-internal-boot',
+  },
+  {
     component: defineAsyncComponent(() => import('../LayoutViews/Detail/DetailTest.standalone.vue')),
     selector: 'unraid-detail-test',
     appId: 'detail-test',

@@ -35,7 +35,6 @@ const {
   installedPluginsResult,
   availableLanguagesResult,
   refetchInstalledPluginsMock,
-  refetchOnboardingMock,
   setModalHiddenMock,
   updateSystemTimeMock,
   updateServerIdentityMock,
@@ -45,7 +44,7 @@ const {
   completeOnboardingMock,
   installLanguageMock,
   installPluginMock,
-  submitInternalBootCreationMock,
+  applyInternalBootSelectionMock,
   cleanupOnboardingStorageMock,
   useMutationMock,
   useQueryMock,
@@ -93,7 +92,6 @@ const {
     },
   },
   refetchInstalledPluginsMock: vi.fn().mockResolvedValue(undefined),
-  refetchOnboardingMock: vi.fn().mockResolvedValue(undefined),
   setModalHiddenMock: vi.fn(),
   updateSystemTimeMock: vi.fn().mockResolvedValue({}),
   updateServerIdentityMock: vi.fn().mockResolvedValue({}),
@@ -103,7 +101,7 @@ const {
   completeOnboardingMock: vi.fn().mockResolvedValue({}),
   installLanguageMock: vi.fn(),
   installPluginMock: vi.fn(),
-  submitInternalBootCreationMock: vi.fn(),
+  applyInternalBootSelectionMock: vi.fn(),
   cleanupOnboardingStorageMock: vi.fn(),
   useMutationMock: vi.fn(),
   useQueryMock: vi.fn(),
@@ -171,12 +169,6 @@ vi.mock('@/components/Onboarding/store/onboardingModalVisibility', () => ({
   }),
 }));
 
-vi.mock('@/components/Onboarding/store/onboardingStatus', () => ({
-  useOnboardingStore: () => ({
-    refetchOnboarding: refetchOnboardingMock,
-  }),
-}));
-
 vi.mock('@/components/Onboarding/store/onboardingStorageCleanup', () => ({
   cleanupOnboardingStorage: cleanupOnboardingStorageMock,
 }));
@@ -189,9 +181,14 @@ vi.mock('@/components/Onboarding/composables/usePluginInstaller', () => ({
   }),
 }));
 
-vi.mock('@/components/Onboarding/composables/internalBoot', () => ({
-  submitInternalBootCreation: submitInternalBootCreationMock,
-}));
+vi.mock('@/components/Onboarding/composables/internalBoot', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/components/Onboarding/composables/internalBoot')>();
+  return {
+    ...actual,
+    applyInternalBootSelection: applyInternalBootSelectionMock,
+  };
+});
 
 vi.mock('@vue/apollo-composable', async () => {
   const actual =
@@ -363,12 +360,13 @@ describe('OnboardingSummaryStep', () => {
       status: PluginInstallStatus.SUCCEEDED,
       output: [],
     });
-    submitInternalBootCreationMock.mockResolvedValue({
-      ok: true,
-      output: 'ok',
+    applyInternalBootSelectionMock.mockResolvedValue({
+      applySucceeded: true,
+      hadWarnings: false,
+      hadNonOptimisticFailures: false,
+      logs: [],
     });
     refetchInstalledPluginsMock.mockResolvedValue(undefined);
-    refetchOnboardingMock.mockResolvedValue(undefined);
   });
 
   it.each([
@@ -854,34 +852,26 @@ describe('OnboardingSummaryStep', () => {
 
   it.each([
     {
-      caseName: 'baseline available + apply succeeds',
+      caseName: 'baseline available — shows success (completion deferred to NextSteps)',
       apply: () => {},
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(completeOnboardingMock).not.toHaveBeenCalled();
-        expect(refetchOnboardingMock).not.toHaveBeenCalled();
         expect(wrapper.text()).toContain('Setup Applied');
         expect(wrapper.text()).not.toContain('Setup Saved in Best-Effort Mode');
-        expect(wrapper.text()).toContain(
-          'Settings applied. Continue to the final step to finish onboarding.'
-        );
       },
     },
     {
-      caseName: 'baseline unavailable + apply succeeds',
+      caseName: 'baseline unavailable — shows best-effort (completion deferred to NextSteps)',
       apply: () => {
         coreSettingsResult.value = null;
         coreSettingsError.value = new Error('Graphql is offline.');
       },
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(completeOnboardingMock).not.toHaveBeenCalled();
-        expect(refetchOnboardingMock).not.toHaveBeenCalled();
-        expect(wrapper.text()).toContain(
-          'Baseline settings unavailable. Continuing in best-effort mode.'
-        );
         expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
       },
     },
-  ])('keeps summary apply-only behavior ($caseName)', async (scenario) => {
+  ])('follows apply-only result matrix ($caseName)', async (scenario) => {
     scenario.apply();
 
     const { wrapper } = mountComponent();
@@ -890,28 +880,16 @@ describe('OnboardingSummaryStep', () => {
     scenario.assertExpected(wrapper);
   });
 
-  it('does not clear onboarding draft after a successful apply while still in the flow', async () => {
-    const { wrapper } = mountComponent();
+  it('keeps the success dialog open after apply instead of advancing immediately', async () => {
+    const { wrapper, onComplete } = mountComponent();
 
     await clickApply(wrapper);
 
     expect(completeOnboardingMock).not.toHaveBeenCalled();
     expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
-  });
-
-  it('does not attempt onboarding completion after applying SSH changes', async () => {
-    draftStore.useSsh = true;
-    updateSshSettingsMock.mockResolvedValue({
-      data: {
-        updateSshSettings: { id: 'vars', useSsh: true, portssh: 22 },
-      },
-    });
-
-    const { wrapper } = mountComponent();
-    await clickApply(wrapper);
-
-    expect(completeOnboardingMock).not.toHaveBeenCalled();
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Setup Applied');
+    expect(onComplete).not.toHaveBeenCalled();
   });
 
   it('retries final identity update after transient network errors when SSH changed', async () => {
@@ -935,7 +913,7 @@ describe('OnboardingSummaryStep', () => {
     expect(wrapper.text()).not.toContain('Server identity request returned an error, continuing');
   });
 
-  it('prefers warnings over success when plugin installation times out', async () => {
+  it('prefers timeout result when plugin install times out', async () => {
     draftStore.selectedPlugins = new Set(['community-apps']);
     const timeoutError = new Error(
       'Timed out waiting for install operation plugin-op to finish'
@@ -971,13 +949,14 @@ describe('OnboardingSummaryStep', () => {
     expect(wrapper.text()).not.toContain('Setup Applied with Warnings');
   });
 
-  it('shows completion dialog in offline mode and advances only after OK', async () => {
+  it('shows result dialog in offline mode and advances only after OK', async () => {
     coreSettingsResult.value = null;
     coreSettingsError.value = new Error('Graphql is offline.');
 
     const { wrapper, onComplete } = mountComponent();
     await clickApply(wrapper);
 
+    expect(completeOnboardingMock).not.toHaveBeenCalled();
     expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
     expect(onComplete).not.toHaveBeenCalled();
@@ -1104,7 +1083,7 @@ describe('OnboardingSummaryStep', () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain('Confirm Drive Wipe');
-    expect(submitInternalBootCreationMock).not.toHaveBeenCalled();
+    expect(applyInternalBootSelectionMock).not.toHaveBeenCalled();
 
     const cancelButton = wrapper.findAll('button').find((button) => button.text().trim() === 'Cancel');
     expect(cancelButton).toBeTruthy();
@@ -1112,7 +1091,7 @@ describe('OnboardingSummaryStep', () => {
     await flushPromises();
 
     expect(wrapper.text()).not.toContain('Confirm Drive Wipe');
-    expect(submitInternalBootCreationMock).not.toHaveBeenCalled();
+    expect(applyInternalBootSelectionMock).not.toHaveBeenCalled();
   });
 
   it('applies internal boot configuration without reboot and records success', async () => {
@@ -1125,25 +1104,39 @@ describe('OnboardingSummaryStep', () => {
       updateBios: true,
     };
     draftStore.internalBootSkipped = false;
-    submitInternalBootCreationMock.mockResolvedValue({
-      ok: true,
-      output: [
-        'Applying BIOS boot entry updates...',
-        'BIOS boot entry updates completed successfully.',
-      ].join('\n'),
+    applyInternalBootSelectionMock.mockResolvedValue({
+      applySucceeded: true,
+      hadWarnings: false,
+      hadNonOptimisticFailures: false,
+      logs: [
+        {
+          message: 'Internal boot pool configured.',
+          type: 'success',
+        },
+        {
+          message: 'BIOS boot entry updates completed successfully.',
+          type: 'success',
+        },
+      ],
     });
 
     const { wrapper } = mountComponent();
     await clickApply(wrapper);
 
-    expect(submitInternalBootCreationMock).toHaveBeenCalledWith(
+    expect(applyInternalBootSelectionMock).toHaveBeenCalledWith(
       {
         poolName: 'cache',
         devices: ['DISK-A', 'DISK-B'],
         bootSizeMiB: 16384,
         updateBios: true,
+        slotCount: 2,
       },
-      { reboot: false }
+      {
+        configured: 'Internal boot pool configured.',
+        returnedError: expect.any(Function),
+        failed: 'Internal boot setup failed',
+        biosUnverified: expect.any(String),
+      }
     );
     expect(setInternalBootApplySucceededMock).toHaveBeenCalledWith(true);
     expect(wrapper.text()).toContain('Internal boot pool configured.');
@@ -1161,9 +1154,16 @@ describe('OnboardingSummaryStep', () => {
       bootSizeMiB: 16384,
       updateBios: false,
     };
-    submitInternalBootCreationMock.mockResolvedValue({
-      ok: false,
-      output: 'mkbootpool failed',
+    applyInternalBootSelectionMock.mockResolvedValue({
+      applySucceeded: false,
+      hadWarnings: true,
+      hadNonOptimisticFailures: true,
+      logs: [
+        {
+          message: 'Internal boot setup returned an error: mkbootpool failed',
+          type: 'error',
+        },
+      ],
     });
 
     const { wrapper } = mountComponent();
@@ -1184,13 +1184,21 @@ describe('OnboardingSummaryStep', () => {
       bootSizeMiB: 16384,
       updateBios: true,
     };
-    submitInternalBootCreationMock.mockResolvedValue({
-      ok: true,
-      output: [
-        'Applying BIOS boot entry updates...',
-        "efibootmgr failed for '/dev/sda' (rc=1)",
-        'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.',
-      ].join('\n'),
+    applyInternalBootSelectionMock.mockResolvedValue({
+      applySucceeded: true,
+      hadWarnings: true,
+      hadNonOptimisticFailures: true,
+      logs: [
+        {
+          message:
+            'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.',
+          type: 'error',
+        },
+        {
+          message: "efibootmgr failed for '/dev/sda' (rc=1)",
+          type: 'error',
+        },
+      ],
     });
 
     const { wrapper } = mountComponent();

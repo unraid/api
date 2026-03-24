@@ -26,6 +26,12 @@ vi.mock('../DevSettings.vue', () => ({ default: 'DevSettings' }));
 vi.mock('../ApiKeyPage.standalone.vue', () => ({ default: 'ApiKeyPage' }));
 vi.mock('../ApiKeyAuthorize.standalone.vue', () => ({ default: 'ApiKeyAuthorize' }));
 vi.mock('../DevModalTest.standalone.vue', () => ({ default: 'DevModalTest' }));
+vi.mock('../Onboarding/standalone/OnboardingAdminPanel.standalone.vue', () => ({
+  default: 'OnboardingAdminPanel',
+}));
+vi.mock('../Onboarding/standalone/OnboardingInternalBoot.standalone.vue', () => ({
+  default: 'OnboardingInternalBoot',
+}));
 vi.mock('../LayoutViews/Detail/DetailTest.standalone.vue', () => ({ default: 'DetailTest' }));
 vi.mock('@/components/ThemeSwitcher.standalone.vue', () => ({ default: 'ThemeSwitcher' }));
 vi.mock('../ColorSwitcher.standalone.vue', () => ({ default: 'ColorSwitcher' }));
@@ -145,6 +151,8 @@ describe('component-registry', () => {
       'apikey-page',
       'apikey-authorize',
       'dev-modal-test',
+      'onboarding-admin-panel',
+      'onboarding-internal-boot',
       'detail-test',
       'theme-switcher',
       'color-switcher',

@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  applyInternalBootSelection,
   submitInternalBootCreation,
   submitInternalBootReboot,
+  summarizeInternalBootBiosLogs,
 } from '~/components/Onboarding/composables/internalBoot';
 
 const mutateMock = vi.fn();
@@ -148,6 +150,220 @@ describe('internalBoot composable', () => {
       };
     };
     expect(payload.variables?.input?.reboot).toBe(true);
+  });
+
+  it('summarizes BIOS log output into a summary line and deduplicated failures', () => {
+    const summary = summarizeInternalBootBiosLogs(
+      [
+        'Applying BIOS boot entry updates...',
+        'efibootmgr failed: first',
+        'BIOS boot entry updates completed with warnings.',
+        'efibootmgr failed: first',
+        'efibootmgr failed: second',
+      ].join('\n')
+    );
+
+    expect(summary).toEqual({
+      summaryLine: 'BIOS boot entry updates completed with warnings.',
+      failureLines: ['efibootmgr failed: first', 'efibootmgr failed: second'],
+    });
+  });
+
+  it('builds success and BIOS warning logs for shared internal boot apply', async () => {
+    mutateMock.mockResolvedValue({
+      data: {
+        onboarding: {
+          createInternalBootPool: {
+            ok: true,
+            code: 0,
+            output: [
+              'Applying BIOS boot entry updates...',
+              'efibootmgr failed: no boot entry updated',
+              'BIOS boot entry updates completed with warnings.',
+            ].join('\n'),
+          },
+        },
+      },
+    });
+
+    const result = await applyInternalBootSelection(
+      {
+        poolName: 'cache',
+        devices: ['disk-1'],
+        bootSizeMiB: 16384,
+        updateBios: true,
+      },
+      {
+        configured: 'Internal boot pool configured.',
+        returnedError: (output) => `Internal boot setup returned an error: ${output}`,
+        failed: 'Internal boot setup failed',
+        biosUnverified: 'BIOS boot order update could not be verified.',
+      }
+    );
+
+    expect(result.applySucceeded).toBe(true);
+    expect(result.hadWarnings).toBe(true);
+    expect(result.hadNonOptimisticFailures).toBe(true);
+    expect(result.logs).toEqual([
+      {
+        message: 'Internal boot pool configured.',
+        type: 'success',
+      },
+      {
+        message: 'BIOS boot entry updates completed with warnings.',
+        type: 'error',
+      },
+      {
+        message: 'efibootmgr failed: no boot entry updated',
+        type: 'error',
+      },
+    ]);
+  });
+
+  it('warns when BIOS update was requested but output contains no recognizable completion', async () => {
+    mutateMock.mockResolvedValue({
+      data: {
+        onboarding: {
+          createInternalBootPool: {
+            ok: true,
+            code: 0,
+            output: 'Pool created successfully.',
+          },
+        },
+      },
+    });
+
+    const result = await applyInternalBootSelection(
+      {
+        poolName: 'cache',
+        devices: ['disk-1'],
+        bootSizeMiB: 16384,
+        updateBios: true,
+      },
+      {
+        configured: 'Internal boot pool configured.',
+        returnedError: (output) => `Internal boot setup returned an error: ${output}`,
+        failed: 'Internal boot setup failed',
+        biosUnverified: 'BIOS boot order update could not be verified.',
+      }
+    );
+
+    expect(result.applySucceeded).toBe(true);
+    expect(result.hadWarnings).toBe(true);
+    expect(result.hadNonOptimisticFailures).toBe(true);
+    expect(result.logs).toEqual([
+      {
+        message: 'Internal boot pool configured.',
+        type: 'success',
+      },
+      {
+        message: 'BIOS boot order update could not be verified.',
+        type: 'error',
+      },
+    ]);
+  });
+
+  it('returns an error log with diagnostics when shared internal boot apply gets ok=false', async () => {
+    mutateMock.mockResolvedValue({
+      data: {
+        onboarding: {
+          createInternalBootPool: {
+            ok: false,
+            code: 500,
+            output: 'mkbootpool failed',
+          },
+        },
+      },
+    });
+
+    const result = await applyInternalBootSelection(
+      {
+        poolName: 'cache',
+        devices: ['disk-1'],
+        bootSizeMiB: 16384,
+        updateBios: false,
+      },
+      {
+        configured: 'Internal boot pool configured.',
+        returnedError: (output) => `Internal boot setup returned an error: ${output}`,
+        failed: 'Internal boot setup failed',
+        biosUnverified: 'BIOS boot order update could not be verified.',
+      }
+    );
+
+    expect(result.applySucceeded).toBe(false);
+    expect(result.hadWarnings).toBe(true);
+    expect(result.hadNonOptimisticFailures).toBe(true);
+    expect(result.logs).toHaveLength(1);
+    expect(result.logs[0]).toMatchObject({
+      message: 'Internal boot setup returned an error: mkbootpool failed',
+      type: 'error',
+    });
+    expect(result.logs[0]?.details).toBeDefined();
+  });
+
+  it('returns error log when underlying mutation rejects with a network error', async () => {
+    mutateMock.mockRejectedValue(new Error('Network failure'));
+
+    const result = await applyInternalBootSelection(
+      {
+        poolName: 'cache',
+        devices: ['disk-1'],
+        bootSizeMiB: 16384,
+        updateBios: false,
+      },
+      {
+        configured: 'Internal boot pool configured.',
+        returnedError: (output) => `Internal boot setup returned an error: ${output}`,
+        failed: 'Internal boot setup failed',
+        biosUnverified: 'BIOS boot order update could not be verified.',
+      }
+    );
+
+    expect(result.applySucceeded).toBe(false);
+    expect(result.hadWarnings).toBe(true);
+    expect(result.hadNonOptimisticFailures).toBe(true);
+    expect(result.logs).toHaveLength(1);
+    expect(result.logs[0]?.type).toBe('error');
+    expect(result.logs[0]?.details).toBeDefined();
+  });
+
+  it('returns success without BIOS logs when updateBios is false', async () => {
+    mutateMock.mockResolvedValue({
+      data: {
+        onboarding: {
+          createInternalBootPool: {
+            ok: true,
+            code: 200,
+            output: 'Pool created successfully',
+          },
+        },
+      },
+    });
+
+    const result = await applyInternalBootSelection(
+      {
+        poolName: 'cache',
+        devices: ['disk-1'],
+        bootSizeMiB: 16384,
+        updateBios: false,
+      },
+      {
+        configured: 'Internal boot pool configured.',
+        returnedError: (output) => `Internal boot setup returned an error: ${output}`,
+        failed: 'Internal boot setup failed',
+        biosUnverified: 'BIOS boot order update could not be verified.',
+      }
+    );
+
+    expect(result.applySucceeded).toBe(true);
+    expect(result.hadWarnings).toBe(false);
+    expect(result.hadNonOptimisticFailures).toBe(false);
+    expect(result.logs).toHaveLength(1);
+    expect(result.logs[0]).toMatchObject({
+      message: 'Internal boot pool configured.',
+      type: 'success',
+    });
   });
 
   it('submits reboot form with cmd and csrf token', () => {
