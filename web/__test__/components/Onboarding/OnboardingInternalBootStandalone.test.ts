@@ -298,4 +298,55 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
 
     expect(wrapper.find('[data-testid="dialog-stub"]').exists()).toBe(false);
   });
+
+  it('closes via the top-right X button', async () => {
+    const wrapper = mountComponent();
+
+    await wrapper.get('[data-testid="internal-boot-standalone-close"]').trigger('click');
+    await flushPromises();
+
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledTimes(1);
+    expect(wrapper.find('[data-testid="dialog-stub"]').exists()).toBe(false);
+  });
+
+  it('shows warning result when apply succeeds with warnings', async () => {
+    draftStore.internalBootSelection = {
+      poolName: 'boot-pool',
+      slotCount: 1,
+      devices: ['sda'],
+      bootSizeMiB: 512,
+      updateBios: true,
+    };
+    applyInternalBootSelectionMock.mockResolvedValue({
+      applySucceeded: true,
+      hadWarnings: true,
+      hadNonOptimisticFailures: true,
+      logs: [
+        { message: 'Boot configured.', type: 'success' as const },
+        { message: 'BIOS update completed with warnings', type: 'error' as const },
+      ],
+    });
+
+    const wrapper = mountComponent();
+    await wrapper.get('[data-testid="internal-boot-step-complete"]').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="internal-boot-standalone-result"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Setup Applied with Warnings');
+    expect(wrapper.find('[data-testid="warning-icon"]').exists()).toBe(true);
+  });
+
+  it('clears onboarding storage when closing after a successful result', async () => {
+    const wrapper = mountComponent();
+
+    await wrapper.get('[data-testid="internal-boot-step-complete"]').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="internal-boot-standalone-result"]').exists()).toBe(true);
+
+    await wrapper.get('[data-testid="internal-boot-standalone-result-close"]').trigger('click');
+    await flushPromises();
+
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledTimes(1);
+  });
 });

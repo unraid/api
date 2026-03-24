@@ -302,6 +302,70 @@ describe('internalBoot composable', () => {
     expect(result.logs[0]?.details).toBeDefined();
   });
 
+  it('returns error log when underlying mutation rejects with a network error', async () => {
+    mutateMock.mockRejectedValue(new Error('Network failure'));
+
+    const result = await applyInternalBootSelection(
+      {
+        poolName: 'cache',
+        devices: ['disk-1'],
+        bootSizeMiB: 16384,
+        updateBios: false,
+      },
+      {
+        configured: 'Internal boot pool configured.',
+        returnedError: (output) => `Internal boot setup returned an error: ${output}`,
+        failed: 'Internal boot setup failed',
+        biosUnverified: 'BIOS boot order update could not be verified.',
+      }
+    );
+
+    expect(result.applySucceeded).toBe(false);
+    expect(result.hadWarnings).toBe(true);
+    expect(result.hadNonOptimisticFailures).toBe(true);
+    expect(result.logs).toHaveLength(1);
+    expect(result.logs[0]?.type).toBe('error');
+    expect(result.logs[0]?.details).toBeDefined();
+  });
+
+  it('returns success without BIOS logs when updateBios is false', async () => {
+    mutateMock.mockResolvedValue({
+      data: {
+        onboarding: {
+          createInternalBootPool: {
+            ok: true,
+            code: 200,
+            output: 'Pool created successfully',
+          },
+        },
+      },
+    });
+
+    const result = await applyInternalBootSelection(
+      {
+        poolName: 'cache',
+        devices: ['disk-1'],
+        bootSizeMiB: 16384,
+        updateBios: false,
+      },
+      {
+        configured: 'Internal boot pool configured.',
+        returnedError: (output) => `Internal boot setup returned an error: ${output}`,
+        failed: 'Internal boot setup failed',
+        biosUnverified: 'BIOS boot order update could not be verified.',
+      }
+    );
+
+    expect(result.applySucceeded).toBe(true);
+    expect(result.hadWarnings).toBe(false);
+    expect(result.hadNonOptimisticFailures).toBe(false);
+    expect(result.logs).toHaveLength(1);
+    expect(result.logs[0]).toMatchObject({
+      message: 'Internal boot pool configured.',
+      type: 'success',
+    });
+  });
+
   it('submits reboot form with cmd and csrf token', () => {
     const submitSpy = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(() => undefined);
 
