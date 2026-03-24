@@ -19,35 +19,35 @@ const {
   stepPropsRef,
   stepperPropsRef,
 } = vi.hoisted(() => {
-    const store = {
-      internalBootSelection: null as {
-        poolName: string;
-        slotCount: number;
-        devices: string[];
-        bootSizeMiB: number;
-        updateBios: boolean;
-      } | null,
-      internalBootApplySucceeded: false,
-      setInternalBootApplySucceeded: vi.fn((value: boolean) => {
-        store.internalBootApplySucceeded = value;
-      }),
-    };
+  const store = {
+    internalBootSelection: null as {
+      poolName: string;
+      slotCount: number;
+      devices: string[];
+      bootSizeMiB: number;
+      updateBios: boolean;
+    } | null,
+    internalBootApplySucceeded: false,
+    setInternalBootApplySucceeded: vi.fn((value: boolean) => {
+      store.internalBootApplySucceeded = value;
+    }),
+  };
 
-    return {
-      draftStore: store,
-      applyInternalBootSelectionMock:
-        vi.fn<
-          (
-            selection: InternalBootSelection,
-            messages: InternalBootApplyMessages
-          ) => Promise<InternalBootApplyResult>
-        >(),
-      cleanupOnboardingStorageMock: vi.fn(),
-      dialogPropsRef: { value: null as Record<string, unknown> | null },
-      stepPropsRef: { value: null as Record<string, unknown> | null },
-      stepperPropsRef: { value: null as Record<string, unknown> | null },
-    };
-  });
+  return {
+    draftStore: store,
+    applyInternalBootSelectionMock:
+      vi.fn<
+        (
+          selection: InternalBootSelection,
+          messages: InternalBootApplyMessages
+        ) => Promise<InternalBootApplyResult>
+      >(),
+    cleanupOnboardingStorageMock: vi.fn(),
+    dialogPropsRef: { value: null as Record<string, unknown> | null },
+    stepPropsRef: { value: null as Record<string, unknown> | null },
+    stepperPropsRef: { value: null as Record<string, unknown> | null },
+  };
+});
 
 vi.mock('@unraid/ui', () => ({
   Dialog: {

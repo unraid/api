@@ -182,7 +182,8 @@ vi.mock('@/components/Onboarding/composables/usePluginInstaller', () => ({
 }));
 
 vi.mock('@/components/Onboarding/composables/internalBoot', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/components/Onboarding/composables/internalBoot')>();
+  const actual =
+    await importOriginal<typeof import('@/components/Onboarding/composables/internalBoot')>();
   return {
     ...actual,
     applyInternalBootSelection: applyInternalBootSelectionMock,
