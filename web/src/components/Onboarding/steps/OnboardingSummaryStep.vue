@@ -966,6 +966,7 @@ const handleComplete = async () => {
           configured: summaryT('logs.internalBootConfigured'),
           returnedError: (output) => summaryT('logs.internalBootReturnedError', { output }),
           failed: summaryT('logs.internalBootFailed'),
+          biosUnverified: summaryT('logs.internalBootBiosUnverified'),
         });
 
         if (applyResult.applySucceeded) {

@@ -153,13 +153,15 @@ describe('internalBoot composable', () => {
   });
 
   it('summarizes BIOS log output into a summary line and deduplicated failures', () => {
-    const summary = summarizeInternalBootBiosLogs([
-      'Applying BIOS boot entry updates...',
-      'efibootmgr failed: first',
-      'BIOS boot entry updates completed with warnings.',
-      'efibootmgr failed: first',
-      'efibootmgr failed: second',
-    ].join('\n'));
+    const summary = summarizeInternalBootBiosLogs(
+      [
+        'Applying BIOS boot entry updates...',
+        'efibootmgr failed: first',
+        'BIOS boot entry updates completed with warnings.',
+        'efibootmgr failed: first',
+        'efibootmgr failed: second',
+      ].join('\n')
+    );
 
     expect(summary).toEqual({
       summaryLine: 'BIOS boot entry updates completed with warnings.',
@@ -195,6 +197,7 @@ describe('internalBoot composable', () => {
         configured: 'Internal boot pool configured.',
         returnedError: (output) => `Internal boot setup returned an error: ${output}`,
         failed: 'Internal boot setup failed',
+        biosUnverified: 'BIOS boot order update could not be verified.',
       }
     );
 
@@ -212,6 +215,49 @@ describe('internalBoot composable', () => {
       },
       {
         message: 'efibootmgr failed: no boot entry updated',
+        type: 'error',
+      },
+    ]);
+  });
+
+  it('warns when BIOS update was requested but output contains no recognizable completion', async () => {
+    mutateMock.mockResolvedValue({
+      data: {
+        onboarding: {
+          createInternalBootPool: {
+            ok: true,
+            code: 0,
+            output: 'Pool created successfully.',
+          },
+        },
+      },
+    });
+
+    const result = await applyInternalBootSelection(
+      {
+        poolName: 'cache',
+        devices: ['disk-1'],
+        bootSizeMiB: 16384,
+        updateBios: true,
+      },
+      {
+        configured: 'Internal boot pool configured.',
+        returnedError: (output) => `Internal boot setup returned an error: ${output}`,
+        failed: 'Internal boot setup failed',
+        biosUnverified: 'BIOS boot order update could not be verified.',
+      }
+    );
+
+    expect(result.applySucceeded).toBe(true);
+    expect(result.hadWarnings).toBe(true);
+    expect(result.hadNonOptimisticFailures).toBe(true);
+    expect(result.logs).toEqual([
+      {
+        message: 'Internal boot pool configured.',
+        type: 'success',
+      },
+      {
+        message: 'BIOS boot order update could not be verified.',
         type: 'error',
       },
     ]);
@@ -241,6 +287,7 @@ describe('internalBoot composable', () => {
         configured: 'Internal boot pool configured.',
         returnedError: (output) => `Internal boot setup returned an error: ${output}`,
         failed: 'Internal boot setup failed',
+        biosUnverified: 'BIOS boot order update could not be verified.',
       }
     );
 

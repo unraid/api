@@ -1,9 +1,9 @@
 import { useApolloClient } from '@vue/apollo-composable';
 
-import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
-
 import { buildOnboardingErrorDiagnostics } from '@/components/Onboarding/composables/onboardingErrorDiagnostics';
 import { CREATE_INTERNAL_BOOT_POOL_MUTATION } from '@/components/Onboarding/graphql/createInternalBootPool.mutation';
+
+import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
 
 export interface InternalBootSelection {
   poolName: string;
@@ -26,6 +26,7 @@ export interface InternalBootApplyMessages {
   configured: string;
   returnedError: (output: string) => string;
   failed: string;
+  biosUnverified: string;
 }
 
 export interface InternalBootApplyResult {
@@ -153,13 +154,19 @@ export const applyInternalBootSelection = async (
         const hadBiosWarnings =
           biosLogSummary.failureLines.length > 0 ||
           Boolean(biosLogSummary.summaryLine?.toLowerCase().includes('with warnings'));
+        const biosUnverified = !biosLogSummary.summaryLine && biosLogSummary.failureLines.length === 0;
 
-        if (hadBiosWarnings) {
+        if (hadBiosWarnings || biosUnverified) {
           hadWarnings = true;
           hadNonOptimisticFailures = true;
         }
 
-        if (biosLogSummary.summaryLine) {
+        if (biosUnverified) {
+          logs.push({
+            message: messages.biosUnverified,
+            type: 'error',
+          });
+        } else if (biosLogSummary.summaryLine) {
           logs.push({
             message: biosLogSummary.summaryLine,
             type: hadBiosWarnings ? 'error' : 'success',

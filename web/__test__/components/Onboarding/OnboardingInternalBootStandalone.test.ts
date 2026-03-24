@@ -29,9 +29,13 @@ const { draftStore, applyInternalBootSelectionMock, dialogPropsRef, stepPropsRef
 
     return {
       draftStore: store,
-      applyInternalBootSelectionMock: vi.fn<
-        (selection: InternalBootSelection, messages: InternalBootApplyMessages) => Promise<InternalBootApplyResult>
-      >(),
+      applyInternalBootSelectionMock:
+        vi.fn<
+          (
+            selection: InternalBootSelection,
+            messages: InternalBootApplyMessages
+          ) => Promise<InternalBootApplyResult>
+        >(),
       dialogPropsRef: { value: null as Record<string, unknown> | null },
       stepPropsRef: { value: null as Record<string, unknown> | null },
       stepperPropsRef: { value: null as Record<string, unknown> | null },
@@ -211,6 +215,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
         configured: 'Internal boot pool configured.',
         returnedError: expect.any(Function),
         failed: 'Internal boot setup failed',
+        biosUnverified: expect.any(String),
       }
     );
     expect(draftStore.setInternalBootApplySucceeded).toHaveBeenNthCalledWith(1, false);

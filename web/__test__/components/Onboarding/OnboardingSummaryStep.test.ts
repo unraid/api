@@ -1162,6 +1162,7 @@ describe('OnboardingSummaryStep', () => {
         configured: 'Internal boot pool configured.',
         returnedError: expect.any(Function),
         failed: 'Internal boot setup failed',
+        biosUnverified: expect.any(String),
       }
     );
     expect(setInternalBootApplySucceededMock).toHaveBeenCalledWith(true);
