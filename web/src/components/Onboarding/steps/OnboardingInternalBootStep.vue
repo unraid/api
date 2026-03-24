@@ -1034,7 +1034,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         <button
           v-if="showBack"
           @click="handleBack"
-          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
+          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
           :disabled="isStepLocked"
         >
           <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
@@ -1046,7 +1046,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
           <button
             v-if="showSkip"
             @click="handleSkip"
-            class="text-muted hover:text-highlighted text-sm font-medium transition-colors sm:mr-2"
+            class="text-muted hover:text-highlighted text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:mr-2"
             :disabled="isBusy"
           >
             {{ t('common.skipForNow', 'Skip for now') }}
