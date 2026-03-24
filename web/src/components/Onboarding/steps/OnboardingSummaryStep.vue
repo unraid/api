@@ -31,7 +31,6 @@ import usePluginInstaller, {
   INSTALL_OPERATION_TIMEOUT_CODE,
 } from '@/components/Onboarding/composables/usePluginInstaller';
 import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Onboarding/graphql/availableLanguages.query';
-import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import {
   SET_LOCALE_MUTATION,
   SET_THEME_MUTATION,
@@ -72,7 +71,6 @@ const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTA
 const { mutate: setTheme } = useMutation(SET_THEME_MUTATION);
 const { mutate: setLocale } = useMutation(SET_LOCALE_MUTATION);
 const { mutate: updateSshSettings } = useMutation(UPDATE_SSH_SETTINGS_MUTATION);
-const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
 
 const { installLanguage, installPlugin } = usePluginInstaller();
 
@@ -634,7 +632,6 @@ const handleComplete = async () => {
     let hadNonOptimisticFailures = false;
     let hadWarnings = !baselineLoaded;
     let hadSshVerificationUncertainty = false;
-    let completionMarked = false;
     let hadInstallTimeout = false;
 
     // 1. Apply Core Settings
@@ -1014,32 +1011,10 @@ const handleComplete = async () => {
       }
     }
 
-    // 5. Mark Complete
-    try {
-      await runWithTransientNetworkRetry(() => completeOnboarding(), shouldRetryNetworkMutations);
-      completionMarked = true;
-    } catch (caughtError: unknown) {
-      hadWarnings = true;
-      addErrorLog(summaryT('logs.completeOnboardingFailed'), caughtError, {
-        operation: 'CompleteOnboarding',
-      });
-    }
-
-    if (completionMarked) {
-      await sleepMs(1000);
-    }
-
     addLog(summaryT('logs.finalizingSetup'), 'info');
     await applyServerIdentityAtEnd();
-    if (completionMarked) {
-      addLog(summaryT('logs.setupComplete'), 'success');
-    }
 
-    if (!completionMarked) {
-      applyResultSeverity.value = 'warning';
-      applyResultTitle.value = summaryT('result.bestEffortTitle');
-      applyResultMessage.value = summaryT('result.bestEffortApiOffline');
-    } else if (hadInstallTimeout) {
+    if (hadInstallTimeout) {
       applyResultSeverity.value = 'warning';
       applyResultTitle.value = summaryT('result.timeoutTitle');
       applyResultMessage.value = summaryT('result.timeoutMessage');
@@ -1056,6 +1031,7 @@ const handleComplete = async () => {
       applyResultTitle.value = summaryT('result.bestEffortTitle');
       applyResultMessage.value = summaryT('result.bestEffortMessage');
     } else {
+      addLog(summaryT('logs.settingsApplied'), 'success');
       applyResultSeverity.value = 'success';
       applyResultTitle.value = summaryT('result.successTitle');
       applyResultMessage.value = summaryT('result.successMessage');

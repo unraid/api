@@ -632,7 +632,7 @@ describe('OnboardingSummaryStep', () => {
     await vi.runAllTimersAsync();
     await flushPromises();
 
-    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+    expect(completeOnboardingMock).not.toHaveBeenCalled();
   });
 
   it('skips core setting mutations when baseline is loaded and nothing changed', async () => {
@@ -644,7 +644,7 @@ describe('OnboardingSummaryStep', () => {
     expect(setThemeMock).not.toHaveBeenCalled();
     expect(setLocaleMock).not.toHaveBeenCalled();
     expect(updateSshSettingsMock).not.toHaveBeenCalled();
-    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+    expect(completeOnboardingMock).not.toHaveBeenCalled();
   });
 
   it('keeps custom baseline server identity when draft mirrors baseline values', async () => {
@@ -847,38 +847,26 @@ describe('OnboardingSummaryStep', () => {
 
   it.each([
     {
-      caseName: 'baseline available + completion succeeds',
+      caseName: 'baseline available — shows success (completion deferred to NextSteps)',
       apply: () => {},
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
-        expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+        expect(completeOnboardingMock).not.toHaveBeenCalled();
         expect(wrapper.text()).toContain('Setup Applied');
         expect(wrapper.text()).not.toContain('Setup Saved in Best-Effort Mode');
       },
     },
     {
-      caseName: 'baseline unavailable + completion succeeds',
+      caseName: 'baseline unavailable — shows best-effort (completion deferred to NextSteps)',
       apply: () => {
         coreSettingsResult.value = null;
         coreSettingsError.value = new Error('Graphql is offline.');
       },
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
-        expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+        expect(completeOnboardingMock).not.toHaveBeenCalled();
         expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
       },
     },
-    {
-      caseName: 'completion mutation fails',
-      apply: () => {
-        completeOnboardingMock.mockRejectedValue(new Error('offline'));
-      },
-      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
-        expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
-        expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
-        expect(wrapper.text()).toContain('Could not mark onboarding complete right now');
-        expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
-      },
-    },
-  ])('follows completion endpoint decision matrix ($caseName)', async (scenario) => {
+  ])('follows apply-only result matrix ($caseName)', async (scenario) => {
     scenario.apply();
 
     const { wrapper } = mountComponent();
@@ -887,35 +875,16 @@ describe('OnboardingSummaryStep', () => {
     scenario.assertExpected(wrapper);
   });
 
-  it('keeps the success dialog open after completion instead of advancing immediately', async () => {
+  it('keeps the success dialog open after apply instead of advancing immediately', async () => {
     const { wrapper, onComplete } = mountComponent();
 
     await clickApply(wrapper);
 
-    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+    expect(completeOnboardingMock).not.toHaveBeenCalled();
     expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
     expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Setup Applied');
     expect(onComplete).not.toHaveBeenCalled();
-  });
-
-  it('retries completeOnboarding after transient network errors when SSH changed', async () => {
-    draftStore.useSsh = true;
-    updateSshSettingsMock.mockResolvedValue({
-      data: {
-        updateSshSettings: { id: 'vars', useSsh: true, portssh: 22 },
-      },
-    });
-    completeOnboardingMock
-      .mockRejectedValueOnce(new Error('NetworkError when attempting to fetch resource.'))
-      .mockResolvedValueOnce({});
-
-    const { wrapper } = mountComponent();
-    await clickApply(wrapper);
-
-    expect(completeOnboardingMock).toHaveBeenCalledTimes(2);
-    expect(wrapper.text()).toContain('Setup Applied');
-    expect(wrapper.text()).not.toContain('Could not mark onboarding complete right now');
   });
 
   it('retries final identity update after transient network errors when SSH changed', async () => {
@@ -939,7 +908,7 @@ describe('OnboardingSummaryStep', () => {
     expect(wrapper.text()).not.toContain('Server identity request returned an error, continuing');
   });
 
-  it('prefers best-effort result over timeout classification when completion fails', async () => {
+  it('prefers timeout result when plugin install times out', async () => {
     draftStore.selectedPlugins = new Set(['community-apps']);
     const timeoutError = new Error(
       'Timed out waiting for install operation plugin-op to finish'
@@ -948,13 +917,12 @@ describe('OnboardingSummaryStep', () => {
     };
     timeoutError.code = 'INSTALL_OPERATION_TIMEOUT';
     installPluginMock.mockRejectedValue(timeoutError);
-    completeOnboardingMock.mockRejectedValue(new Error('offline'));
 
     const { wrapper } = mountComponent();
     await clickApply(wrapper);
 
-    expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
-    expect(wrapper.text()).not.toContain('Setup Continued After Timeout');
+    expect(completeOnboardingMock).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('Setup Continued After Timeout');
   });
 
   it('prefers timeout result over warning classification when completion succeeds', async () => {
@@ -976,14 +944,14 @@ describe('OnboardingSummaryStep', () => {
     expect(wrapper.text()).not.toContain('Setup Applied with Warnings');
   });
 
-  it('shows completion dialog in offline mode and advances only after OK', async () => {
+  it('shows result dialog in offline mode and advances only after OK', async () => {
     coreSettingsResult.value = null;
     coreSettingsError.value = new Error('Graphql is offline.');
-    completeOnboardingMock.mockRejectedValue(new Error('offline'));
 
     const { wrapper, onComplete } = mountComponent();
     await clickApply(wrapper);
 
+    expect(completeOnboardingMock).not.toHaveBeenCalled();
     expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
     expect(onComplete).not.toHaveBeenCalled();
