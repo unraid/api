@@ -837,7 +837,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
               :search-input="false"
               :placeholder="t('onboarding.internalBootStep.fields.selectDevice')"
               :disabled="isBusy"
-              class="min-h-[42px] w-full"
+              class="w-full"
               :ui="{ content: 'z-[100]' }"
             />
           </div>
