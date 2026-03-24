@@ -10,6 +10,7 @@ import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/do
 import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
+import { DockerStartupTasksListener } from '@app/unraid-api/graph/resolvers/docker/docker-startup-tasks.js';
 import { DockerStatsService } from '@app/unraid-api/graph/resolvers/docker/docker-stats.service.js';
 import { DockerTailscaleService } from '@app/unraid-api/graph/resolvers/docker/docker-tailscale.service.js';
 import { DockerTemplateIconService } from '@app/unraid-api/graph/resolvers/docker/docker-template-icon.service.js';
@@ -35,6 +36,7 @@ import { ServicesModule } from '@app/unraid-api/graph/services/services.module.j
         DockerConfigService,
         DockerTemplateScannerService,
         DockerTemplateIconService,
+        DockerStartupTasksListener,
         DockerStatsService,
         DockerTailscaleService,
         DockerLogService,

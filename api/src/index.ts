@@ -30,8 +30,7 @@ import { StateManager } from '@app/store/watch/state-watch.js';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 
-// PM2 listen_timeout is 15 seconds (ecosystem.config.json)
-// We use 13 seconds as our total budget to ensure our timeout triggers before PM2 kills us
+// PM2 listen_timeout is 30 seconds (ecosystem.config.json)
 const TOTAL_STARTUP_BUDGET_MS = 30_000;
 // Reserve time for the NestJS bootstrap (the most critical and time-consuming operation)
 const BOOTSTRAP_RESERVED_MS = 20_000;
