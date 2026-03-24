@@ -5,6 +5,7 @@ import {
   AccordionRoot,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { computed, ref, watch } from 'vue';
 
 export interface AccordionItemData {
   value: string;
@@ -18,6 +19,7 @@ export interface AccordionProps {
   type?: 'single' | 'multiple';
   collapsible?: boolean;
   defaultValue?: string | string[];
+  modelValue?: string | string[];
   class?: string;
 }
 
@@ -25,6 +27,30 @@ const props = withDefaults(defineProps<AccordionProps>(), {
   type: 'single',
   collapsible: true,
 });
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string | string[]];
+}>();
+
+const openValue = ref<string | string[] | undefined>(props.modelValue ?? props.defaultValue);
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val !== undefined) openValue.value = val;
+  }
+);
+
+function isItemOpen(itemValue: string): boolean {
+  if (!openValue.value) return false;
+  if (Array.isArray(openValue.value)) return openValue.value.includes(itemValue);
+  return openValue.value === itemValue;
+}
+
+function handleUpdate(value: string | string[]) {
+  openValue.value = value;
+  emit('update:modelValue', value);
+}
 </script>
 
 <template>
@@ -32,7 +58,9 @@ const props = withDefaults(defineProps<AccordionProps>(), {
     :type="type"
     :collapsible="collapsible"
     :default-value="defaultValue"
+    :model-value="openValue"
     :class="props.class"
+    @update:model-value="handleUpdate"
   >
     <!-- Default slot for direct composition -->
     <slot />
@@ -46,12 +74,12 @@ const props = withDefaults(defineProps<AccordionProps>(), {
         :disabled="item.disabled"
       >
         <AccordionTrigger>
-          <slot name="trigger" :item="item">
+          <slot name="trigger" :item="item" :open="isItemOpen(item.value)">
             {{ item.title }}
           </slot>
         </AccordionTrigger>
         <AccordionContent>
-          <slot name="content" :item="item">
+          <slot name="content" :item="item" :open="isItemOpen(item.value)">
             {{ item.content }}
           </slot>
         </AccordionContent>
