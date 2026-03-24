@@ -52,6 +52,12 @@ vi.mock('~/components/ApiKeyPage.standalone.vue', () => ({
 vi.mock('~/components/DevModalTest.standalone.vue', () => ({
   default: { name: 'MockDevModalTest', template: '<div>DevModalTest</div>' },
 }));
+vi.mock('~/components/Onboarding/standalone/OnboardingAdminPanel.standalone.vue', () => ({
+  default: { name: 'MockOnboardingAdminPanel', template: '<div>OnboardingAdminPanel</div>' },
+}));
+vi.mock('~/components/Onboarding/standalone/OnboardingInternalBoot.standalone.vue', () => ({
+  default: { name: 'MockOnboardingInternalBoot', template: '<div>OnboardingInternalBoot</div>' },
+}));
 vi.mock('~/components/ApiKeyAuthorize.standalone.vue', () => ({
   default: { name: 'MockApiKeyAuthorize', template: '<div>ApiKeyAuthorize</div>' },
 }));
