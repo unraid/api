@@ -11,8 +11,14 @@ import type {
 import OnboardingInternalBootStandalone from '~/components/Onboarding/standalone/OnboardingInternalBoot.standalone.vue';
 import { createTestI18n } from '../../utils/i18n';
 
-const { draftStore, applyInternalBootSelectionMock, dialogPropsRef, stepPropsRef, stepperPropsRef } =
-  vi.hoisted(() => {
+const {
+  draftStore,
+  applyInternalBootSelectionMock,
+  cleanupOnboardingStorageMock,
+  dialogPropsRef,
+  stepPropsRef,
+  stepperPropsRef,
+} = vi.hoisted(() => {
     const store = {
       internalBootSelection: null as {
         poolName: string;
@@ -36,6 +42,7 @@ const { draftStore, applyInternalBootSelectionMock, dialogPropsRef, stepPropsRef
             messages: InternalBootApplyMessages
           ) => Promise<InternalBootApplyResult>
         >(),
+      cleanupOnboardingStorageMock: vi.fn(),
       dialogPropsRef: { value: null as Record<string, unknown> | null },
       stepPropsRef: { value: null as Record<string, unknown> | null },
       stepperPropsRef: { value: null as Record<string, unknown> | null },
@@ -65,6 +72,10 @@ vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
 
 vi.mock('@/components/Onboarding/composables/internalBoot', () => ({
   applyInternalBootSelection: applyInternalBootSelectionMock,
+}));
+
+vi.mock('@/components/Onboarding/store/onboardingStorageCleanup', () => ({
+  cleanupOnboardingStorage: cleanupOnboardingStorageMock,
 }));
 
 vi.mock('@/components/Onboarding/components/OnboardingConsole.vue', () => ({

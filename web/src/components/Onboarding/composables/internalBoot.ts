@@ -114,7 +114,7 @@ const buildMutationVariables = (selection: InternalBootSelection) => ({
   reboot: false,
 });
 
-const getErrorMessage = (error: unknown): string => {
+export const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) {
     const trimmedMessage = error.message.trim();
     if (trimmedMessage) {

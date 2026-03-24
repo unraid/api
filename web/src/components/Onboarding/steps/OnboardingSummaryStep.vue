@@ -25,7 +25,10 @@ import {
 } from '@heroicons/vue/24/solid';
 import { BrandButton, Dialog } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
-import { applyInternalBootSelection } from '@/components/Onboarding/composables/internalBoot';
+import {
+  applyInternalBootSelection,
+  getErrorMessage,
+} from '@/components/Onboarding/composables/internalBoot';
 import { buildOnboardingErrorDiagnostics } from '@/components/Onboarding/composables/onboardingErrorDiagnostics';
 import usePluginInstaller, {
   INSTALL_OPERATION_TIMEOUT_CODE,
@@ -234,24 +237,6 @@ const addLog = (
   details?: OnboardingErrorDiagnostics
 ) => {
   logs.value.push({ message, type, timestamp: Date.now(), details });
-};
-
-const getErrorMessage = (caughtError: unknown) => {
-  if (caughtError instanceof Error) {
-    const trimmedMessage = caughtError.message.trim();
-    if (trimmedMessage) {
-      return trimmedMessage;
-    }
-  }
-
-  if (typeof caughtError === 'string') {
-    const trimmedMessage = caughtError.trim();
-    if (trimmedMessage) {
-      return trimmedMessage;
-    }
-  }
-
-  return summaryT('errors.unknownError');
 };
 
 interface OnboardingErrorLogContext {
