@@ -92,6 +92,7 @@ const getStore = () => {
   Object.defineProperties(store, {
     apiVersion: { value: '', writable: true },
     array: { value: undefined, writable: true },
+    connectPluginVersion: { value: '', writable: true },
     registered: { value: undefined, writable: true },
     state: { value: undefined, writable: true },
     regGen: { value: 0, writable: true },
@@ -181,6 +182,7 @@ const getStore = () => {
     serverPurchasePayload: {
       get: () => {
         const payload = {
+          connectPluginVersion: store.connectPluginVersion || undefined,
           description: store.description,
           deviceCount: store.deviceCount,
           expireTime: store.expireTime,
@@ -209,6 +211,7 @@ const getStore = () => {
     serverAccountPayload: {
       get: () => {
         const payload = {
+          connectPluginVersion: store.connectPluginVersion || undefined,
           deviceCount: store.deviceCount,
           description: store.description,
           expireTime: store.expireTime,
@@ -638,6 +641,7 @@ describe('useServerStore', () => {
     const store = getStore();
 
     store.setServer({
+      connectPluginVersion: '2024.05.06.1049',
       deviceCount: 6,
       description: 'Test Server',
       expireTime: 123,
@@ -660,6 +664,7 @@ describe('useServerStore', () => {
 
     const payload = store.serverPurchasePayload;
 
+    expect(payload.connectPluginVersion).toBe('2024.05.06.1049');
     expect(payload.description).toBe('Test Server');
     expect(payload.deviceCount).toBe(6);
     expect(payload.expireTime).toBe(123);
@@ -708,6 +713,7 @@ describe('useServerStore', () => {
     const store = getStore();
 
     store.setServer({
+      connectPluginVersion: '2024.05.06.1049',
       deviceCount: 6,
       description: 'Test Server',
       expireTime: 123,
@@ -731,6 +737,7 @@ describe('useServerStore', () => {
 
     const payload = store.serverAccountPayload;
 
+    expect(payload.connectPluginVersion).toBe('2024.05.06.1049');
     expect(payload.deviceCount).toBe(6);
     expect(payload.description).toBe('Test Server');
     expect(payload.expireTime).toBe(123);

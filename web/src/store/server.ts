@@ -233,6 +233,7 @@ export const useServerStore = defineStore('server', () => {
 
   const buildServerCallbackPayload = (overrides: Partial<ServerData> = {}): ServerData => {
     const payload: ServerData = {
+      connectPluginVersion: connectPluginVersion.value,
       description: description.value,
       deviceCount: deviceCount.value,
       expireTime: expireTime.value,
