@@ -994,8 +994,8 @@ const handleComplete = async () => {
       }
     }
 
-    addLog(summaryT('logs.finalizingSetup'), 'info');
     await applyServerIdentityAtEnd();
+    addLog(summaryT('logs.finalizingSetup'), 'info');
 
     if (hadInstallTimeout) {
       applyResultSeverity.value = 'warning';
