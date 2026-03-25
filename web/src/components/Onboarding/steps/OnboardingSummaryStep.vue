@@ -17,7 +17,6 @@ import {
 import {
   ArrowPathIcon,
   CheckCircleIcon,
-  ChevronDownIcon,
   ChevronRightIcon,
   ClockIcon,
   ExclamationCircleIcon,
@@ -1220,12 +1219,6 @@ const handleBack = () => {
               >
                 <span v-if="!open">{{ t('onboarding.summaryStep.viewSelected') }}</span>
                 <span v-else>{{ t('onboarding.summaryStep.hideSelected') }}</span>
-                <ChevronDownIcon
-                  :class="[
-                    open ? 'rotate-180 transform' : '',
-                    'h-5 w-5 transition-transform duration-200',
-                  ]"
-                />
               </div>
             </div>
           </template>
