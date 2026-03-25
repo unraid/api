@@ -18,14 +18,14 @@ const delegatedProps = reactiveOmit(props, 'class');
       tabindex="0"
       :class="
         cn(
-          'flex flex-1 cursor-pointer items-center justify-between py-4 pr-4 font-medium transition-all [&[data-state=open]>svg]:rotate-180',
+          'flex flex-1 cursor-pointer items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180',
           props.class
         )
       "
     >
       <slot />
       <slot name="icon">
-        <ChevronDown class="text-primary h-4 w-4 shrink-0 transition-transform duration-200" />
+        <ChevronDown class="h-4 w-4 shrink-0 transition-transform duration-200" />
       </slot>
     </AccordionTrigger>
   </AccordionHeader>

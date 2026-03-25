@@ -22,6 +22,7 @@ export interface AccordionProps {
   modelValue?: string | string[];
   class?: string;
   itemClass?: string;
+  triggerClass?: string;
 }
 
 const props = withDefaults(defineProps<AccordionProps>(), {
@@ -75,7 +76,7 @@ function handleUpdate(value: string | string[]) {
         :disabled="item.disabled"
         :class="props.itemClass"
       >
-        <AccordionTrigger>
+        <AccordionTrigger :class="props.triggerClass">
           <slot name="trigger" :item="item" :open="isItemOpen(item.value)">
             {{ item.title }}
           </slot>

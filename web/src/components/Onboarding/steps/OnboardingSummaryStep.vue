@@ -1192,6 +1192,7 @@ const handleBack = () => {
           collapsible
           class="border-none"
           item-class="border-none"
+          trigger-class="pr-4 hover:no-underline [&>svg]:text-primary"
         >
           <template #trigger="{ open }">
             <div
