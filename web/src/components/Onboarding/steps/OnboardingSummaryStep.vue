@@ -1383,11 +1383,17 @@ const handleBack = () => {
         :portal="false"
         :title="applyResultTitle"
         :description="applyResultMessage"
-        :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 w-[calc(100vw-2rem)] max-w-3xl' }"
+        :ui="{
+          footer: 'justify-end',
+          overlay: 'z-50',
+          content: showDiagnosticLogsInResultDialog
+            ? 'z-50 w-[calc(100vw-2rem)] max-w-3xl'
+            : 'z-50 max-w-md',
+        }"
         @update:open="showApplyResultDialog = $event"
       >
-        <template #body>
-          <div v-if="showDiagnosticLogsInResultDialog" class="space-y-3">
+        <template v-if="showDiagnosticLogsInResultDialog" #body>
+          <div class="space-y-3">
             <h4 class="text-sm font-semibold tracking-wide uppercase">
               {{ t('onboarding.summaryStep.diagnosticLogs') }}
             </h4>
