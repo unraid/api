@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "内部启动池已配置。",
   "onboarding.summaryStep.logs.internalBootReturnedError": "内部启动设置返回错误：{output}",
   "onboarding.summaryStep.logs.internalBootFailed": "内部启动设置失败",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "无法验证 BIOS 启动顺序更新。您可能需要手动更新 BIOS 设置。",
   "onboarding.summaryStep.logs.updatingSshSettings": "正在更新SSH设置...",
   "onboarding.summaryStep.logs.sshVerified": "SSH设置已验证。",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "SSH更新已提交，但最终SSH状态尚未验证。继续。",
