@@ -846,15 +846,15 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
           </div>
         </div>
 
-        <blockquote
+        <UAlert
           v-if="selectedDriveWarnings.length > 0"
           data-testid="internal-boot-drive-warning"
-          role="alert"
-          class="rounded-xl border border-amber-200 bg-amber-50 p-4"
+          color="warning"
+          variant="outline"
+          icon="i-lucide-triangle-alert"
         >
-          <div class="flex items-start gap-3">
-            <ExclamationTriangleIcon class="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-700" />
-            <div class="space-y-2 text-sm leading-relaxed text-amber-950">
+          <template #description>
+            <div class="space-y-2">
               <p class="font-semibold">
                 {{ t('onboarding.internalBootStep.warning.driveWarningsTitle') }}
               </p>
@@ -865,8 +865,8 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
                 </li>
               </ul>
             </div>
-          </div>
-        </blockquote>
+          </template>
+        </UAlert>
 
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
           <label class="space-y-2">

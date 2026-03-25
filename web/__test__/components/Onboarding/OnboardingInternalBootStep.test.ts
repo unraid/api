@@ -132,9 +132,10 @@ const mountComponent = () =>
           template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
         },
         UAlert: {
+          inheritAttrs: true,
           props: ['title', 'description'],
           template:
-            '<div><slot name="title" />{{ title }}<slot name="description" />{{ description }}<slot /></div>',
+            '<div v-bind="$attrs"><slot name="title" />{{ title }}<slot name="description" />{{ description }}<slot /></div>',
         },
         UCheckbox: {
           props: ['modelValue', 'disabled'],
