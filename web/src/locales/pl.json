@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Skonfigurowano wewnętrzny zestaw bootowania.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "Konfiguracja bootowania wewnętrznego zwróciła błąd: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Wewnętrzna konfiguracja bootowania nie powiodła się",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "Nie udało się zweryfikować aktualizacji kolejności rozruchu BIOS-u. Może być konieczne ręczne zaktualizowanie ustawień BIOS-u.",
   "onboarding.summaryStep.logs.updatingSshSettings": "Aktualizowanie ustawień SSH...",
   "onboarding.summaryStep.logs.sshVerified": "Zweryfikowano ustawienia SSH.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "Wysłano żądanie aktualizacji SSH, ale końcowy stan SSH nie został jeszcze zweryfikowany. Kontynuowanie.",
