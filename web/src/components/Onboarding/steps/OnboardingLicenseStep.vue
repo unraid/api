@@ -264,7 +264,7 @@ const doSkip = () => {
             <BrandButton
               :text="nextButtonText"
               class="w-full shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[140px]"
-              :variant="hasValidLicense ? 'fill' : 'gray'"
+              :variant="hasValidLicense ? 'fill' : 'outline'"
               :class="hasValidLicense ? '!bg-primary hover:!bg-primary/90 !text-white' : '!shadow-none'"
               @click="handleNext"
               :disabled="!hasValidLicense && !allowSkip"
@@ -338,7 +338,7 @@ const doSkip = () => {
           <UAlert
             v-if="hasActivationCode"
             color="primary"
-            variant="subtle"
+            variant="solid"
             icon="i-lucide-info"
             :description="
               lt(
@@ -375,8 +375,8 @@ const doSkip = () => {
         <UButton color="neutral" variant="outline" @click="closeSkipDialog">
           {{ lt('onboarding.licenseStep.actions.cancel', 'Cancel') }}
         </UButton>
-        <UButton color="warning" @click="doSkip">
-          {{ lt('onboarding.licenseStep.actions.iUnderstand', 'I UNDERSTAND') }}
+        <UButton color="primary" @click="doSkip">
+          {{ lt('onboarding.licenseStep.actions.iUnderstand', 'I Understand') }}
         </UButton>
       </template>
     </UModal>
