@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Grupo de arranque interno configurado.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "La configuración del arranque interno devolvió un error: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Falló la configuración del arranque interno",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "No se pudo verificar la actualización del orden de arranque del BIOS. Es posible que deba actualizar la configuración del BIOS manualmente.",
   "onboarding.summaryStep.logs.updatingSshSettings": "Actualizando configuraciones SSH...",
   "onboarding.summaryStep.logs.sshVerified": "Configuraciones SSH verificadas.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "Actualización SSH enviada, pero el estado SSH final aún no se pudo verificar. Continuando.",
