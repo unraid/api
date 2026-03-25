@@ -1027,7 +1027,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             v-if="showSkip"
             @click="handleSkip"
             class="text-muted hover:text-highlighted text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:mr-2"
-            :disabled="isBusy"
+            :disabled="isStepLocked"
           >
             {{ t('common.skipForNow', 'Skip for now') }}
           </button>
