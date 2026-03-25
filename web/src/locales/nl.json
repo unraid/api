@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Interne opstartpool geconfigureerd.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "Interne opstartsetup gaf een foutmelding: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Interne opstartsetup is mislukt",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "De BIOS-opstartvolgorde kon niet worden geverifieerd. Mogelijk moet u de BIOS-instellingen handmatig bijwerken.",
   "onboarding.summaryStep.logs.updatingSshSettings": "SSH-instellingen bijwerken...",
   "onboarding.summaryStep.logs.sshVerified": "SSH-instellingen geverifieerd.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "SSH-update ingediend, maar eind-SSH-status kon nog niet worden geverifieerd. Doorgaan.",
