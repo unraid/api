@@ -248,6 +248,46 @@ describe('mount-engine', () => {
       expect(lastUAppPortal).toBe('#unraid-api-modals-virtual');
     });
 
+    it('should sanitize conflicting dropdown ids that legacy plugins target', async () => {
+      await mountUnifiedApp();
+
+      const trigger = document.createElement('button');
+      trigger.setAttribute('id', 'reka-dropdown-menu-trigger-1');
+      document.body.appendChild(trigger);
+
+      const content = document.createElement('div');
+      content.setAttribute('id', 'reka-dropdown-menu-content-1');
+      content.setAttribute('aria-labelledby', 'reka-dropdown-menu-trigger-1');
+      document.body.appendChild(content);
+
+      trigger.setAttribute('aria-controls', 'reka-dropdown-menu-content-1');
+
+      await vi.waitFor(() => {
+        expect(trigger.getAttribute('id')).toBe('reka-menu-trigger-1');
+        expect(trigger.getAttribute('aria-controls')).toBe('reka-menu-content-1');
+        expect(content.getAttribute('id')).toBe('reka-menu-content-1');
+        expect(content.getAttribute('aria-labelledby')).toBe('reka-menu-trigger-1');
+      });
+    });
+
+    it('should leave legacy webgui dropdown ids untouched', async () => {
+      await mountUnifiedApp();
+
+      const legacyMenu = document.createElement('ul');
+      legacyMenu.setAttribute('id', 'dropdown-vm-1234');
+      document.body.appendChild(legacyMenu);
+
+      const legacyTrigger = document.createElement('button');
+      legacyTrigger.setAttribute('id', 'vm-1234');
+      legacyTrigger.setAttribute('aria-controls', 'dropdown-vm-1234');
+      document.body.appendChild(legacyTrigger);
+
+      await vi.waitFor(() => {
+        expect(legacyMenu.getAttribute('id')).toBe('dropdown-vm-1234');
+        expect(legacyTrigger.getAttribute('aria-controls')).toBe('dropdown-vm-1234');
+      });
+    });
+
     it('should decorate the parent container when requested', async () => {
       const container = document.createElement('div');
       container.id = 'container';
