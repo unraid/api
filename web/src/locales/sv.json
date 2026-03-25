@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Intern startpool konfigurerad.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "Intern startinställning returnerade ett fel: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Intern startinställning misslyckades",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "Uppdateringen av BIOS startordning kunde inte verifieras. Du kan behöva uppdatera BIOS-inställningarna manuellt.",
   "onboarding.summaryStep.logs.updatingSshSettings": "Uppdaterar SSH-inställningar...",
   "onboarding.summaryStep.logs.sshVerified": "SSH-inställningar verifierade.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "SSH-uppdateringsbegäran skickad, men slutgiltigt SSH-tillstånd kunde inte verifieras än. Fortsätter.",
