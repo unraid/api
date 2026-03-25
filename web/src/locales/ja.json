@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "内部ブートプールが構成されました。",
   "onboarding.summaryStep.logs.internalBootReturnedError": "内部ブートセットアップはエラーを返しました: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "内部ブート設定に失敗しました",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "BIOSの起動順序の更新を確認できませんでした。BIOS設定を手動で更新する必要がある場合があります。",
   "onboarding.summaryStep.logs.updatingSshSettings": "SSH設定を更新中...",
   "onboarding.summaryStep.logs.sshVerified": "SSH設定が確認されました。",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "SSH更新が送信されましたが、最終的なSSH状態はまだ確認できませんでした。続行します。",
