@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Iekšējās uzstādīšanas pools ir konfigurēts.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "Iekšējās uzstādīšanas iestatīšana atgrieza kļūdu: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Iekšējās uzstādīšanas iestatīšana neizdevās",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "Nevarēja verificēt BIOS sāknēšanas secības atjauninājumu. Iespējams, BIOS iestatījumi būs jāatjaunina manuāli.",
   "onboarding.summaryStep.logs.updatingSshSettings": "Atjaunina SSH iestatījumus...",
   "onboarding.summaryStep.logs.sshVerified": "SSH iestatījumi ir pārbaudīti.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "SSH atjauninājums ir veikts, bet galīgo SSH statusu nevar vēl pārbaudīt. Turpinām.",
