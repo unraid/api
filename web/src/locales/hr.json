@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Unutarnji skup boota konfiguriran.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "Postavljanje unutrašnjeg boota vratilo je pogrešku: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Unutarnji boot nije uspio",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "Ažuriranje redoslijeda pokretanja u BIOS-u nije moglo biti potvrđeno. Možda ćete morati ručno ažurirati postavke BIOS-a.",
   "onboarding.summaryStep.logs.updatingSshSettings": "Ažuriranje SSH postavki...",
   "onboarding.summaryStep.logs.sshVerified": "SSH postavke su potvrđene.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "Zahtjev za ažuriranjem SSH je podnesen, ali konačno SSH stanje još nije moguće potvrditi. Nastavljamo.",
