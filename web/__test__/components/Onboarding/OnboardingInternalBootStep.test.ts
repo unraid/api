@@ -397,9 +397,12 @@ describe('OnboardingInternalBootStep', () => {
 
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
     expect(wrapper.find('[data-testid="internal-boot-drive-warning"]').exists()).toBe(false);
-    const selects = wrapper.findAll('select');
-    await selects[1]?.setValue('ELIGIBLE-1');
+
+    // USelectMenu auto-imports bypass global.stubs, so interact via VM
+    const vm = wrapper.vm as unknown as { selectedDevices: Array<string | undefined> };
+    vm.selectedDevices[0] = 'ELIGIBLE-1';
     await flushPromises();
+
     expect(wrapper.find('[data-testid="internal-boot-drive-warning"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Selected drive warnings');
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
