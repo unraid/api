@@ -73,7 +73,7 @@ const getHistoryState = (state: unknown): InternalBootHistoryState | null => {
 
   const sessionId =
     typeof (candidate as Record<string, unknown>).sessionId === 'string'
-      ? (candidate as Record<string, unknown>).sessionId
+      ? ((candidate as Record<string, unknown>).sessionId as string)
       : null;
   const stepId =
     (candidate as Record<string, unknown>).stepId === 'CONFIGURE_BOOT' ||
@@ -103,7 +103,7 @@ const buildHistoryState = (stepId: StepId, position: number) => {
   return {
     ...currentState,
     [INTERNAL_BOOT_HISTORY_STATE_KEY]: {
-      sessionId: historySessionId.value,
+      sessionId: historySessionId.value ?? '',
       stepId,
       position,
     } satisfies InternalBootHistoryState,
@@ -340,7 +340,7 @@ onUnmounted(() => {
         data-testid="internal-boot-standalone-close"
         class="bg-background/90 text-foreground hover:bg-muted fixed top-5 right-8 z-20 rounded-md p-1.5 shadow-sm transition-colors"
         :aria-label="t('onboarding.modal.closeAriaLabel')"
-        @click="handleClose"
+        @click="() => handleClose()"
       >
         <XMarkIcon class="h-5 w-5" />
       </button>
@@ -420,7 +420,7 @@ onUnmounted(() => {
                   type="button"
                   data-testid="internal-boot-standalone-result-close"
                   class="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
-                  @click="handleClose"
+                  @click="() => handleClose()"
                 >
                   {{ t('common.close') }}
                 </button>

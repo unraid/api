@@ -485,29 +485,6 @@ const selectedPluginSummaries = computed(() => {
   });
 });
 
-const hasCoreSettingChanges = computed(() => {
-  const currentTimezone = coreSettingsResult.value?.systemTime?.timeZone || '';
-  const currentName =
-    coreSettingsResult.value?.server?.name || coreSettingsResult.value?.vars?.name || '';
-  const currentDescription = coreSettingsResult.value?.server?.comment || '';
-  const currentTheme = coreSettingsResult.value?.display?.theme || 'white';
-  const currentLocale = coreSettingsResult.value?.display?.locale || 'en_US';
-  const currentSsh = Boolean(coreSettingsResult.value?.vars?.useSsh || false);
-
-  return (
-    draftStore.selectedTimeZone !== currentTimezone ||
-    draftStore.serverName !== currentName ||
-    draftStore.serverDescription !== currentDescription ||
-    draftStore.selectedTheme !== currentTheme ||
-    draftStore.selectedLanguage !== currentLocale ||
-    draftStore.useSsh !== currentSsh
-  );
-});
-
-const hasAnyChangesToApply = computed(
-  () =>
-    hasCoreSettingChanges.value || pluginIdsToInstall.value.length > 0 || hasInternalBootSelection.value
-);
 const isApplyDataReady = computed(() =>
   Boolean(coreSettingsResult.value?.server && coreSettingsResult.value?.vars)
 );

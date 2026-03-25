@@ -155,7 +155,7 @@ const getHistoryState = (state: unknown): OnboardingHistoryState | null => {
 
   const sessionId =
     typeof (candidate as Record<string, unknown>).sessionId === 'string'
-      ? (candidate as Record<string, unknown>).sessionId
+      ? ((candidate as Record<string, unknown>).sessionId as string)
       : null;
   const stepId =
     typeof (candidate as Record<string, unknown>).stepId === 'string'
@@ -186,9 +186,9 @@ const buildHistoryState = (stepId: StepId, position: number) => {
   return {
     ...currentState,
     [ONBOARDING_HISTORY_STATE_KEY]: {
-      sessionId: historySessionId.value,
+      sessionId: historySessionId.value ?? '',
       stepId,
-      source: sessionSource.value,
+      source: sessionSource.value ?? 'automatic',
       position,
     } satisfies OnboardingHistoryState,
   };
