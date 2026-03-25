@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Piscina d'arrencada interna configurada.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "La configuració d'arrencada interna va retornar un error: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "La configuració d'arrencada interna ha fallat",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "No s'ha pogut verificar l'actualització de l'ordre d'arrencada del BIOS. És possible que hàgiu d'actualitzar manualment la configuració del BIOS.",
   "onboarding.summaryStep.logs.updatingSshSettings": "Actualitzant configuracions SSH...",
   "onboarding.summaryStep.logs.sshVerified": "Configuracions SSH verificades.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "S'ha enviat l'actualització SSH, però l'estat final de SSH no es pot verificar encara. Continuant.",
