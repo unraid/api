@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Interner Boot-Pool konfiguriert.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "Interne Boot-Einrichtung gab einen Fehler zurück: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Interne Boot-Einrichtung fehlgeschlagen",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "Die Aktualisierung der BIOS-Startreihenfolge konnte nicht verifiziert werden. Möglicherweise müssen Sie die BIOS-Einstellungen manuell aktualisieren.",
   "onboarding.summaryStep.logs.updatingSshSettings": "SSH-Einstellungen werden aktualisiert...",
   "onboarding.summaryStep.logs.sshVerified": "SSH-Einstellungen überprüft.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "SSH-Aktualisierung wurde eingereicht, aber der endgültige SSH-Zustand konnte noch nicht überprüft werden. Wird fortgesetzt.",
