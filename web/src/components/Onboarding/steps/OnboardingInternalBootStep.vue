@@ -942,6 +942,8 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
           type="single"
           collapsible
           class="border-none"
+          item-class="border-none"
+          trigger-class="pr-4 hover:no-underline [&>svg]:hidden"
         >
           <template #trigger="{ open }">
             <div
