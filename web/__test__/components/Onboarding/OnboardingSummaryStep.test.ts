@@ -482,7 +482,7 @@ describe('OnboardingSummaryStep', () => {
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(installPluginMock).not.toHaveBeenCalled();
         expect(wrapper.text()).toContain('Already installed');
-        expect(wrapper.text()).toContain('Setup Applied');
+        expect(wrapper.text()).toContain('No Updates Needed');
       },
     },
     {
@@ -494,7 +494,7 @@ describe('OnboardingSummaryStep', () => {
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(installPluginMock).not.toHaveBeenCalled();
         expect(wrapper.text()).toContain('Already installed');
-        expect(wrapper.text()).toContain('Setup Applied');
+        expect(wrapper.text()).toContain('No Updates Needed');
       },
     },
     {
@@ -504,7 +504,7 @@ describe('OnboardingSummaryStep', () => {
       },
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(installPluginMock).not.toHaveBeenCalled();
-        expect(wrapper.text()).toContain('Setup Applied');
+        expect(wrapper.text()).toContain('No Updates Needed');
       },
     },
     {
@@ -571,8 +571,8 @@ describe('OnboardingSummaryStep', () => {
     await clickApply(wrapper);
 
     expectApplyResult(wrapper, {
-      title: 'Setup Applied',
-      message: 'Your onboarding settings were applied successfully.',
+      title: 'No Updates Needed',
+      message: 'There were no onboarding updates to apply, so nothing was changed.',
       severity: 'success',
     });
   });
@@ -959,7 +959,7 @@ describe('OnboardingSummaryStep', () => {
       apply: () => {},
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(completeOnboardingMock).not.toHaveBeenCalled();
-        expect(wrapper.text()).toContain('Setup Applied');
+        expect(wrapper.text()).toContain('No Updates Needed');
         expect(wrapper.text()).not.toContain('Setup Saved in Best-Effort Mode');
       },
     },
@@ -990,7 +990,7 @@ describe('OnboardingSummaryStep', () => {
 
     expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
     expect(getSummaryVm(wrapper).showApplyResultDialog).toBe(true);
-    expect(wrapper.text()).toContain('Setup Applied');
+    expect(wrapper.text()).toContain('No Updates Needed');
     expect(onComplete).not.toHaveBeenCalled();
   });
 

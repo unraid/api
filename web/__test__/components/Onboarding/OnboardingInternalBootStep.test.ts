@@ -396,6 +396,7 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
+    expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="internal-boot-drive-warning"]').exists()).toBe(false);
 
     // USelectMenu auto-imports bypass global.stubs, so interact via VM
@@ -405,9 +406,6 @@ describe('OnboardingInternalBootStep', () => {
 
     expect(wrapper.find('[data-testid="internal-boot-drive-warning"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Selected drive warnings');
-    await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
-    await flushPromises();
-    expect(wrapper.text()).toContain('HAS_INTERNAL_BOOT_PARTITIONS');
   });
 
   it('shows disk-level ineligibility while keeping the form available for eligible disks', async () => {

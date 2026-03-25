@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
@@ -22,6 +22,13 @@ import type { StepId } from '@/components/Onboarding/stepRegistry';
 
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
+const INTERNAL_BOOT_HISTORY_STATE_KEY = '__unraidOnboardingInternalBoot';
+
+type InternalBootHistoryState = {
+  sessionId: string;
+  stepId: StepId;
+  position: number;
+};
 
 const currentStep = ref<StepId>('CONFIGURE_BOOT');
 const confirmationState = ref<'idle' | 'saving' | 'result'>('idle');
@@ -30,6 +37,9 @@ const logs = ref<LogEntry[]>([]);
 const resultTitle = ref('');
 const resultMessage = ref('');
 const resultSeverity = ref<'success' | 'warning' | 'error'>('success');
+const historySessionId = ref<string | null>(null);
+const historyPosition = ref(-1);
+const isApplyingHistoryState = ref(false);
 const standaloneSteps: Array<{ id: StepId; required: boolean }> = [
   { id: 'CONFIGURE_BOOT', required: true },
   { id: 'SUMMARY', required: true },
@@ -38,17 +48,73 @@ const standaloneSteps: Array<{ id: StepId; required: boolean }> = [
 const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
 
+const canReturnToConfigure = () =>
+  confirmationState.value === 'result' &&
+  (resultSeverity.value !== 'success' || !draftStore.internalBootApplySucceeded);
+
 const showConsole = computed(() => confirmationState.value === 'saving' || logs.value.length > 0);
 const isSaving = computed(() => confirmationState.value === 'saving');
-const canEditAgain = computed(
-  () =>
-    currentStep.value === 'SUMMARY' &&
-    confirmationState.value === 'result' &&
-    resultSeverity.value !== 'success'
-);
+const canEditAgain = computed(() => currentStep.value === 'SUMMARY' && canReturnToConfigure());
 const currentStepIndex = computed(() =>
   standaloneSteps.findIndex((step) => step.id === currentStep.value)
 );
+const createHistorySessionId = () =>
+  `internal-boot-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const getHistoryState = (state: unknown): InternalBootHistoryState | null => {
+  if (!state || typeof state !== 'object') {
+    return null;
+  }
+
+  const candidate = (state as Record<string, unknown>)[INTERNAL_BOOT_HISTORY_STATE_KEY];
+  if (!candidate || typeof candidate !== 'object') {
+    return null;
+  }
+
+  const sessionId =
+    typeof (candidate as Record<string, unknown>).sessionId === 'string'
+      ? (candidate as Record<string, unknown>).sessionId
+      : null;
+  const stepId =
+    (candidate as Record<string, unknown>).stepId === 'CONFIGURE_BOOT' ||
+    (candidate as Record<string, unknown>).stepId === 'SUMMARY'
+      ? ((candidate as Record<string, unknown>).stepId as StepId)
+      : null;
+  const parsedPosition = Number((candidate as Record<string, unknown>).position);
+  const position = Number.isInteger(parsedPosition) ? parsedPosition : null;
+
+  if (!sessionId || !stepId || position === null) {
+    return null;
+  }
+
+  return {
+    sessionId,
+    stepId,
+    position,
+  };
+};
+
+const buildHistoryState = (stepId: StepId, position: number) => {
+  const currentState =
+    typeof window.history.state === 'object' && window.history.state !== null
+      ? (window.history.state as Record<string, unknown>)
+      : {};
+
+  return {
+    ...currentState,
+    [INTERNAL_BOOT_HISTORY_STATE_KEY]: {
+      sessionId: historySessionId.value,
+      stepId,
+      position,
+    } satisfies InternalBootHistoryState,
+  };
+};
+
+const clearHistorySession = () => {
+  historySessionId.value = null;
+  historyPosition.value = -1;
+  isApplyingHistoryState.value = false;
+};
 
 const addLog = (entry: Omit<LogEntry, 'timestamp'>) => {
   logs.value.push({
@@ -83,9 +149,24 @@ const setResultFromApply = (applyResult: InternalBootApplyResult) => {
   resultMessage.value = summaryT('result.failedMessage');
 };
 
-const handleClose = () => {
+const closeLocally = () => {
   cleanupOnboardingStorage();
   isOpen.value = false;
+  clearHistorySession();
+};
+
+const handleClose = (options?: { fromHistory?: boolean }) => {
+  if (
+    typeof window !== 'undefined' &&
+    !options?.fromHistory &&
+    historySessionId.value &&
+    historyPosition.value >= 0
+  ) {
+    window.history.go(-(historyPosition.value + 1));
+    return;
+  }
+
+  closeLocally();
 };
 
 const handleEditAgain = () => {
@@ -109,8 +190,8 @@ const handleStepComplete = async () => {
       type: 'info',
     });
     resultSeverity.value = 'success';
-    resultTitle.value = summaryT('result.successTitle');
-    resultMessage.value = summaryT('result.successMessage');
+    resultTitle.value = summaryT('result.noChangesTitle');
+    resultMessage.value = summaryT('result.noChangesMessage');
     confirmationState.value = 'result';
     return;
   }
@@ -151,6 +232,90 @@ const handleStepComplete = async () => {
     clearInterval(progressTimer);
   }
 };
+
+const handlePopstate = (event: PopStateEvent) => {
+  const nextHistoryState = getHistoryState(event.state) ?? getHistoryState(window.history.state);
+  const activeSessionId = historySessionId.value;
+
+  if (!activeSessionId) {
+    return;
+  }
+
+  if (nextHistoryState?.sessionId === activeSessionId) {
+    historyPosition.value = nextHistoryState.position;
+
+    if (nextHistoryState.stepId === currentStep.value) {
+      return;
+    }
+
+    if (currentStep.value === 'SUMMARY' && confirmationState.value === 'saving') {
+      window.history.go(1);
+      return;
+    }
+
+    if (nextHistoryState.stepId === 'CONFIGURE_BOOT' && !canReturnToConfigure()) {
+      handleClose({ fromHistory: true });
+      return;
+    }
+
+    isApplyingHistoryState.value = true;
+    currentStep.value = nextHistoryState.stepId;
+    isApplyingHistoryState.value = false;
+    return;
+  }
+
+  handleClose({ fromHistory: true });
+};
+
+watch(
+  () => [isOpen.value, currentStep.value] as const,
+  ([open, stepId]) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (!open) {
+      clearHistorySession();
+      return;
+    }
+
+    if (isApplyingHistoryState.value) {
+      return;
+    }
+
+    const currentHistoryState = getHistoryState(window.history.state);
+    if (!historySessionId.value) {
+      historySessionId.value = createHistorySessionId();
+      historyPosition.value = 0;
+      window.history.pushState(
+        buildHistoryState(stepId, historyPosition.value),
+        '',
+        window.location.href
+      );
+      return;
+    }
+
+    if (
+      currentHistoryState?.sessionId === historySessionId.value &&
+      currentHistoryState.stepId === stepId &&
+      currentHistoryState.position === historyPosition.value
+    ) {
+      return;
+    }
+
+    historyPosition.value += 1;
+    window.history.pushState(buildHistoryState(stepId, historyPosition.value), '', window.location.href);
+  },
+  { flush: 'post', immediate: true }
+);
+
+onMounted(() => {
+  window?.addEventListener('popstate', handlePopstate);
+});
+
+onUnmounted(() => {
+  window?.removeEventListener('popstate', handlePopstate);
+});
 </script>
 
 <template>

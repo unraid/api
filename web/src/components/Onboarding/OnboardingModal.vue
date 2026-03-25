@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref, watchEffect } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
@@ -25,9 +25,17 @@ import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
 const { t } = useI18n();
+const ONBOARDING_HISTORY_STATE_KEY = '__unraidOnboarding';
+
+type OnboardingHistoryState = {
+  sessionId: string;
+  stepId: StepId;
+  source: 'automatic' | 'manual';
+  position: number;
+};
 
 const onboardingModalStore = useOnboardingModalStore();
-const { isVisible } = storeToRefs(onboardingModalStore);
+const { isVisible, sessionSource } = storeToRefs(onboardingModalStore);
 const {
   activationRequired,
   hasActivationCode,
@@ -125,8 +133,72 @@ const showModal = computed(() => {
 
   return isVisible.value;
 });
+const isManualSession = computed(() => sessionSource.value === 'manual');
 const showExitConfirmDialog = ref(false);
 const isClosingModal = ref(false);
+const historySessionId = ref<string | null>(null);
+const historyPosition = ref(-1);
+const isApplyingHistoryState = ref(false);
+
+const createHistorySessionId = () =>
+  `onboarding-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const getHistoryState = (state: unknown): OnboardingHistoryState | null => {
+  if (!state || typeof state !== 'object') {
+    return null;
+  }
+
+  const candidate = (state as Record<string, unknown>)[ONBOARDING_HISTORY_STATE_KEY];
+  if (!candidate || typeof candidate !== 'object') {
+    return null;
+  }
+
+  const sessionId =
+    typeof (candidate as Record<string, unknown>).sessionId === 'string'
+      ? (candidate as Record<string, unknown>).sessionId
+      : null;
+  const stepId =
+    typeof (candidate as Record<string, unknown>).stepId === 'string'
+      ? ((candidate as Record<string, unknown>).stepId as StepId)
+      : null;
+  const source = (candidate as Record<string, unknown>).source === 'manual' ? 'manual' : 'automatic';
+  const parsedPosition = Number((candidate as Record<string, unknown>).position);
+  const position = Number.isInteger(parsedPosition) ? parsedPosition : null;
+
+  if (!sessionId || !stepId || position === null) {
+    return null;
+  }
+
+  return {
+    sessionId,
+    stepId,
+    source,
+    position,
+  };
+};
+
+const buildHistoryState = (stepId: StepId, position: number) => {
+  const currentState =
+    typeof window.history.state === 'object' && window.history.state !== null
+      ? (window.history.state as Record<string, unknown>)
+      : {};
+
+  return {
+    ...currentState,
+    [ONBOARDING_HISTORY_STATE_KEY]: {
+      sessionId: historySessionId.value,
+      stepId,
+      source: sessionSource.value,
+      position,
+    } satisfies OnboardingHistoryState,
+  };
+};
+
+const clearHistorySession = () => {
+  historySessionId.value = null;
+  historyPosition.value = -1;
+  isApplyingHistoryState.value = false;
+};
 
 const getNearestVisibleStepId = (stepId: StepId): StepId | null => {
   const currentOrderIndex = STEP_ORDER.indexOf(stepId);
@@ -232,8 +304,14 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
 });
 
 const closeModal = async (options?: { reload?: boolean }) => {
+  if (typeof window !== 'undefined' && isManualSession.value && historyPosition.value >= 0) {
+    window.history.go(-(historyPosition.value + 1));
+    return;
+  }
+
   await onboardingModalStore.closeModal();
   cleanupOnboardingStorage();
+  clearHistorySession();
 
   if (options?.reload) {
     window.location.reload();
@@ -258,7 +336,7 @@ const goToNextStep = async () => {
       setActiveStepByIndex(activeStepIndex + 1);
     } else {
       // If we're at the last step, close the modal
-      await closeModal({ reload: true });
+      await closeModal({ reload: !isManualSession.value });
     }
     return;
   }
@@ -267,6 +345,11 @@ const goToNextStep = async () => {
 };
 
 const goToPreviousStep = () => {
+  if (typeof window !== 'undefined' && historySessionId.value && historyPosition.value > 0) {
+    window.history.back();
+    return;
+  }
+
   if (currentDynamicStepIndex.value > 0) {
     setActiveStepByIndex(currentDynamicStepIndex.value - 1);
   }
@@ -279,6 +362,14 @@ const goToStep = (stepIndex: number) => {
     stepIndex < availableSteps.value.length &&
     stepIndex <= currentDynamicStepIndex.value
   ) {
+    if (typeof window !== 'undefined' && historySessionId.value) {
+      const delta = stepIndex - currentDynamicStepIndex.value;
+      if (delta < 0) {
+        window.history.go(delta);
+        return;
+      }
+    }
+
     setActiveStepByIndex(stepIndex);
   }
 };
@@ -351,9 +442,96 @@ const handleActivationSkip = async () => {
   if (currentDynamicStepIndex.value < availableSteps.value.length - 1) {
     setActiveStepByIndex(currentDynamicStepIndex.value + 1);
   } else {
-    await closeModal();
+    await closeModal({ reload: !isManualSession.value });
   }
 };
+
+const handlePopstate = async (event: PopStateEvent) => {
+  const nextHistoryState = getHistoryState(event.state);
+  const activeSessionId = historySessionId.value;
+
+  if (!activeSessionId) {
+    return;
+  }
+
+  if (nextHistoryState?.sessionId === activeSessionId) {
+    historyPosition.value = nextHistoryState.position;
+
+    if (
+      availableSteps.value.includes(nextHistoryState.stepId) &&
+      currentStepId.value !== nextHistoryState.stepId
+    ) {
+      isApplyingHistoryState.value = true;
+      draftStore.setCurrentStep(nextHistoryState.stepId);
+      await nextTick();
+      isApplyingHistoryState.value = false;
+    }
+    return;
+  }
+
+  if (!showModal.value || !isManualSession.value) {
+    return;
+  }
+
+  showExitConfirmDialog.value = false;
+  isClosingModal.value = true;
+  try {
+    await onboardingModalStore.closeModal();
+    cleanupOnboardingStorage();
+    clearHistorySession();
+  } finally {
+    isClosingModal.value = false;
+  }
+};
+
+watch(
+  () => [showModal.value, currentStep.value, sessionSource.value] as const,
+  ([visible, stepId]) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (!visible || !stepId) {
+      if (!visible) {
+        clearHistorySession();
+      }
+      return;
+    }
+
+    if (isApplyingHistoryState.value) {
+      return;
+    }
+
+    const currentHistoryState = getHistoryState(window.history.state);
+    if (!historySessionId.value) {
+      historySessionId.value = createHistorySessionId();
+      historyPosition.value = 0;
+      const method = isManualSession.value ? 'pushState' : 'replaceState';
+      window.history[method](buildHistoryState(stepId, historyPosition.value), '', window.location.href);
+      return;
+    }
+
+    if (
+      currentHistoryState?.sessionId === historySessionId.value &&
+      currentHistoryState.stepId === stepId &&
+      currentHistoryState.position === historyPosition.value
+    ) {
+      return;
+    }
+
+    historyPosition.value += 1;
+    window.history.pushState(buildHistoryState(stepId, historyPosition.value), '', window.location.href);
+  },
+  { flush: 'post', immediate: true }
+);
+
+onMounted(() => {
+  window?.addEventListener('popstate', handlePopstate);
+});
+
+onUnmounted(() => {
+  window?.removeEventListener('popstate', handlePopstate);
+});
 
 const currentStepProps = computed<Record<string, unknown>>(() => {
   const step = currentStep.value;
@@ -429,7 +607,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     case 'NEXT_STEPS':
       return {
         ...baseProps,
-        onComplete: () => closeModal({ reload: true }),
+        onComplete: () => closeModal({ reload: !isManualSession.value }),
       };
 
     default:

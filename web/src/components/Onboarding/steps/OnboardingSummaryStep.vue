@@ -694,7 +694,17 @@ const handleComplete = async () => {
       }
     };
 
-    if (!hasAnyChangesToApply.value) {
+    const pluginsToInstall = pluginIdsToInstall.value;
+    const hasUpdatesToApply =
+      shouldApplyTimeZone ||
+      shouldApplyServerIdentity ||
+      shouldApplyTheme ||
+      shouldApplyLocale ||
+      shouldApplySsh ||
+      pluginsToInstall.length > 0 ||
+      Boolean(internalBootSelection.value);
+
+    if (!hasUpdatesToApply) {
       addLog(summaryT('logs.noChanges'), 'info');
     }
 
@@ -858,7 +868,6 @@ const handleComplete = async () => {
       });
     }
 
-    const pluginsToInstall = pluginIdsToInstall.value;
     if (pluginsToInstall.length > 0) {
       addLog(summaryT('logs.installingPlugins', { count: pluginsToInstall.length }), 'info');
 
@@ -1013,6 +1022,10 @@ const handleComplete = async () => {
       applyResultSeverity.value = 'warning';
       applyResultTitle.value = summaryT('result.bestEffortTitle');
       applyResultMessage.value = summaryT('result.bestEffortMessage');
+    } else if (!hasUpdatesToApply) {
+      applyResultSeverity.value = 'success';
+      applyResultTitle.value = summaryT('result.noChangesTitle');
+      applyResultMessage.value = summaryT('result.noChangesMessage');
     } else {
       addLog(summaryT('logs.settingsApplied'), 'success');
       applyResultSeverity.value = 'success';
