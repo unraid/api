@@ -744,7 +744,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         data-testid="internal-boot-intro-panel"
         class="my-8"
         color="info"
-        variant="subtle"
+        variant="solid"
         icon="i-lucide-info"
       >
         <template #description>
