@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { ChevronLeftIcon, CircleStackIcon } from '@heroicons/vue/24/outline';
-import { ArrowPathIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
+import { ArrowPathIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { Accordion, BrandButton } from '@unraid/ui';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
@@ -943,7 +943,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
           collapsible
           class="border-none"
           item-class="border-none"
-          trigger-class="pr-4 hover:no-underline [&>svg]:hidden"
+          trigger-class="pr-4 hover:no-underline [&>svg]:text-primary"
         >
           <template #trigger="{ open }">
             <div
@@ -962,12 +962,6 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
                       : t('onboarding.internalBootStep.eligibility.showDetails')
                   }}
                 </span>
-                <ChevronDownIcon
-                  :class="[
-                    open ? 'rotate-180 transform' : '',
-                    'h-5 w-5 transition-transform duration-200',
-                  ]"
-                />
               </div>
             </div>
           </template>
