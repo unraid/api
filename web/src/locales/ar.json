@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "تم تكوين مجموعة التمهيد الداخلي.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "إعادة إعداد التمهيد الداخلي خطأً: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "فشل إعداد التمهيد الداخلي",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "تعذّر التحقق من تحديث ترتيب التمهيد في BIOS. قد تحتاج إلى تحديث إعدادات BIOS يدويًا.",
   "onboarding.summaryStep.logs.updatingSshSettings": "تحديث إعدادات SSH...",
   "onboarding.summaryStep.logs.sshVerified": "تم التحقق من إعدادات SSH.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "تم إرسال تحديث SSH، ولكن لا يمكن التحقق بعد من الحالة النهائية لـ SSH. الاستمرار.",
