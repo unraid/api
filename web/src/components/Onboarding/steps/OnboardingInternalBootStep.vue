@@ -743,8 +743,8 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         v-if="isStorageBootSelected && hasEligibleDevices"
         data-testid="internal-boot-intro-panel"
         class="my-8"
-        color="info"
-        variant="solid"
+        color="neutral"
+        variant="subtle"
         icon="i-lucide-info"
       >
         <template #description>
@@ -915,7 +915,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         <UAlert
           v-if="updateBios"
           data-testid="internal-boot-update-bios-warning"
-          color="warning"
+          color="neutral"
           variant="outline"
           icon="i-lucide-triangle-alert"
         >
