@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Intern oppstartspool konfigurert.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "Intern oppstartskonfigurasjon returnerte en feil: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Intern oppstartskonfigurasjon mislyktes",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "Oppdatering av BIOS-oppstartsrekkefølge kunne ikke bekreftes. Det kan hende du må oppdatere BIOS-innstillingene manuelt.",
   "onboarding.summaryStep.logs.updatingSshSettings": "Oppdaterer SSH-innstillinger...",
   "onboarding.summaryStep.logs.sshVerified": "SSH-innstillinger verifisert.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "SSH oppdateringsforespørsel er sendt, men slutt SSH-tilstand kunne ikke verifiseres ennå. Fortsetter.",
