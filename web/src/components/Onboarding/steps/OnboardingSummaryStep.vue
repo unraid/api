@@ -1087,15 +1087,14 @@ const handleBack = () => {
         </div>
       </div>
 
-      <!-- Initialization Message (Tip Style) -->
-      <blockquote class="border-success-500 bg-success-100 text my-8 border-s-4 p-4">
-        <div class="flex items-start gap-2">
-          <CheckCircleIcon class="text-success mt-0.5 h-6 w-6 flex-shrink-0" />
-          <p class="text-sm leading-relaxed">
-            <span class="mr-1 mb-1 block">{{ t('onboarding.summaryStep.initializationMessage') }}</span>
-          </p>
-        </div>
-      </blockquote>
+      <!-- Initialization Message -->
+      <UAlert
+        color="success"
+        variant="solid"
+        :title="t('onboarding.summaryStep.initializationMessage')"
+        icon="i-heroicons-check-circle"
+        class="my-8"
+      />
 
       <!-- Summary Grid -->
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
