@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "आंतरिक बूट पूल कॉन्फ़िगर किया गया।",
   "onboarding.summaryStep.logs.internalBootReturnedError": "आंतरिक बूट सेटअप ने एक त्रुटि दी: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "अंदरनी बूट सेटअप असफल",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "BIOS बूट क्रम अपडेट सत्यापित नहीं किया जा सका। आपको BIOS सेटिंग्स को मैन्युअल रूप से अपडेट करने की आवश्यकता हो सकती है।",
   "onboarding.summaryStep.logs.updatingSshSettings": "SSH सेटिंग्स अपडेट कर रहे हैं...",
   "onboarding.summaryStep.logs.sshVerified": "SSH सेटिंग्स सत्यापित की गईं।",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "SSH अपडेट जमा किया गया, लेकिन अंतिम SSH स्थिति की पुष्टि अभी नहीं की जा सकी। जारी रख रहे हैं।",
