@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Pool de démarrage interne configuré.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "La configuration du démarrage interne a retourné une erreur : {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "La configuration du démarrage interne a échoué",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "La mise à jour de l'ordre de démarrage du BIOS n'a pas pu être vérifiée. Vous devrez შესაძლოა mettre à jour manuellement les paramètres du BIOS.",
   "onboarding.summaryStep.logs.updatingSshSettings": "Mise à jour des paramètres SSH...",
   "onboarding.summaryStep.logs.sshVerified": "Paramètres SSH vérifiés.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "Mise à jour des SSH soumise, mais l'état final des SSH ne peut pas encore être vérifié. Continuation.",
