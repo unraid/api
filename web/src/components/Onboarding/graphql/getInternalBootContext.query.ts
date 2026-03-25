@@ -9,6 +9,11 @@ export const GET_INTERNAL_BOOT_CONTEXT_QUERY = gql`
       reservedNames
       shareNames
       poolNames
+      driveWarnings {
+        diskId
+        device
+        warnings
+      }
       assignableDisks {
         id
         device

@@ -237,6 +237,7 @@ describe('OnboardingMutationsResolver', () => {
             shareNames: [],
             poolNames: [],
             assignableDisks: [],
+            driveWarnings: [],
         });
 
         await expect(resolver.refreshInternalBootContext()).resolves.toEqual({
@@ -248,6 +249,7 @@ describe('OnboardingMutationsResolver', () => {
             shareNames: [],
             poolNames: [],
             assignableDisks: [],
+            driveWarnings: [],
         });
         expect(onboardingInternalBootService.refreshInternalBootContext).toHaveBeenCalledWith();
     });

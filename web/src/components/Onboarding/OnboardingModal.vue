@@ -83,13 +83,7 @@ const showActivationStep = computed(() => {
 
 const showInternalBootStep = computed(() => {
   const setting = internalBootVisibility.value?.enableBootTransfer;
-  const bootedFromFlashWithInternalBootSetup =
-    internalBootVisibility.value?.bootedFromFlashWithInternalBootSetup === true;
-  return (
-    typeof setting === 'string' &&
-    setting.trim().toLowerCase() === 'yes' &&
-    !bootedFromFlashWithInternalBootSetup
-  );
+  return typeof setting === 'string' && setting.trim().toLowerCase() === 'yes';
 });
 
 const shouldKeepResumedInternalBootStep = computed(
