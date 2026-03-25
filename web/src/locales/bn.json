@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "অভ্যন্তরীণ বুট পুল কনফিগার করা হয়েছে।",
   "onboarding.summaryStep.logs.internalBootReturnedError": "অভ্যন্তরীণ বুট সেটআপ একটি ত্রুটি ফিরিয়ে দিয়েছে: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "অভ্যন্তরীণ বুট সেটআপ ব্যর্থ হয়েছে",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "BIOS বুট ক্রমের আপডেট যাচাই করা যায়নি। আপনাকে BIOS সেটিংস ম্যানুয়ালি আপডেট করতে হতে পারে।",
   "onboarding.summaryStep.logs.updatingSshSettings": "SSH সেটিংস আপডেট করা হচ্ছে...",
   "onboarding.summaryStep.logs.sshVerified": "SSH সেটিংস যাচাই করা হয়েছে।",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "SSH আপডেট জমা দেওয়া হয়েছে, কিন্তু চূড়ান্ত SSH স্থিতি এখনও যাচাই করা যায়নি। চলমান।",
