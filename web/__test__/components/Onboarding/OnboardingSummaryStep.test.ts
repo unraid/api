@@ -380,7 +380,7 @@ describe('OnboardingSummaryStep', () => {
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(installPluginMock).not.toHaveBeenCalled();
         expect(wrapper.text()).toContain('Already installed');
-        expect(wrapper.text()).toContain('Setup Applied');
+        expect(wrapper.text()).toContain('No Updates Needed');
       },
     },
     {
@@ -392,7 +392,7 @@ describe('OnboardingSummaryStep', () => {
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(installPluginMock).not.toHaveBeenCalled();
         expect(wrapper.text()).toContain('Already installed');
-        expect(wrapper.text()).toContain('Setup Applied');
+        expect(wrapper.text()).toContain('No Updates Needed');
       },
     },
     {
@@ -402,7 +402,7 @@ describe('OnboardingSummaryStep', () => {
       },
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(installPluginMock).not.toHaveBeenCalled();
-        expect(wrapper.text()).toContain('Setup Applied');
+        expect(wrapper.text()).toContain('No Updates Needed');
       },
     },
     {
@@ -857,7 +857,7 @@ describe('OnboardingSummaryStep', () => {
       apply: () => {},
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(completeOnboardingMock).not.toHaveBeenCalled();
-        expect(wrapper.text()).toContain('Setup Applied');
+        expect(wrapper.text()).toContain('No Updates Needed');
         expect(wrapper.text()).not.toContain('Setup Saved in Best-Effort Mode');
       },
     },
@@ -889,7 +889,7 @@ describe('OnboardingSummaryStep', () => {
     expect(completeOnboardingMock).not.toHaveBeenCalled();
     expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
     expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
-    expect(wrapper.text()).toContain('Setup Applied');
+    expect(wrapper.text()).toContain('No Updates Needed');
     expect(onComplete).not.toHaveBeenCalled();
   });
 

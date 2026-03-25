@@ -1,4 +1,4 @@
-import { computed, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { defineStore, storeToRefs } from 'pinia';
 import { useMutation } from '@vue/apollo-composable';
 
@@ -20,6 +20,8 @@ const ONBOARDING_URL_ACTION_OPEN = 'open';
 const ONBOARDING_BYPASS_SHORTCUT_CODE = 'KeyO';
 const ONBOARDING_FORCE_OPEN_EVENT = 'unraid:onboarding:open';
 
+export type OnboardingModalSessionSource = 'automatic' | 'manual';
+
 export const useOnboardingModalStore = defineStore('onboardingModalVisibility', () => {
   const onboardingStore = useOnboardingStore();
   const { shouldOpen, canDisplayOnboardingModal } = storeToRefs(onboardingStore);
@@ -29,6 +31,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
   const { mutate: closeOnboardingMutation } = useMutation(CLOSE_ONBOARDING_MUTATION);
   const { mutate: bypassOnboardingMutation } = useMutation(BYPASS_ONBOARDING_MUTATION);
   const { mutate: resumeOnboardingMutation } = useMutation(RESUME_ONBOARDING_MUTATION);
+  const sessionSource = ref<OnboardingModalSessionSource>('automatic');
 
   const isVisible = computed(
     () => canDisplayOnboardingModal.value && shouldOpen.value && !callbackData.value
@@ -39,6 +42,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
       return false;
     }
 
+    sessionSource.value = 'manual';
     await openOnboardingMutation();
     await refetchOnboarding();
     return true;
@@ -51,6 +55,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
 
     await closeOnboardingMutation();
     await refetchOnboarding();
+    sessionSource.value = 'automatic';
     return true;
   };
 
@@ -63,6 +68,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
   };
 
   const resumeOnboarding = async () => {
+    sessionSource.value = 'manual';
     await resumeOnboardingMutation();
     await refetchOnboarding();
   };
@@ -128,6 +134,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
 
   return {
     isVisible,
+    sessionSource,
     forceOpenModal,
     closeModal,
     bypassOnboarding,

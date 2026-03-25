@@ -292,10 +292,10 @@ const systemEligibilityCodes = computed<InternalBootSystemEligibilityCode[]>(() 
 });
 const diskEligibilityIssues = computed(() =>
   allDeviceOptions.value
-    .filter((option) => option.ineligibilityCodes.length > 0 || option.warningCodes.length > 0)
+    .filter((option) => option.ineligibilityCodes.length > 0)
     .map((option) => ({
       label: option.label,
-      codes: [...option.ineligibilityCodes, ...option.warningCodes],
+      codes: [...option.ineligibilityCodes],
     }))
 );
 const selectedDriveWarnings = computed(() =>
