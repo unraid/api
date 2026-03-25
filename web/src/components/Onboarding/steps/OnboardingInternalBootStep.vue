@@ -943,12 +943,12 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
           collapsible
           class="border-none"
           item-class="border-none"
-          trigger-class="pr-4 hover:no-underline [&>svg]:text-primary"
+          trigger-class="pr-4 hover:no-underline"
         >
           <template #trigger="{ open }">
             <div
               data-testid="internal-boot-eligibility-toggle"
-              class="flex w-full items-start justify-between gap-4 p-4 text-left"
+              class="flex w-full items-center justify-between gap-4 p-4 text-left"
             >
               <div class="space-y-1">
                 <p class="font-semibold">{{ eligibilityPanelTitle }}</p>
