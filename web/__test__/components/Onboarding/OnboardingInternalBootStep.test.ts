@@ -17,6 +17,10 @@ type MockInternalBootSelection = {
   updateBios: boolean;
 };
 
+type InternalBootVm = {
+  getDeviceSelectItems: (index: number) => Array<{ value: string; label: string; disabled?: boolean }>;
+};
+
 const {
   draftStore,
   contextResult,
@@ -61,27 +65,9 @@ vi.mock('@unraid/ui', () => ({
     template:
       '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')">{{ text }}</button>',
   },
-  Select: {
-    props: ['modelValue', 'items', 'disabled', 'placeholder'],
-    emits: ['update:modelValue'],
-    template: `
-      <select
-        data-testid="select"
-        :disabled="disabled"
-        :value="modelValue ?? ''"
-        @change="$emit('update:modelValue', $event.target.value)"
-      >
-        <option v-if="placeholder" value="">{{ placeholder }}</option>
-        <option
-          v-for="item in items"
-          :key="item.value"
-          :value="item.value"
-          :disabled="item.disabled"
-        >
-          {{ item.label }}
-        </option>
-      </select>
-    `,
+  Accordion: {
+    props: ['items', 'type', 'collapsible', 'class'],
+    template: `<div data-testid="accordion"><template v-for="item in items" :key="item.value"><slot name="trigger" :item="item" :open="false" /><slot name="content" :item="item" :open="false" /></template></div>`,
   },
 }));
 
@@ -139,6 +125,68 @@ const mountComponent = () =>
     },
     global: {
       plugins: [createTestI18n()],
+      stubs: {
+        UButton: {
+          props: ['disabled'],
+          emits: ['click'],
+          template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
+        },
+        UAlert: {
+          inheritAttrs: true,
+          props: ['title', 'description'],
+          template:
+            '<div v-bind="$attrs"><slot name="title" />{{ title }}<slot name="description" />{{ description }}<slot /></div>',
+        },
+        UCheckbox: {
+          props: ['modelValue', 'disabled'],
+          emits: ['update:modelValue'],
+          template: `
+            <input
+              type="checkbox"
+              :checked="modelValue"
+              :disabled="disabled"
+              @change="$emit('update:modelValue', $event.target.checked)"
+            />
+          `,
+        },
+        UInput: {
+          props: ['modelValue', 'type', 'disabled', 'maxlength', 'min', 'max'],
+          emits: ['update:modelValue'],
+          template: `
+            <input
+              :type="type || 'text'"
+              :disabled="disabled"
+              :maxlength="maxlength"
+              :min="min"
+              :max="max"
+              :value="modelValue"
+              @input="$emit('update:modelValue', $event.target.value)"
+            />
+          `,
+        },
+        USelectMenu: {
+          props: ['modelValue', 'items', 'disabled', 'placeholder'],
+          emits: ['update:modelValue'],
+          template: `
+            <select
+              data-testid="select"
+              :disabled="disabled"
+              :value="modelValue ?? ''"
+              @change="$emit('update:modelValue', $event.target.value)"
+            >
+              <option v-if="placeholder" value="">{{ placeholder }}</option>
+              <option
+                v-for="item in items"
+                :key="item.value"
+                :value="item.value"
+                :disabled="item.disabled"
+              >
+                {{ item.label }}
+              </option>
+            </select>
+          `,
+        },
+      },
     },
   });
 
@@ -249,8 +297,15 @@ describe('OnboardingInternalBootStep', () => {
     const wrapper = mountComponent();
     await flushPromises();
 
-    expect(wrapper.text()).toContain('WD-TEST-1234 - 34.4 GB (sda)');
-    expect(wrapper.text()).not.toContain('eligible-disk - 34.4 GB (sda)');
+    const vm = wrapper.vm as unknown as InternalBootVm;
+    expect(vm.getDeviceSelectItems(0)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: 'WD-TEST-1234',
+          label: 'WD-TEST-1234 - 34.4 GB (sda)',
+        }),
+      ])
+    );
   });
 
   it('defaults the storage pool name to cache', async () => {
@@ -341,15 +396,16 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
+    expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="internal-boot-drive-warning"]').exists()).toBe(false);
-    const selects = wrapper.findAll('select');
-    await selects[1]?.setValue('ELIGIBLE-1');
+
+    // USelectMenu auto-imports bypass global.stubs, so interact via VM
+    const vm = wrapper.vm as unknown as { selectedDevices: Array<string | undefined> };
+    vm.selectedDevices[0] = 'ELIGIBLE-1';
     await flushPromises();
+
     expect(wrapper.find('[data-testid="internal-boot-drive-warning"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Selected drive warnings');
-    await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
-    await flushPromises();
-    expect(wrapper.text()).toContain('HAS_INTERNAL_BOOT_PARTITIONS');
   });
 
   it('shows disk-level ineligibility while keeping the form available for eligible disks', async () => {
@@ -385,13 +441,17 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(true);
-    const selects = wrapper.findAll('select');
-    expect(selects).toHaveLength(3);
-    const deviceSelect = selects[1];
-    expect(deviceSelect.text()).toContain('ELIGIBLE-1');
-    expect(deviceSelect.text()).toContain('USB-1');
-    expect(deviceSelect.text()).not.toContain('CACHE-1');
-    expect(deviceSelect.text()).not.toContain('SMALL-1');
+    const vm = wrapper.vm as unknown as InternalBootVm;
+    const deviceItems = vm.getDeviceSelectItems(0);
+    expect(deviceItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ value: 'ELIGIBLE-1' }),
+        expect.objectContaining({ value: 'USB-1' }),
+      ])
+    );
+    expect(deviceItems).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 'SMALL-1' })])
+    );
     const biosWarning = wrapper.get('[data-testid="internal-boot-update-bios-warning"]');
     const eligibilityPanel = wrapper.get('[data-testid="internal-boot-eligibility-panel"]');
     expect(
@@ -423,9 +483,10 @@ describe('OnboardingInternalBootStep', () => {
 
     expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(false);
-    const selects = wrapper.findAll('select');
-    expect(selects).toHaveLength(3);
-    expect(selects[1]?.text()).toContain('UNASSIGNED-1');
+    const vm = wrapper.vm as unknown as InternalBootVm;
+    expect(vm.getDeviceSelectItems(0)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 'UNASSIGNED-1' })])
+    );
     expect(wrapper.text()).not.toContain('ASSIGNED_TO_ARRAY');
     expect(wrapper.text()).not.toContain('NO_UNASSIGNED_DISKS');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();

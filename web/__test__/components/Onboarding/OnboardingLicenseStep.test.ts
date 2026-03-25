@@ -53,7 +53,6 @@ vi.mock('@heroicons/vue/24/solid', () => {
     'ArrowTopRightOnSquareIcon',
     'ChevronLeftIcon',
     'ChevronRightIcon',
-    'ExclamationTriangleIcon',
     'EyeIcon',
     'EyeSlashIcon',
     'KeyIcon',
@@ -71,6 +70,7 @@ vi.mock('@heroicons/vue/24/solid', () => {
 describe('OnboardingLicenseStep.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    document.body.innerHTML = '';
     serverStoreMock.state.value = 'ENOKEYFILE';
     activationStoreMock.registrationState.value = 'ENOKEYFILE';
     activationStoreMock.activationCode.value = { code: 'TEST-GUID-123' };
@@ -90,6 +90,27 @@ describe('OnboardingLicenseStep.vue', () => {
     return mount(OnboardingLicenseStep, {
       global: {
         plugins: [createTestI18n()],
+        stubs: {
+          UAlert: {
+            props: ['description'],
+            template: '<div>{{ description }}<slot name="description" /></div>',
+          },
+          UButton: {
+            props: ['disabled'],
+            emits: ['click'],
+            template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
+          },
+          UModal: {
+            props: ['open', 'title'],
+            template: `
+              <div v-if="open" data-testid="modal">
+                <div>{{ title }}</div>
+                <slot name="body" />
+                <slot name="footer" />
+              </div>
+            `,
+          },
+        },
       },
       props: {
         activateHref: 'https://unraid.net/activate',
@@ -154,7 +175,7 @@ describe('OnboardingLicenseStep.vue', () => {
     await wrapper.vm.$nextTick();
 
     const confirmSkipButton = wrapper
-      .findAll('[data-testid="brand-button"]')
+      .findAll('button')
       .find((button) => button.text().toLowerCase().includes('understand'));
 
     expect(confirmSkipButton).toBeTruthy();

@@ -301,7 +301,7 @@ const openDocs = () => {
         <button
           v-if="showBack"
           @click="onBack"
-          class="text-muted hover:text-toned group flex items-center gap-2 font-medium transition-colors"
+          class="text-muted hover:text-toned group flex items-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           :disabled="isBusy"
         >
           <UIcon
@@ -316,7 +316,7 @@ const openDocs = () => {
           <button
             @click="handleSkipOnboarding"
             data-testid="skip-setup-button"
-            class="text-muted hover:text-toned text-sm font-medium transition-colors"
+            class="text-muted hover:text-toned text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             :disabled="isBusy"
           >
             {{ t('onboarding.overviewStep.skipSetup') }}

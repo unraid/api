@@ -4,12 +4,11 @@ import { useI18n } from 'vue-i18n';
 import { useQuery } from '@vue/apollo-composable';
 
 import { ChevronLeftIcon, Squares2X2Icon } from '@heroicons/vue/24/outline';
-import { ChevronRightIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
+import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
-import { Switch } from '@headlessui/vue';
 
 export interface Props {
   onComplete: () => void;
@@ -190,14 +189,13 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
       </div>
 
       <!-- Pro Tip -->
-      <blockquote class="border-primary bg-primary-100 text my-8 border-s-4 p-4">
-        <div class="flex items-start gap-2">
-          <InformationCircleIcon class="text-primary mt-0.5 h-6 w-6 flex-shrink-0" />
-          <p class="text-sm leading-relaxed">
-            <span class="mr-1 mb-1 block">{{ t('onboarding.pluginsStep.tip') }}</span>
-          </p>
-        </div>
-      </blockquote>
+      <UAlert
+        class="my-8"
+        color="primary"
+        variant="subtle"
+        icon="i-lucide-info"
+        :description="t('onboarding.pluginsStep.tip')"
+      />
 
       <!-- Plugin List -->
       <div class="mb-8">
@@ -222,26 +220,12 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
               </p>
             </div>
 
-            <Switch
+            <USwitch
               :model-value="isPluginEnabled(plugin.id)"
               @update:model-value="(val: boolean) => togglePlugin(plugin.id, val)"
               :disabled="isBusy || isPluginInstalled(plugin.id)"
-              :class="[
-                isPluginEnabled(plugin.id) ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
-                'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
-              ]"
-            >
-              <span class="sr-only">{{
-                t('onboarding.pluginsStep.enablePluginAria', { name: plugin.name })
-              }}</span>
-              <span
-                aria-hidden="true"
-                :class="[
-                  isPluginEnabled(plugin.id) ? 'translate-x-5' : 'translate-x-0',
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                ]"
-              />
-            </Switch>
+              :aria-label="t('onboarding.pluginsStep.enablePluginAria', { name: plugin.name })"
+            />
           </div>
         </div>
       </div>
@@ -252,7 +236,7 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
         <button
           v-if="showBack"
           @click="handleBack"
-          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
+          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
           :disabled="isBusy"
         >
           <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
@@ -264,7 +248,7 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
           <button
             v-if="showSkip"
             @click="handleSkip"
-            class="text-muted hover:text-highlighted text-sm font-medium transition-colors sm:mr-2"
+            class="text-muted hover:text-highlighted text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:mr-2"
             :disabled="isBusy"
           >
             {{ t('common.skipForNow', 'Skip for now') }}

@@ -69,36 +69,6 @@ vi.mock('@unraid/ui', () => ({
     template:
       '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')"><slot />{{ text }}</button>',
   },
-  Select: {
-    props: ['modelValue', 'items', 'disabled'],
-    emits: ['update:modelValue'],
-    template: `
-      <select
-        data-testid="select"
-        :disabled="disabled"
-        :value="modelValue"
-        @change="$emit('update:modelValue', $event.target.value)"
-      >
-        <option v-for="item in items" :key="item.value" :value="item.value">{{ item.label }}</option>
-      </select>
-    `,
-  },
-}));
-
-vi.mock('@headlessui/vue', () => ({
-  Switch: {
-    props: ['modelValue', 'disabled'],
-    emits: ['update:modelValue'],
-    template: `
-      <input
-        data-testid="switch"
-        type="checkbox"
-        :checked="modelValue"
-        :disabled="disabled"
-        @change="$emit('update:modelValue', $event.target.checked)"
-      />
-    `,
-  },
 }));
 
 vi.mock('@vvo/tzdb', () => ({
@@ -173,6 +143,35 @@ const mountComponent = (props: Record<string, unknown> = {}) => {
     },
     global: {
       plugins: [createTestI18n()],
+      stubs: {
+        USelectMenu: {
+          props: ['modelValue', 'items', 'disabled'],
+          emits: ['update:modelValue'],
+          template: `
+            <select
+              data-testid="select-menu"
+              :disabled="disabled"
+              :value="modelValue"
+              @change="$emit('update:modelValue', $event.target.value)"
+            >
+              <option v-for="item in items" :key="item.value" :value="item.value">{{ item.label }}</option>
+            </select>
+          `,
+        },
+        USwitch: {
+          props: ['modelValue', 'disabled'],
+          emits: ['update:modelValue'],
+          template: `
+            <input
+              data-testid="switch"
+              type="checkbox"
+              :checked="modelValue"
+              :disabled="disabled"
+              @change="$emit('update:modelValue', $event.target.checked)"
+            />
+          `,
+        },
+      },
     },
   });
 

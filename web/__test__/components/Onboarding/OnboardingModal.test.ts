@@ -36,6 +36,7 @@ const {
   internalBootVisibilityLoading: { value: false },
   onboardingModalStoreState: {
     isVisible: { value: true },
+    sessionSource: { value: 'automatic' as 'automatic' | 'manual' },
     closeModal: vi.fn().mockResolvedValue(true),
   },
   activationCodeDataStore: {
@@ -112,15 +113,39 @@ vi.mock('~/components/Onboarding/OnboardingSteps.vue', () => ({
 
 vi.mock('~/components/Onboarding/stepRegistry', () => ({
   stepComponents: {
-    OVERVIEW: { template: '<div data-testid="overview-step" />' },
-    CONFIGURE_SETTINGS: { template: '<div data-testid="settings-step" />' },
-    CONFIGURE_BOOT: { template: '<div data-testid="internal-boot-step" />' },
-    ADD_PLUGINS: { template: '<div data-testid="plugins-step" />' },
-    ACTIVATE_LICENSE: { template: '<div data-testid="license-step" />' },
-    SUMMARY: { template: '<div data-testid="summary-step" />' },
+    OVERVIEW: {
+      props: ['onComplete', 'onBack', 'showBack'],
+      template:
+        '<div data-testid="overview-step"><button data-testid="overview-step-complete" @click="onComplete()">next</button><button v-if="showBack" data-testid="overview-step-back" @click="onBack()">back</button></div>',
+    },
+    CONFIGURE_SETTINGS: {
+      props: ['onComplete', 'onBack', 'showBack'],
+      template:
+        '<div data-testid="settings-step"><button data-testid="settings-step-complete" @click="onComplete()">next</button><button v-if="showBack" data-testid="settings-step-back" @click="onBack()">back</button></div>',
+    },
+    CONFIGURE_BOOT: {
+      props: ['onComplete', 'onBack', 'showBack'],
+      template:
+        '<div data-testid="internal-boot-step"><button data-testid="internal-boot-step-complete" @click="onComplete()">next</button><button v-if="showBack" data-testid="internal-boot-step-back" @click="onBack()">back</button></div>',
+    },
+    ADD_PLUGINS: {
+      props: ['onComplete', 'onBack', 'showBack'],
+      template:
+        '<div data-testid="plugins-step"><button data-testid="plugins-step-complete" @click="onComplete()">next</button><button v-if="showBack" data-testid="plugins-step-back" @click="onBack()">back</button></div>',
+    },
+    ACTIVATE_LICENSE: {
+      props: ['onComplete', 'onBack', 'showBack'],
+      template:
+        '<div data-testid="license-step"><button data-testid="license-step-complete" @click="onComplete()">next</button><button v-if="showBack" data-testid="license-step-back" @click="onBack()">back</button></div>',
+    },
+    SUMMARY: {
+      props: ['onComplete', 'onBack', 'showBack'],
+      template:
+        '<div data-testid="summary-step"><button data-testid="summary-step-complete" @click="onComplete()">next</button><button v-if="showBack" data-testid="summary-step-back" @click="onBack()">back</button></div>',
+    },
     NEXT_STEPS: {
-      props: ['onComplete'],
-      setup(props: { onComplete: () => void }) {
+      props: ['onComplete', 'onBack', 'showBack'],
+      setup(props: { onComplete: () => void; onBack?: () => void; showBack?: boolean }) {
         const handleClick = () => {
           cleanupOnboardingStorageMock();
           props.onComplete();
@@ -128,10 +153,11 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
 
         return {
           handleClick,
+          props,
         };
       },
       template:
-        '<div data-testid="next-step"><button data-testid="next-step-complete" @click="handleClick">finish</button></div>',
+        '<div data-testid="next-step"><button data-testid="next-step-complete" @click="handleClick">finish</button><button v-if="props.showBack" data-testid="next-step-back" @click="props.onBack?.()">back</button></div>',
     },
   },
 }));
@@ -181,6 +207,7 @@ describe('OnboardingModal.vue', () => {
 
     onboardingModalStoreState.closeModal.mockImplementation(async () => {
       onboardingModalStoreState.isVisible.value = false;
+      onboardingModalStoreState.sessionSource.value = 'automatic';
       return true;
     });
 
@@ -189,6 +216,7 @@ describe('OnboardingModal.vue', () => {
     activationCodeDataStore.hasActivationCode = ref(true);
     activationCodeDataStore.registrationState = ref<string | null>('ENOKEYFILE');
     onboardingModalStoreState.isVisible.value = true;
+    onboardingModalStoreState.sessionSource.value = 'automatic';
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE';
     onboardingStatusStore.isVersionDrift.value = false;
     onboardingStatusStore.completedAtVersion.value = null;
@@ -353,6 +381,26 @@ describe('OnboardingModal.vue', () => {
     expect(onboardingModalStoreState.closeModal).toHaveBeenCalledTimes(1);
     expect(onboardingDraftStore.setCurrentStep).not.toHaveBeenCalledWith('CONFIGURE_SETTINGS');
     expect(onboardingDraftStore.currentStepId.value).toBeNull();
+  });
+
+  it('closes a manually opened wizard at the end instead of reloading the page', async () => {
+    onboardingModalStoreState.sessionSource.value = 'manual';
+    onboardingDraftStore.currentStepId.value = 'NEXT_STEPS';
+    const goSpy = vi.spyOn(window.history, 'go').mockImplementation(() => undefined);
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="next-step-complete"]').trigger('click');
+    await flushPromises();
+
+    expect(goSpy).toHaveBeenCalledWith(-1);
+    expect(onboardingModalStoreState.closeModal).not.toHaveBeenCalled();
+
+    window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+    await flushPromises();
+
+    expect(onboardingModalStoreState.closeModal).toHaveBeenCalledTimes(1);
   });
 
   it('shows a loading state while exit confirmation is closing the modal', async () => {

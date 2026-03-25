@@ -1,6 +1,6 @@
-import { flushPromises, mount } from '@vue/test-utils';
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils';
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type {
   InternalBootApplyMessages,
@@ -10,6 +10,14 @@ import type {
 
 import OnboardingInternalBootStandalone from '~/components/Onboarding/standalone/OnboardingInternalBoot.standalone.vue';
 import { createTestI18n } from '../../utils/i18n';
+
+const INTERNAL_BOOT_HISTORY_STATE_KEY = '__unraidOnboardingInternalBoot';
+
+type InternalBootHistoryState = {
+  sessionId: string;
+  stepId: 'CONFIGURE_BOOT' | 'SUMMARY';
+  position: number;
+};
 
 const {
   draftStore,
@@ -129,10 +137,50 @@ const mountComponent = () =>
     },
   });
 
+enableAutoUnmount(afterEach);
+
+const getInternalBootHistoryState = (): InternalBootHistoryState | null => {
+  const state =
+    typeof window.history.state === 'object' && window.history.state !== null
+      ? (window.history.state as Record<string, unknown>)
+      : null;
+  const candidate = state?.[INTERNAL_BOOT_HISTORY_STATE_KEY];
+  if (!candidate || typeof candidate !== 'object') {
+    return null;
+  }
+
+  const sessionId =
+    typeof (candidate as Record<string, unknown>).sessionId === 'string'
+      ? ((candidate as Record<string, unknown>).sessionId as string)
+      : null;
+  const stepId =
+    (candidate as Record<string, unknown>).stepId === 'CONFIGURE_BOOT' ||
+    (candidate as Record<string, unknown>).stepId === 'SUMMARY'
+      ? ((candidate as Record<string, unknown>).stepId as InternalBootHistoryState['stepId'])
+      : null;
+  const position = Number((candidate as Record<string, unknown>).position);
+
+  if (!sessionId || !stepId || !Number.isInteger(position)) {
+    return null;
+  }
+
+  return {
+    sessionId,
+    stepId,
+    position,
+  };
+};
+
+const dispatchPopstate = (state: Record<string, unknown> | null) => {
+  window.history.replaceState(state, '', window.location.href);
+  window.dispatchEvent(new PopStateEvent('popstate', { state }));
+};
+
 describe('OnboardingInternalBoot.standalone.vue', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
+    window.history.replaceState(null, '', window.location.href);
 
     draftStore.internalBootSelection = null;
     draftStore.internalBootApplySucceeded = false;
@@ -182,8 +230,9 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
 
     expect(applyInternalBootSelectionMock).not.toHaveBeenCalled();
     expect(draftStore.setInternalBootApplySucceeded).toHaveBeenCalledWith(false);
-    expect(wrapper.text()).toContain('Setup Applied');
-    expect(wrapper.text()).toContain('No settings changed. Skipping configuration mutations.');
+    expect(wrapper.text()).toContain('No Updates Needed');
+    expect(wrapper.text()).toContain('No changes needed. Skipping configuration updates.');
+    expect(wrapper.find('[data-testid="internal-boot-standalone-edit-again"]').exists()).toBe(true);
     expect(stepperPropsRef.value).toMatchObject({
       activeStepIndex: 1,
     });
@@ -278,7 +327,69 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     expect(wrapper.find('[data-testid="internal-boot-step-stub"]').exists()).toBe(true);
   });
 
+  it('restores the configure step when browser back leaves a reversible result', async () => {
+    const wrapper = mountComponent();
+
+    await wrapper.get('[data-testid="internal-boot-step-complete"]').trigger('click');
+    await flushPromises();
+
+    const currentHistoryState = getInternalBootHistoryState();
+    expect(currentHistoryState).toMatchObject({
+      stepId: 'SUMMARY',
+      position: 1,
+    });
+
+    dispatchPopstate({
+      [INTERNAL_BOOT_HISTORY_STATE_KEY]: {
+        sessionId: currentHistoryState?.sessionId,
+        stepId: 'CONFIGURE_BOOT',
+        position: 0,
+      },
+    });
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+
+    expect(stepperPropsRef.value).toMatchObject({
+      activeStepIndex: 0,
+    });
+    expect(wrapper.find('[data-testid="internal-boot-step-stub"]').exists()).toBe(true);
+  });
+
+  it('closes when browser back leaves a fully applied result', async () => {
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+
+    const wrapper = mountComponent();
+
+    await wrapper.get('[data-testid="internal-boot-step-complete"]').trigger('click');
+    await flushPromises();
+
+    const currentHistoryState = getInternalBootHistoryState();
+    expect(currentHistoryState).toMatchObject({
+      stepId: 'SUMMARY',
+      position: 1,
+    });
+
+    dispatchPopstate({
+      [INTERNAL_BOOT_HISTORY_STATE_KEY]: {
+        sessionId: currentHistoryState?.sessionId,
+        stepId: 'CONFIGURE_BOOT',
+        position: 0,
+      },
+    });
+    await flushPromises();
+
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledTimes(1);
+    expect(wrapper.find('[data-testid="dialog-stub"]').exists()).toBe(false);
+  });
+
   it('closes locally after showing a result', async () => {
+    const historyGoSpy = vi.spyOn(window.history, 'go').mockImplementation(() => {});
     const wrapper = mountComponent();
 
     await wrapper.get('[data-testid="internal-boot-step-complete"]').trigger('click');
@@ -287,22 +398,36 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     await wrapper.get('[data-testid="internal-boot-standalone-result-close"]').trigger('click');
     await flushPromises();
 
+    expect(historyGoSpy).toHaveBeenCalledWith(-2);
+    dispatchPopstate(null);
+    await flushPromises();
+
     expect(wrapper.find('[data-testid="internal-boot-standalone-result"]').exists()).toBe(false);
   });
 
   it('closes when the shared dialog requests dismissal', async () => {
+    const historyGoSpy = vi.spyOn(window.history, 'go').mockImplementation(() => {});
     const wrapper = mountComponent();
 
     await wrapper.get('[data-testid="dialog-dismiss"]').trigger('click');
+    await flushPromises();
+
+    expect(historyGoSpy).toHaveBeenCalledWith(-1);
+    dispatchPopstate(null);
     await flushPromises();
 
     expect(wrapper.find('[data-testid="dialog-stub"]').exists()).toBe(false);
   });
 
   it('closes via the top-right X button', async () => {
+    const historyGoSpy = vi.spyOn(window.history, 'go').mockImplementation(() => {});
     const wrapper = mountComponent();
 
     await wrapper.get('[data-testid="internal-boot-standalone-close"]').trigger('click');
+    await flushPromises();
+
+    expect(historyGoSpy).toHaveBeenCalledWith(-1);
+    dispatchPopstate(null);
     await flushPromises();
 
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledTimes(1);
@@ -337,6 +462,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
   });
 
   it('clears onboarding storage when closing after a successful result', async () => {
+    vi.spyOn(window.history, 'go').mockImplementation(() => {});
     const wrapper = mountComponent();
 
     await wrapper.get('[data-testid="internal-boot-step-complete"]').trigger('click');
@@ -345,6 +471,9 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     expect(wrapper.find('[data-testid="internal-boot-standalone-result"]').exists()).toBe(true);
 
     await wrapper.get('[data-testid="internal-boot-standalone-result-close"]').trigger('click');
+    await flushPromises();
+
+    dispatchPopstate(null);
     await flushPromises();
 
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledTimes(1);
