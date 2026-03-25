@@ -1192,11 +1192,12 @@ const handleBack = () => {
           type="single"
           collapsible
           class="border-none"
+          item-class="border-none"
         >
           <template #trigger="{ open }">
             <div
               :class="[
-                'flex w-full items-center justify-between p-5 text-left focus:outline-none',
+                'flex w-full items-center justify-between px-3 text-left focus:outline-none',
                 draftPluginsCount === 0 ? 'cursor-default' : 'cursor-pointer',
               ]"
             >
