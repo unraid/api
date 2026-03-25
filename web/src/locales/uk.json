@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Конфігурація пула внутрішнього завантаження завершена.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "Налаштування внутрішнього завантаження повернуло помилку: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Налаштування внутрішнього завантаження не вдалося",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "Не вдалося перевірити оновлення порядку завантаження BIOS. Можливо, вам доведеться оновити налаштування BIOS вручну.",
   "onboarding.summaryStep.logs.updatingSshSettings": "Оновлення налаштувань SSH...",
   "onboarding.summaryStep.logs.sshVerified": "Налаштування SSH перевірено.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "Запит на оновлення SSH подано, але кінцевий стан SSH поки не можна було перевірити. Продовження.",
