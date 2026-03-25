@@ -1090,7 +1090,7 @@ const handleBack = () => {
       <!-- Initialization Message -->
       <UAlert
         color="success"
-        variant="solid"
+        variant="subtle"
         :title="t('onboarding.summaryStep.initializationMessage')"
         icon="i-heroicons-check-circle"
         class="my-8"
