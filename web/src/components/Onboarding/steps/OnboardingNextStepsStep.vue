@@ -410,10 +410,15 @@ const handleCancelReboot = () => {
           />
         </template>
         <template #footer>
-          <UButton color="neutral" variant="outline" @click="handleCancelReboot">
+          <UButton
+            color="neutral"
+            variant="outline"
+            :disabled="isCompleting"
+            @click="handleCancelReboot"
+          >
             {{ t('common.cancel') }}
           </UButton>
-          <UButton @click="handleConfirmReboot">
+          <UButton :disabled="isCompleting" @click="handleConfirmReboot">
             {{ t('onboarding.nextSteps.confirmReboot.confirm') }}
           </UButton>
         </template>

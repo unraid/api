@@ -819,7 +819,12 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
               :disabled="isBusy"
               class="w-full"
               :ui="{ content: 'z-[100]' }"
-              @update:model-value="slotCount = Number($event)"
+              @update:model-value="
+                (val: unknown) => {
+                  const n = Number(val);
+                  if (Number.isFinite(n) && n >= 1) slotCount = n;
+                }
+              "
             />
           </label>
         </div>
