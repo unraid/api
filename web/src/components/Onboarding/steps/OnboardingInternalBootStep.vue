@@ -148,7 +148,7 @@ const bootMode = ref<OnboardingBootMode>(
 
 const poolName = ref('boot');
 const slotCount = ref(1);
-const selectedDevices = ref<string[]>(['']);
+const selectedDevices = ref<Array<string | undefined>>([undefined]);
 const bootSizePreset = ref<string>('');
 const customBootSizeGb = ref('');
 const updateBios = ref(true);
@@ -357,7 +357,9 @@ const deviceSizeById = computed(() => {
 });
 
 const selectedSlotDevices = computed(() =>
-  selectedDevices.value.slice(0, slotCount.value).filter((value) => value.length > 0)
+  selectedDevices.value
+    .slice(0, slotCount.value)
+    .filter((value): value is string => !!value && value.length > 0)
 );
 
 const smallestSelectedDeviceMiB = computed(() => {
@@ -452,7 +454,7 @@ const bootSizeHelpText = computed(() => {
 const normalizeSelectedDevices = (count: number) => {
   const nextDevices = selectedDevices.value.slice(0, count);
   while (nextDevices.length < count) {
-    nextDevices.push('');
+    nextDevices.push(undefined);
   }
   selectedDevices.value = nextDevices;
 };
@@ -571,11 +573,12 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
     return null;
   }
 
-  const devices = selectedDevices.value.slice(0, slotCount.value);
-  if (devices.length !== slotCount.value || devices.some((device) => !device)) {
+  const rawDevices = selectedDevices.value.slice(0, slotCount.value);
+  if (rawDevices.length !== slotCount.value || rawDevices.some((device) => !device)) {
     formError.value = t('onboarding.internalBootStep.validation.devicePerSlot');
     return null;
   }
+  const devices = rawDevices.filter((d): d is string => !!d);
 
   const uniqueDevices = new Set(devices);
   if (uniqueDevices.size !== devices.length) {
@@ -615,7 +618,7 @@ const initializeForm = (data: InternalBootTemplateData) => {
   slotCount.value = draftSelection?.slotCount ?? defaultSlot;
   selectedDevices.value =
     draftSelection?.devices.slice(0, slotCount.value) ??
-    Array.from({ length: slotCount.value }, () => '');
+    Array.from({ length: slotCount.value }, (): string | undefined => undefined);
   normalizeSelectedDevices(slotCount.value);
 
   updateBios.value = draftSelection?.updateBios ?? data.defaultUpdateBios;
