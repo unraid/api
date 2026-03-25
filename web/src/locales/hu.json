@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Belső boot pool beállítva.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "A belső boot beállítással kapcsolatos hiba történt: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Belső boot beállítás meghiúsult",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "A BIOS rendszerindítási sorrendjének frissítését nem sikerült ellenőrizni. Előfordulhat, hogy manuálisan kell frissítenie a BIOS-beállításokat.",
   "onboarding.summaryStep.logs.updatingSshSettings": "SSH beállítások frissítése...",
   "onboarding.summaryStep.logs.sshVerified": "SSH beállítások ellenőrizve.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "SSH frissítési kérés elküldve, de az SSH végleges állapota még nem ellenőrizhető. Folytatás.",
