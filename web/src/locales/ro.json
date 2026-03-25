@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Pool-ul intern boot configurat.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "Configurarea internă boot a returnat o eroare: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Configurarea internă boot a eșuat",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "Actualizarea ordinii de pornire din BIOS nu a putut fi verificată. Este posibil să fie necesar să actualizați manual setările BIOS.",
   "onboarding.summaryStep.logs.updatingSshSettings": "Actualizăm Setările SSH...",
   "onboarding.summaryStep.logs.sshVerified": "Setările SSH verificate.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "Actualizarea SSH trimisă, dar starea finală SSH nu a putut fi verificată încă. Continuăm.",
