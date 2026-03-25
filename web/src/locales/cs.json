@@ -295,6 +295,7 @@
   "onboarding.summaryStep.logs.internalBootConfigured": "Interní bootovací pool je nakonfigurován.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "Nastavení interního bootování vrátilo chybu: {output}",
   "onboarding.summaryStep.logs.internalBootFailed": "Interní bootování selhalo",
+  "onboarding.summaryStep.logs.internalBootBiosUnverified": "Aktualizaci pořadí spouštění v BIOSu nebylo možné ověřit. Možná budete muset nastavení BIOSu aktualizovat ručně.",
   "onboarding.summaryStep.logs.updatingSshSettings": "Aktualizace nastavení SSH...",
   "onboarding.summaryStep.logs.sshVerified": "Nastavení SSH ověřeno.",
   "onboarding.summaryStep.logs.sshVerificationPendingContinue": "Požadavek na aktualizaci SSH podán, ale závěrečný stav SSH nelze zatím ověřit. Pokračuje se.",
