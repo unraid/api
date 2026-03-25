@@ -2,9 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { execa } from 'execa';
 
+import type { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import type {
     CreateInternalBootPoolInput,
     OnboardingInternalBootContext,
+    OnboardingInternalBootDriveWarning,
     OnboardingInternalBootResult,
 } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
@@ -33,10 +35,6 @@ export class OnboardingInternalBootService {
         private readonly internalBootStateService: InternalBootStateService,
         private readonly disksService: DisksService
     ) {}
-
-    private async isBootedFromFlashWithInternalBootSetup(): Promise<boolean> {
-        return this.internalBootStateService.getBootedFromFlashWithInternalBootSetup();
-    }
 
     private async runStep(
         commandText: string,
@@ -181,6 +179,30 @@ export class OnboardingInternalBootService {
             .filter((entry) => entry.length > 0);
     }
 
+    private normalizeDeviceName(value: string | null | undefined): string {
+        if (typeof value !== 'string') {
+            return '';
+        }
+
+        const trimmed = value.trim();
+        return trimmed.startsWith('/dev/') ? trimmed.slice('/dev/'.length) : trimmed;
+    }
+
+    private async getAssignableDiskWarnings(
+        assignableDisks: Array<Pick<Disk, 'id' | 'device'>>
+    ): Promise<OnboardingInternalBootDriveWarning[]> {
+        const internalBootDeviceNames = await this.disksService.getInternalBootDeviceNames();
+
+        return assignableDisks
+            .filter((disk) => internalBootDeviceNames.has(this.normalizeDeviceName(disk.device)))
+            .map((disk) => ({
+                diskId: disk.id.trim(),
+                device: this.normalizeDeviceName(disk.device),
+                warnings: ['HAS_INTERNAL_BOOT_PARTITIONS'],
+            }))
+            .filter((warning) => warning.diskId.length > 0 && warning.device.length > 0);
+    }
+
     private getPoolNamesFromEmhttpState(): string[] {
         const emhttpState = getters.emhttp();
         const names = new Set<string>();
@@ -211,6 +233,7 @@ export class OnboardingInternalBootService {
         this.loadEmhttpBootContext();
 
         const vars = getters.emhttp().var ?? {};
+        const assignableDisks = await this.disksService.getAssignableDisks();
         let bootedFromFlashWithInternalBootSetup = false;
 
         try {
@@ -220,6 +243,8 @@ export class OnboardingInternalBootService {
             const message = error instanceof Error ? error.message : String(error);
             this.logger.warn(`Failed to resolve internal boot context boot state: ${message}`);
         }
+
+        const driveWarnings = await this.getAssignableDiskWarnings(assignableDisks);
 
         return {
             arrayStopped: vars.mdState === ArrayState.STOPPED || vars.fsState === 'Stopped',
@@ -235,7 +260,8 @@ export class OnboardingInternalBootService {
             reservedNames: this.splitCsvValues(vars.reservedNames),
             shareNames: this.getShareNames(),
             poolNames: this.getPoolNamesFromEmhttpState(),
-            assignableDisks: await this.disksService.getAssignableDisks(),
+            assignableDisks,
+            driveWarnings,
         };
     }
 
@@ -498,17 +524,6 @@ export class OnboardingInternalBootService {
         }
 
         try {
-            if (await this.isBootedFromFlashWithInternalBootSetup()) {
-                this.logger.warn(
-                    'createInternalBootPool aborted because internal boot is already configured'
-                );
-                return {
-                    ok: false,
-                    code: 3,
-                    output: 'mkbootpool: internal boot is already configured while the system is still booted from flash',
-                };
-            }
-
             const resolvedBootDevices = input.updateBios
                 ? await this.resolveRequestedBootDevices(input.devices, output)
                 : new Map<string, ResolvedBootDevice>();

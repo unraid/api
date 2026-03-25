@@ -15,6 +15,7 @@ describe('OnboardingQueryResolver', () => {
                 shareNames: [],
                 poolNames: [],
                 assignableDisks: [],
+                driveWarnings: [],
             }),
         } satisfies Pick<OnboardingInternalBootService, 'getInternalBootContext'>;
 
@@ -31,6 +32,7 @@ describe('OnboardingQueryResolver', () => {
             shareNames: [],
             poolNames: [],
             assignableDisks: [],
+            driveWarnings: [],
         });
         expect(onboardingInternalBootService.getInternalBootContext).toHaveBeenCalledWith();
     });

@@ -272,6 +272,18 @@ describe('OnboardingModal.vue', () => {
     expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
   });
 
+  it('keeps the internal boot step visible even when the server reports prior internal boot setup', () => {
+    internalBootVisibilityResult.value = {
+      bootedFromFlashWithInternalBootSetup: true,
+      enableBootTransfer: 'yes',
+    };
+    onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(true);
+  });
+
   it('keeps a resumed activation step visible while activation state is still loading', async () => {
     activationCodeDataStore.loading.value = true;
     activationCodeDataStore.hasActivationCode.value = false;

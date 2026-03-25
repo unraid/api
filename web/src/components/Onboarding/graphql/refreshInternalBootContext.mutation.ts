@@ -10,6 +10,11 @@ export const REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION = graphql(/* GraphQL */ `
         reservedNames
         shareNames
         poolNames
+        driveWarnings {
+          diskId
+          device
+          warnings
+        }
         assignableDisks {
           id
           device

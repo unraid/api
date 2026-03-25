@@ -40,13 +40,15 @@ describe('OnboardingInternalBootService', () => {
     };
     const disksService = {
         getAssignableDisks: vi.fn(),
-    } satisfies Pick<DisksService, 'getAssignableDisks'>;
+        getInternalBootDeviceNames: vi.fn(),
+    } satisfies Pick<DisksService, 'getAssignableDisks' | 'getInternalBootDeviceNames'>;
 
     beforeEach(() => {
         vi.clearAllMocks();
         internalBootStateService.getBootedFromFlashWithInternalBootSetup.mockResolvedValue(false);
         internalBootStateService.invalidateCachedInternalBootDeviceState.mockResolvedValue(undefined);
         disksService.getAssignableDisks.mockResolvedValue([]);
+        disksService.getInternalBootDeviceNames.mockResolvedValue(new Set());
         vi.mocked(getters.emhttp).mockReturnValue({
             var: {},
             devices: [],
@@ -121,8 +123,41 @@ describe('OnboardingInternalBootService', () => {
             shareNames: ['media', 'diskshare'],
             poolNames: ['cache', 'nvme'],
             assignableDisks,
+            driveWarnings: [],
         });
         expect(vi.mocked(loadStateFileSync)).not.toHaveBeenCalled();
+    });
+
+    it('flags assignable disks that already contain the internal boot partition layout', async () => {
+        const assignableDisks = [
+            {
+                id: 'disk-1',
+                device: '/dev/sda',
+                serialNum: 'SERIAL-1',
+                size: 1,
+                interfaceType: 'SATA',
+            },
+            {
+                id: 'disk-2',
+                device: '/dev/sdb',
+                serialNum: 'SERIAL-2',
+                size: 1,
+                interfaceType: 'SATA',
+            },
+        ];
+        disksService.getAssignableDisks.mockResolvedValue(assignableDisks);
+        disksService.getInternalBootDeviceNames.mockResolvedValue(new Set(['sdb']));
+
+        const service = createService();
+        const result = await service.getInternalBootContext();
+
+        expect(result.driveWarnings).toEqual([
+            {
+                diskId: 'disk-2',
+                device: 'sdb',
+                warnings: ['HAS_INTERNAL_BOOT_PARTITIONS'],
+            },
+        ]);
     });
 
     it('refreshes internal boot context from disk and invalidates cached device state', async () => {
@@ -399,8 +434,9 @@ describe('OnboardingInternalBootService', () => {
         expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
     });
 
-    it('returns validation error when internal boot is already configured while booted from flash', async () => {
+    it('continues setup when booted from flash and internal boot partitions already exist', async () => {
         internalBootStateService.getBootedFromFlashWithInternalBootSetup.mockResolvedValue(true);
+        vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
         const service = createService();
 
         const result = await service.createInternalBootPool({
@@ -410,34 +446,12 @@ describe('OnboardingInternalBootService', () => {
             updateBios: false,
         });
 
-        expect(result).toMatchObject({
-            ok: false,
-            code: 3,
-        });
-        expect(result.output).toContain('internal boot is already configured');
-        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).not.toHaveBeenCalled();
-        expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
-    });
-
-    it('returns failure output when the internal boot state lookup throws', async () => {
-        internalBootStateService.getBootedFromFlashWithInternalBootSetup.mockRejectedValue(
-            new Error('state lookup failed')
+        expect(result.ok).toBe(true);
+        expect(result.code).toBe(0);
+        expect(vi.mocked(emcmd)).toHaveBeenCalledTimes(4);
+        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).toHaveBeenCalledTimes(
+            1
         );
-        const service = createService();
-
-        const result = await service.createInternalBootPool({
-            poolName: 'cache',
-            devices: ['disk-1'],
-            bootSizeMiB: 16384,
-            updateBios: false,
-        });
-
-        expect(result.ok).toBe(false);
-        expect(result.code).toBe(1);
-        expect(result.output).toContain('mkbootpool: command failed or timed out');
-        expect(result.output).toContain('state lookup failed');
-        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).not.toHaveBeenCalled();
-        expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
     });
 
     it('returns failure output when emcmd command throws', async () => {

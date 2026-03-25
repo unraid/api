@@ -46,6 +46,7 @@ interface InternalBootDeviceOption {
   device: string;
   sizeMiB: number | null;
   ineligibilityCodes: InternalBootDiskEligibilityCode[];
+  warningCodes: InternalBootDiskWarningCode[];
 }
 
 interface InternalBootTemplateData {
@@ -63,20 +64,20 @@ interface InternalBootTemplateData {
 type InternalBootTransferState = 'enabled' | 'disabled' | 'unknown';
 type InternalBootEligibilityState = 'eligible' | 'ineligible' | 'unknown';
 type InternalBootSystemEligibilityCode =
-  | 'ALREADY_INTERNAL_BOOT'
   | 'NO_UNASSIGNED_DISKS'
   | 'ENABLE_BOOT_TRANSFER_DISABLED'
   | 'ENABLE_BOOT_TRANSFER_UNKNOWN'
   | 'BOOT_ELIGIBLE_FALSE'
   | 'BOOT_ELIGIBLE_UNKNOWN';
 type InternalBootDiskEligibilityCode = 'TOO_SMALL';
+type InternalBootDiskWarningCode = 'HAS_INTERNAL_BOOT_PARTITIONS';
+type InternalBootDiskIssueCode = InternalBootDiskEligibilityCode | InternalBootDiskWarningCode;
 
 const MIN_BOOT_SIZE_MIB = 4096;
 const MIN_ELIGIBLE_DEVICE_SIZE_MIB = MIN_BOOT_SIZE_MIB * 2;
 const DEFAULT_BOOT_SIZE_MIB = 16384;
 const BOOT_SIZE_PRESETS_MIB = [16384, 32768, 65536, 131072];
 const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode, string> = {
-  ALREADY_INTERNAL_BOOT: 'onboarding.internalBootStep.eligibility.codes.ALREADY_INTERNAL_BOOT',
   NO_UNASSIGNED_DISKS: 'onboarding.internalBootStep.eligibility.codes.NO_UNASSIGNED_DISKS',
   ENABLE_BOOT_TRANSFER_DISABLED:
     'onboarding.internalBootStep.eligibility.codes.ENABLE_BOOT_TRANSFER_DISABLED',
@@ -85,8 +86,10 @@ const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode,
   BOOT_ELIGIBLE_FALSE: 'onboarding.internalBootStep.eligibility.codes.BOOT_ELIGIBLE_FALSE',
   BOOT_ELIGIBLE_UNKNOWN: 'onboarding.internalBootStep.eligibility.codes.BOOT_ELIGIBLE_UNKNOWN',
 };
-const DISK_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootDiskEligibilityCode, string> = {
+const DISK_ISSUE_MESSAGE_KEYS: Record<InternalBootDiskIssueCode, string> = {
   TOO_SMALL: 'onboarding.internalBootStep.eligibility.codes.TOO_SMALL',
+  HAS_INTERNAL_BOOT_PARTITIONS:
+    'onboarding.internalBootStep.eligibility.codes.HAS_INTERNAL_BOOT_PARTITIONS',
 };
 
 const formatBytes = (bytes: number) => {
@@ -165,6 +168,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
       const sizeBytes = disk.size;
       const sizeMiB = toSizeMiB(sizeBytes);
       const ineligibilityCodes: InternalBootDiskEligibilityCode[] = [];
+      const warningCodes: InternalBootDiskWarningCode[] = [];
 
       if (sizeMiB !== null && sizeMiB < MIN_ELIGIBLE_DEVICE_SIZE_MIB) {
         ineligibilityCodes.push('TOO_SMALL');
@@ -175,12 +179,19 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
       const optionValue = serialNum || diskId || device;
       const displayId = serialNum || device;
       const sizeLabel = formatBytes(sizeBytes);
+      const matchingDriveWarning = data.driveWarnings.find(
+        (warning) => warning.diskId === diskId || normalizeDeviceName(warning.device) === device
+      );
+      if (matchingDriveWarning?.warnings.includes('HAS_INTERNAL_BOOT_PARTITIONS')) {
+        warningCodes.push('HAS_INTERNAL_BOOT_PARTITIONS');
+      }
       return {
         value: optionValue,
         label: buildDeviceLabel(displayId, sizeLabel, device),
         device,
         sizeMiB,
         ineligibilityCodes,
+        warningCodes,
       };
     })
     .filter((disk) => disk.device.length > 0);
@@ -240,9 +251,6 @@ const internalBootTransferState = computed<InternalBootTransferState>(() => {
   }
   return 'unknown';
 });
-const bootedFromFlashWithInternalBootSetup = computed(
-  () => internalBootContext.value?.bootedFromFlashWithInternalBootSetup === true
-);
 const bootEligibilityState = computed<InternalBootEligibilityState>(() => {
   const eligibility = internalBootContext.value?.bootEligible;
   if (eligibility === true) {
@@ -264,9 +272,6 @@ const existingPoolNames = computed(() => new Set(templateData.value?.poolNames ?
 const systemEligibilityCodes = computed<InternalBootSystemEligibilityCode[]>(() => {
   const codes: InternalBootSystemEligibilityCode[] = [];
 
-  if (bootedFromFlashWithInternalBootSetup.value) {
-    codes.push('ALREADY_INTERNAL_BOOT');
-  }
   if (internalBootTransferState.value === 'disabled') {
     codes.push('ENABLE_BOOT_TRANSFER_DISABLED');
   }
@@ -287,17 +292,22 @@ const systemEligibilityCodes = computed<InternalBootSystemEligibilityCode[]>(() 
 });
 const diskEligibilityIssues = computed(() =>
   allDeviceOptions.value
-    .filter((option) => option.ineligibilityCodes.length > 0)
+    .filter((option) => option.ineligibilityCodes.length > 0 || option.warningCodes.length > 0)
     .map((option) => ({
       label: option.label,
-      codes: option.ineligibilityCodes,
+      codes: [...option.ineligibilityCodes, ...option.warningCodes],
     }))
+);
+const selectedDriveWarnings = computed(() =>
+  selectedDevices.value
+    .map((selectedDevice) => allDeviceOptions.value.find((option) => option.value === selectedDevice))
+    .filter((option): option is InternalBootDeviceOption => Boolean(option))
+    .filter((option) => option.warningCodes.length > 0)
 );
 
 const canConfigure = computed(
   () =>
     internalBootTransferState.value === 'enabled' &&
-    !bootedFromFlashWithInternalBootSetup.value &&
     bootEligibilityState.value === 'eligible' &&
     deviceOptions.value.length > 0
 );
@@ -885,6 +895,28 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
           </div>
         </div>
 
+        <blockquote
+          v-if="selectedDriveWarnings.length > 0"
+          data-testid="internal-boot-drive-warning"
+          role="alert"
+          class="rounded-xl border border-amber-200 bg-amber-50 p-4"
+        >
+          <div class="flex items-start gap-3">
+            <ExclamationTriangleIcon class="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-700" />
+            <div class="space-y-2 text-sm leading-relaxed text-amber-950">
+              <p class="font-semibold">
+                {{ t('onboarding.internalBootStep.warning.driveWarningsTitle') }}
+              </p>
+              <p>{{ t('onboarding.internalBootStep.warning.driveWarningsDescription') }}</p>
+              <ul class="list-disc space-y-1 pl-5">
+                <li v-for="option in selectedDriveWarnings" :key="option.value">
+                  {{ option.label }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </blockquote>
+
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
           <label class="space-y-2">
             <span class="text-muted text-sm font-medium">
@@ -1005,7 +1037,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
                         <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">
                           {{ code }}
                         </code>
-                        {{ t(DISK_ELIGIBILITY_MESSAGE_KEYS[code]) }}
+                        {{ t(DISK_ISSUE_MESSAGE_KEYS[code]) }}
                       </li>
                     </ul>
                   </li>

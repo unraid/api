@@ -24,7 +24,6 @@ describe('StoreSyncService', () => {
     let subscriber: (() => void) | undefined;
 
     beforeEach(() => {
-        vi.useFakeTimers();
         subscribe.mockReset();
         getState.mockReset();
 
@@ -38,25 +37,28 @@ describe('StoreSyncService', () => {
 
         configService = new ConfigService();
         setSpy = vi.spyOn(configService, 'set');
-
-        service = new StoreSyncService(configService);
     });
 
     afterEach(() => {
-        vi.runOnlyPendingTimers();
-        vi.useRealTimers();
+        service?.onModuleDestroy();
     });
 
-    it('debounces sync operations and writes once after rapid updates', () => {
+    it('syncs the current store state immediately on construction', () => {
+        getState.mockReturnValue({ count: 1 });
+
+        service = new StoreSyncService(configService);
+
+        expect(setSpy).toHaveBeenCalledTimes(1);
+        expect(setSpy).toHaveBeenCalledWith('store', { count: 1 });
+    });
+
+    it('writes immediately when the store updates', () => {
+        getState.mockReturnValue({ count: 1 });
+        service = new StoreSyncService(configService);
+        setSpy.mockClear();
         getState.mockReturnValue({ count: 2 });
 
         subscriber?.();
-        vi.advanceTimersByTime(500);
-        subscriber?.();
-
-        expect(setSpy).not.toHaveBeenCalled();
-
-        vi.advanceTimersByTime(1000);
 
         expect(setSpy).toHaveBeenCalledTimes(1);
         expect(setSpy).toHaveBeenCalledWith('store', { count: 2 });
@@ -64,24 +66,23 @@ describe('StoreSyncService', () => {
 
     it('skips writes when serialized state is unchanged', () => {
         getState.mockReturnValue({ count: 1 });
+        service = new StoreSyncService(configService);
+        setSpy.mockClear();
+        getState.mockReturnValue({ count: 2 });
 
         subscriber?.();
-        vi.advanceTimersByTime(1000);
-
+        getState.mockReturnValue({ count: 2 });
         subscriber?.();
-        vi.advanceTimersByTime(1000);
 
         expect(setSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('unsubscribes and clears timer on module destroy', () => {
+    it('unsubscribes on module destroy', () => {
         getState.mockReturnValue({ count: 1 });
-
-        subscriber?.();
+        service = new StoreSyncService(configService);
+        setSpy.mockClear();
         service.onModuleDestroy();
-        vi.advanceTimersByTime(1000);
 
         expect(unsubscribe).toHaveBeenCalledTimes(1);
-        expect(setSpy).not.toHaveBeenCalled();
     });
 });

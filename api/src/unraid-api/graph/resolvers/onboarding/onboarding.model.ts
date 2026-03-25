@@ -334,6 +334,20 @@ export class OnboardingInternalBootResult {
 }
 
 @ObjectType({
+    description: 'Warning metadata for an assignable internal boot drive',
+})
+export class OnboardingInternalBootDriveWarning {
+    @Field(() => String)
+    diskId!: string;
+
+    @Field(() => String)
+    device!: string;
+
+    @Field(() => [String])
+    warnings!: string[];
+}
+
+@ObjectType({
     description: 'Current onboarding context for configuring internal boot',
 })
 export class OnboardingInternalBootContext {
@@ -360,4 +374,7 @@ export class OnboardingInternalBootContext {
 
     @Field(() => [Disk])
     assignableDisks!: Disk[];
+
+    @Field(() => [OnboardingInternalBootDriveWarning])
+    driveWarnings!: OnboardingInternalBootDriveWarning[];
 }

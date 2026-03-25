@@ -125,6 +125,7 @@ const buildContext = (
     reservedNames: [],
     shareNames: [],
     poolNames: [],
+    driveWarnings: [],
     assignableDisks: [],
     ...overrides,
   },
@@ -315,10 +316,16 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.text()).toContain('NO_UNASSIGNED_DISKS');
   });
 
-  it('blocks configuration when internal boot is already configured while the system is still booted from flash', async () => {
+  it('shows a drive warning when a selectable disk already has internal boot partitions', async () => {
     draftStore.bootMode = 'storage';
     contextResult.value = buildContext({
-      bootedFromFlashWithInternalBootSetup: true,
+      driveWarnings: [
+        {
+          diskId: 'ELIGIBLE-1',
+          device: 'sda',
+          warnings: ['HAS_INTERNAL_BOOT_PARTITIONS'],
+        },
+      ],
       assignableDisks: [
         {
           id: 'ELIGIBLE-1',
@@ -333,10 +340,16 @@ describe('OnboardingInternalBootStep', () => {
     const wrapper = mountComponent();
     await flushPromises();
 
+    expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
+    expect(wrapper.find('[data-testid="internal-boot-drive-warning"]').exists()).toBe(false);
+    const selects = wrapper.findAll('select');
+    await selects[1]?.setValue('ELIGIBLE-1');
+    await flushPromises();
+    expect(wrapper.find('[data-testid="internal-boot-drive-warning"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Selected drive warnings');
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
     await flushPromises();
-    expect(wrapper.text()).toContain('ALREADY_INTERNAL_BOOT');
-    expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeDefined();
+    expect(wrapper.text()).toContain('HAS_INTERNAL_BOOT_PARTITIONS');
   });
 
   it('shows disk-level ineligibility while keeping the form available for eligible disks', async () => {

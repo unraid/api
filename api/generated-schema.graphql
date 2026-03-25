@@ -1078,6 +1078,13 @@ type OnboardingInternalBootResult {
   output: String!
 }
 
+"""Warning metadata for an assignable internal boot drive"""
+type OnboardingInternalBootDriveWarning {
+  diskId: String!
+  device: String!
+  warnings: [String!]!
+}
+
 """Current onboarding context for configuring internal boot"""
 type OnboardingInternalBootContext {
   arrayStopped: Boolean!
@@ -1088,6 +1095,7 @@ type OnboardingInternalBootContext {
   shareNames: [String!]!
   poolNames: [String!]!
   assignableDisks: [Disk!]!
+  driveWarnings: [OnboardingInternalBootDriveWarning!]!
 }
 
 type RCloneDrive {

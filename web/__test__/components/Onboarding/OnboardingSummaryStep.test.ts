@@ -316,6 +316,7 @@ describe('OnboardingSummaryStep', () => {
         reservedNames: [],
         shareNames: [],
         poolNames: [],
+        driveWarnings: [],
         assignableDisks: [
           {
             id: 'DISK-A',
