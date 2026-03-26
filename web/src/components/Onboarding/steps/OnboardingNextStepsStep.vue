@@ -60,7 +60,10 @@ const hasExtraLinks = computed(() => (partnerInfo.value?.partner?.extraLinks?.le
 const hasAnyPartnerContent = computed(() => hasCoreDocsLinks.value || hasExtraLinks.value);
 const showRebootButton = computed(() => draftStore.internalBootSelection !== null);
 const internalBootFailed = computed(
-  () => draftStore.internalBootSelection !== null && !draftStore.internalBootApplySucceeded
+  () =>
+    draftStore.internalBootSelection !== null &&
+    draftStore.internalBootApplyAttempted &&
+    !draftStore.internalBootApplySucceeded
 );
 const biosUpdateMissed = computed(
   () => internalBootFailed.value && (draftStore.internalBootSelection?.updateBios ?? false)

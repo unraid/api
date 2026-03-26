@@ -19,6 +19,7 @@ const {
 } = vi.hoisted(() => ({
   draftStore: {
     internalBootApplySucceeded: false,
+    internalBootApplyAttempted: false,
     internalBootSelection: null as {
       poolName: string;
       slotCount: number;
@@ -96,6 +97,7 @@ describe('OnboardingNextStepsStep', () => {
     vi.clearAllMocks();
     document.body.innerHTML = '';
     draftStore.internalBootApplySucceeded = false;
+    draftStore.internalBootApplyAttempted = false;
     draftStore.internalBootSelection = null;
     completeOnboardingMock.mockResolvedValue({});
     refetchOnboardingMock.mockResolvedValue({});
@@ -244,6 +246,7 @@ describe('OnboardingNextStepsStep', () => {
       bootSizeMiB: 16384,
       updateBios: false,
     };
+    draftStore.internalBootApplyAttempted = true;
     draftStore.internalBootApplySucceeded = false;
     const { wrapper } = mountComponent();
 
@@ -258,6 +261,7 @@ describe('OnboardingNextStepsStep', () => {
       bootSizeMiB: 16384,
       updateBios: true,
     };
+    draftStore.internalBootApplyAttempted = true;
     draftStore.internalBootApplySucceeded = false;
     const { wrapper } = mountComponent();
 
