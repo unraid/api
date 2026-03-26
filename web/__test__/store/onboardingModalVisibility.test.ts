@@ -8,11 +8,9 @@ import type { OperationVariables } from '@apollo/client/core';
 import type { UseMutationReturn } from '@vue/apollo-composable';
 import type { App } from 'vue';
 
-import { BYPASS_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/bypassOnboarding.mutation';
 import { CLOSE_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/closeOnboarding.mutation';
 import { OPEN_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/openOnboarding.mutation';
 import { RESUME_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/resumeOnboarding.mutation';
-import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus.js';
 import { useCallbackActionsStore } from '~/store/callbackActions';
@@ -39,7 +37,6 @@ describe('OnboardingModalVisibility Store', () => {
 
   const openMutationMock = vi.fn();
   const closeMutationMock = vi.fn();
-  const bypassMutationMock = vi.fn();
   const resumeMutationMock = vi.fn();
   const refetchOnboardingMock = vi.fn();
 
@@ -95,14 +92,6 @@ describe('OnboardingModalVisibility Store', () => {
       if (document === CLOSE_ONBOARDING_MUTATION) {
         return createMutationReturn(
           closeMutationMock.mockImplementation(async () => {
-            mockShouldOpen.value = false;
-          })
-        );
-      }
-
-      if (document === BYPASS_ONBOARDING_MUTATION) {
-        return createMutationReturn(
-          bypassMutationMock.mockImplementation(async () => {
             mockShouldOpen.value = false;
           })
         );
@@ -177,37 +166,6 @@ describe('OnboardingModalVisibility Store', () => {
     await expect(store.forceOpenModal()).resolves.toBe(false);
     expect(openMutationMock).not.toHaveBeenCalled();
     expect(refetchOnboardingMock).not.toHaveBeenCalled();
-  });
-
-  it('applies keyboard shortcut bypass through the backend mutation', () => {
-    const draftStore = useOnboardingDraftStore();
-    draftStore.setCoreSettings({
-      serverName: 'tower',
-      serverDescription: 'resume me',
-      timeZone: 'UTC',
-      theme: 'black',
-      language: 'en_US',
-      useSsh: true,
-    });
-    draftStore.setCurrentStep('CONFIGURE_BOOT');
-    mockShouldOpen.value = true;
-
-    window.dispatchEvent(
-      new KeyboardEvent('keydown', {
-        key: 'o',
-        code: 'KeyO',
-        ctrlKey: true,
-        altKey: true,
-        shiftKey: true,
-      })
-    );
-
-    return vi.waitFor(() => {
-      expect(bypassMutationMock).toHaveBeenCalledTimes(1);
-      expect(refetchOnboardingMock).toHaveBeenCalledTimes(1);
-      expect(store.isVisible).toBe(false);
-      expect(draftStore.hasResumableDraft).toBe(false);
-    });
   });
 
   it('opens onboarding through the backend when ?onboarding=open is present', async () => {

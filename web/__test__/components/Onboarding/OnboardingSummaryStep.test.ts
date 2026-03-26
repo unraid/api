@@ -26,6 +26,7 @@ import { createTestI18n } from '../../utils/i18n';
 const {
   draftStore,
   setInternalBootApplySucceededMock,
+  setInternalBootApplyAttemptedMock,
   registrationStateRef,
   isFreshInstallRef,
   activationCodeRef,
@@ -68,9 +69,13 @@ const {
     internalBootInitialized: true,
     internalBootSkipped: false,
     internalBootApplySucceeded: false,
+    internalBootApplyAttempted: false,
   },
   setInternalBootApplySucceededMock: vi.fn((value: boolean) => {
     draftStore.internalBootApplySucceeded = value;
+  }),
+  setInternalBootApplyAttemptedMock: vi.fn((value: boolean) => {
+    draftStore.internalBootApplyAttempted = value;
   }),
   registrationStateRef: { value: 'ENOKEYFILE' },
   isFreshInstallRef: { value: true },
@@ -139,6 +144,7 @@ vi.mock('~/components/Onboarding/store/onboardingDraft', () => ({
   useOnboardingDraftStore: () => ({
     ...draftStore,
     setInternalBootApplySucceeded: setInternalBootApplySucceededMock,
+    setInternalBootApplyAttempted: setInternalBootApplyAttemptedMock,
   }),
 }));
 
@@ -1228,10 +1234,11 @@ describe('OnboardingSummaryStep', () => {
       {
         configured: 'Internal boot pool configured.',
         returnedError: expect.any(Function),
-        failed: 'Internal boot setup failed',
+        failed: expect.any(String),
         biosUnverified: expect.any(String),
       }
     );
+    expect(setInternalBootApplyAttemptedMock).toHaveBeenCalledWith(true);
     expect(setInternalBootApplySucceededMock).toHaveBeenCalledWith(true);
     expect(wrapper.text()).toContain('Internal boot pool configured.');
     expect(wrapper.text()).toContain('BIOS boot entry updates completed successfully.');

@@ -54,7 +54,13 @@ const hasExtraLinks = computed(() => (partnerInfo.value?.partner?.extraLinks?.le
 // Check if we have any content to show in the "Learn about your server" section
 // Only show if there are LINKS (docs or extra links) - system specs alone isn't enough
 const hasAnyPartnerContent = computed(() => hasCoreDocsLinks.value || hasExtraLinks.value);
-const showRebootButton = computed(() => draftStore.internalBootApplySucceeded);
+const showRebootButton = computed(() => draftStore.internalBootSelection !== null);
+const internalBootFailed = computed(
+  () => draftStore.internalBootSelection !== null && !draftStore.internalBootApplySucceeded
+);
+const biosUpdateMissed = computed(
+  () => internalBootFailed.value && (draftStore.internalBootSelection?.updateBios ?? false)
+);
 const primaryButtonText = computed(() =>
   showRebootButton.value
     ? t('onboarding.nextSteps.reboot')
@@ -107,21 +113,24 @@ const finishOnboarding = async ({ reboot }: { reboot: boolean }) => {
     } catch (error: unknown) {
       console.error('Failed to refresh onboarding state:', error);
     }
-
-    cleanupOnboardingStorage();
-
-    if (reboot) {
-      submitInternalBootReboot();
-      return;
-    }
-
-    props.onComplete();
   } catch (error: unknown) {
     console.error('Failed to complete onboarding:', error);
-    completionError.value = t('onboarding.nextSteps.completionFailed');
-  } finally {
-    isCompleting.value = false;
+    if (!reboot) {
+      completionError.value = t('onboarding.nextSteps.completionFailed');
+      isCompleting.value = false;
+      return;
+    }
   }
+
+  cleanupOnboardingStorage();
+
+  if (reboot) {
+    submitInternalBootReboot();
+    return;
+  }
+
+  props.onComplete();
+  isCompleting.value = false;
 };
 
 const handlePrimaryAction = async () => {
@@ -397,7 +406,11 @@ const handleCancelReboot = () => {
         :open="showRebootWarningDialog"
         :portal="false"
         :title="t('onboarding.nextSteps.confirmReboot.title')"
-        :description="t('onboarding.nextSteps.confirmReboot.description')"
+        :description="
+          internalBootFailed
+            ? t('onboarding.nextSteps.confirmReboot.failureDescription')
+            : t('onboarding.nextSteps.confirmReboot.description')
+        "
         :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-md' }"
         @update:open="showRebootWarningDialog = $event"
       >
@@ -423,6 +436,22 @@ const handleCancelReboot = () => {
           </UButton>
         </template>
       </UModal>
+
+      <div v-if="internalBootFailed" class="mt-6 space-y-3">
+        <UAlert
+          color="warning"
+          variant="subtle"
+          icon="i-lucide-triangle-alert"
+          :description="t('onboarding.nextSteps.internalBootFailed')"
+        />
+        <UAlert
+          v-if="biosUpdateMissed"
+          color="warning"
+          variant="subtle"
+          icon="i-lucide-info"
+          :description="t('onboarding.nextSteps.internalBootBiosMissed')"
+        />
+      </div>
 
       <p v-if="completionError" role="alert" aria-live="polite" class="mt-6 text-sm text-red-600">
         {{ completionError }}

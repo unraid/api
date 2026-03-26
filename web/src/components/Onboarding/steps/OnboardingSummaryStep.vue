@@ -922,6 +922,7 @@ const handleComplete = async () => {
     // 3. Internal boot setup
     if (internalBootSelection.value) {
       const selection = internalBootSelection.value;
+      draftStore.setInternalBootApplyAttempted(true);
       addLog(summaryT('logs.internalBootStart'), 'info');
       addLog(summaryT('logs.internalBootConfiguring'), 'info');
       const internalBootProgressTimer = setInterval(() => {
@@ -930,8 +931,8 @@ const handleComplete = async () => {
       try {
         const applyResult = await applyInternalBootSelection(selection, {
           configured: summaryT('logs.internalBootConfigured'),
-          returnedError: (output) => summaryT('logs.internalBootReturnedError', { output }),
-          failed: summaryT('logs.internalBootFailed'),
+          returnedError: () => t('onboarding.nextSteps.internalBootFailed'),
+          failed: t('onboarding.nextSteps.internalBootFailed'),
           biosUnverified: summaryT('logs.internalBootBiosUnverified'),
         });
 

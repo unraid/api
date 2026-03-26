@@ -127,6 +127,7 @@ export const useOnboardingDraftStore = defineStore(
     const internalBootInitialized = ref(false);
     const internalBootSkipped = ref(false);
     const internalBootApplySucceeded = ref(false);
+    const internalBootApplyAttempted = ref(false);
 
     // Navigation
     const currentStepId = ref<StepId | null>(null);
@@ -156,6 +157,7 @@ export const useOnboardingDraftStore = defineStore(
       internalBootInitialized.value = false;
       internalBootSkipped.value = false;
       internalBootApplySucceeded.value = false;
+      internalBootApplyAttempted.value = false;
 
       currentStepId.value = null;
     }
@@ -219,6 +221,10 @@ export const useOnboardingDraftStore = defineStore(
       internalBootApplySucceeded.value = value;
     }
 
+    function setInternalBootApplyAttempted(value: boolean) {
+      internalBootApplyAttempted.value = value;
+    }
+
     function setCurrentStep(stepId: StepId) {
       currentStepId.value = stepId;
     }
@@ -238,6 +244,7 @@ export const useOnboardingDraftStore = defineStore(
       internalBootInitialized,
       internalBootSkipped,
       internalBootApplySucceeded,
+      internalBootApplyAttempted,
       currentStepId,
       hasResumableDraft,
       resetDraft,
@@ -247,6 +254,7 @@ export const useOnboardingDraftStore = defineStore(
       skipInternalBoot,
       setBootMode,
       setInternalBootApplySucceeded,
+      setInternalBootApplyAttempted,
       setCurrentStep,
     };
   },
@@ -292,6 +300,10 @@ export const useOnboardingDraftStore = defineStore(
                 : normalizedBootMode === 'usb',
             internalBootApplySucceeded: normalizePersistedBoolean(
               parsed.internalBootApplySucceeded,
+              false
+            ),
+            internalBootApplyAttempted: normalizePersistedBoolean(
+              parsed.internalBootApplyAttempted,
               false
             ),
             currentStepId: normalizedCurrentStepId,

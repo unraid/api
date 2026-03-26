@@ -18,6 +18,13 @@ const {
 } = vi.hoisted(() => ({
   draftStore: {
     internalBootApplySucceeded: false,
+    internalBootSelection: null as {
+      poolName: string;
+      slotCount: number;
+      devices: string[];
+      bootSizeMiB: number;
+      updateBios: boolean;
+    } | null,
   },
   activationCodeDataStore: {
     partnerInfo: {
@@ -86,6 +93,7 @@ describe('OnboardingNextStepsStep', () => {
     vi.clearAllMocks();
     document.body.innerHTML = '';
     draftStore.internalBootApplySucceeded = false;
+    draftStore.internalBootSelection = null;
     completeOnboardingMock.mockResolvedValue({});
     refetchOnboardingMock.mockResolvedValue({});
     useMutationMock.mockImplementation((doc: unknown) => {
@@ -148,6 +156,13 @@ describe('OnboardingNextStepsStep', () => {
   });
 
   it('marks onboarding complete through the same path before rebooting', async () => {
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: false,
+    };
     draftStore.internalBootApplySucceeded = true;
     const { wrapper, onComplete } = mountComponent();
 
@@ -201,5 +216,77 @@ describe('OnboardingNextStepsStep', () => {
     expect(refetchOnboardingMock).not.toHaveBeenCalled();
     expect(onComplete).not.toHaveBeenCalled();
     expect(submitInternalBootRebootMock).not.toHaveBeenCalled();
+  });
+
+  it('shows reboot button when internalBootSelection is non-null but apply did not succeed', async () => {
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: false,
+    };
+    draftStore.internalBootApplySucceeded = false;
+    const { wrapper } = mountComponent();
+
+    const button = wrapper.find('[data-testid="brand-button"]');
+    expect(button.text()).toContain('Reboot');
+  });
+
+  it('shows failure alert when internal boot failed', () => {
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: false,
+    };
+    draftStore.internalBootApplySucceeded = false;
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).toContain('Internal boot timed out');
+  });
+
+  it('shows BIOS warning when internal boot failed and updateBios was requested', () => {
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+    draftStore.internalBootApplySucceeded = false;
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).toContain('BIOS boot order update could not be applied');
+  });
+
+  it('proceeds to reboot even when completeOnboarding throws', async () => {
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: false,
+    };
+    draftStore.internalBootApplySucceeded = true;
+    completeOnboardingMock.mockRejectedValueOnce(new Error('offline'));
+    const { wrapper, onComplete } = mountComponent();
+
+    const button = wrapper.find('[data-testid="brand-button"]');
+    await button.trigger('click');
+    await flushPromises();
+
+    const confirmButton = wrapper
+      .findAll('button')
+      .find((candidate) => candidate.text().trim() === 'I Understand');
+    expect(confirmButton).toBeTruthy();
+    await confirmButton!.trigger('click');
+    await flushPromises();
+
+    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
+    expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
+    expect(onComplete).not.toHaveBeenCalled();
   });
 });

@@ -1,3 +1,4 @@
+import { reactive } from 'vue';
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,12 +22,15 @@ type InternalBootHistoryState = {
 
 const {
   draftStore,
+  reactiveStoreRef,
   applyInternalBootSelectionMock,
+  submitInternalBootRebootMock,
   cleanupOnboardingStorageMock,
   dialogPropsRef,
   stepPropsRef,
   stepperPropsRef,
 } = vi.hoisted(() => {
+  const reactiveRef: { value: Record<string, unknown> | null } = { value: null };
   const store = {
     internalBootSelection: null as {
       poolName: string;
@@ -36,13 +40,27 @@ const {
       updateBios: boolean;
     } | null,
     internalBootApplySucceeded: false,
+    internalBootApplyAttempted: false,
     setInternalBootApplySucceeded: vi.fn((value: boolean) => {
-      store.internalBootApplySucceeded = value;
+      if (reactiveRef.value) {
+        reactiveRef.value.internalBootApplySucceeded = value;
+      } else {
+        store.internalBootApplySucceeded = value;
+      }
+    }),
+    setInternalBootApplyAttempted: vi.fn((value: boolean) => {
+      if (reactiveRef.value) {
+        reactiveRef.value.internalBootApplyAttempted = value;
+      } else {
+        store.internalBootApplyAttempted = value;
+      }
     }),
   };
 
   return {
     draftStore: store,
+    reactiveStoreRef: reactiveRef,
+    submitInternalBootRebootMock: vi.fn(),
     applyInternalBootSelectionMock:
       vi.fn<
         (
@@ -74,12 +92,16 @@ vi.mock('@unraid/ui', () => ({
   },
 }));
 
+const reactiveDraftStore = reactive(draftStore);
+reactiveStoreRef.value = reactiveDraftStore;
+
 vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: () => draftStore,
+  useOnboardingDraftStore: () => reactiveDraftStore,
 }));
 
 vi.mock('@/components/Onboarding/composables/internalBoot', () => ({
   applyInternalBootSelection: applyInternalBootSelectionMock,
+  submitInternalBootReboot: submitInternalBootRebootMock,
 }));
 
 vi.mock('@/components/Onboarding/store/onboardingStorageCleanup', () => ({
@@ -182,8 +204,9 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     vi.clearAllMocks();
     window.history.replaceState(null, '', window.location.href);
 
-    draftStore.internalBootSelection = null;
-    draftStore.internalBootApplySucceeded = false;
+    reactiveDraftStore.internalBootSelection = null;
+    reactiveDraftStore.internalBootApplySucceeded = false;
+    reactiveDraftStore.internalBootApplyAttempted = false;
     dialogPropsRef.value = null;
     stepPropsRef.value = null;
     stepperPropsRef.value = null;
@@ -239,7 +262,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
   });
 
   it('applies the selected internal boot configuration and records success', async () => {
-    draftStore.internalBootSelection = {
+    reactiveDraftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
@@ -289,8 +312,8 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     });
   });
 
-  it('shows retry affordance when the apply helper returns a failure result', async () => {
-    draftStore.internalBootSelection = {
+  it('shows locked failure result with reboot button when apply fails', async () => {
+    reactiveDraftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
@@ -316,15 +339,8 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
 
     expect(wrapper.text()).toContain('Setup Failed');
     expect(wrapper.text()).toContain('Internal boot setup returned an error: mkbootpool failed');
-    expect(wrapper.find('[data-testid="internal-boot-standalone-edit-again"]').exists()).toBe(true);
-
-    await wrapper.get('[data-testid="internal-boot-standalone-edit-again"]').trigger('click');
-    await flushPromises();
-
-    expect(stepperPropsRef.value).toMatchObject({
-      activeStepIndex: 0,
-    });
-    expect(wrapper.find('[data-testid="internal-boot-step-stub"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="internal-boot-standalone-edit-again"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="internal-boot-standalone-reboot"]').exists()).toBe(true);
   });
 
   it('restores the configure step when browser back leaves a reversible result', async () => {
@@ -355,8 +371,9 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     expect(wrapper.find('[data-testid="internal-boot-step-stub"]').exists()).toBe(true);
   });
 
-  it('closes when browser back leaves a fully applied result', async () => {
-    draftStore.internalBootSelection = {
+  it('blocks browser back navigation when locked after a fully applied result', async () => {
+    const forwardSpy = vi.spyOn(window.history, 'forward').mockImplementation(() => {});
+    reactiveDraftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
@@ -384,8 +401,9 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     });
     await flushPromises();
 
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledTimes(1);
-    expect(wrapper.find('[data-testid="dialog-stub"]').exists()).toBe(false);
+    expect(forwardSpy).toHaveBeenCalled();
+    expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
+    expect(wrapper.find('[data-testid="dialog-stub"]').exists()).toBe(true);
   });
 
   it('closes locally after showing a result', async () => {
@@ -435,7 +453,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
   });
 
   it('shows warning result when apply succeeds with warnings', async () => {
-    draftStore.internalBootSelection = {
+    reactiveDraftStore.internalBootSelection = {
       poolName: 'boot-pool',
       slotCount: 1,
       devices: ['sda'],
@@ -477,5 +495,86 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     await flushPromises();
 
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the X button when internalBootApplyAttempted is true', async () => {
+    reactiveDraftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: false,
+    };
+
+    const wrapper = mountComponent();
+
+    await wrapper.get('[data-testid="internal-boot-step-complete"]').trigger('click');
+    await flushPromises();
+
+    expect(draftStore.internalBootApplyAttempted).toBe(true);
+    expect(wrapper.find('[data-testid="internal-boot-standalone-close"]').exists()).toBe(false);
+  });
+
+  it('hides "Edit Again" button when locked after apply', async () => {
+    reactiveDraftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: false,
+    };
+    applyInternalBootSelectionMock.mockResolvedValue({
+      applySucceeded: false,
+      hadWarnings: true,
+      hadNonOptimisticFailures: true,
+      logs: [{ message: 'Setup failed', type: 'error' }],
+    });
+
+    const wrapper = mountComponent();
+
+    await wrapper.get('[data-testid="internal-boot-step-complete"]').trigger('click');
+    await flushPromises();
+
+    expect(draftStore.internalBootApplyAttempted).toBe(true);
+    expect(wrapper.find('[data-testid="internal-boot-standalone-edit-again"]').exists()).toBe(false);
+  });
+
+  it('shows "Reboot" button instead of "Close" when locked', async () => {
+    reactiveDraftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+
+    const wrapper = mountComponent();
+
+    await wrapper.get('[data-testid="internal-boot-step-complete"]').trigger('click');
+    await flushPromises();
+
+    expect(draftStore.internalBootApplyAttempted).toBe(true);
+    expect(wrapper.find('[data-testid="internal-boot-standalone-result-close"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="internal-boot-standalone-reboot"]').exists()).toBe(true);
+  });
+
+  it('calls submitInternalBootReboot when reboot button is clicked', async () => {
+    reactiveDraftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+
+    const wrapper = mountComponent();
+
+    await wrapper.get('[data-testid="internal-boot-step-complete"]').trigger('click');
+    await flushPromises();
+
+    await wrapper.get('[data-testid="internal-boot-standalone-reboot"]').trigger('click');
+    await flushPromises();
+
+    expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
   });
 });

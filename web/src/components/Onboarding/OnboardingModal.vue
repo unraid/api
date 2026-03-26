@@ -51,7 +51,9 @@ const { internalBootVisibility, loading: onboardingContextLoading } = storeToRef
   useOnboardingContextDataStore()
 );
 const draftStore = useOnboardingDraftStore();
-const { currentStepId, internalBootApplySucceeded } = storeToRefs(draftStore);
+const { currentStepId, internalBootApplySucceeded, internalBootApplyAttempted } =
+  storeToRefs(draftStore);
+const isInternalBootLocked = computed(() => internalBootApplyAttempted.value);
 
 onMounted(async () => {
   try {
@@ -345,6 +347,9 @@ const goToNextStep = async () => {
 };
 
 const goToPreviousStep = () => {
+  if (isInternalBootLocked.value) {
+    return;
+  }
   if (typeof window !== 'undefined' && historySessionId.value && historyPosition.value > 0) {
     window.history.back();
     return;
@@ -356,6 +361,9 @@ const goToPreviousStep = () => {
 };
 
 const goToStep = (stepIndex: number) => {
+  if (isInternalBootLocked.value && stepIndex < currentDynamicStepIndex.value) {
+    return;
+  }
   // Prevent skipping ahead via stepper; only allow current or previous steps.
   if (
     stepIndex >= 0 &&
@@ -414,7 +422,7 @@ const handleInternalBootSkip = async () => {
 };
 
 const handleExitIntent = () => {
-  if (isClosingModal.value) {
+  if (isClosingModal.value || isInternalBootLocked.value) {
     return;
   }
   showExitConfirmDialog.value = true;
@@ -447,6 +455,11 @@ const handleActivationSkip = async () => {
 };
 
 const handlePopstate = async (event: PopStateEvent) => {
+  if (isInternalBootLocked.value) {
+    window.history.forward();
+    return;
+  }
+
   const nextHistoryState = getHistoryState(event.state);
   const activeSessionId = historySessionId.value;
 
@@ -542,7 +555,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
   const baseProps = {
     onComplete: () => goToNextStep(),
     onBack: goToPreviousStep,
-    showBack: canGoBack.value,
+    showBack: canGoBack.value && !isInternalBootLocked.value,
     isCompleted: false, // No server-side step completion tracking
     isSavingStep: false,
   };
@@ -634,6 +647,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
   >
     <div class="relative flex h-full min-h-0 w-full flex-col items-center justify-start overflow-y-auto">
       <button
+        v-if="!isInternalBootLocked"
         type="button"
         class="bg-background/90 text-foreground hover:bg-muted fixed top-5 right-8 z-20 rounded-md p-1.5 shadow-sm transition-colors"
         :aria-label="t('onboarding.modal.closeAriaLabel')"
