@@ -60,6 +60,7 @@ const pendingPowerAction = ref<'reboot' | 'shutdown' | null>(null);
 const handleConfirmPowerAction = () => {
   const action = pendingPowerAction.value;
   pendingPowerAction.value = null;
+  cleanupOnboardingStorage();
   if (action === 'shutdown') {
     submitInternalBootShutdown();
   } else {

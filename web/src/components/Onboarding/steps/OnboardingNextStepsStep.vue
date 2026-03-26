@@ -101,15 +101,13 @@ const handleMouseMove = (e: MouseEvent) => {
   el.style.setProperty('--y', `${y}px`);
 };
 
-const finishOnboarding = async ({ reboot, shutdown }: { reboot?: boolean; shutdown?: boolean }) => {
+const finishOnboarding = async ({ action }: { action?: 'reboot' | 'shutdown' } = {}) => {
   if (isCompleting.value) {
     return;
   }
 
   isCompleting.value = true;
   completionError.value = null;
-
-  const needsPowerAction = reboot || shutdown;
 
   try {
     await completeOnboarding();
@@ -121,7 +119,7 @@ const finishOnboarding = async ({ reboot, shutdown }: { reboot?: boolean; shutdo
     }
   } catch (error: unknown) {
     console.error('Failed to complete onboarding:', error);
-    if (!needsPowerAction) {
+    if (!action) {
       completionError.value = t('onboarding.nextSteps.completionFailed');
       isCompleting.value = false;
       return;
@@ -130,12 +128,12 @@ const finishOnboarding = async ({ reboot, shutdown }: { reboot?: boolean; shutdo
 
   cleanupOnboardingStorage();
 
-  if (shutdown) {
+  if (action === 'shutdown') {
     submitInternalBootShutdown();
     return;
   }
 
-  if (reboot) {
+  if (action === 'reboot') {
     submitInternalBootReboot();
     return;
   }
@@ -150,7 +148,7 @@ const handlePrimaryAction = async () => {
     return;
   }
 
-  await finishOnboarding({ reboot: false });
+  await finishOnboarding();
 };
 
 const handleShutdownAction = () => {
@@ -161,7 +159,7 @@ const handleConfirmPowerAction = async () => {
   const action = pendingPowerAction.value;
   pendingPowerAction.value = null;
   if (action) {
-    await finishOnboarding({ [action]: true });
+    await finishOnboarding({ action });
   }
 };
 
