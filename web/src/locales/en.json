@@ -121,8 +121,6 @@
   "onboarding.nextSteps.confirmReboot.failureDescription": "Internal boot may not have completed successfully. Rebooting will finalize the configuration.",
   "onboarding.nextSteps.shutdown": "Shutdown",
   "onboarding.nextSteps.confirmShutdown.title": "Confirm Shutdown",
-  "onboarding.nextSteps.confirmShutdown.description": "On some systems, you may need to manually change the BIOS boot order from the USB device to the storage drive.",
-  "onboarding.nextSteps.confirmShutdown.confirm": "I Understand",
   "onboarding.nextSteps.internalBootFailed": "Internal boot timed out but is likely setup on your server. Please reboot your system to finalize setup.",
   "onboarding.nextSteps.internalBootBiosMissed": "The BIOS boot order update could not be applied automatically. After rebooting, you may need to manually update your BIOS boot order to prioritize the storage drive.",
   "onboarding.stepper.stepLabel": "Step {number}",

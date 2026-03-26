@@ -17,6 +17,7 @@ import { CheckCircleIcon, EnvelopeIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 // Use ?raw to import SVG content string
 import UnraidIconSvg from '@/assets/partners/simple-icons-unraid.svg?raw';
+import InternalBootConfirmDialog from '@/components/Onboarding/components/InternalBootConfirmDialog.vue';
 import {
   submitInternalBootReboot,
   submitInternalBootShutdown,
@@ -69,8 +70,7 @@ const primaryButtonText = computed(() =>
     ? t('onboarding.nextSteps.reboot')
     : t('onboarding.nextSteps.continueToDashboard')
 );
-const showRebootWarningDialog = ref(false);
-const showShutdownWarningDialog = ref(false);
+const pendingPowerAction = ref<'reboot' | 'shutdown' | null>(null);
 const isCompleting = ref(false);
 const completionError = ref<string | null>(null);
 
@@ -146,33 +146,27 @@ const finishOnboarding = async ({ reboot, shutdown }: { reboot?: boolean; shutdo
 
 const handlePrimaryAction = async () => {
   if (showRebootButton.value) {
-    showRebootWarningDialog.value = true;
+    pendingPowerAction.value = 'reboot';
     return;
   }
 
   await finishOnboarding({ reboot: false });
 };
 
-const handleConfirmReboot = async () => {
-  showRebootWarningDialog.value = false;
-  await finishOnboarding({ reboot: true });
-};
-
-const handleCancelReboot = () => {
-  showRebootWarningDialog.value = false;
-};
-
 const handleShutdownAction = () => {
-  showShutdownWarningDialog.value = true;
+  pendingPowerAction.value = 'shutdown';
 };
 
-const handleConfirmShutdown = async () => {
-  showShutdownWarningDialog.value = false;
-  await finishOnboarding({ shutdown: true });
+const handleConfirmPowerAction = async () => {
+  const action = pendingPowerAction.value;
+  pendingPowerAction.value = null;
+  if (action) {
+    await finishOnboarding({ [action]: true });
+  }
 };
 
-const handleCancelShutdown = () => {
-  showShutdownWarningDialog.value = false;
+const handleCancelPowerAction = () => {
+  pendingPowerAction.value = null;
 };
 </script>
 
@@ -426,75 +420,14 @@ const handleCancelShutdown = () => {
         </div>
       </div>
 
-      <UModal
-        :open="showRebootWarningDialog"
-        :portal="false"
-        :title="t('onboarding.nextSteps.confirmReboot.title')"
-        :description="
-          internalBootFailed
-            ? t('onboarding.nextSteps.confirmReboot.failureDescription')
-            : t('onboarding.nextSteps.confirmReboot.description')
-        "
-        :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-md' }"
-        @update:open="showRebootWarningDialog = $event"
-      >
-        <template #body>
-          <UAlert
-            color="warning"
-            variant="subtle"
-            icon="i-lucide-triangle-alert"
-            :description="t('onboarding.nextSteps.confirmReboot.warning')"
-          />
-        </template>
-        <template #footer>
-          <UButton
-            color="neutral"
-            variant="outline"
-            :disabled="isCompleting"
-            @click="handleCancelReboot"
-          >
-            {{ t('common.cancel') }}
-          </UButton>
-          <UButton :disabled="isCompleting" @click="handleConfirmReboot">
-            {{ t('onboarding.nextSteps.confirmReboot.confirm') }}
-          </UButton>
-        </template>
-      </UModal>
-
-      <UModal
-        :open="showShutdownWarningDialog"
-        :portal="false"
-        :title="t('onboarding.nextSteps.confirmShutdown.title')"
-        :description="
-          internalBootFailed
-            ? t('onboarding.nextSteps.confirmReboot.failureDescription')
-            : t('onboarding.nextSteps.confirmShutdown.description')
-        "
-        :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-md' }"
-        @update:open="showShutdownWarningDialog = $event"
-      >
-        <template #body>
-          <UAlert
-            color="warning"
-            variant="subtle"
-            icon="i-lucide-triangle-alert"
-            :description="t('onboarding.nextSteps.confirmReboot.warning')"
-          />
-        </template>
-        <template #footer>
-          <UButton
-            color="neutral"
-            variant="outline"
-            :disabled="isCompleting"
-            @click="handleCancelShutdown"
-          >
-            {{ t('common.cancel') }}
-          </UButton>
-          <UButton :disabled="isCompleting" @click="handleConfirmShutdown">
-            {{ t('onboarding.nextSteps.confirmShutdown.confirm') }}
-          </UButton>
-        </template>
-      </UModal>
+      <InternalBootConfirmDialog
+        :open="pendingPowerAction !== null"
+        :action="pendingPowerAction ?? 'reboot'"
+        :failed="internalBootFailed"
+        :disabled="isCompleting"
+        @confirm="handleConfirmPowerAction"
+        @cancel="handleCancelPowerAction"
+      />
 
       <div v-if="internalBootFailed" class="mt-6 space-y-3">
         <UAlert

@@ -111,6 +111,20 @@ vi.mock('@/components/Onboarding/store/onboardingStorageCleanup', () => ({
   cleanupOnboardingStorage: cleanupOnboardingStorageMock,
 }));
 
+vi.mock('@/components/Onboarding/components/InternalBootConfirmDialog.vue', () => ({
+  default: {
+    props: ['open', 'action', 'failed', 'disabled'],
+    emits: ['confirm', 'cancel'],
+    template: `
+      <div v-if="open" data-testid="confirm-dialog-stub">
+        <span data-testid="confirm-dialog-action">{{ action }}</span>
+        <button data-testid="confirm-dialog-confirm" @click="$emit('confirm')">Confirm</button>
+        <button data-testid="confirm-dialog-cancel" @click="$emit('cancel')">Cancel</button>
+      </div>
+    `,
+  },
+}));
+
 vi.mock('@/components/Onboarding/components/OnboardingConsole.vue', () => ({
   default: {
     props: ['logs'],
@@ -561,7 +575,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     expect(wrapper.find('[data-testid="internal-boot-standalone-reboot"]').exists()).toBe(true);
   });
 
-  it('calls submitInternalBootReboot when reboot button is clicked', async () => {
+  it('calls submitInternalBootReboot when reboot is confirmed through dialog', async () => {
     reactiveDraftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
@@ -578,10 +592,16 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     await wrapper.get('[data-testid="internal-boot-standalone-reboot"]').trigger('click');
     await flushPromises();
 
+    expect(wrapper.find('[data-testid="confirm-dialog-stub"]').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="confirm-dialog-action"]').text()).toBe('reboot');
+
+    await wrapper.get('[data-testid="confirm-dialog-confirm"]').trigger('click');
+    await flushPromises();
+
     expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
   });
 
-  it('shows shutdown button when locked and calls submitInternalBootShutdown', async () => {
+  it('shows shutdown button when locked and calls submitInternalBootShutdown after confirmation', async () => {
     reactiveDraftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
@@ -599,6 +619,12 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     expect(shutdownButton.exists()).toBe(true);
 
     await shutdownButton.trigger('click');
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="confirm-dialog-stub"]').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="confirm-dialog-action"]').text()).toBe('shutdown');
+
+    await wrapper.get('[data-testid="confirm-dialog-confirm"]').trigger('click');
     await flushPromises();
 
     expect(submitInternalBootShutdownMock).toHaveBeenCalledTimes(1);
