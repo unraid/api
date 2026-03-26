@@ -571,7 +571,6 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     case 'ACTIVATE_LICENSE':
       return {
         ...baseProps,
-        onComplete: goToNextStep,
         modalTitle: modalTitle.value,
         modalDescription: modalDescription.value,
         docsButtons: docsButtons.value,
