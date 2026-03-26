@@ -427,8 +427,6 @@ const handleExitConfirm = async () => {
   }
 };
 
-const handleActivationSkip = () => goToNextStep();
-
 const handlePopstate = async (event: PopStateEvent) => {
   const nextHistoryState = getHistoryState(event.state);
   const activeSessionId = historySessionId.value;
@@ -573,7 +571,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     case 'ACTIVATE_LICENSE':
       return {
         ...baseProps,
-        onComplete: handleActivationSkip,
+        onComplete: goToNextStep,
         modalTitle: modalTitle.value,
         modalDescription: modalDescription.value,
         docsButtons: docsButtons.value,
