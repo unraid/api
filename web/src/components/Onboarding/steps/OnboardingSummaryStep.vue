@@ -931,8 +931,8 @@ const handleComplete = async () => {
       try {
         const applyResult = await applyInternalBootSelection(selection, {
           configured: summaryT('logs.internalBootConfigured'),
-          returnedError: () => t('onboarding.nextSteps.internalBootFailed'),
-          failed: t('onboarding.nextSteps.internalBootFailed'),
+          returnedError: (output) => summaryT('logs.internalBootReturnedError', { output }),
+          failed: summaryT('logs.internalBootFailed'),
           biosUnverified: summaryT('logs.internalBootBiosUnverified'),
         });
 

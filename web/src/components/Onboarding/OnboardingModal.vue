@@ -305,8 +305,11 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   ];
 });
 
+const isProgrammaticHistoryExit = ref(false);
+
 const closeModal = async (options?: { reload?: boolean }) => {
   if (typeof window !== 'undefined' && isManualSession.value && historyPosition.value >= 0) {
+    isProgrammaticHistoryExit.value = true;
     window.history.go(-(historyPosition.value + 1));
     return;
   }
@@ -455,10 +458,11 @@ const handleActivationSkip = async () => {
 };
 
 const handlePopstate = async (event: PopStateEvent) => {
-  if (isInternalBootLocked.value) {
+  if (isInternalBootLocked.value && !isProgrammaticHistoryExit.value) {
     window.history.forward();
     return;
   }
+  isProgrammaticHistoryExit.value = false;
 
   const nextHistoryState = getHistoryState(event.state);
   const activeSessionId = historySessionId.value;
