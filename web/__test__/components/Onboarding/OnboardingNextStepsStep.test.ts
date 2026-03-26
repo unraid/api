@@ -26,6 +26,7 @@ const {
       devices: string[];
       bootSizeMiB: number;
       updateBios: boolean;
+      poolMode: 'dedicated' | 'hybrid';
     } | null,
   },
   activationCodeDataStore: {
@@ -167,6 +168,7 @@ describe('OnboardingNextStepsStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
     draftStore.internalBootApplySucceeded = true;
     const { wrapper, onComplete } = mountComponent();
@@ -230,6 +232,7 @@ describe('OnboardingNextStepsStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
     draftStore.internalBootApplySucceeded = false;
     const { wrapper } = mountComponent();
@@ -245,6 +248,7 @@ describe('OnboardingNextStepsStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
     draftStore.internalBootApplyAttempted = true;
     draftStore.internalBootApplySucceeded = false;
@@ -260,6 +264,7 @@ describe('OnboardingNextStepsStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
     draftStore.internalBootApplyAttempted = true;
     draftStore.internalBootApplySucceeded = false;
@@ -275,6 +280,7 @@ describe('OnboardingNextStepsStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
     draftStore.internalBootApplySucceeded = true;
     completeOnboardingMock.mockRejectedValueOnce(new Error('offline'));
@@ -304,6 +310,7 @@ describe('OnboardingNextStepsStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
     const { wrapper } = mountComponent();
 
@@ -323,6 +330,7 @@ describe('OnboardingNextStepsStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
     draftStore.internalBootApplySucceeded = true;
     const { wrapper, onComplete } = mountComponent();
@@ -357,6 +365,7 @@ describe('OnboardingNextStepsStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
     completeOnboardingMock.mockRejectedValueOnce(new Error('offline'));
     const { wrapper, onComplete } = mountComponent();

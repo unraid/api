@@ -208,6 +208,7 @@ const internalBootSummary = computed(() => {
   }
 
   return {
+    poolMode: selection.poolMode ?? 'hybrid',
     poolName: selection.poolName,
     slotCount: selection.slotCount,
     devices: selection.devices,
@@ -1270,6 +1271,17 @@ const handleBack = () => {
 
           <template v-if="internalBootSummary">
             <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.poolMode') }}</span>
+              <span class="text-highlighted font-medium break-all sm:text-right">{{
+                internalBootSummary.poolMode === 'dedicated'
+                  ? t('onboarding.summaryStep.bootConfig.poolModeDedicated')
+                  : t('onboarding.summaryStep.bootConfig.poolModeHybrid')
+              }}</span>
+            </div>
+            <div
+              v-if="internalBootSummary.poolMode !== 'dedicated'"
+              class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between"
+            >
               <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.pool') }}</span>
               <span class="text-highlighted font-medium break-all sm:text-right">{{
                 internalBootSummary.poolName
@@ -1281,7 +1293,10 @@ const handleBack = () => {
                 internalBootSummary.slotCount
               }}</span>
             </div>
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+            <div
+              v-if="internalBootSummary.poolMode !== 'dedicated'"
+              class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between"
+            >
               <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.bootReserved') }}</span>
               <span class="text-highlighted font-medium break-all sm:text-right">{{
                 internalBootSummary.bootReservedSize

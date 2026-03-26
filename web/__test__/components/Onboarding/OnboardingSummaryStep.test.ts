@@ -65,6 +65,7 @@ const {
       devices: string[];
       bootSizeMiB: number;
       updateBios: boolean;
+      poolMode: 'dedicated' | 'hybrid';
     } | null,
     internalBootInitialized: true,
     internalBootSkipped: false,
@@ -1161,6 +1162,7 @@ describe('OnboardingSummaryStep', () => {
       devices: ['DISK-A', 'DISK-B'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
 
     const { wrapper } = mountComponent();
@@ -1177,6 +1179,7 @@ describe('OnboardingSummaryStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
 
     const { wrapper } = mountComponent();
@@ -1202,6 +1205,7 @@ describe('OnboardingSummaryStep', () => {
       devices: ['DISK-A', 'DISK-B'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
     draftStore.internalBootSkipped = false;
     applyInternalBootSelectionMock.mockResolvedValue({
@@ -1230,6 +1234,7 @@ describe('OnboardingSummaryStep', () => {
         bootSizeMiB: 16384,
         updateBios: true,
         slotCount: 2,
+        poolMode: 'hybrid',
       },
       {
         configured: 'Internal boot pool configured.',
@@ -1254,6 +1259,7 @@ describe('OnboardingSummaryStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
     applyInternalBootSelectionMock.mockResolvedValue({
       applySucceeded: false,
@@ -1284,6 +1290,7 @@ describe('OnboardingSummaryStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
     applyInternalBootSelectionMock.mockResolvedValue({
       applySucceeded: true,

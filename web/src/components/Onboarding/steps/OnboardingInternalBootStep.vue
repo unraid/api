@@ -14,6 +14,7 @@ import { convert } from 'convert';
 import type {
   OnboardingBootMode,
   OnboardingInternalBootSelection,
+  OnboardingPoolMode,
 } from '@/components/Onboarding/store/onboardingDraft';
 import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
@@ -146,6 +147,7 @@ const bootMode = ref<OnboardingBootMode>(
   toBootMode(draftStore.bootMode ?? (draftStore.internalBootSelection ? 'storage' : 'usb'))
 );
 
+const poolMode = ref<OnboardingPoolMode>('dedicated');
 const poolName = ref('boot');
 const slotCount = ref(1);
 const selectedDevices = ref<Array<string | undefined>>([undefined]);
@@ -313,6 +315,19 @@ const canConfigure = computed(
 const hasEligibleDevices = computed(() => deviceOptions.value.length > 0);
 const hasNoEligibleDevices = computed(() => !hasEligibleDevices.value);
 const isStorageBootSelected = computed(() => bootMode.value === 'storage');
+const isDedicatedMode = computed(() => poolMode.value === 'dedicated');
+
+const poolModeItems = computed<SelectMenuItem[]>(() => [
+  {
+    value: 'dedicated',
+    label: t('onboarding.internalBootStep.poolMode.dedicated'),
+  },
+  {
+    value: 'hybrid',
+    label: t('onboarding.internalBootStep.poolMode.hybrid'),
+  },
+]);
+
 const isPrimaryActionDisabled = computed(
   () => isStepLocked.value || (isStorageBootSelected.value && (isLoading.value || !canConfigure.value))
 );
@@ -514,7 +529,16 @@ watch(
 );
 
 watch(
-  [poolName, slotCount, selectedDevices, bootSizePreset, customBootSizeGb, updateBios, bootMode],
+  [
+    poolName,
+    slotCount,
+    selectedDevices,
+    bootSizePreset,
+    customBootSizeGb,
+    updateBios,
+    bootMode,
+    poolMode,
+  ],
   () => {
     if (formError.value) {
       formError.value = null;
@@ -540,32 +564,43 @@ const handleUpdateBiosChange = (value: boolean | 'indeterminate') => {
 };
 
 const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
-  const normalizedPoolName = poolName.value.trim();
-  if (!normalizedPoolName) {
-    formError.value = t('onboarding.internalBootStep.validation.poolRequired');
-    return null;
+  const currentPoolMode = poolMode.value;
+  const normalizedPoolName = currentPoolMode === 'dedicated' ? 'boot' : poolName.value.trim();
+
+  if (currentPoolMode === 'dedicated') {
+    if (reservedNames.value.has(normalizedPoolName) || existingPoolNames.value.has(normalizedPoolName)) {
+      formError.value = t('onboarding.internalBootStep.validation.dedicatedPoolNameConflict');
+      return null;
+    }
+  } else {
+    if (!normalizedPoolName) {
+      formError.value = t('onboarding.internalBootStep.validation.poolRequired');
+      return null;
+    }
+
+    if (reservedNames.value.has(normalizedPoolName)) {
+      formError.value = t('onboarding.internalBootStep.validation.poolReserved');
+      return null;
+    }
+
+    if (shareNames.value.has(normalizedPoolName)) {
+      formError.value = t('onboarding.internalBootStep.validation.poolShareName');
+      return null;
+    }
   }
 
-  if (reservedNames.value.has(normalizedPoolName)) {
-    formError.value = t('onboarding.internalBootStep.validation.poolReserved');
-    return null;
-  }
-
-  if (shareNames.value.has(normalizedPoolName)) {
-    formError.value = t('onboarding.internalBootStep.validation.poolShareName');
-    return null;
-  }
-
-  if (existingPoolNames.value.has(normalizedPoolName)) {
+  if (!isDedicatedMode.value && existingPoolNames.value.has(normalizedPoolName)) {
     formError.value = t('onboarding.internalBootStep.validation.poolExists');
     return null;
   }
 
-  const poolNameHasValidChars = /^[a-z][a-z0-9~._-]*$/.test(normalizedPoolName);
-  const poolNameHasValidEnding = /[a-z_-]$/.test(normalizedPoolName);
-  if (!poolNameHasValidChars || !poolNameHasValidEnding) {
-    formError.value = t('onboarding.internalBootStep.validation.poolFormat');
-    return null;
+  if (!isDedicatedMode.value) {
+    const poolNameHasValidChars = /^[a-z][a-z0-9~._-]*$/.test(normalizedPoolName);
+    const poolNameHasValidEnding = /[a-z_-]$/.test(normalizedPoolName);
+    if (!poolNameHasValidChars || !poolNameHasValidEnding) {
+      formError.value = t('onboarding.internalBootStep.validation.poolFormat');
+      return null;
+    }
   }
 
   if (slotCount.value < 1 || slotCount.value > 2) {
@@ -584,6 +619,17 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
   if (uniqueDevices.size !== devices.length) {
     formError.value = t('onboarding.internalBootStep.validation.uniqueDevices');
     return null;
+  }
+
+  if (isDedicatedMode.value) {
+    return {
+      poolName: normalizedPoolName,
+      slotCount: slotCount.value,
+      devices,
+      bootSizeMiB: 0,
+      updateBios: updateBios.value,
+      poolMode: 'dedicated' as const,
+    };
   }
 
   const selectedBootSizeMiB = bootSizeMiB.value;
@@ -606,6 +652,7 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
     devices,
     bootSizeMiB: selectedBootSizeMiB,
     updateBios: updateBios.value,
+    poolMode: 'hybrid' as const,
   };
 };
 
@@ -614,7 +661,10 @@ const initializeForm = (data: InternalBootTemplateData) => {
   const firstSlot = data.slotOptions[0] ?? 1;
   const defaultSlot = Math.max(1, Math.min(2, firstSlot));
 
-  poolName.value = draftSelection?.poolName ?? data.poolNameDefault ?? 'cache';
+  poolMode.value = draftSelection?.poolMode ?? 'dedicated';
+  poolName.value =
+    draftSelection?.poolName ||
+    (poolMode.value === 'dedicated' ? 'boot' : (data.poolNameDefault ?? 'cache'));
   slotCount.value = draftSelection?.slotCount ?? defaultSlot;
   selectedDevices.value =
     draftSelection?.devices.slice(0, slotCount.value) ??
@@ -644,6 +694,7 @@ watch(
       return;
     }
 
+    poolMode.value = selection.poolMode ?? 'hybrid';
     poolName.value = selection.poolName;
     slotCount.value = selection.slotCount;
     selectedDevices.value = [...selection.devices];
@@ -740,7 +791,27 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
       />
 
       <UAlert
-        v-if="isStorageBootSelected && hasEligibleDevices"
+        v-if="isStorageBootSelected && hasEligibleDevices && isDedicatedMode"
+        data-testid="internal-boot-intro-panel"
+        class="my-8"
+        color="neutral"
+        variant="subtle"
+        icon="i-lucide-info"
+      >
+        <template #description>
+          <div class="space-y-3 text-sm leading-relaxed">
+            <p>{{ t('onboarding.internalBootStep.warning.dedicatedPoolDescription') }}</p>
+            <p>{{ t('onboarding.internalBootStep.warning.dedicatedMirrorSize') }}</p>
+            <p>{{ t('onboarding.internalBootStep.warning.bootMirrorDescription') }}</p>
+            <p class="font-semibold">
+              {{ t('onboarding.internalBootStep.warning.dedicatedDevicesFormatted') }}
+            </p>
+          </div>
+        </template>
+      </UAlert>
+
+      <UAlert
+        v-if="isStorageBootSelected && hasEligibleDevices && !isDedicatedMode"
         data-testid="internal-boot-intro-panel"
         class="my-8"
         color="neutral"
@@ -801,9 +872,18 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
           <label class="space-y-2">
             <span class="text-muted text-sm font-medium">
-              {{ t('onboarding.internalBootStep.fields.poolName') }}
+              {{ t('onboarding.internalBootStep.fields.poolMode') }}
             </span>
-            <UInput v-model="poolName" type="text" maxlength="40" :disabled="isBusy" class="w-full" />
+            <USelectMenu
+              v-model="poolMode"
+              :items="poolModeItems"
+              label-key="label"
+              value-key="value"
+              :search-input="false"
+              :disabled="isBusy"
+              class="w-full"
+              :ui="{ content: 'z-[100]' }"
+            />
           </label>
 
           <label class="space-y-2">
@@ -873,39 +953,48 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
           </template>
         </UAlert>
 
-        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <template v-if="!isDedicatedMode">
           <label class="space-y-2">
             <span class="text-muted text-sm font-medium">
-              {{ t('onboarding.internalBootStep.fields.bootReservedSize') }}
+              {{ t('onboarding.internalBootStep.fields.poolName') }}
             </span>
-            <USelectMenu
-              v-model="bootSizePreset"
-              :items="bootSizePresetItems"
-              label-key="label"
-              value-key="value"
-              :search-input="false"
-              :disabled="isBusy"
-              class="w-full"
-              :ui="{ content: 'z-[100]' }"
-            />
+            <UInput v-model="poolName" type="text" maxlength="40" :disabled="isBusy" class="w-full" />
           </label>
 
-          <label v-if="bootSizePreset === 'custom'" class="space-y-2">
-            <span class="text-muted text-sm font-medium">
-              {{ t('onboarding.internalBootStep.fields.customSizeGb') }}
-            </span>
-            <UInput
-              v-model="customBootSizeGb"
-              type="number"
-              min="4"
-              :max="maxCustomBootSizeGb ?? undefined"
-              :disabled="isBusy"
-              class="w-full"
-            />
-          </label>
-        </div>
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <label class="space-y-2">
+              <span class="text-muted text-sm font-medium">
+                {{ t('onboarding.internalBootStep.fields.bootReservedSize') }}
+              </span>
+              <USelectMenu
+                v-model="bootSizePreset"
+                :items="bootSizePresetItems"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                :disabled="isBusy"
+                class="w-full"
+                :ui="{ content: 'z-[100]' }"
+              />
+            </label>
 
-        <p class="text-muted text-xs">{{ bootSizeHelpText }}</p>
+            <label v-if="bootSizePreset === 'custom'" class="space-y-2">
+              <span class="text-muted text-sm font-medium">
+                {{ t('onboarding.internalBootStep.fields.customSizeGb') }}
+              </span>
+              <UInput
+                v-model="customBootSizeGb"
+                type="number"
+                min="4"
+                :max="maxCustomBootSizeGb ?? undefined"
+                :disabled="isBusy"
+                class="w-full"
+              />
+            </label>
+          </div>
+
+          <p class="text-muted text-xs">{{ bootSizeHelpText }}</p>
+        </template>
 
         <label class="flex items-center gap-3 text-sm">
           <UCheckbox

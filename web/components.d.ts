@@ -78,6 +78,7 @@ declare module 'vue' {
     'HeaderOsVersion.standalone': typeof import('./src/components/HeaderOsVersion.standalone.vue')['default']
     IgnoredRelease: typeof import('./src/components/UpdateOs/IgnoredRelease.vue')['default']
     Indicator: typeof import('./src/components/Notifications/Indicator.vue')['default']
+    InternalBootConfirmDialog: typeof import('./src/components/Onboarding/components/InternalBootConfirmDialog.vue')['default']
     Item: typeof import('./src/components/Notifications/Item.vue')['default']
     KeyActions: typeof import('./src/components/KeyActions.vue')['default']
     Keyline: typeof import('./src/components/UserProfile/Keyline.vue')['default']
