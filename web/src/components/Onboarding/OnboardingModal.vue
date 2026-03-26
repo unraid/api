@@ -433,7 +433,7 @@ const handleExitConfirm = async () => {
   showExitConfirmDialog.value = false;
   isClosingModal.value = true;
   try {
-    await closeModal();
+    await closeModal({ reload: true });
   } finally {
     isClosingModal.value = false;
   }
@@ -471,9 +471,7 @@ const handlePopstate = async (event: PopStateEvent) => {
   showExitConfirmDialog.value = false;
   isClosingModal.value = true;
   try {
-    await onboardingModalStore.closeModal();
-    cleanupOnboardingStorage();
-    clearHistorySession();
+    await closeModal({ reload: true });
   } finally {
     isClosingModal.value = false;
   }
