@@ -230,7 +230,7 @@ export const applyInternalBootSelection = async (
   };
 };
 
-export const submitInternalBootReboot = () => {
+const submitBootCommand = (command: 'reboot' | 'shutdown') => {
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = '/plugins/dynamix/include/Boot.php';
@@ -240,7 +240,7 @@ export const submitInternalBootReboot = () => {
   const cmd = document.createElement('input');
   cmd.type = 'hidden';
   cmd.name = 'cmd';
-  cmd.value = 'reboot';
+  cmd.value = command;
   form.appendChild(cmd);
 
   const csrfToken = readCsrfToken();
@@ -255,3 +255,6 @@ export const submitInternalBootReboot = () => {
   document.body.appendChild(form);
   form.submit();
 };
+
+export const submitInternalBootReboot = () => submitBootCommand('reboot');
+export const submitInternalBootShutdown = () => submitBootCommand('shutdown');

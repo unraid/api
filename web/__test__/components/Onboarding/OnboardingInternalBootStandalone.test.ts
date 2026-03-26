@@ -25,6 +25,7 @@ const {
   reactiveStoreRef,
   applyInternalBootSelectionMock,
   submitInternalBootRebootMock,
+  submitInternalBootShutdownMock,
   cleanupOnboardingStorageMock,
   dialogPropsRef,
   stepPropsRef,
@@ -61,6 +62,7 @@ const {
     draftStore: store,
     reactiveStoreRef: reactiveRef,
     submitInternalBootRebootMock: vi.fn(),
+    submitInternalBootShutdownMock: vi.fn(),
     applyInternalBootSelectionMock:
       vi.fn<
         (
@@ -102,6 +104,7 @@ vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
 vi.mock('@/components/Onboarding/composables/internalBoot', () => ({
   applyInternalBootSelection: applyInternalBootSelectionMock,
   submitInternalBootReboot: submitInternalBootRebootMock,
+  submitInternalBootShutdown: submitInternalBootShutdownMock,
 }));
 
 vi.mock('@/components/Onboarding/store/onboardingStorageCleanup', () => ({
@@ -576,5 +579,35 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     await flushPromises();
 
     expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows shutdown button when locked and calls submitInternalBootShutdown', async () => {
+    reactiveDraftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: false,
+    };
+
+    const wrapper = mountComponent();
+
+    await wrapper.get('[data-testid="internal-boot-step-complete"]').trigger('click');
+    await flushPromises();
+
+    const shutdownButton = wrapper.find('[data-testid="internal-boot-standalone-shutdown"]');
+    expect(shutdownButton.exists()).toBe(true);
+
+    await shutdownButton.trigger('click');
+    await flushPromises();
+
+    expect(submitInternalBootShutdownMock).toHaveBeenCalledTimes(1);
+    expect(submitInternalBootRebootMock).not.toHaveBeenCalled();
+  });
+
+  it('does not show shutdown button when not locked', () => {
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-standalone-shutdown"]').exists()).toBe(false);
   });
 });

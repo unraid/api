@@ -13,6 +13,7 @@ import OnboardingConsole from '@/components/Onboarding/components/OnboardingCons
 import {
   applyInternalBootSelection,
   submitInternalBootReboot,
+  submitInternalBootShutdown,
 } from '@/components/Onboarding/composables/internalBoot';
 import OnboardingSteps from '@/components/Onboarding/OnboardingSteps.vue';
 import OnboardingInternalBootStep from '@/components/Onboarding/steps/OnboardingInternalBootStep.vue';
@@ -443,15 +444,24 @@ onUnmounted(() => {
                 >
                   {{ t('common.back') }}
                 </button>
-                <button
-                  v-if="isLocked"
-                  type="button"
-                  data-testid="internal-boot-standalone-reboot"
-                  class="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
-                  @click="submitInternalBootReboot()"
-                >
-                  {{ t('onboarding.nextSteps.reboot') }}
-                </button>
+                <template v-if="isLocked">
+                  <button
+                    type="button"
+                    data-testid="internal-boot-standalone-shutdown"
+                    class="text-muted hover:text-highlighted text-sm font-medium transition-colors"
+                    @click="submitInternalBootShutdown()"
+                  >
+                    {{ t('onboarding.nextSteps.shutdown') }}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="internal-boot-standalone-reboot"
+                    class="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
+                    @click="submitInternalBootReboot()"
+                  >
+                    {{ t('onboarding.nextSteps.reboot') }}
+                  </button>
+                </template>
                 <button
                   v-else
                   type="button"

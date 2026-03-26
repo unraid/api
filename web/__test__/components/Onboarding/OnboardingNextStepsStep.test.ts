@@ -11,6 +11,7 @@ const {
   draftStore,
   activationCodeDataStore,
   submitInternalBootRebootMock,
+  submitInternalBootShutdownMock,
   cleanupOnboardingStorageMock,
   completeOnboardingMock,
   refetchOnboardingMock,
@@ -42,6 +43,7 @@ const {
     },
   },
   submitInternalBootRebootMock: vi.fn(),
+  submitInternalBootShutdownMock: vi.fn(),
   cleanupOnboardingStorageMock: vi.fn(),
   completeOnboardingMock: vi.fn().mockResolvedValue({}),
   refetchOnboardingMock: vi.fn().mockResolvedValue({}),
@@ -73,6 +75,7 @@ vi.mock('~/components/Onboarding/store/onboardingStatus', () => ({
 
 vi.mock('~/components/Onboarding/composables/internalBoot', () => ({
   submitInternalBootReboot: submitInternalBootRebootMock,
+  submitInternalBootShutdown: submitInternalBootShutdownMock,
 }));
 
 vi.mock('~/components/Onboarding/store/onboardingStorageCleanup', () => ({
@@ -287,6 +290,87 @@ describe('OnboardingNextStepsStep', () => {
     expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
     expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
+    expect(onComplete).not.toHaveBeenCalled();
+  });
+
+  it('shows shutdown button when internal boot is configured', () => {
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: false,
+    };
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).toContain('Shutdown');
+  });
+
+  it('does not show shutdown button when no internal boot selection', () => {
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).not.toContain('Shutdown');
+  });
+
+  it('shuts down the server through confirmation dialog', async () => {
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+    draftStore.internalBootApplySucceeded = true;
+    const { wrapper, onComplete } = mountComponent();
+
+    const shutdownButton = wrapper
+      .findAll('button')
+      .find((candidate) => candidate.text().trim() === 'Shutdown');
+    expect(shutdownButton).toBeTruthy();
+    await shutdownButton!.trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Confirm Shutdown');
+
+    const confirmButton = wrapper
+      .findAll('button')
+      .find((candidate) => candidate.text().trim() === 'I Understand');
+    expect(confirmButton).toBeTruthy();
+    await confirmButton!.trigger('click');
+    await flushPromises();
+
+    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
+    expect(submitInternalBootShutdownMock).toHaveBeenCalledTimes(1);
+    expect(submitInternalBootRebootMock).not.toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
+  });
+
+  it('proceeds to shutdown even when completeOnboarding throws', async () => {
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['DISK-A'],
+      bootSizeMiB: 16384,
+      updateBios: false,
+    };
+    completeOnboardingMock.mockRejectedValueOnce(new Error('offline'));
+    const { wrapper, onComplete } = mountComponent();
+
+    const shutdownButton = wrapper
+      .findAll('button')
+      .find((candidate) => candidate.text().trim() === 'Shutdown');
+    await shutdownButton!.trigger('click');
+    await flushPromises();
+
+    const confirmButton = wrapper
+      .findAll('button')
+      .find((candidate) => candidate.text().trim() === 'I Understand');
+    await confirmButton!.trigger('click');
+    await flushPromises();
+
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
+    expect(submitInternalBootShutdownMock).toHaveBeenCalledTimes(1);
     expect(onComplete).not.toHaveBeenCalled();
   });
 });

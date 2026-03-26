@@ -17,7 +17,10 @@ import { CheckCircleIcon, EnvelopeIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 // Use ?raw to import SVG content string
 import UnraidIconSvg from '@/assets/partners/simple-icons-unraid.svg?raw';
-import { submitInternalBootReboot } from '@/components/Onboarding/composables/internalBoot';
+import {
+  submitInternalBootReboot,
+  submitInternalBootShutdown,
+} from '@/components/Onboarding/composables/internalBoot';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
@@ -67,6 +70,7 @@ const primaryButtonText = computed(() =>
     : t('onboarding.nextSteps.continueToDashboard')
 );
 const showRebootWarningDialog = ref(false);
+const showShutdownWarningDialog = ref(false);
 const isCompleting = ref(false);
 const completionError = ref<string | null>(null);
 
@@ -97,13 +101,15 @@ const handleMouseMove = (e: MouseEvent) => {
   el.style.setProperty('--y', `${y}px`);
 };
 
-const finishOnboarding = async ({ reboot }: { reboot: boolean }) => {
+const finishOnboarding = async ({ reboot, shutdown }: { reboot?: boolean; shutdown?: boolean }) => {
   if (isCompleting.value) {
     return;
   }
 
   isCompleting.value = true;
   completionError.value = null;
+
+  const needsPowerAction = reboot || shutdown;
 
   try {
     await completeOnboarding();
@@ -115,7 +121,7 @@ const finishOnboarding = async ({ reboot }: { reboot: boolean }) => {
     }
   } catch (error: unknown) {
     console.error('Failed to complete onboarding:', error);
-    if (!reboot) {
+    if (!needsPowerAction) {
       completionError.value = t('onboarding.nextSteps.completionFailed');
       isCompleting.value = false;
       return;
@@ -123,6 +129,11 @@ const finishOnboarding = async ({ reboot }: { reboot: boolean }) => {
   }
 
   cleanupOnboardingStorage();
+
+  if (shutdown) {
+    submitInternalBootShutdown();
+    return;
+  }
 
   if (reboot) {
     submitInternalBootReboot();
@@ -149,6 +160,19 @@ const handleConfirmReboot = async () => {
 
 const handleCancelReboot = () => {
   showRebootWarningDialog.value = false;
+};
+
+const handleShutdownAction = () => {
+  showShutdownWarningDialog.value = true;
+};
+
+const handleConfirmShutdown = async () => {
+  showShutdownWarningDialog.value = false;
+  await finishOnboarding({ shutdown: true });
+};
+
+const handleCancelShutdown = () => {
+  showShutdownWarningDialog.value = false;
 };
 </script>
 
@@ -437,6 +461,41 @@ const handleCancelReboot = () => {
         </template>
       </UModal>
 
+      <UModal
+        :open="showShutdownWarningDialog"
+        :portal="false"
+        :title="t('onboarding.nextSteps.confirmShutdown.title')"
+        :description="
+          internalBootFailed
+            ? t('onboarding.nextSteps.confirmReboot.failureDescription')
+            : t('onboarding.nextSteps.confirmShutdown.description')
+        "
+        :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-md' }"
+        @update:open="showShutdownWarningDialog = $event"
+      >
+        <template #body>
+          <UAlert
+            color="warning"
+            variant="subtle"
+            icon="i-lucide-triangle-alert"
+            :description="t('onboarding.nextSteps.confirmReboot.warning')"
+          />
+        </template>
+        <template #footer>
+          <UButton
+            color="neutral"
+            variant="outline"
+            :disabled="isCompleting"
+            @click="handleCancelShutdown"
+          >
+            {{ t('common.cancel') }}
+          </UButton>
+          <UButton :disabled="isCompleting" @click="handleConfirmShutdown">
+            {{ t('onboarding.nextSteps.confirmShutdown.confirm') }}
+          </UButton>
+        </template>
+      </UModal>
+
       <div v-if="internalBootFailed" class="mt-6 space-y-3">
         <UAlert
           color="warning"
@@ -471,13 +530,23 @@ const handleCancelReboot = () => {
         </button>
         <div v-else class="hidden w-1 sm:block" />
 
-        <BrandButton
-          :text="primaryButtonText"
-          :disabled="isCompleting"
-          class="!bg-primary hover:!bg-primary/90 w-full min-w-[200px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
-          @click="handlePrimaryAction"
-          :icon-right="CheckCircleIcon"
-        />
+        <div class="flex w-full items-center justify-end gap-4 sm:w-auto">
+          <button
+            v-if="showRebootButton"
+            :disabled="isCompleting"
+            class="text-muted hover:text-highlighted text-sm font-medium transition-colors disabled:opacity-50"
+            @click="handleShutdownAction"
+          >
+            {{ t('onboarding.nextSteps.shutdown') }}
+          </button>
+          <BrandButton
+            :text="primaryButtonText"
+            :disabled="isCompleting"
+            class="!bg-primary hover:!bg-primary/90 w-full min-w-[200px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
+            @click="handlePrimaryAction"
+            :icon-right="CheckCircleIcon"
+          />
+        </div>
       </div>
     </div>
   </div>
