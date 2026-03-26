@@ -546,6 +546,14 @@ watch(
   }
 );
 
+watch(poolMode, (mode) => {
+  if (mode === 'dedicated') {
+    poolName.value = 'boot';
+  } else if (poolName.value === 'boot') {
+    poolName.value = templateData.value?.poolNameDefault ?? 'cache';
+  }
+});
+
 const isDeviceDisabled = (deviceId: string, index: number) => {
   return selectedDevices.value.some(
     (selected, selectedIndex) => selectedIndex !== index && selected === deviceId
