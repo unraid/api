@@ -304,6 +304,14 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
 });
 
 const closeModal = async (options?: { reload?: boolean }) => {
+  if (options?.reload) {
+    await onboardingModalStore.closeModal();
+    cleanupOnboardingStorage();
+    clearHistorySession();
+    window.location.reload();
+    return;
+  }
+
   if (typeof window !== 'undefined' && isManualSession.value && historyPosition.value >= 0) {
     window.history.go(-(historyPosition.value + 1));
     return;
@@ -312,10 +320,6 @@ const closeModal = async (options?: { reload?: boolean }) => {
   await onboardingModalStore.closeModal();
   cleanupOnboardingStorage();
   clearHistorySession();
-
-  if (options?.reload) {
-    window.location.reload();
-  }
 };
 
 const setActiveStepByIndex = (stepIndex: number) => {
@@ -607,7 +611,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     case 'NEXT_STEPS':
       return {
         ...baseProps,
-        onComplete: () => closeModal({ reload: !isManualSession.value }),
+        onComplete: () => closeModal({ reload: true }),
       };
 
     default:
