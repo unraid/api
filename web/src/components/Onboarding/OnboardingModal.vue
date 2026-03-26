@@ -303,23 +303,11 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   ];
 });
 
-const closeModal = async (options?: { reload?: boolean }) => {
-  if (options?.reload) {
-    await onboardingModalStore.closeModal();
-    cleanupOnboardingStorage();
-    clearHistorySession();
-    window.location.reload();
-    return;
-  }
-
-  if (typeof window !== 'undefined' && isManualSession.value && historyPosition.value >= 0) {
-    window.history.go(-(historyPosition.value + 1));
-    return;
-  }
-
+const closeModal = async () => {
   await onboardingModalStore.closeModal();
   cleanupOnboardingStorage();
   clearHistorySession();
+  window.location.reload();
 };
 
 const setActiveStepByIndex = (stepIndex: number) => {
@@ -338,12 +326,12 @@ const goToNextStep = async () => {
     if (activeStepIndex < availableSteps.value.length - 1) {
       setActiveStepByIndex(activeStepIndex + 1);
     } else {
-      await closeModal({ reload: true });
+      await closeModal();
     }
     return;
   }
 
-  await closeModal({ reload: true });
+  await closeModal();
 };
 
 const goToPreviousStep = () => {
@@ -433,7 +421,7 @@ const handleExitConfirm = async () => {
   showExitConfirmDialog.value = false;
   isClosingModal.value = true;
   try {
-    await closeModal({ reload: true });
+    await closeModal();
   } finally {
     isClosingModal.value = false;
   }
@@ -471,7 +459,7 @@ const handlePopstate = async (event: PopStateEvent) => {
   showExitConfirmDialog.value = false;
   isClosingModal.value = true;
   try {
-    await closeModal({ reload: true });
+    await closeModal();
   } finally {
     isClosingModal.value = false;
   }
@@ -600,7 +588,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     case 'NEXT_STEPS':
       return {
         ...baseProps,
-        onComplete: () => closeModal({ reload: true }),
+        onComplete: () => closeModal(),
       };
 
     default:
