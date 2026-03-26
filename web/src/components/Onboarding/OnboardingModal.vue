@@ -335,17 +335,15 @@ const goToNextStep = async () => {
   if (availableSteps.value.length > 0) {
     const activeStepIndex = currentDynamicStepIndex.value;
 
-    // Move to next step
     if (activeStepIndex < availableSteps.value.length - 1) {
       setActiveStepByIndex(activeStepIndex + 1);
     } else {
-      // If we're at the last step, close the modal
-      await closeModal({ reload: !isManualSession.value });
+      await closeModal({ reload: true });
     }
     return;
   }
 
-  await closeModal();
+  await closeModal({ reload: true });
 };
 
 const goToPreviousStep = () => {
@@ -441,14 +439,7 @@ const handleExitConfirm = async () => {
   }
 };
 
-const handleActivationSkip = async () => {
-  // Just move to next step without marking complete
-  if (currentDynamicStepIndex.value < availableSteps.value.length - 1) {
-    setActiveStepByIndex(currentDynamicStepIndex.value + 1);
-  } else {
-    await closeModal({ reload: !isManualSession.value });
-  }
-};
+const handleActivationSkip = () => goToNextStep();
 
 const handlePopstate = async (event: PopStateEvent) => {
   const nextHistoryState = getHistoryState(event.state);
