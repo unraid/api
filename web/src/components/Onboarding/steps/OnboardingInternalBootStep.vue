@@ -800,9 +800,12 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
       >
         <template #description>
           <div class="space-y-3 text-sm leading-relaxed">
+            <p class="font-semibold">
+              {{ t('onboarding.internalBootStep.warning.dedicatedModeTitle') }}
+            </p>
             <p>{{ t('onboarding.internalBootStep.warning.dedicatedPoolDescription') }}</p>
-            <p>{{ t('onboarding.internalBootStep.warning.dedicatedMirrorSize') }}</p>
             <p>{{ t('onboarding.internalBootStep.warning.bootMirrorDescription') }}</p>
+            <p>{{ t('onboarding.internalBootStep.warning.dedicatedMirrorSize') }}</p>
             <p class="font-semibold">
               {{ t('onboarding.internalBootStep.warning.dedicatedDevicesFormatted') }}
             </p>
@@ -820,6 +823,9 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
       >
         <template #description>
           <div class="space-y-3 text-sm leading-relaxed">
+            <p class="font-semibold">
+              {{ t('onboarding.internalBootStep.warning.hybridModeTitle') }}
+            </p>
             <p>{{ t('onboarding.internalBootStep.warning.bootablePoolDescription') }}</p>
             <p>{{ t('onboarding.internalBootStep.warning.bootablePoolVolumes') }}</p>
             <ul class="list-disc space-y-1 pl-5">
@@ -869,50 +875,64 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
       </div>
 
       <div v-if="isStorageBootSelected && !isLoading && !contextError && canConfigure" class="space-y-5">
-        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <label class="space-y-2">
-            <span class="text-muted text-sm font-medium">
-              {{ t('onboarding.internalBootStep.fields.poolMode') }}
-            </span>
-            <USelectMenu
-              v-model="poolMode"
-              :items="poolModeItems"
-              label-key="label"
-              value-key="value"
-              :search-input="false"
-              :disabled="isBusy"
-              class="w-full"
-              :ui="{ content: 'z-[100]' }"
-            />
-          </label>
+        <div class="space-y-3">
+          <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
+            {{ t('onboarding.internalBootStep.sections.poolSettings') }}
+          </h3>
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <label class="space-y-2">
+              <span class="text-muted text-sm font-medium">
+                {{ t('onboarding.internalBootStep.fields.poolMode') }}
+              </span>
+              <USelectMenu
+                v-model="poolMode"
+                :items="poolModeItems"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                :disabled="isBusy"
+                class="w-full"
+                :ui="{ content: 'z-[100]' }"
+              />
+            </label>
 
-          <label class="space-y-2">
-            <span class="text-muted text-sm font-medium">
-              {{ t('onboarding.internalBootStep.fields.slots') }}
-            </span>
-            <USelectMenu
-              :model-value="slotCount"
-              :items="slotCountItems"
-              label-key="label"
-              value-key="value"
-              :search-input="false"
-              :disabled="isBusy"
-              class="w-full"
-              :ui="{ content: 'z-[100]' }"
-              @update:model-value="
-                (val: unknown) => {
-                  const n = Number(val);
-                  if (Number.isFinite(n) && n >= 1) slotCount = n;
-                }
-              "
-            />
-          </label>
+            <label v-if="!isDedicatedMode" class="space-y-2">
+              <span class="text-muted text-sm font-medium">
+                {{ t('onboarding.internalBootStep.fields.dataPoolName') }}
+              </span>
+              <UInput v-model="poolName" type="text" maxlength="40" :disabled="isBusy" class="w-full" />
+            </label>
+          </div>
         </div>
 
         <div class="space-y-3">
           <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
-            {{ t('onboarding.internalBootStep.fields.devices') }}
+            {{ t('onboarding.internalBootStep.sections.devices') }}
           </h3>
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <label class="space-y-2">
+              <span class="text-muted text-sm font-medium">
+                {{ t('onboarding.internalBootStep.fields.slots') }}
+              </span>
+              <USelectMenu
+                :model-value="slotCount"
+                :items="slotCountItems"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                :disabled="isBusy"
+                class="w-full"
+                :ui="{ content: 'z-[100]' }"
+                @update:model-value="
+                  (val: unknown) => {
+                    const n = Number(val);
+                    if (Number.isFinite(n) && n >= 1) slotCount = n;
+                  }
+                "
+              />
+            </label>
+          </div>
+
           <div v-for="index in slotCount" :key="index" class="space-y-2">
             <label class="text-muted text-sm font-medium">{{
               t('onboarding.internalBootStep.fields.deviceSlot', { index })
@@ -954,13 +974,6 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         </UAlert>
 
         <template v-if="!isDedicatedMode">
-          <label class="space-y-2">
-            <span class="text-muted text-sm font-medium">
-              {{ t('onboarding.internalBootStep.fields.poolName') }}
-            </span>
-            <UInput v-model="poolName" type="text" maxlength="40" :disabled="isBusy" class="w-full" />
-          </label>
-
           <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
             <label class="space-y-2">
               <span class="text-muted text-sm font-medium">
