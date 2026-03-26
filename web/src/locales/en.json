@@ -165,7 +165,7 @@
   "onboarding.internalBootStep.loadingOptions": "Loading internal boot options...",
   "onboarding.internalBootStep.unknownSize": "Unknown",
   "onboarding.internalBootStep.warning.bootablePoolDescription": "A bootable pool allows Unraid to boot from internal drives instead of a USB flash device.",
-  "onboarding.internalBootStep.warning.bootablePoolVolumes": "Each bootable pool contains two volumes:",
+  "onboarding.internalBootStep.warning.bootablePoolVolumes": "Each device contains two volumes:",
   "onboarding.internalBootStep.warning.systemBootVolume": "a system boot volume used by Unraid",
   "onboarding.internalBootStep.warning.storagePoolVolume": "a storage pool for general data",
   "onboarding.internalBootStep.warning.storagePoolNaming": "The name you choose below applies to the storage pool, not the boot volume.",
