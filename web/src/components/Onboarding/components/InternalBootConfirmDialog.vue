@@ -5,7 +5,6 @@ import { useI18n } from 'vue-i18n';
 const props = defineProps<{
   open: boolean;
   action: 'reboot' | 'shutdown';
-  failed?: boolean;
   disabled?: boolean;
 }>();
 
@@ -21,12 +20,6 @@ const title = computed(() =>
     ? t('onboarding.nextSteps.confirmReboot.title')
     : t('onboarding.nextSteps.confirmShutdown.title')
 );
-
-const description = computed(() =>
-  props.failed
-    ? t('onboarding.nextSteps.confirmReboot.failureDescription')
-    : t('onboarding.nextSteps.confirmReboot.description')
-);
 </script>
 
 <template>
@@ -34,7 +27,7 @@ const description = computed(() =>
     :open="open"
     :portal="false"
     :title="title"
-    :description="description"
+    :description="t('onboarding.nextSteps.confirmReboot.description')"
     :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-md' }"
     @update:open="
       (value) => {

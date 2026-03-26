@@ -421,7 +421,6 @@ const handleCancelPowerAction = () => {
       <InternalBootConfirmDialog
         :open="pendingPowerAction !== null"
         :action="pendingPowerAction ?? 'reboot'"
-        :failed="internalBootFailed"
         :disabled="isCompleting"
         @confirm="handleConfirmPowerAction"
         @cancel="handleCancelPowerAction"

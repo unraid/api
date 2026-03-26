@@ -54,7 +54,6 @@ const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
 
 const isLocked = computed(() => draftStore.internalBootApplyAttempted);
-const internalBootFailed = computed(() => isLocked.value && !draftStore.internalBootApplySucceeded);
 const pendingPowerAction = ref<'reboot' | 'shutdown' | null>(null);
 
 const handleConfirmPowerAction = () => {
@@ -496,7 +495,6 @@ onUnmounted(() => {
   <InternalBootConfirmDialog
     :open="pendingPowerAction !== null"
     :action="pendingPowerAction ?? 'reboot'"
-    :failed="internalBootFailed"
     @confirm="handleConfirmPowerAction"
     @cancel="pendingPowerAction = null"
   />
