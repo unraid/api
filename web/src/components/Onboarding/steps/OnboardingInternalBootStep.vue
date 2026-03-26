@@ -550,7 +550,7 @@ watch(poolMode, (mode) => {
   if (mode === 'dedicated') {
     poolName.value = 'boot';
   } else if (poolName.value === 'boot') {
-    poolName.value = templateData.value?.poolNameDefault ?? 'cache';
+    poolName.value = templateData.value?.poolNameDefault ?? '';
   }
 });
 
