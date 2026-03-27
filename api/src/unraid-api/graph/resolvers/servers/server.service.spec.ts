@@ -16,6 +16,7 @@ vi.mock('@app/core/utils/clients/emcmd.js', () => ({
 vi.mock('@app/store/index.js', () => ({
     getters: {
         emhttp: vi.fn(),
+        paths: vi.fn(),
     },
 }));
 
@@ -46,7 +47,9 @@ describe('ServerService', () => {
                 lanIp: '192.168.1.10',
             },
         } as ReturnType<typeof getters.emhttp>);
-        vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
+        vi.mocked(getters.paths).mockReturnValue({
+            identConfig: identConfigPath,
+        } as ReturnType<typeof getters.paths>);
 
         await mkdir(join(tempDirectory, 'boot/config'), { recursive: true });
         await writeFile(
@@ -54,6 +57,15 @@ describe('ServerService', () => {
             'NAME="Tower"\nCOMMENT="Tower comment"\nSYS_MODEL="Model X100"\nEXTRA="keep-me"\n',
             'utf8'
         );
+
+        vi.mocked(emcmd).mockImplementation(async (params) => {
+            await writeFile(
+                identConfigPath,
+                `NAME="${params.NAME}"\nCOMMENT="${params.COMMENT}"\nSYS_MODEL="${params.SYS_MODEL}"\nEXTRA="keep-me"\n`,
+                'utf8'
+            );
+            return { ok: true } as Awaited<ReturnType<typeof emcmd>>;
+        });
     });
 
     afterEach(async () => {
@@ -279,7 +291,23 @@ describe('ServerService', () => {
         );
     });
 
-    it('throws generic failure when emcmd fails and leaves ident.cfg untouched', async () => {
+    it('returns success when emcmd errors but ident.cfg has the requested identity', async () => {
+        vi.mocked(emcmd).mockImplementation(async () => {
+            await writeFile(
+                identConfigPath,
+                'NAME="Tower"\nCOMMENT="Primary host"\nSYS_MODEL="Model X100"\nEXTRA="keep-me"\n',
+                'utf8'
+            );
+            throw new Error('socket failure');
+        });
+
+        await expect(service.updateServerIdentity('Tower', 'Primary host')).resolves.toMatchObject({
+            name: 'Tower',
+            comment: 'Primary host',
+        });
+    });
+
+    it('throws generic failure when emcmd fails and ident.cfg stays unchanged', async () => {
         vi.mocked(emcmd).mockRejectedValue(new Error('socket failure'));
         const before = await readFile(identConfigPath, 'utf8');
 
@@ -293,15 +321,31 @@ describe('ServerService', () => {
         await expect(readFile(identConfigPath, 'utf8')).resolves.toBe(before);
     });
 
-    it('throws generic failure when emcmd fails to persist identity', async () => {
-        vi.mocked(emcmd).mockImplementation(async () => {
-            throw new Error('ident persistence failed');
-        });
+    it('throws when emcmd succeeds but ident.cfg does not contain the requested identity', async () => {
+        vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
 
         await expect(service.updateServerIdentity('Tower', 'Primary host')).rejects.toMatchObject({
             message: 'Failed to update server identity',
             extensions: {
-                cause: 'ident persistence failed',
+                cause: 'ident.cfg was not updated with the requested identity',
+                persistedIdentity: {
+                    name: 'Tower',
+                    comment: 'Tower comment',
+                    sysModel: 'Model X100',
+                },
+            },
+        });
+    });
+
+    it('throws when persisted identity cannot be verified', async () => {
+        vi.mocked(getters.paths).mockReturnValue({
+            identConfig: join(tempDirectory, 'boot/config/missing-ident.cfg'),
+        } as ReturnType<typeof getters.paths>);
+
+        await expect(service.updateServerIdentity('Tower', 'Primary host')).rejects.toMatchObject({
+            message: 'Failed to update server identity',
+            extensions: {
+                cause: expect.stringContaining('ENOENT'),
             },
         });
     });

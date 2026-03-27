@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { readFile } from 'node:fs/promises';
 
 import { GraphQLError } from 'graphql';
+import * as ini from 'ini';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { getters } from '@app/store/index.js';
@@ -14,6 +16,31 @@ import {
 @Injectable()
 export class ServerService {
     private readonly logger = new Logger(ServerService.name);
+
+    private async readPersistedIdentity(): Promise<{
+        name: string;
+        comment: string;
+        sysModel: string;
+    }> {
+        const identConfigPath = getters.paths().identConfig;
+
+        if (!identConfigPath) {
+            throw new Error('ident.cfg path not found');
+        }
+
+        const contents = await readFile(identConfigPath, 'utf8');
+        const parsed = ini.parse(contents) as {
+            NAME?: string;
+            COMMENT?: string;
+            SYS_MODEL?: string;
+        };
+
+        return {
+            name: parsed.NAME ?? '',
+            comment: parsed.COMMENT ?? '',
+            sysModel: parsed.SYS_MODEL ?? '',
+        };
+    }
 
     private buildIdentityUpdateParams(
         emhttpState: ReturnType<typeof getters.emhttp>,
@@ -127,20 +154,55 @@ export class ServerService {
         }
 
         const params = this.buildIdentityUpdateParams(currentEmhttp, name, nextComment, nextSysModel);
+        let emcmdError: unknown;
 
         try {
             await emcmd(params, { waitForToken: true });
             this.logger.log('Server identity updated successfully via emcmd.');
+        } catch (error) {
+            emcmdError = error;
+            this.logger.error('emcmd reported a server identity update failure', error);
+        }
+
+        try {
+            const persistedIdentity = await this.readPersistedIdentity();
+            const persistedMatches =
+                persistedIdentity.name === name &&
+                persistedIdentity.comment === nextComment &&
+                persistedIdentity.sysModel === nextSysModel;
+
+            if (!persistedMatches) {
+                throw new GraphQLError('Failed to update server identity', {
+                    extensions: {
+                        cause:
+                            emcmdError instanceof Error && emcmdError.message
+                                ? emcmdError.message
+                                : 'ident.cfg was not updated with the requested identity',
+                        persistedIdentity,
+                    },
+                });
+            }
+
+            if (emcmdError) {
+                this.logger.warn(
+                    'emcmd reported an error, but ident.cfg contains the requested server identity.'
+                );
+            }
+
             const latestEmhttp = getters.emhttp();
             return this.buildServerResponse(latestEmhttp, name, nextComment);
         } catch (error) {
-            this.logger.error('Failed to update server identity', error);
+            if (error instanceof GraphQLError) {
+                throw error;
+            }
+
+            this.logger.error('Failed to verify persisted server identity', error);
             throw new GraphQLError('Failed to update server identity', {
                 extensions: {
                     cause:
                         error instanceof Error && error.message
                             ? error.message
-                            : 'Unknown server identity update failure',
+                            : 'Unknown server identity persistence verification failure',
                 },
             });
         }
