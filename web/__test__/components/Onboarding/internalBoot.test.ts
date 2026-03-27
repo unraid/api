@@ -4,8 +4,13 @@ import {
   applyInternalBootSelection,
   submitInternalBootCreation,
   submitInternalBootReboot,
+  submitInternalBootShutdown,
   summarizeInternalBootBiosLogs,
 } from '~/components/Onboarding/composables/internalBoot';
+import {
+  SERVER_REBOOT_MUTATION,
+  SERVER_SHUTDOWN_MUTATION,
+} from '~/components/Onboarding/graphql/serverPower.mutation';
 
 const mutateMock = vi.fn();
 
@@ -375,25 +380,31 @@ describe('internalBoot composable', () => {
     });
   });
 
-  it('submits reboot form with cmd and csrf token', () => {
-    const submitSpy = vi.spyOn(HTMLFormElement.prototype, 'submit').mockImplementation(() => undefined);
+  it('submits reboot via GraphQL mutation', async () => {
+    mutateMock.mockResolvedValue({
+      data: { serverPower: { reboot: true } },
+    });
 
-    submitInternalBootReboot();
+    await submitInternalBootReboot();
 
-    expect(submitSpy).toHaveBeenCalledTimes(1);
-    const form = document.querySelector('form');
-    expect(form).toBeTruthy();
-    if (!form) {
-      return;
-    }
+    expect(mutateMock).toHaveBeenCalledWith({
+      mutation: SERVER_REBOOT_MUTATION,
+      fetchPolicy: 'no-cache',
+      context: { noRetry: true },
+    });
+  });
 
-    expect(form.method.toLowerCase()).toBe('post');
-    expect(form.target).toBe('_top');
-    expect(form.getAttribute('action')).toBe('/plugins/dynamix/include/Boot.php');
+  it('submits shutdown via GraphQL mutation', async () => {
+    mutateMock.mockResolvedValue({
+      data: { serverPower: { shutdown: true } },
+    });
 
-    const cmd = form.querySelector('input[name="cmd"]') as HTMLInputElement | null;
-    expect(cmd?.value).toBe('reboot');
-    const csrf = form.querySelector('input[name="csrf_token"]') as HTMLInputElement | null;
-    expect(csrf?.value).toBe('csrf-token-value');
+    await submitInternalBootShutdown();
+
+    expect(mutateMock).toHaveBeenCalledWith({
+      mutation: SERVER_SHUTDOWN_MUTATION,
+      fetchPolicy: 'no-cache',
+      context: { noRetry: true },
+    });
   });
 });

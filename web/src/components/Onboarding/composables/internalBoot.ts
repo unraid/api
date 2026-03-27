@@ -2,6 +2,10 @@ import { useApolloClient } from '@vue/apollo-composable';
 
 import { buildOnboardingErrorDiagnostics } from '@/components/Onboarding/composables/onboardingErrorDiagnostics';
 import { CREATE_INTERNAL_BOOT_POOL_MUTATION } from '@/components/Onboarding/graphql/createInternalBootPool.mutation';
+import {
+  SERVER_REBOOT_MUTATION,
+  SERVER_SHUTDOWN_MUTATION,
+} from '@/components/Onboarding/graphql/serverPower.mutation';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
 
@@ -43,15 +47,6 @@ interface InternalBootBiosLogSummary {
   summaryLine: string | null;
   failureLines: string[];
 }
-
-const readCsrfToken = (): string | null => {
-  const token = globalThis.csrf_token;
-  if (typeof token !== 'string') {
-    return null;
-  }
-  const trimmedToken = token.trim();
-  return trimmedToken.length > 0 ? trimmedToken : null;
-};
 
 export const submitInternalBootCreation = async (
   selection: InternalBootSelection,
@@ -233,31 +228,20 @@ export const applyInternalBootSelection = async (
   };
 };
 
-const submitBootCommand = (command: 'reboot' | 'shutdown') => {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = '/plugins/dynamix/include/Boot.php';
-  form.target = '_top';
-  form.style.display = 'none';
-
-  const cmd = document.createElement('input');
-  cmd.type = 'hidden';
-  cmd.name = 'cmd';
-  cmd.value = command;
-  form.appendChild(cmd);
-
-  const csrfToken = readCsrfToken();
-  if (csrfToken) {
-    const csrf = document.createElement('input');
-    csrf.type = 'hidden';
-    csrf.name = 'csrf_token';
-    csrf.value = csrfToken;
-    form.appendChild(csrf);
-  }
-
-  document.body.appendChild(form);
-  form.submit();
+export const submitInternalBootReboot = async () => {
+  const apolloClient = useApolloClient().client;
+  await apolloClient.mutate({
+    mutation: SERVER_REBOOT_MUTATION,
+    fetchPolicy: 'no-cache',
+    context: { noRetry: true },
+  });
 };
 
-export const submitInternalBootReboot = () => submitBootCommand('reboot');
-export const submitInternalBootShutdown = () => submitBootCommand('shutdown');
+export const submitInternalBootShutdown = async () => {
+  const apolloClient = useApolloClient().client;
+  await apolloClient.mutate({
+    mutation: SERVER_SHUTDOWN_MUTATION,
+    fetchPolicy: 'no-cache',
+    context: { noRetry: true },
+  });
+};

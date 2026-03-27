@@ -366,6 +366,10 @@ export enum ArrayState {
 }
 
 export type ArrayStateInput = {
+  /** Optional keyfile contents used to unlock encrypted array disks when starting the array. Accepts a data URL or raw base64 payload. */
+  decryptionKeyfile?: InputMaybe<Scalars['String']['input']>;
+  /** Optional password used to unlock encrypted array disks when starting the array */
+  decryptionPassword?: InputMaybe<Scalars['String']['input']>;
   /** Array state */
   desiredState: ArrayStateInputState;
 };
@@ -1637,6 +1641,7 @@ export type Mutation = {
   renameDockerFolder: ResolvedOrganizerV1;
   /** Reset Docker template mappings to defaults. Use this to recover from corrupted state. */
   resetDockerTemplateMappings: Scalars['Boolean']['output'];
+  serverPower: ServerPowerMutations;
   setDockerFolderChildren: ResolvedOrganizerV1;
   setupRemoteAccess: Scalars['Boolean']['output'];
   syncDockerTemplatePaths: DockerTemplateSyncResult;
@@ -2641,6 +2646,15 @@ export type Server = Node & {
   /** Whether this server is online or offline */
   status: ServerStatus;
   wanip: Scalars['String']['output'];
+};
+
+/** Server power control mutations */
+export type ServerPowerMutations = {
+  __typename?: 'ServerPowerMutations';
+  /** Reboot the server */
+  reboot: Scalars['Boolean']['output'];
+  /** Shut down the server */
+  shutdown: Scalars['Boolean']['output'];
 };
 
 export enum ServerStatus {
@@ -3996,6 +4010,16 @@ export type ResumeOnboardingMutationVariables = Exact<{ [key: string]: never; }>
 
 export type ResumeOnboardingMutation = { __typename?: 'Mutation', onboarding: { __typename?: 'OnboardingMutations', resumeOnboarding: { __typename?: 'Onboarding', status: OnboardingStatus, completed: boolean, completedAtVersion?: string | null, shouldOpen: boolean } } };
 
+export type ServerRebootMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ServerRebootMutation = { __typename?: 'Mutation', serverPower: { __typename?: 'ServerPowerMutations', reboot: boolean } };
+
+export type ServerShutdownMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ServerShutdownMutation = { __typename?: 'Mutation', serverPower: { __typename?: 'ServerPowerMutations', shutdown: boolean } };
+
 export type TimeZoneOptionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -4157,6 +4181,8 @@ export const PluginInstallOperationDocument = {"kind":"Document","definitions":[
 export const PluginInstallUpdatesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"PluginInstallUpdates"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pluginInstallUpdates"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"operationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"operationId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"output"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}}]}}]} as unknown as DocumentNode<PluginInstallUpdatesSubscription, PluginInstallUpdatesSubscriptionVariables>;
 export const RefreshInternalBootContextDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RefreshInternalBootContext"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"refreshInternalBootContext"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bootEligible"}},{"kind":"Field","name":{"kind":"Name","value":"bootedFromFlashWithInternalBootSetup"}},{"kind":"Field","name":{"kind":"Name","value":"enableBootTransfer"}},{"kind":"Field","name":{"kind":"Name","value":"reservedNames"}},{"kind":"Field","name":{"kind":"Name","value":"shareNames"}},{"kind":"Field","name":{"kind":"Name","value":"poolNames"}},{"kind":"Field","name":{"kind":"Name","value":"driveWarnings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"diskId"}},{"kind":"Field","name":{"kind":"Name","value":"device"}},{"kind":"Field","name":{"kind":"Name","value":"warnings"}}]}},{"kind":"Field","name":{"kind":"Name","value":"assignableDisks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"device"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"serialNum"}},{"kind":"Field","name":{"kind":"Name","value":"interfaceType"}}]}}]}}]}}]}}]} as unknown as DocumentNode<RefreshInternalBootContextMutation, RefreshInternalBootContextMutationVariables>;
 export const ResumeOnboardingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ResumeOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resumeOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedAtVersion"}},{"kind":"Field","name":{"kind":"Name","value":"shouldOpen"}}]}}]}}]}}]} as unknown as DocumentNode<ResumeOnboardingMutation, ResumeOnboardingMutationVariables>;
+export const ServerRebootDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ServerReboot"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"serverPower"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"reboot"}}]}}]}}]} as unknown as DocumentNode<ServerRebootMutation, ServerRebootMutationVariables>;
+export const ServerShutdownDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ServerShutdown"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"serverPower"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"shutdown"}}]}}]}}]} as unknown as DocumentNode<ServerShutdownMutation, ServerShutdownMutationVariables>;
 export const TimeZoneOptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"TimeZoneOptions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"timeZoneOptions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"value"}},{"kind":"Field","name":{"kind":"Name","value":"label"}}]}}]}}]} as unknown as DocumentNode<TimeZoneOptionsQuery, TimeZoneOptionsQueryVariables>;
 export const UpdateSystemTimeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSystemTime"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateSystemTimeInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSystemTime"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentTime"}},{"kind":"Field","name":{"kind":"Name","value":"timeZone"}},{"kind":"Field","name":{"kind":"Name","value":"useNtp"}},{"kind":"Field","name":{"kind":"Name","value":"ntpServers"}}]}}]}}]} as unknown as DocumentNode<UpdateSystemTimeMutation, UpdateSystemTimeMutationVariables>;
 export const CreateRCloneRemoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateRCloneRemote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateRCloneRemoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createRCloneRemote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"parameters"}}]}}]}}]}}]} as unknown as DocumentNode<CreateRCloneRemoteMutation, CreateRCloneRemoteMutationVariables>;

@@ -84,6 +84,8 @@ type Documents = {
     "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n": typeof types.PluginInstallUpdatesDocument,
     "\n  mutation RefreshInternalBootContext {\n    onboarding {\n      refreshInternalBootContext {\n        bootEligible\n        bootedFromFlashWithInternalBootSetup\n        enableBootTransfer\n        reservedNames\n        shareNames\n        poolNames\n        driveWarnings {\n          diskId\n          device\n          warnings\n        }\n        assignableDisks {\n          id\n          device\n          size\n          serialNum\n          interfaceType\n        }\n      }\n    }\n  }\n": typeof types.RefreshInternalBootContextDocument,
     "\n  mutation ResumeOnboarding {\n    onboarding {\n      resumeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": typeof types.ResumeOnboardingDocument,
+    "\n  mutation ServerReboot {\n    serverPower {\n      reboot\n    }\n  }\n": typeof types.ServerRebootDocument,
+    "\n  mutation ServerShutdown {\n    serverPower {\n      shutdown\n    }\n  }\n": typeof types.ServerShutdownDocument,
     "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": typeof types.TimeZoneOptionsDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": typeof types.UpdateSystemTimeDocument,
     "\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n": typeof types.CreateRCloneRemoteDocument,
@@ -172,6 +174,8 @@ const documents: Documents = {
     "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n": types.PluginInstallUpdatesDocument,
     "\n  mutation RefreshInternalBootContext {\n    onboarding {\n      refreshInternalBootContext {\n        bootEligible\n        bootedFromFlashWithInternalBootSetup\n        enableBootTransfer\n        reservedNames\n        shareNames\n        poolNames\n        driveWarnings {\n          diskId\n          device\n          warnings\n        }\n        assignableDisks {\n          id\n          device\n          size\n          serialNum\n          interfaceType\n        }\n      }\n    }\n  }\n": types.RefreshInternalBootContextDocument,
     "\n  mutation ResumeOnboarding {\n    onboarding {\n      resumeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": types.ResumeOnboardingDocument,
+    "\n  mutation ServerReboot {\n    serverPower {\n      reboot\n    }\n  }\n": types.ServerRebootDocument,
+    "\n  mutation ServerShutdown {\n    serverPower {\n      shutdown\n    }\n  }\n": types.ServerShutdownDocument,
     "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": types.TimeZoneOptionsDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": types.UpdateSystemTimeDocument,
     "\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n": types.CreateRCloneRemoteDocument,
@@ -484,6 +488,14 @@ export function graphql(source: "\n  mutation RefreshInternalBootContext {\n    
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation ResumeOnboarding {\n    onboarding {\n      resumeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation ResumeOnboarding {\n    onboarding {\n      resumeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ServerReboot {\n    serverPower {\n      reboot\n    }\n  }\n"): (typeof documents)["\n  mutation ServerReboot {\n    serverPower {\n      reboot\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ServerShutdown {\n    serverPower {\n      shutdown\n    }\n  }\n"): (typeof documents)["\n  mutation ServerShutdown {\n    serverPower {\n      shutdown\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
