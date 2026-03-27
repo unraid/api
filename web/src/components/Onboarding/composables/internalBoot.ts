@@ -5,11 +5,14 @@ import { CREATE_INTERNAL_BOOT_POOL_MUTATION } from '@/components/Onboarding/grap
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
 
+export type PoolMode = 'dedicated' | 'hybrid';
+
 export interface InternalBootSelection {
   poolName: string;
   devices: string[];
   bootSizeMiB: number;
   updateBios: boolean;
+  poolMode: PoolMode;
 }
 
 export interface SubmitInternalBootOptions {

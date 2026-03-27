@@ -39,6 +39,7 @@ const {
       devices: string[];
       bootSizeMiB: number;
       updateBios: boolean;
+      poolMode: 'dedicated' | 'hybrid';
     } | null,
     internalBootApplySucceeded: false,
     internalBootApplyAttempted: false,
@@ -285,6 +286,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
     applyInternalBootSelectionMock.mockResolvedValue({
       applySucceeded: true,
@@ -310,6 +312,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
         bootSizeMiB: 16384,
         updateBios: true,
         slotCount: 1,
+        poolMode: 'hybrid',
       },
       {
         configured: 'Internal boot pool configured.',
@@ -336,6 +339,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
     applyInternalBootSelectionMock.mockResolvedValue({
       applySucceeded: false,
@@ -396,6 +400,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
 
     const wrapper = mountComponent();
@@ -476,6 +481,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       devices: ['sda'],
       bootSizeMiB: 512,
       updateBios: true,
+      poolMode: 'hybrid',
     };
     applyInternalBootSelectionMock.mockResolvedValue({
       applySucceeded: true,
@@ -521,6 +527,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
 
     const wrapper = mountComponent();
@@ -539,6 +546,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
     applyInternalBootSelectionMock.mockResolvedValue({
       applySucceeded: false,
@@ -563,6 +571,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
 
     const wrapper = mountComponent();
@@ -582,6 +591,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
 
     const wrapper = mountComponent();
@@ -608,6 +618,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
 
     const wrapper = mountComponent();

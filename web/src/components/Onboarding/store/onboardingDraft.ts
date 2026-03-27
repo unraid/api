@@ -5,12 +5,15 @@ import type { StepId } from '~/components/Onboarding/stepRegistry.js';
 
 import { STEP_IDS } from '~/components/Onboarding/stepRegistry.js';
 
+export type OnboardingPoolMode = 'dedicated' | 'hybrid';
+
 export interface OnboardingInternalBootSelection {
   poolName: string;
   slotCount: number;
   devices: string[];
   bootSizeMiB: number;
   updateBios: boolean;
+  poolMode: OnboardingPoolMode;
 }
 
 export type OnboardingBootMode = 'usb' | 'storage';
@@ -54,6 +57,13 @@ const normalizePersistedPlugins = (value: unknown): string[] => {
   return [];
 };
 
+const normalizePersistedPoolMode = (value: unknown): OnboardingPoolMode => {
+  if (value === 'dedicated' || value === 'hybrid') {
+    return value;
+  }
+  return 'hybrid';
+};
+
 const normalizePersistedInternalBootSelection = (
   value: unknown
 ): OnboardingInternalBootSelection | null => {
@@ -67,8 +77,10 @@ const normalizePersistedInternalBootSelection = (
     devices?: unknown;
     bootSizeMiB?: unknown;
     updateBios?: unknown;
+    poolMode?: unknown;
   };
 
+  const poolMode = normalizePersistedPoolMode(candidate.poolMode);
   const poolName = typeof candidate.poolName === 'string' ? candidate.poolName : '';
   const parsedSlotCount = Number(candidate.slotCount);
   const slotCount = Number.isFinite(parsedSlotCount) ? Math.max(1, Math.min(2, parsedSlotCount)) : 1;
@@ -76,7 +88,12 @@ const normalizePersistedInternalBootSelection = (
     ? candidate.devices.filter((item): item is string => typeof item === 'string')
     : [];
   const parsedBootSize = Number(candidate.bootSizeMiB);
-  const bootSizeMiB = Number.isFinite(parsedBootSize) && parsedBootSize > 0 ? parsedBootSize : 16384;
+  const bootSizeMiB =
+    poolMode === 'dedicated'
+      ? 0
+      : Number.isFinite(parsedBootSize) && parsedBootSize > 0
+        ? parsedBootSize
+        : 16384;
 
   return {
     poolName,
@@ -84,6 +101,7 @@ const normalizePersistedInternalBootSelection = (
     devices,
     bootSizeMiB,
     updateBios: normalizePersistedBoolean(candidate.updateBios, false),
+    poolMode,
   };
 };
 
@@ -192,6 +210,7 @@ export const useOnboardingDraftStore = defineStore(
         devices: [...selection.devices],
         bootSizeMiB: selection.bootSizeMiB,
         updateBios: selection.updateBios,
+        poolMode: selection.poolMode,
       };
       bootMode.value = 'storage';
       internalBootInitialized.value = true;
