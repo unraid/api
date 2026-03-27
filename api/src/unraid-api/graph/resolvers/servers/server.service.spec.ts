@@ -7,6 +7,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { getters } from '@app/store/index.js';
+import { type SliceState } from '@app/store/modules/emhttp.js';
+import { FileLoadStatus } from '@app/store/types.js';
+import { ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { ServerService } from '@app/unraid-api/graph/resolvers/servers/server.service.js';
 
 vi.mock('@app/core/utils/clients/emcmd.js', () => ({
@@ -20,6 +23,45 @@ vi.mock('@app/store/index.js', () => ({
     },
 }));
 
+const createEmhttpState = ({
+    name = 'Tower',
+    comment = 'Tower comment',
+    sysModel = 'Model X100',
+    fsState = 'Stopped',
+    mdState,
+    sslEnabled = true,
+}: {
+    name?: string;
+    comment?: string;
+    sysModel?: string;
+    fsState?: string;
+    mdState?: SliceState['var']['mdState'];
+    sslEnabled?: boolean;
+} = {}): SliceState => ({
+    status: FileLoadStatus.LOADED,
+    var: {
+        name,
+        comment,
+        sysModel,
+        fsState,
+        mdState,
+        regGuid: 'GUID-123',
+        port: 80,
+    } as unknown as SliceState['var'],
+    devices: [],
+    networks: [{ ipaddr: ['192.168.1.10'] }] as unknown as SliceState['networks'],
+    nginx: {
+        sslEnabled,
+        lanName: 'tower.local',
+        lanIp: '192.168.1.10',
+    } as unknown as SliceState['nginx'],
+    shares: [],
+    disks: [],
+    users: [],
+    smbShares: [],
+    nfsShares: [],
+});
+
 describe('ServerService', () => {
     let service: ServerService;
     let tempDirectory: string;
@@ -31,22 +73,7 @@ describe('ServerService', () => {
         tempDirectory = await mkdtemp(join(tmpdir(), 'server-service-'));
         identConfigPath = join(tempDirectory, 'boot/config/ident.cfg');
 
-        vi.mocked(getters.emhttp).mockReturnValue({
-            var: {
-                name: 'Tower',
-                fsState: 'Stopped',
-                regGuid: 'GUID-123',
-                port: '80',
-                comment: 'Tower comment',
-                sysModel: 'Model X100',
-            },
-            networks: [{ ipaddr: ['192.168.1.10'] }],
-            nginx: {
-                sslEnabled: true,
-                lanName: 'tower.local',
-                lanIp: '192.168.1.10',
-            },
-        } as ReturnType<typeof getters.emhttp>);
+        vi.mocked(getters.emhttp).mockReturnValue(createEmhttpState());
         vi.mocked(getters.paths).mockReturnValue({
             identConfig: identConfigPath,
         } as ReturnType<typeof getters.paths>);
@@ -119,23 +146,12 @@ describe('ServerService', () => {
     });
 
     it('requires stopped array only when name changes', async () => {
-        vi.mocked(getters.emhttp).mockReturnValue({
-            var: {
-                name: 'Tower',
-                mdState: 'STARTED',
+        vi.mocked(getters.emhttp).mockReturnValue(
+            createEmhttpState({
                 fsState: 'Started',
-                regGuid: 'GUID-123',
-                port: '80',
-                comment: 'Tower comment',
-                sysModel: 'Model X100',
-            },
-            networks: [{ ipaddr: ['192.168.1.10'] }],
-            nginx: {
-                sslEnabled: true,
-                lanName: 'tower.local',
-                lanIp: '192.168.1.10',
-            },
-        } as ReturnType<typeof getters.emhttp>);
+                mdState: ArrayState.STARTED,
+            })
+        );
 
         await expect(service.updateServerIdentity('NewTower', 'desc')).rejects.toThrow(
             'The array must be stopped to change the server name.'
@@ -148,23 +164,14 @@ describe('ServerService', () => {
     });
 
     it('allows name change when mdState is STOPPED even if fsState is not Stopped', async () => {
-        vi.mocked(getters.emhttp).mockReturnValue({
-            var: {
-                name: 'Tower',
-                mdState: 'STOPPED',
-                fsState: 'Started',
-                regGuid: 'GUID-123',
-                port: '80',
+        vi.mocked(getters.emhttp).mockReturnValue(
+            createEmhttpState({
                 comment: '',
                 sysModel: '',
-            },
-            networks: [{ ipaddr: ['192.168.1.10'] }],
-            nginx: {
-                sslEnabled: true,
-                lanName: 'tower.local',
-                lanIp: '192.168.1.10',
-            },
-        } as ReturnType<typeof getters.emhttp>);
+                fsState: 'Started',
+                mdState: ArrayState.STOPPED,
+            })
+        );
 
         await expect(service.updateServerIdentity('NewTower', 'desc')).resolves.toMatchObject({
             name: 'NewTower',
@@ -264,22 +271,11 @@ describe('ServerService', () => {
     });
 
     it('writes server_https as empty when ssl is disabled', async () => {
-        vi.mocked(getters.emhttp).mockReturnValue({
-            var: {
-                name: 'Tower',
-                fsState: 'Stopped',
-                regGuid: 'GUID-123',
-                port: '80',
-                comment: 'Tower comment',
-                sysModel: 'Model X100',
-            },
-            networks: [{ ipaddr: ['192.168.1.10'] }],
-            nginx: {
+        vi.mocked(getters.emhttp).mockReturnValue(
+            createEmhttpState({
                 sslEnabled: false,
-                lanName: 'tower.local',
-                lanIp: '192.168.1.10',
-            },
-        } as ReturnType<typeof getters.emhttp>);
+            })
+        );
 
         await service.updateServerIdentity('Tower', 'Primary host', 'Model X100');
 
