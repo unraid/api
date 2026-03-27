@@ -257,7 +257,7 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(false);
     expect(wrapper.text()).not.toContain('No eligible devices were detected for internal boot setup.');
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
     await flushPromises();

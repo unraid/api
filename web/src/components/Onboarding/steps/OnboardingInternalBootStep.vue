@@ -799,7 +799,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
       />
 
       <UAlert
-        v-if="isStorageBootSelected && hasEligibleDevices && isDedicatedMode"
+        v-if="isStorageBootSelected && canConfigure && isDedicatedMode"
         data-testid="internal-boot-intro-panel"
         class="my-8"
         color="neutral"
@@ -822,7 +822,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
       </UAlert>
 
       <UAlert
-        v-if="isStorageBootSelected && hasEligibleDevices && !isDedicatedMode"
+        v-if="isStorageBootSelected && canConfigure && !isDedicatedMode"
         data-testid="internal-boot-intro-panel"
         class="my-8"
         color="neutral"
