@@ -4,6 +4,7 @@ import { GraphQLError } from 'graphql';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { getters } from '@app/store/index.js';
+import { ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import {
     ProfileModel,
     Server,
@@ -100,8 +101,10 @@ export class ServerService {
         }
 
         if (name !== currentName) {
+            const mdState = currentEmhttp.var?.mdState;
             const fsState = currentEmhttp.var?.fsState;
-            if (fsState !== 'Stopped') {
+            const arrayStopped = mdState === ArrayState.STOPPED || fsState === 'Stopped';
+            if (!arrayStopped) {
                 throw new GraphQLError('The array must be stopped to change the server name.');
             }
         }
