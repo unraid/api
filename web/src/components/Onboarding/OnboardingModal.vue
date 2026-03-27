@@ -439,11 +439,10 @@ const handleExitConfirm = async () => {
 };
 
 const handlePopstate = async (event: PopStateEvent) => {
-  if (isInternalBootLocked.value && !isProgrammaticHistoryExit.value) {
+  if (isInternalBootLocked.value) {
     window.history.forward();
     return;
   }
-  isProgrammaticHistoryExit.value = false;
 
   const nextHistoryState = getHistoryState(event.state);
   const activeSessionId = historySessionId.value;
