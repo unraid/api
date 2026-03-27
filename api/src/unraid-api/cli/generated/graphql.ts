@@ -366,6 +366,10 @@ export enum ArrayState {
 }
 
 export type ArrayStateInput = {
+  /** Optional keyfile contents used to unlock encrypted array disks when starting the array. Accepts a data URL or raw base64 payload. */
+  decryptionKeyfile?: InputMaybe<Scalars['String']['input']>;
+  /** Optional password used to unlock encrypted array disks when starting the array */
+  decryptionPassword?: InputMaybe<Scalars['String']['input']>;
   /** Array state */
   desiredState: ArrayStateInputState;
 };
@@ -1637,6 +1641,7 @@ export type Mutation = {
   renameDockerFolder: ResolvedOrganizerV1;
   /** Reset Docker template mappings to defaults. Use this to recover from corrupted state. */
   resetDockerTemplateMappings: Scalars['Boolean']['output'];
+  serverPower: ServerPowerMutations;
   setDockerFolderChildren: ResolvedOrganizerV1;
   setupRemoteAccess: Scalars['Boolean']['output'];
   syncDockerTemplatePaths: DockerTemplateSyncResult;
@@ -1985,10 +1990,19 @@ export type OnboardingInternalBootContext = {
   assignableDisks: Array<Disk>;
   bootEligible?: Maybe<Scalars['Boolean']['output']>;
   bootedFromFlashWithInternalBootSetup: Scalars['Boolean']['output'];
+  driveWarnings: Array<OnboardingInternalBootDriveWarning>;
   enableBootTransfer?: Maybe<Scalars['String']['output']>;
   poolNames: Array<Scalars['String']['output']>;
   reservedNames: Array<Scalars['String']['output']>;
   shareNames: Array<Scalars['String']['output']>;
+};
+
+/** Warning metadata for an assignable internal boot drive */
+export type OnboardingInternalBootDriveWarning = {
+  __typename?: 'OnboardingInternalBootDriveWarning';
+  device: Scalars['String']['output'];
+  diskId: Scalars['String']['output'];
+  warnings: Array<Scalars['String']['output']>;
 };
 
 /** Result of attempting internal boot pool setup */
@@ -2632,6 +2646,15 @@ export type Server = Node & {
   /** Whether this server is online or offline */
   status: ServerStatus;
   wanip: Scalars['String']['output'];
+};
+
+/** Server power control mutations */
+export type ServerPowerMutations = {
+  __typename?: 'ServerPowerMutations';
+  /** Reboot the server */
+  reboot: Scalars['Boolean']['output'];
+  /** Shut down the server */
+  shutdown: Scalars['Boolean']['output'];
 };
 
 export enum ServerStatus {

@@ -9,6 +9,7 @@ import {
     ParityCheckMutations,
     RCloneMutations,
     RootMutations,
+    ServerPowerMutations,
     UnraidPluginsMutations,
     VmMutations,
 } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
@@ -58,5 +59,10 @@ export class RootMutationsResolver {
     @Mutation(() => UnraidPluginsMutations, { name: 'unraidPlugins' })
     unraidPlugins(): UnraidPluginsMutations {
         return new UnraidPluginsMutations();
+    }
+
+    @Mutation(() => ServerPowerMutations, { name: 'serverPower' })
+    serverPower(): ServerPowerMutations {
+        return new ServerPowerMutations();
     }
 }

@@ -128,6 +128,17 @@ export class UnraidPluginsMutations {
     installLanguage!: PluginInstallOperation;
 }
 
+@ObjectType({
+    description: 'Server power control mutations',
+})
+export class ServerPowerMutations {
+    @Field(() => Boolean, { description: 'Reboot the server' })
+    reboot!: boolean;
+
+    @Field(() => Boolean, { description: 'Shut down the server' })
+    shutdown!: boolean;
+}
+
 @ObjectType()
 export class RootMutations {
     @Field(() => ArrayMutations, { description: 'Array related mutations' })
@@ -156,4 +167,7 @@ export class RootMutations {
 
     @Field(() => UnraidPluginsMutations, { description: 'Unraid plugin related mutations' })
     unraidPlugins: UnraidPluginsMutations = new UnraidPluginsMutations();
+
+    @Field(() => ServerPowerMutations, { description: 'Server power control mutations' })
+    serverPower: ServerPowerMutations = new ServerPowerMutations();
 }

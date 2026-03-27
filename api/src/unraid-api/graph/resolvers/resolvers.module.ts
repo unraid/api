@@ -27,6 +27,8 @@ import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.re
 import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resolver.js';
 import { RCloneModule } from '@app/unraid-api/graph/resolvers/rclone/rclone.module.js';
 import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registration/registration.resolver.js';
+import { ServerPowerMutationsResolver } from '@app/unraid-api/graph/resolvers/server-power/server-power.mutations.resolver.js';
+import { ServerPowerService } from '@app/unraid-api/graph/resolvers/server-power/server-power.service.js';
 import { ServerResolver } from '@app/unraid-api/graph/resolvers/servers/server.resolver.js';
 import { ServerService } from '@app/unraid-api/graph/resolvers/servers/server.service.js';
 import { SettingsModule } from '@app/unraid-api/graph/resolvers/settings/settings.module.js';
@@ -81,6 +83,8 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         OnboardingQueryResolver,
         RegistrationResolver,
         RootMutationsResolver,
+        ServerPowerMutationsResolver,
+        ServerPowerService,
         ServerResolver,
         ServerService,
         ServicesResolver,

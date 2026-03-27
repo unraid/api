@@ -1210,6 +1210,16 @@ type ArrayMutations {
 input ArrayStateInput {
   """Array state"""
   desiredState: ArrayStateInputState!
+
+  """
+  Optional password used to unlock encrypted array disks when starting the array
+  """
+  decryptionPassword: String
+
+  """
+  Optional keyfile contents used to unlock encrypted array disks when starting the array. Accepts a data URL or raw base64 payload.
+  """
+  decryptionKeyfile: String
 }
 
 enum ArrayStateInputState {
@@ -1535,6 +1545,15 @@ input InstallPluginInput {
   Force installation even when plugin is already present. Defaults to true to mirror the existing UI behaviour.
   """
   forced: Boolean
+}
+
+"""Server power control mutations"""
+type ServerPowerMutations {
+  """Reboot the server"""
+  reboot: Boolean!
+
+  """Shut down the server"""
+  shutdown: Boolean!
 }
 
 type Config implements Node {
@@ -3304,6 +3323,7 @@ type Mutation {
   rclone: RCloneMutations!
   onboarding: OnboardingMutations!
   unraidPlugins: UnraidPluginsMutations!
+  serverPower: ServerPowerMutations!
 
   """Update server name, comment, and model"""
   updateServerIdentity(name: String!, comment: String, sysModel: String): Server!
