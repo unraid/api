@@ -43,6 +43,7 @@ describe('internalBoot composable', () => {
       devices: ['disk-1'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     });
 
     expect(result).toEqual({
@@ -92,6 +93,7 @@ describe('internalBoot composable', () => {
       devices: ['disk-1'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     });
 
     expect(result.ok).toBe(false);
@@ -106,6 +108,7 @@ describe('internalBoot composable', () => {
       devices: ['disk-1'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     });
 
     expect(result.ok).toBe(false);
@@ -132,6 +135,7 @@ describe('internalBoot composable', () => {
         devices: ['disk-1'],
         bootSizeMiB: 16384,
         updateBios: false,
+        poolMode: 'hybrid',
       },
       { reboot: true }
     );
@@ -192,6 +196,7 @@ describe('internalBoot composable', () => {
         devices: ['disk-1'],
         bootSizeMiB: 16384,
         updateBios: true,
+        poolMode: 'hybrid',
       },
       {
         configured: 'Internal boot pool configured.',
@@ -239,6 +244,7 @@ describe('internalBoot composable', () => {
         devices: ['disk-1'],
         bootSizeMiB: 16384,
         updateBios: true,
+        poolMode: 'hybrid',
       },
       {
         configured: 'Internal boot pool configured.',
@@ -282,6 +288,7 @@ describe('internalBoot composable', () => {
         devices: ['disk-1'],
         bootSizeMiB: 16384,
         updateBios: false,
+        poolMode: 'hybrid',
       },
       {
         configured: 'Internal boot pool configured.',
@@ -311,6 +318,7 @@ describe('internalBoot composable', () => {
         devices: ['disk-1'],
         bootSizeMiB: 16384,
         updateBios: false,
+        poolMode: 'hybrid',
       },
       {
         configured: 'Internal boot pool configured.',
@@ -347,6 +355,7 @@ describe('internalBoot composable', () => {
         devices: ['disk-1'],
         bootSizeMiB: 16384,
         updateBios: false,
+        poolMode: 'hybrid',
       },
       {
         configured: 'Internal boot pool configured.',

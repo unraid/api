@@ -15,6 +15,7 @@ type MockInternalBootSelection = {
   devices: string[];
   bootSizeMiB: number;
   updateBios: boolean;
+  poolMode: 'dedicated' | 'hybrid';
 };
 
 type InternalBootVm = {
@@ -308,8 +309,16 @@ describe('OnboardingInternalBootStep', () => {
     );
   });
 
-  it('defaults the storage pool name to cache', async () => {
+  it('defaults the storage pool name to cache in hybrid mode', async () => {
     draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = {
+      poolName: '',
+      slotCount: 1,
+      devices: [],
+      bootSizeMiB: 16384,
+      updateBios: true,
+      poolMode: 'hybrid',
+    };
     contextResult.value = buildContext({
       assignableDisks: [
         {
@@ -332,8 +341,16 @@ describe('OnboardingInternalBootStep', () => {
     );
   });
 
-  it('leaves the pool name blank when cache already exists', async () => {
+  it('leaves the pool name blank in hybrid mode when cache already exists', async () => {
     draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = {
+      poolName: '',
+      slotCount: 1,
+      devices: [],
+      bootSizeMiB: 16384,
+      updateBios: true,
+      poolMode: 'hybrid',
+    };
     contextResult.value = buildContext({
       poolNames: ['cache'],
       assignableDisks: [

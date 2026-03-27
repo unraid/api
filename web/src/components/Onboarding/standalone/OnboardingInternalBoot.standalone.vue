@@ -9,8 +9,13 @@ import {
   XMarkIcon,
 } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
+import InternalBootConfirmDialog from '@/components/Onboarding/components/InternalBootConfirmDialog.vue';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
-import { applyInternalBootSelection } from '@/components/Onboarding/composables/internalBoot';
+import {
+  applyInternalBootSelection,
+  submitInternalBootReboot,
+  submitInternalBootShutdown,
+} from '@/components/Onboarding/composables/internalBoot';
 import OnboardingSteps from '@/components/Onboarding/OnboardingSteps.vue';
 import OnboardingInternalBootStep from '@/components/Onboarding/steps/OnboardingInternalBootStep.vue';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
@@ -48,7 +53,22 @@ const standaloneSteps: Array<{ id: StepId; required: boolean }> = [
 const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
 
+const isLocked = computed(() => draftStore.internalBootApplyAttempted);
+const pendingPowerAction = ref<'reboot' | 'shutdown' | null>(null);
+
+const handleConfirmPowerAction = () => {
+  const action = pendingPowerAction.value;
+  pendingPowerAction.value = null;
+  cleanupOnboardingStorage();
+  if (action === 'shutdown') {
+    submitInternalBootShutdown();
+  } else {
+    submitInternalBootReboot();
+  }
+};
+
 const canReturnToConfigure = () =>
+  !isLocked.value &&
   confirmationState.value === 'result' &&
   (resultSeverity.value !== 'success' || !draftStore.internalBootApplySucceeded);
 
@@ -146,7 +166,7 @@ const setResultFromApply = (applyResult: InternalBootApplyResult) => {
 
   resultSeverity.value = 'error';
   resultTitle.value = summaryT('result.failedTitle');
-  resultMessage.value = summaryT('result.failedMessage');
+  resultMessage.value = t('onboarding.nextSteps.internalBootFailed');
 };
 
 const closeLocally = () => {
@@ -156,6 +176,9 @@ const closeLocally = () => {
 };
 
 const handleClose = (options?: { fromHistory?: boolean }) => {
+  if (isLocked.value) {
+    return;
+  }
   if (
     typeof window !== 'undefined' &&
     !options?.fromHistory &&
@@ -196,6 +219,7 @@ const handleStepComplete = async () => {
     return;
   }
 
+  draftStore.setInternalBootApplyAttempted(true);
   confirmationState.value = 'saving';
   addLog({
     message: summaryT('logs.internalBootStart'),
@@ -234,6 +258,11 @@ const handleStepComplete = async () => {
 };
 
 const handlePopstate = (event: PopStateEvent) => {
+  if (isLocked.value) {
+    window.history.forward();
+    return;
+  }
+
   const nextHistoryState = getHistoryState(event.state) ?? getHistoryState(window.history.state);
   const activeSessionId = historySessionId.value;
 
@@ -328,7 +357,7 @@ onUnmounted(() => {
     class="bg-background pb-0"
     @update:model-value="
       (value) => {
-        if (!value) {
+        if (!value && !isLocked) {
           handleClose();
         }
       }
@@ -336,6 +365,7 @@ onUnmounted(() => {
   >
     <div class="relative flex h-full min-h-0 w-full flex-col items-center justify-start overflow-y-auto">
       <button
+        v-if="!isLocked"
         type="button"
         data-testid="internal-boot-standalone-close"
         class="bg-background/90 text-foreground hover:bg-muted fixed top-5 right-8 z-20 rounded-md p-1.5 shadow-sm transition-colors"
@@ -406,6 +436,17 @@ onUnmounted(() => {
                 </div>
               </div>
 
+              <div
+                v-if="
+                  isLocked && resultSeverity === 'error' && draftStore.internalBootSelection?.updateBios
+                "
+                class="mt-4"
+              >
+                <p class="text-sm text-amber-700">
+                  {{ t('onboarding.nextSteps.internalBootBiosMissed') }}
+                </p>
+              </div>
+
               <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button
                   v-if="canEditAgain"
@@ -416,7 +457,26 @@ onUnmounted(() => {
                 >
                   {{ t('common.back') }}
                 </button>
+                <template v-if="isLocked">
+                  <button
+                    type="button"
+                    data-testid="internal-boot-standalone-shutdown"
+                    class="text-muted hover:text-highlighted text-sm font-medium transition-colors"
+                    @click="pendingPowerAction = 'shutdown'"
+                  >
+                    {{ t('onboarding.nextSteps.shutdown') }}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="internal-boot-standalone-reboot"
+                    class="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
+                    @click="pendingPowerAction = 'reboot'"
+                  >
+                    {{ t('onboarding.nextSteps.reboot') }}
+                  </button>
+                </template>
                 <button
+                  v-else
                   type="button"
                   data-testid="internal-boot-standalone-result-close"
                   class="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
@@ -431,4 +491,11 @@ onUnmounted(() => {
       </div>
     </div>
   </Dialog>
+
+  <InternalBootConfirmDialog
+    :open="pendingPowerAction !== null"
+    :action="pendingPowerAction ?? 'reboot'"
+    @confirm="handleConfirmPowerAction"
+    @cancel="pendingPowerAction = null"
+  />
 </template>

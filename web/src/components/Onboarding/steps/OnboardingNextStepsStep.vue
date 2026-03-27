@@ -17,7 +17,11 @@ import { CheckCircleIcon, EnvelopeIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 // Use ?raw to import SVG content string
 import UnraidIconSvg from '@/assets/partners/simple-icons-unraid.svg?raw';
-import { submitInternalBootReboot } from '@/components/Onboarding/composables/internalBoot';
+import InternalBootConfirmDialog from '@/components/Onboarding/components/InternalBootConfirmDialog.vue';
+import {
+  submitInternalBootReboot,
+  submitInternalBootShutdown,
+} from '@/components/Onboarding/composables/internalBoot';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
@@ -54,13 +58,22 @@ const hasExtraLinks = computed(() => (partnerInfo.value?.partner?.extraLinks?.le
 // Check if we have any content to show in the "Learn about your server" section
 // Only show if there are LINKS (docs or extra links) - system specs alone isn't enough
 const hasAnyPartnerContent = computed(() => hasCoreDocsLinks.value || hasExtraLinks.value);
-const showRebootButton = computed(() => draftStore.internalBootApplySucceeded);
+const showRebootButton = computed(() => draftStore.internalBootSelection !== null);
+const internalBootFailed = computed(
+  () =>
+    draftStore.internalBootSelection !== null &&
+    draftStore.internalBootApplyAttempted &&
+    !draftStore.internalBootApplySucceeded
+);
+const biosUpdateMissed = computed(
+  () => internalBootFailed.value && (draftStore.internalBootSelection?.updateBios ?? false)
+);
 const primaryButtonText = computed(() =>
   showRebootButton.value
     ? t('onboarding.nextSteps.reboot')
     : t('onboarding.nextSteps.continueToDashboard')
 );
-const showRebootWarningDialog = ref(false);
+const pendingPowerAction = ref<'reboot' | 'shutdown' | null>(null);
 const isCompleting = ref(false);
 const completionError = ref<string | null>(null);
 
@@ -91,7 +104,7 @@ const handleMouseMove = (e: MouseEvent) => {
   el.style.setProperty('--y', `${y}px`);
 };
 
-const finishOnboarding = async ({ reboot }: { reboot: boolean }) => {
+const finishOnboarding = async ({ action }: { action?: 'reboot' | 'shutdown' } = {}) => {
   if (isCompleting.value) {
     return;
   }
@@ -107,39 +120,54 @@ const finishOnboarding = async ({ reboot }: { reboot: boolean }) => {
     } catch (error: unknown) {
       console.error('Failed to refresh onboarding state:', error);
     }
-
-    cleanupOnboardingStorage();
-
-    if (reboot) {
-      submitInternalBootReboot();
-      return;
-    }
-
-    props.onComplete();
   } catch (error: unknown) {
     console.error('Failed to complete onboarding:', error);
-    completionError.value = t('onboarding.nextSteps.completionFailed');
-  } finally {
-    isCompleting.value = false;
+    if (!action) {
+      completionError.value = t('onboarding.nextSteps.completionFailed');
+      isCompleting.value = false;
+      return;
+    }
   }
+
+  cleanupOnboardingStorage();
+
+  if (action === 'shutdown') {
+    submitInternalBootShutdown();
+    return;
+  }
+
+  if (action === 'reboot') {
+    submitInternalBootReboot();
+    return;
+  }
+
+  props.onComplete();
+  isCompleting.value = false;
 };
 
 const handlePrimaryAction = async () => {
   if (showRebootButton.value) {
-    showRebootWarningDialog.value = true;
+    pendingPowerAction.value = 'reboot';
     return;
   }
 
-  await finishOnboarding({ reboot: false });
+  await finishOnboarding();
 };
 
-const handleConfirmReboot = async () => {
-  showRebootWarningDialog.value = false;
-  await finishOnboarding({ reboot: true });
+const handleShutdownAction = () => {
+  pendingPowerAction.value = 'shutdown';
 };
 
-const handleCancelReboot = () => {
-  showRebootWarningDialog.value = false;
+const handleConfirmPowerAction = async () => {
+  const action = pendingPowerAction.value;
+  pendingPowerAction.value = null;
+  if (action) {
+    await finishOnboarding({ action });
+  }
+};
+
+const handleCancelPowerAction = () => {
+  pendingPowerAction.value = null;
 };
 </script>
 
@@ -393,36 +421,29 @@ const handleCancelReboot = () => {
         </div>
       </div>
 
-      <UModal
-        :open="showRebootWarningDialog"
-        :portal="false"
-        :title="t('onboarding.nextSteps.confirmReboot.title')"
-        :description="t('onboarding.nextSteps.confirmReboot.description')"
-        :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-md' }"
-        @update:open="showRebootWarningDialog = $event"
-      >
-        <template #body>
-          <UAlert
-            color="warning"
-            variant="subtle"
-            icon="i-lucide-triangle-alert"
-            :description="t('onboarding.nextSteps.confirmReboot.warning')"
-          />
-        </template>
-        <template #footer>
-          <UButton
-            color="neutral"
-            variant="outline"
-            :disabled="isCompleting"
-            @click="handleCancelReboot"
-          >
-            {{ t('common.cancel') }}
-          </UButton>
-          <UButton :disabled="isCompleting" @click="handleConfirmReboot">
-            {{ t('onboarding.nextSteps.confirmReboot.confirm') }}
-          </UButton>
-        </template>
-      </UModal>
+      <InternalBootConfirmDialog
+        :open="pendingPowerAction !== null"
+        :action="pendingPowerAction ?? 'reboot'"
+        :disabled="isCompleting"
+        @confirm="handleConfirmPowerAction"
+        @cancel="handleCancelPowerAction"
+      />
+
+      <div v-if="internalBootFailed" class="mt-6 space-y-3">
+        <UAlert
+          color="warning"
+          variant="subtle"
+          icon="i-lucide-triangle-alert"
+          :description="t('onboarding.nextSteps.internalBootFailed')"
+        />
+        <UAlert
+          v-if="biosUpdateMissed"
+          color="warning"
+          variant="subtle"
+          icon="i-lucide-info"
+          :description="t('onboarding.nextSteps.internalBootBiosMissed')"
+        />
+      </div>
 
       <p v-if="completionError" role="alert" aria-live="polite" class="mt-6 text-sm text-red-600">
         {{ completionError }}
@@ -442,13 +463,23 @@ const handleCancelReboot = () => {
         </button>
         <div v-else class="hidden w-1 sm:block" />
 
-        <BrandButton
-          :text="primaryButtonText"
-          :disabled="isCompleting"
-          class="!bg-primary hover:!bg-primary/90 w-full min-w-[200px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
-          @click="handlePrimaryAction"
-          :icon-right="CheckCircleIcon"
-        />
+        <div class="flex w-full items-center justify-end gap-4 sm:w-auto">
+          <button
+            v-if="showRebootButton"
+            :disabled="isCompleting"
+            class="text-muted hover:text-highlighted text-sm font-medium transition-colors disabled:opacity-50"
+            @click="handleShutdownAction"
+          >
+            {{ t('onboarding.nextSteps.shutdown') }}
+          </button>
+          <BrandButton
+            :text="primaryButtonText"
+            :disabled="isCompleting"
+            class="!bg-primary hover:!bg-primary/90 w-full min-w-[200px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
+            @click="handlePrimaryAction"
+            :icon-right="CheckCircleIcon"
+          />
+        </div>
       </div>
     </div>
   </div>
