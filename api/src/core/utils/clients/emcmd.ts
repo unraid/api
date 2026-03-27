@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
-import { execa } from 'execa';
+import { got } from 'got';
 import * as ini from 'ini';
 import retry from 'p-retry';
 
@@ -112,44 +112,26 @@ export const emcmd = async (
         });
         params.append('csrf_token', csrfToken ?? '');
 
-        const response = await execa(
-            'curl',
-            [
-                '--silent',
-                '--show-error',
-                '--unix-socket',
-                socketPath,
-                '--data',
-                params.toString(),
-                'http://localhost/update',
-            ],
-            {
-                reject: false,
-            }
-        );
+        const response = await got.post(`http://unix:${socketPath}:/update`, {
+            enableUnixSockets: true,
+            body: params.toString(),
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded',
+            },
+            throwHttpErrors: false,
+        });
 
-        if (response.exitCode !== 0) {
-            const curlError = response.stderr?.trim() || response.stdout?.trim();
-            throw new Error(curlError || `emcmd curl failed with exit code ${response.exitCode}`);
+        if (response.statusCode >= 400) {
+            throw new Error(`emcmd request failed with status ${response.statusCode}`);
         }
 
-        const trimmedBody = response.stdout?.trim();
+        const trimmedBody = response.body?.trim();
         if (trimmedBody) {
             throw new Error(trimmedBody);
         }
 
         appLogger.debug('emcmd executed successfully');
-        return {
-            body: response.stdout,
-            stderr: response.stderr,
-            exitCode: response.exitCode,
-            command: response.command,
-            escapedCommand: response.escapedCommand,
-            failed: response.failed,
-            timedOut: response.timedOut,
-            isCanceled: response.isCanceled,
-            killed: response.killed,
-        };
+        return response;
     } catch (error: unknown) {
         if (hasErrorCode(error) && error.code === 'ENOENT') {
             if (error instanceof Error) {

@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
-import { execa } from 'execa';
+import { got } from 'got';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
@@ -14,8 +14,10 @@ vi.mock('node:fs/promises', async () => {
     };
 });
 
-vi.mock('execa', () => ({
-    execa: vi.fn(),
+vi.mock('got', () => ({
+    got: {
+        post: vi.fn(),
+    },
 }));
 
 vi.mock('@app/store/index.js', () => ({
@@ -42,78 +44,51 @@ describe('emcmd', () => {
             },
         } as ReturnType<typeof getters.emhttp>);
 
-        vi.mocked(execa).mockResolvedValue({
-            stdout: '',
-            stderr: '',
-            exitCode: 0,
-            command: 'curl',
-            escapedCommand: 'curl',
-            failed: false,
-            timedOut: false,
-            isCanceled: false,
-            killed: false,
-        } as Awaited<ReturnType<typeof execa>>);
+        vi.mocked(got.post).mockResolvedValue({
+            body: '',
+            statusCode: 200,
+        } as Awaited<ReturnType<typeof got.post>>);
     });
 
-    it('uses curl over the emhttp unix socket', async () => {
+    it('uses got over the emhttp unix socket', async () => {
         const result = await emcmd({
             changeNames: 'Apply',
             NAME: 'Hello',
         });
 
-        expect(execa).toHaveBeenCalledWith(
-            'curl',
-            [
-                '--silent',
-                '--show-error',
-                '--unix-socket',
-                '/var/run/emhttpd.socket',
-                '--data',
-                'changeNames=Apply&NAME=Hello&csrf_token=state-token',
-                'http://localhost/update',
-            ],
-            { reject: false }
-        );
+        expect(got.post).toHaveBeenCalledWith('http://unix:/var/run/emhttpd.socket:/update', {
+            enableUnixSockets: true,
+            body: 'changeNames=Apply&NAME=Hello&csrf_token=state-token',
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded',
+            },
+            throwHttpErrors: false,
+        });
 
         expect(result).toMatchObject({
             body: '',
-            stderr: '',
-            exitCode: 0,
+            statusCode: 200,
         });
     });
 
-    it('throws emhttp output when curl returns a non-empty body', async () => {
-        vi.mocked(execa).mockResolvedValue({
-            stdout: '<script>addLog("problem");</script>',
-            stderr: '',
-            exitCode: 0,
-            command: 'curl',
-            escapedCommand: 'curl',
-            failed: false,
-            timedOut: false,
-            isCanceled: false,
-            killed: false,
-        } as Awaited<ReturnType<typeof execa>>);
+    it('throws emhttp output when got returns a non-empty body', async () => {
+        vi.mocked(got.post).mockResolvedValue({
+            body: '<script>addLog("problem");</script>',
+            statusCode: 200,
+        } as Awaited<ReturnType<typeof got.post>>);
 
         await expect(emcmd({ changeNames: 'Apply' })).rejects.toThrow(
             '<script>addLog("problem");</script>'
         );
     });
 
-    it('throws curl stderr when the socket transport fails', async () => {
-        vi.mocked(execa).mockResolvedValue({
-            stdout: '',
-            stderr: 'curl: (56) Recv failure',
-            exitCode: 56,
-            command: 'curl',
-            escapedCommand: 'curl',
-            failed: true,
-            timedOut: false,
-            isCanceled: false,
-            killed: false,
-        } as Awaited<ReturnType<typeof execa>>);
+    it('throws on http failures reported by got', async () => {
+        vi.mocked(got.post).mockResolvedValue({
+            body: '',
+            statusCode: 500,
+        } as Awaited<ReturnType<typeof got.post>>);
 
-        await expect(emcmd({ changeNames: 'Apply' })).rejects.toThrow('curl: (56) Recv failure');
+        await expect(emcmd({ changeNames: 'Apply' })).rejects.toThrow();
     });
 
     it('falls back to var.ini for the csrf token before retrying state loads', async () => {
@@ -126,10 +101,11 @@ describe('emcmd', () => {
 
         expect(readFile).toHaveBeenCalledWith('/var/local/emhttp/var.ini', 'utf-8');
         expect(store.dispatch).not.toHaveBeenCalled();
-        expect(execa).toHaveBeenCalledWith(
-            'curl',
-            expect.arrayContaining(['--data', 'changeNames=Apply&csrf_token=ini-token']),
-            { reject: false }
+        expect(got.post).toHaveBeenCalledWith(
+            'http://unix:/var/run/emhttpd.socket:/update',
+            expect.objectContaining({
+                body: 'changeNames=Apply&csrf_token=ini-token',
+            })
         );
     });
 });
