@@ -26,6 +26,7 @@ import { createTestI18n } from '../../utils/i18n';
 const {
   draftStore,
   setInternalBootApplySucceededMock,
+  setInternalBootApplyAttemptedMock,
   registrationStateRef,
   isFreshInstallRef,
   activationCodeRef,
@@ -64,13 +65,18 @@ const {
       devices: string[];
       bootSizeMiB: number;
       updateBios: boolean;
+      poolMode: 'dedicated' | 'hybrid';
     } | null,
     internalBootInitialized: true,
     internalBootSkipped: false,
     internalBootApplySucceeded: false,
+    internalBootApplyAttempted: false,
   },
   setInternalBootApplySucceededMock: vi.fn((value: boolean) => {
     draftStore.internalBootApplySucceeded = value;
+  }),
+  setInternalBootApplyAttemptedMock: vi.fn((value: boolean) => {
+    draftStore.internalBootApplyAttempted = value;
   }),
   registrationStateRef: { value: 'ENOKEYFILE' },
   isFreshInstallRef: { value: true },
@@ -139,6 +145,7 @@ vi.mock('~/components/Onboarding/store/onboardingDraft', () => ({
   useOnboardingDraftStore: () => ({
     ...draftStore,
     setInternalBootApplySucceeded: setInternalBootApplySucceededMock,
+    setInternalBootApplyAttempted: setInternalBootApplyAttemptedMock,
   }),
 }));
 
@@ -1155,6 +1162,7 @@ describe('OnboardingSummaryStep', () => {
       devices: ['DISK-A', 'DISK-B'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
 
     const { wrapper } = mountComponent();
@@ -1171,6 +1179,7 @@ describe('OnboardingSummaryStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
 
     const { wrapper } = mountComponent();
@@ -1196,6 +1205,7 @@ describe('OnboardingSummaryStep', () => {
       devices: ['DISK-A', 'DISK-B'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
     draftStore.internalBootSkipped = false;
     applyInternalBootSelectionMock.mockResolvedValue({
@@ -1224,14 +1234,16 @@ describe('OnboardingSummaryStep', () => {
         bootSizeMiB: 16384,
         updateBios: true,
         slotCount: 2,
+        poolMode: 'hybrid',
       },
       {
         configured: 'Internal boot pool configured.',
         returnedError: expect.any(Function),
-        failed: 'Internal boot setup failed',
+        failed: expect.any(String),
         biosUnverified: expect.any(String),
       }
     );
+    expect(setInternalBootApplyAttemptedMock).toHaveBeenCalledWith(true);
     expect(setInternalBootApplySucceededMock).toHaveBeenCalledWith(true);
     expect(wrapper.text()).toContain('Internal boot pool configured.');
     expect(wrapper.text()).toContain('BIOS boot entry updates completed successfully.');
@@ -1247,6 +1259,7 @@ describe('OnboardingSummaryStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
+      poolMode: 'hybrid',
     };
     applyInternalBootSelectionMock.mockResolvedValue({
       applySucceeded: false,
@@ -1277,6 +1290,7 @@ describe('OnboardingSummaryStep', () => {
       devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
+      poolMode: 'hybrid',
     };
     applyInternalBootSelectionMock.mockResolvedValue({
       applySucceeded: true,

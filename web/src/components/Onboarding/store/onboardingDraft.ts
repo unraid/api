@@ -5,12 +5,15 @@ import type { StepId } from '~/components/Onboarding/stepRegistry.js';
 
 import { STEP_IDS } from '~/components/Onboarding/stepRegistry.js';
 
+export type OnboardingPoolMode = 'dedicated' | 'hybrid';
+
 export interface OnboardingInternalBootSelection {
   poolName: string;
   slotCount: number;
   devices: string[];
   bootSizeMiB: number;
   updateBios: boolean;
+  poolMode: OnboardingPoolMode;
 }
 
 export type OnboardingBootMode = 'usb' | 'storage';
@@ -54,6 +57,13 @@ const normalizePersistedPlugins = (value: unknown): string[] => {
   return [];
 };
 
+const normalizePersistedPoolMode = (value: unknown): OnboardingPoolMode => {
+  if (value === 'dedicated' || value === 'hybrid') {
+    return value;
+  }
+  return 'hybrid';
+};
+
 const normalizePersistedInternalBootSelection = (
   value: unknown
 ): OnboardingInternalBootSelection | null => {
@@ -67,8 +77,10 @@ const normalizePersistedInternalBootSelection = (
     devices?: unknown;
     bootSizeMiB?: unknown;
     updateBios?: unknown;
+    poolMode?: unknown;
   };
 
+  const poolMode = normalizePersistedPoolMode(candidate.poolMode);
   const poolName = typeof candidate.poolName === 'string' ? candidate.poolName : '';
   const parsedSlotCount = Number(candidate.slotCount);
   const slotCount = Number.isFinite(parsedSlotCount) ? Math.max(1, Math.min(2, parsedSlotCount)) : 1;
@@ -76,7 +88,12 @@ const normalizePersistedInternalBootSelection = (
     ? candidate.devices.filter((item): item is string => typeof item === 'string')
     : [];
   const parsedBootSize = Number(candidate.bootSizeMiB);
-  const bootSizeMiB = Number.isFinite(parsedBootSize) && parsedBootSize > 0 ? parsedBootSize : 16384;
+  const bootSizeMiB =
+    poolMode === 'dedicated'
+      ? 0
+      : Number.isFinite(parsedBootSize) && parsedBootSize > 0
+        ? parsedBootSize
+        : 16384;
 
   return {
     poolName,
@@ -84,6 +101,7 @@ const normalizePersistedInternalBootSelection = (
     devices,
     bootSizeMiB,
     updateBios: normalizePersistedBoolean(candidate.updateBios, false),
+    poolMode,
   };
 };
 
@@ -127,6 +145,7 @@ export const useOnboardingDraftStore = defineStore(
     const internalBootInitialized = ref(false);
     const internalBootSkipped = ref(false);
     const internalBootApplySucceeded = ref(false);
+    const internalBootApplyAttempted = ref(false);
 
     // Navigation
     const currentStepId = ref<StepId | null>(null);
@@ -156,6 +175,7 @@ export const useOnboardingDraftStore = defineStore(
       internalBootInitialized.value = false;
       internalBootSkipped.value = false;
       internalBootApplySucceeded.value = false;
+      internalBootApplyAttempted.value = false;
 
       currentStepId.value = null;
     }
@@ -190,6 +210,7 @@ export const useOnboardingDraftStore = defineStore(
         devices: [...selection.devices],
         bootSizeMiB: selection.bootSizeMiB,
         updateBios: selection.updateBios,
+        poolMode: selection.poolMode,
       };
       bootMode.value = 'storage';
       internalBootInitialized.value = true;
@@ -219,6 +240,10 @@ export const useOnboardingDraftStore = defineStore(
       internalBootApplySucceeded.value = value;
     }
 
+    function setInternalBootApplyAttempted(value: boolean) {
+      internalBootApplyAttempted.value = value;
+    }
+
     function setCurrentStep(stepId: StepId) {
       currentStepId.value = stepId;
     }
@@ -238,6 +263,7 @@ export const useOnboardingDraftStore = defineStore(
       internalBootInitialized,
       internalBootSkipped,
       internalBootApplySucceeded,
+      internalBootApplyAttempted,
       currentStepId,
       hasResumableDraft,
       resetDraft,
@@ -247,6 +273,7 @@ export const useOnboardingDraftStore = defineStore(
       skipInternalBoot,
       setBootMode,
       setInternalBootApplySucceeded,
+      setInternalBootApplyAttempted,
       setCurrentStep,
     };
   },
@@ -292,6 +319,10 @@ export const useOnboardingDraftStore = defineStore(
                 : normalizedBootMode === 'usb',
             internalBootApplySucceeded: normalizePersistedBoolean(
               parsed.internalBootApplySucceeded,
+              false
+            ),
+            internalBootApplyAttempted: normalizePersistedBoolean(
+              parsed.internalBootApplyAttempted,
               false
             ),
             currentStepId: normalizedCurrentStepId,

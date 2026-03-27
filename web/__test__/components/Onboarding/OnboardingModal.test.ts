@@ -61,6 +61,7 @@ const {
   onboardingDraftStore: {
     currentStepId: { value: null as StepId | null },
     internalBootApplySucceeded: { value: false },
+    internalBootApplyAttempted: { value: false },
     setCurrentStep: vi.fn((stepId: StepId) => {
       onboardingDraftStore.currentStepId.value = stepId;
     }),
@@ -224,6 +225,7 @@ describe('OnboardingModal.vue', () => {
     onboardingStatusStore.isPartnerBuild.value = false;
     onboardingDraftStore.currentStepId.value = null;
     onboardingDraftStore.internalBootApplySucceeded.value = false;
+    onboardingDraftStore.internalBootApplyAttempted.value = false;
     internalBootVisibilityLoading.value = false;
     internalBootVisibilityResult.value = {
       bootedFromFlashWithInternalBootSetup: false,
@@ -460,5 +462,31 @@ describe('OnboardingModal.vue', () => {
     const wrapper = mountComponent();
 
     expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(false);
+  });
+
+  it('hides the X button when internal boot lockdown is active', () => {
+    onboardingDraftStore.internalBootApplyAttempted.value = true;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('button[aria-label="Close onboarding"]').exists()).toBe(false);
+  });
+
+  it('passes showBack=false to step components when internal boot lockdown is active', async () => {
+    onboardingDraftStore.internalBootApplyAttempted.value = true;
+    onboardingDraftStore.currentStepId.value = 'CONFIGURE_SETTINGS';
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="settings-step-back"]').exists()).toBe(false);
+  });
+
+  it('does not open exit confirmation when locked and X area is somehow triggered', async () => {
+    onboardingDraftStore.internalBootApplyAttempted.value = true;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('button[aria-label="Close onboarding"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('Exit onboarding?');
   });
 });
