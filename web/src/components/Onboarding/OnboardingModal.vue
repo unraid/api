@@ -305,20 +305,12 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   ];
 });
 
-const isProgrammaticHistoryExit = ref(false);
-
-const closeModal = async (options?: { reload?: boolean }) => {
-  if (typeof window !== 'undefined' && isManualSession.value && historyPosition.value >= 0) {
-    isProgrammaticHistoryExit.value = true;
-    window.history.go(-(historyPosition.value + 1));
-    return;
-  }
-
-  await onboardingModalStore.closeModal();
-  cleanupOnboardingStorage();
-  clearHistorySession();
-
-  if (options?.reload) {
+const closeModal = async () => {
+  try {
+    await onboardingModalStore.closeModal();
+  } finally {
+    cleanupOnboardingStorage();
+    clearHistorySession();
     window.location.reload();
   }
 };
@@ -336,12 +328,10 @@ const goToNextStep = async () => {
   if (availableSteps.value.length > 0) {
     const activeStepIndex = currentDynamicStepIndex.value;
 
-    // Move to next step
     if (activeStepIndex < availableSteps.value.length - 1) {
       setActiveStepByIndex(activeStepIndex + 1);
     } else {
-      // If we're at the last step, close the modal
-      await closeModal({ reload: !isManualSession.value });
+      await closeModal();
     }
     return;
   }
@@ -448,21 +438,11 @@ const handleExitConfirm = async () => {
   }
 };
 
-const handleActivationSkip = async () => {
-  // Just move to next step without marking complete
-  if (currentDynamicStepIndex.value < availableSteps.value.length - 1) {
-    setActiveStepByIndex(currentDynamicStepIndex.value + 1);
-  } else {
-    await closeModal({ reload: !isManualSession.value });
-  }
-};
-
 const handlePopstate = async (event: PopStateEvent) => {
-  if (isInternalBootLocked.value && !isProgrammaticHistoryExit.value) {
+  if (isInternalBootLocked.value) {
     window.history.forward();
     return;
   }
-  isProgrammaticHistoryExit.value = false;
 
   const nextHistoryState = getHistoryState(event.state);
   const activeSessionId = historySessionId.value;
@@ -493,9 +473,7 @@ const handlePopstate = async (event: PopStateEvent) => {
   showExitConfirmDialog.value = false;
   isClosingModal.value = true;
   try {
-    await onboardingModalStore.closeModal();
-    cleanupOnboardingStorage();
-    clearHistorySession();
+    await closeModal();
   } finally {
     isClosingModal.value = false;
   }
@@ -609,7 +587,6 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     case 'ACTIVATE_LICENSE':
       return {
         ...baseProps,
-        onComplete: handleActivationSkip,
         modalTitle: modalTitle.value,
         modalDescription: modalDescription.value,
         docsButtons: docsButtons.value,
@@ -624,7 +601,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     case 'NEXT_STEPS':
       return {
         ...baseProps,
-        onComplete: () => closeModal({ reload: !isManualSession.value }),
+        onComplete: () => closeModal(),
       };
 
     default:

@@ -385,10 +385,10 @@ describe('OnboardingModal.vue', () => {
     expect(onboardingDraftStore.currentStepId.value).toBeNull();
   });
 
-  it('closes a manually opened wizard at the end instead of reloading the page', async () => {
+  it('reloads the page when completing a manually opened wizard', async () => {
     onboardingModalStoreState.sessionSource.value = 'manual';
     onboardingDraftStore.currentStepId.value = 'NEXT_STEPS';
-    const goSpy = vi.spyOn(window.history, 'go').mockImplementation(() => undefined);
+    const reloadSpy = vi.spyOn(window.location, 'reload').mockImplementation(() => undefined);
 
     const wrapper = mountComponent();
     await flushPromises();
@@ -396,13 +396,8 @@ describe('OnboardingModal.vue', () => {
     await wrapper.get('[data-testid="next-step-complete"]').trigger('click');
     await flushPromises();
 
-    expect(goSpy).toHaveBeenCalledWith(-1);
-    expect(onboardingModalStoreState.closeModal).not.toHaveBeenCalled();
-
-    window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
-    await flushPromises();
-
     expect(onboardingModalStoreState.closeModal).toHaveBeenCalledTimes(1);
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
   });
 
   it('shows a loading state while exit confirmation is closing the modal', async () => {
