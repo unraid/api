@@ -151,7 +151,7 @@ const getInternalBootHistoryState = (): InternalBootHistoryState | null => {
 
   const sessionId =
     typeof (candidate as Record<string, unknown>).sessionId === 'string'
-      ? (candidate as Record<string, unknown>).sessionId
+      ? ((candidate as Record<string, unknown>).sessionId as string)
       : null;
   const stepId =
     (candidate as Record<string, unknown>).stepId === 'CONFIGURE_BOOT' ||

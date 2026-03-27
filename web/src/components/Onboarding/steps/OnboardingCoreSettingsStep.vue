@@ -6,7 +6,7 @@ import { useQuery } from '@vue/apollo-composable';
 
 import { ChevronLeftIcon, Cog6ToothIcon, GlobeAltIcon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
-import { BrandButton, Select } from '@unraid/ui';
+import { BrandButton } from '@unraid/ui';
 // --- Theme Images ---
 import azureThemeImg from '@/assets/unraid-azure-theme.png';
 import blackThemeImg from '@/assets/unraid-black-theme.png';
@@ -19,7 +19,6 @@ import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Onboarding/graphql/timeZon
 // --- Submit Logic ---
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
-import { Switch } from '@headlessui/vue';
 import { getTimeZones } from '@vvo/tzdb';
 
 export interface Props {
@@ -356,9 +355,6 @@ const languageItems = computed(() => {
 });
 
 const isLanguageDisabled = computed(() => isLanguagesLoading.value || !!languagesQueryError.value);
-const onboardingSelectClasses =
-  'w-full border-muted bg-bg text-highlighted data-[placeholder]:text-muted focus:ring-primary focus:ring-offset-0';
-
 const handleSubmit = async () => {
   if (serverNameValidation.value || serverDescriptionValidation.value) {
     error.value = t('common.error');
@@ -504,13 +500,16 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <label class="text-highlighted text-base font-bold">
             {{ t('onboarding.coreSettings.timezone') }}
           </label>
-          <Select
+          <USelectMenu
             v-model="selectedTimeZone"
             :items="timeZoneItems"
+            label-key="label"
+            value-key="value"
+            :search-input="false"
             :placeholder="t('onboarding.coreSettings.selectTimezonePlaceholder')"
-            :class="onboardingSelectClasses"
             :disabled="isBusy"
-            size="lg"
+            class="w-full"
+            :ui="{ content: 'z-[100]' }"
           />
         </div>
 
@@ -519,15 +518,18 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <label class="text-highlighted text-base font-bold">
             {{ t('onboarding.coreSettings.language') }}
           </label>
-          <Select
+          <USelectMenu
             v-model="selectedLanguage"
             :items="languageItems"
+            label-key="label"
+            value-key="value"
+            :search-input="false"
             :placeholder="
               isLanguagesLoading ? t('common.loading') : t('onboarding.coreSettings.selectLanguage')
             "
-            :class="onboardingSelectClasses"
             :disabled="isBusy || isLanguageDisabled"
-            size="lg"
+            class="w-full"
+            :ui="{ content: 'z-[100]' }"
           />
         </div>
       </div>
@@ -547,24 +549,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             </p>
           </div>
           <div class="flex items-center">
-            <Switch
-              v-model="useSsh"
-              :disabled="isBusy"
-              :class="[
-                useSsh ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
-                isBusy ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-                'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none',
-              ]"
-            >
-              <span class="sr-only">{{ t('onboarding.coreSettings.ssh') }}</span>
-              <span
-                aria-hidden="true"
-                :class="[
-                  useSsh ? 'translate-x-5' : 'translate-x-0',
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                ]"
-              />
-            </Switch>
+            <USwitch :model-value="useSsh" :disabled="isBusy" @update:model-value="useSsh = $event" />
           </div>
         </div>
         <!-- Border -->
@@ -581,12 +566,15 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             </p>
           </div>
           <div class="w-full md:w-64">
-            <Select
+            <USelectMenu
               v-model="selectedTheme"
               :items="themeItems"
-              :class="onboardingSelectClasses"
+              label-key="label"
+              value-key="value"
+              :search-input="false"
               :disabled="isBusy"
-              size="lg"
+              class="w-full"
+              :ui="{ content: 'z-[100]' }"
             />
           </div>
         </div>
@@ -620,7 +608,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
         <button
           v-if="showBack"
           @click="handleBack"
-          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
+          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
           :disabled="isBusy"
         >
           <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />

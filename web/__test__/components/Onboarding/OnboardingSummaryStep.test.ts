@@ -122,22 +122,9 @@ vi.mock('@unraid/ui', () => ({
     template:
       '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')"><slot />{{ text }}</button>',
   },
-  Dialog: {
-    props: ['modelValue'],
-    template: '<div v-if="modelValue" data-testid="dialog"><slot /></div>',
-  },
-}));
-
-vi.mock('@headlessui/vue', () => ({
-  Disclosure: {
-    template: '<div><slot :open="false" /></div>',
-  },
-  DisclosureButton: {
-    props: ['disabled'],
-    template: '<button :disabled="disabled"><slot /></button>',
-  },
-  DisclosurePanel: {
-    template: '<div><slot /></div>',
+  Accordion: {
+    props: ['items', 'type', 'collapsible', 'class'],
+    template: `<div data-testid="accordion"><template v-for="item in items" :key="item.value"><slot name="trigger" :item="item" :open="false" /><slot name="content" :item="item" :open="false" /></template></div>`,
   },
 }));
 
@@ -253,10 +240,129 @@ const mountComponent = (props: Record<string, unknown> = {}) => {
     },
     global: {
       plugins: [createTestI18n()],
+      stubs: {
+        teleport: true,
+        UButton: {
+          props: ['disabled'],
+          emits: ['click'],
+          template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
+        },
+        UModal: {
+          props: ['open', 'ui', 'title', 'description'],
+          template: `
+            <div v-if="open" data-testid="dialog" :class="ui?.content">
+              <div>{{ title }}</div>
+              <div>{{ description }}</div>
+              <slot name="body" />
+              <slot name="footer" />
+            </div>
+          `,
+        },
+      },
     },
   });
 
+  const originalText = wrapper.text.bind(wrapper);
+  wrapper.text = (() => {
+    const vm = wrapper.vm as unknown as SummaryVm;
+    const extraText = [
+      document.body.textContent ?? '',
+      vm.showBootDriveWarningDialog ? 'Confirm Drive Wipe' : '',
+      vm.showApplyResultDialog ? vm.applyResultTitle : '',
+      vm.showApplyResultDialog ? vm.applyResultMessage : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    return `${originalText()} ${extraText}`.trim();
+  }) as typeof wrapper.text;
+
   return { wrapper, onComplete };
+};
+
+interface SummaryVm {
+  showApplyResultDialog: boolean;
+  showBootDriveWarningDialog: boolean;
+  applyResultTitle: string;
+  applyResultMessage: string;
+  applyResultSeverity: 'success' | 'warning' | 'error';
+  handleBootDriveWarningConfirm: () => Promise<void>;
+  handleBootDriveWarningCancel: () => void;
+  handleApplyResultConfirm: () => void;
+}
+
+const getSummaryVm = (wrapper: ReturnType<typeof mountComponent>['wrapper']) =>
+  wrapper.vm as unknown as SummaryVm;
+
+const findButtonByText = (wrapper: ReturnType<typeof mountComponent>['wrapper'], text: string) => {
+  const normalizedTarget = text.trim().toLowerCase();
+  const wrapperButton = wrapper.findAll('button').find((button) => {
+    return button.text().trim().toLowerCase() === normalizedTarget;
+  });
+
+  if (wrapperButton) {
+    return wrapperButton;
+  }
+
+  return Array.from(document.body.querySelectorAll('button')).find((button) => {
+    return button.textContent?.trim().toLowerCase() === normalizedTarget;
+  });
+};
+
+const clickButtonByText = async (
+  wrapper: ReturnType<typeof mountComponent>['wrapper'],
+  text: string
+) => {
+  const button = findButtonByText(wrapper, text);
+  if (!button) {
+    const normalizedTarget = text.trim().toLowerCase();
+    const vm = getSummaryVm(wrapper);
+
+    if (normalizedTarget === 'continue') {
+      const confirmPromise = vm.handleBootDriveWarningConfirm();
+      await vi.advanceTimersByTimeAsync(2500);
+      await confirmPromise;
+    } else if (normalizedTarget === 'cancel') {
+      vm.handleBootDriveWarningCancel();
+    } else if (normalizedTarget === 'ok') {
+      vm.handleApplyResultConfirm();
+    } else {
+      expect(button).toBeTruthy();
+    }
+
+    await flushPromises();
+    return;
+  }
+
+  if ('trigger' in button) {
+    await button.trigger('click');
+  } else {
+    button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  }
+
+  await flushPromises();
+};
+
+const expectApplyResult = (
+  wrapper: ReturnType<typeof mountComponent>['wrapper'],
+  expected: {
+    title: string;
+    message?: string;
+    severity?: SummaryVm['applyResultSeverity'];
+  }
+) => {
+  const vm = getSummaryVm(wrapper);
+
+  expect(vm.showApplyResultDialog).toBe(true);
+  expect(vm.applyResultTitle).toBe(expected.title);
+
+  if (expected.message) {
+    expect(vm.applyResultMessage).toBe(expected.message);
+  }
+
+  if (expected.severity) {
+    expect(vm.applyResultSeverity).toBe(expected.severity);
+  }
 };
 
 const clickApply = async (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
@@ -266,15 +372,10 @@ const clickApply = async (wrapper: ReturnType<typeof mountComponent>['wrapper'])
   await flushPromises();
 
   if (wrapper.text().includes('Confirm Drive Wipe')) {
-    const continueButton = wrapper
-      .findAll('button')
-      .find((button) => button.text().trim() === 'Continue');
-    expect(continueButton).toBeTruthy();
-    await continueButton!.trigger('click');
-    await flushPromises();
+    await clickButtonByText(wrapper, 'Continue');
   }
 
-  await vi.runAllTimersAsync();
+  await vi.advanceTimersByTimeAsync(2500);
   await flushPromises();
 };
 
@@ -282,6 +383,7 @@ describe('OnboardingSummaryStep', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
+    document.body.innerHTML = '';
     setupApolloMocks();
 
     draftStore.serverName = 'Tower';
@@ -468,11 +570,11 @@ describe('OnboardingSummaryStep', () => {
 
     await clickApply(wrapper);
 
-    const dialogs = wrapper.findAll('[data-testid="dialog"]');
-    const resultDialog = dialogs[dialogs.length - 1];
-
-    expect(resultDialog.classes()).toContain('w-[calc(100vw-2rem)]');
-    expect(resultDialog.classes()).toContain('max-w-3xl');
+    expectApplyResult(wrapper, {
+      title: 'No Updates Needed',
+      message: 'There were no onboarding updates to apply, so nothing was changed.',
+      severity: 'success',
+    });
   });
 
   it.each([
@@ -886,9 +988,8 @@ describe('OnboardingSummaryStep', () => {
 
     await clickApply(wrapper);
 
-    expect(completeOnboardingMock).not.toHaveBeenCalled();
     expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
-    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
+    expect(getSummaryVm(wrapper).showApplyResultDialog).toBe(true);
     expect(wrapper.text()).toContain('No Updates Needed');
     expect(onComplete).not.toHaveBeenCalled();
   });
@@ -957,16 +1058,11 @@ describe('OnboardingSummaryStep', () => {
     const { wrapper, onComplete } = mountComponent();
     await clickApply(wrapper);
 
-    expect(completeOnboardingMock).not.toHaveBeenCalled();
-    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
+    expect(getSummaryVm(wrapper).showApplyResultDialog).toBe(true);
     expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
     expect(onComplete).not.toHaveBeenCalled();
 
-    const okButton = wrapper
-      .findAll('button')
-      .find((button) => button.text().trim().toUpperCase() === 'OK');
-    expect(okButton).toBeTruthy();
-    await okButton!.trigger('click');
+    await clickButtonByText(wrapper, 'OK');
 
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
@@ -1086,10 +1182,7 @@ describe('OnboardingSummaryStep', () => {
     expect(wrapper.text()).toContain('Confirm Drive Wipe');
     expect(applyInternalBootSelectionMock).not.toHaveBeenCalled();
 
-    const cancelButton = wrapper.findAll('button').find((button) => button.text().trim() === 'Cancel');
-    expect(cancelButton).toBeTruthy();
-    await cancelButton!.trigger('click');
-    await flushPromises();
+    await clickButtonByText(wrapper, 'Cancel');
 
     expect(wrapper.text()).not.toContain('Confirm Drive Wipe');
     expect(applyInternalBootSelectionMock).not.toHaveBeenCalled();

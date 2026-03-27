@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 
 export const brandButtonVariants = cva(
-  'group text-center font-semibold leading-none relative z-0 flex flex-row items-center justify-center border-2 border-solid shadow-none cursor-pointer rounded-md hover:shadow-md focus:shadow-md disabled:opacity-25 disabled:hover:opacity-25 disabled:focus:opacity-25 disabled:cursor-not-allowed',
+  'group text-center font-semibold leading-none relative z-0 flex flex-row items-center justify-center border-2 border-solid shadow-none cursor-pointer rounded-md hover:shadow-md focus:shadow-md disabled:opacity-25 disabled:hover:opacity-25 disabled:focus:opacity-25 disabled:cursor-not-allowed aria-disabled:opacity-25 aria-disabled:cursor-not-allowed aria-disabled:hover:opacity-25 aria-disabled:hover:shadow-none',
   {
     variants: {
       variant: {
