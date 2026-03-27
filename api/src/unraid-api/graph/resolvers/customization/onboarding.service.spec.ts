@@ -802,7 +802,7 @@ describe('OnboardingService', () => {
             });
 
             // --- Spy on subsequent steps to ensure they are still called ---
-            // We already mock fs.writeFile, so we can check calls to userDynamixCfg and identCfg
+            // We already mock fs.writeFile, so we can check calls to userDynamixCfg
             const applyDisplaySettingsSpy = vi.spyOn(service as any, 'applyDisplaySettings');
             const updateCfgFileSpy = vi.spyOn(service as any, 'updateCfgFile');
 
@@ -978,7 +978,6 @@ describe('OnboardingService', () => {
             (service as any).activationDir = activationDir;
             (service as any).configFile = userDynamixCfg;
             (service as any).caseModelCfg = caseModelCfg;
-            (service as any).identCfg = identCfg;
             (service as any).activationData = plainToInstance(ActivationCode, { ...mockActivationData });
             (service as any).activationJsonPath = activationJsonPath;
             (service as any).materializedPartnerMedia = {
@@ -988,7 +987,6 @@ describe('OnboardingService', () => {
             // Mock necessary file reads/writes
             vi.mocked(fs.readFile).mockImplementation(async (p) => {
                 if (p === userDynamixCfg) return ini.stringify({ display: { existing: 'value' } });
-                if (p === identCfg) return ini.stringify({ NAME: 'OldName' });
                 if (p === caseModelCfg) return 'old-model.png';
                 // Simulate file not found for updateCfgFile tests where it matters
                 // If activation JSON is read here, return mock data
@@ -1361,353 +1359,6 @@ describe('OnboardingService', () => {
             expect(fs.writeFile).toHaveBeenCalledWith(caseModelCfg, 'mid-tower');
             expect(loggerLogSpy).toHaveBeenCalledWith(`Case model set to mid-tower in ${caseModelCfg}`);
         });
-
-        it('applyServerIdentity should call emcmd directly', async () => {
-            const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
-
-            // Capture the emcmd call parameters
-            let emcmdParams;
-            vi.mocked(emcmd).mockImplementation(async (params, options) => {
-                emcmdParams = { params, options };
-                return { body: '', ok: true } as any;
-            });
-
-            const promise = (service as any).applyServerIdentity();
-            await vi.runAllTimers();
-            await promise;
-
-            // We no longer update the config file before calling emcmd
-            expect(updateSpy).not.toHaveBeenCalled();
-
-            // Verify emcmd was called with expected parameters using inline snapshot
-            expect(emcmdParams).toMatchInlineSnapshot(`
-              {
-                "options": {
-                  "waitForToken": true,
-                },
-                "params": {
-                  "COMMENT": "Partner Comment",
-                  "NAME": "PartnerServer",
-                  "SYS_MODEL": "PartnerModel",
-                  "changeNames": "Apply",
-                  "server_addr": "",
-                  "server_name": "",
-                },
-              }
-            `);
-
-            expect(loggerLogSpy).toHaveBeenCalledWith('emcmd executed successfully.');
-        }, 10000);
-
-        it('applyServerIdentity should skip if no relevant activation data', async () => {
-            const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
-            // Simulate empty DTO
-            (service as any).activationData = plainToInstance(ActivationCode, {});
-            await (service as any).applyServerIdentity();
-            expect(updateSpy).not.toHaveBeenCalled();
-            expect(emcmd).not.toHaveBeenCalled();
-            expect(loggerLogSpy).toHaveBeenCalledWith(
-                'No server identity information found in activation data.'
-            );
-        });
-
-        it('applyServerIdentity should skip if activation data has no relevant fields', async () => {
-            const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
-            // Simulate DTO with non-identity fields
-            (service as any).activationData = plainToInstance(ActivationCode, {
-                branding: { theme: 'white' },
-            });
-            await (service as any).applyServerIdentity();
-            expect(updateSpy).not.toHaveBeenCalled();
-            expect(emcmd).not.toHaveBeenCalled();
-            expect(loggerLogSpy).toHaveBeenCalledWith(
-                'No server identity information found in activation data.'
-            );
-        });
-
-        it('applyServerIdentity should log error on emcmd failure', async () => {
-            const emcmdError = new Error('Failed to call emcmd');
-
-            // Set up activation data directly
-            (service as any).activationData = plainToInstance(ActivationCode, {
-                system: {
-                    serverName: 'PartnerServer',
-                    model: 'PartnerModel',
-                    comment: 'Partner Comment',
-                },
-            });
-
-            // Mock emcmd to throw
-            vi.mocked(emcmd).mockRejectedValue(emcmdError);
-
-            // Clear previous log calls
-            loggerErrorSpy.mockClear();
-
-            // Call the method directly
-            await (service as any).applyServerIdentity();
-
-            // Verify the error was logged
-            expect(emcmd).toHaveBeenCalled();
-            expect(loggerErrorSpy).toHaveBeenCalledWith(
-                'Error applying server identity: %o',
-                emcmdError
-            );
-        }, 10000);
-
-        it('applyServerIdentity should apply comment even when name/model are absent', async () => {
-            (service as any).activationData = plainToInstance(ActivationCode, {
-                system: {
-                    comment: 'Partner Comment',
-                },
-            });
-
-            let commentOnlyParams: Record<string, string> | undefined;
-            vi.mocked(emcmd).mockImplementation(async (params) => {
-                commentOnlyParams = params as Record<string, string>;
-                return { body: '', ok: true } as any;
-            });
-
-            await (service as any).applyServerIdentity();
-
-            expect(emcmd).toHaveBeenCalled();
-            expect(commentOnlyParams).toMatchObject({
-                COMMENT: 'Partner Comment',
-                changeNames: 'Apply',
-                server_addr: '',
-                server_name: '',
-            });
-            expect(commentOnlyParams).not.toHaveProperty('NAME');
-            expect(commentOnlyParams).not.toHaveProperty('SYS_MODEL');
-        });
-
-        it('applyServerIdentity should omit comment when activation data does not provide one', async () => {
-            (service as any).activationData = plainToInstance(ActivationCode, {
-                system: {
-                    serverName: 'PartnerServer',
-                    model: 'PartnerModel',
-                },
-            });
-
-            let paramsWithoutComment: Record<string, string> | undefined;
-            vi.mocked(emcmd).mockImplementation(async (params) => {
-                paramsWithoutComment = params as Record<string, string>;
-                return { body: '', ok: true } as any;
-            });
-
-            await (service as any).applyServerIdentity();
-
-            expect(emcmd).toHaveBeenCalled();
-            expect(paramsWithoutComment).toMatchObject({
-                NAME: 'PartnerServer',
-                SYS_MODEL: 'PartnerModel',
-            });
-            expect(paramsWithoutComment).not.toHaveProperty('COMMENT');
-        });
-
-        it('applyServerIdentity should allow explicitly empty comments from activation data', async () => {
-            (service as any).activationData = plainToInstance(ActivationCode, {
-                system: {
-                    comment: '',
-                },
-            });
-
-            let emptyCommentParams: Record<string, string> | undefined;
-            vi.mocked(emcmd).mockImplementation(async (params) => {
-                emptyCommentParams = params as Record<string, string>;
-                return { body: '', ok: true } as any;
-            });
-
-            await (service as any).applyServerIdentity();
-
-            expect(emcmd).toHaveBeenCalled();
-            expect(emptyCommentParams).toMatchObject({
-                COMMENT: '',
-                changeNames: 'Apply',
-                server_addr: '',
-                server_name: '',
-            });
-        });
-
-        it.each([
-            {
-                caseName: 'name only',
-                system: { serverName: 'PartnerServer' },
-                expected: { NAME: 'PartnerServer' },
-                omitted: ['SYS_MODEL', 'COMMENT'],
-            },
-            {
-                caseName: 'model only',
-                system: { model: 'PartnerModel' },
-                expected: { SYS_MODEL: 'PartnerModel' },
-                omitted: ['NAME', 'COMMENT'],
-            },
-            {
-                caseName: 'comment only',
-                system: { comment: 'Partner Comment' },
-                expected: { COMMENT: 'Partner Comment' },
-                omitted: ['NAME', 'SYS_MODEL'],
-            },
-            {
-                caseName: 'explicit empty comment',
-                system: { comment: '' },
-                expected: { COMMENT: '' },
-                omitted: ['NAME', 'SYS_MODEL'],
-            },
-        ])(
-            'applyServerIdentity should map partial identity fields correctly ($caseName)',
-            async (scenario) => {
-                (service as any).activationData = plainToInstance(ActivationCode, {
-                    system: scenario.system,
-                });
-
-                let params: Record<string, string> | undefined;
-                vi.mocked(emcmd).mockImplementation(async (incomingParams) => {
-                    params = incomingParams as Record<string, string>;
-                    return { body: '', ok: true } as any;
-                });
-
-                await (service as any).applyServerIdentity();
-
-                expect(emcmd).toHaveBeenCalledTimes(1);
-                expect(params).toMatchObject({
-                    ...scenario.expected,
-                    changeNames: 'Apply',
-                    server_addr: '',
-                    server_name: '',
-                });
-                scenario.omitted.forEach((key) => {
-                    expect(params).not.toHaveProperty(key);
-                });
-            }
-        );
-
-        it('applyServerIdentity should truncate serverName if too long', async () => {
-            const longServerName = 'ThisServerNameIsWayTooLongForUnraid'; // Length > 16
-            const truncatedServerName = longServerName.slice(0, 15); // Expected truncated length
-            // Simulate DTO with long serverName after plainToClass
-
-            const testActivationParser = await plainToInstance(ActivationCode, {
-                ...mockActivationData,
-                system: { ...mockActivationData.system, serverName: longServerName },
-            });
-
-            expect(testActivationParser.system?.serverName).toBe(truncatedServerName);
-        });
-
-        it('applyServerIdentity should sanitize and truncate activation comments', async () => {
-            const unsafeLongComment = `${'"\\'.repeat(40)}${'A'.repeat(100)}`;
-            const parsedActivation = plainToInstance(ActivationCode, {
-                system: {
-                    comment: unsafeLongComment,
-                },
-            });
-
-            expect(parsedActivation.system?.comment).toBeDefined();
-            expect(parsedActivation.system?.comment).not.toMatch(/["\\]/);
-            expect(parsedActivation.system?.comment!.length).toBeLessThanOrEqual(64);
-        });
-
-        it('applyServerIdentity should send sanitized identity values from transformed activation data', async () => {
-            const unsafeIdentity = plainToInstance(ActivationCode, {
-                system: {
-                    serverName: 'Par"t\\nerServer',
-                    model: 'Pa"rt\\nerModel',
-                    comment: 'Partn"er\\Comment',
-                },
-            });
-            (service as any).activationData = unsafeIdentity;
-
-            let params: Record<string, string> | undefined;
-            vi.mocked(emcmd).mockImplementation(async (incomingParams) => {
-                params = incomingParams as Record<string, string>;
-                return { body: '', ok: true } as any;
-            });
-
-            await (service as any).applyServerIdentity();
-
-            expect(emcmd).toHaveBeenCalledTimes(1);
-            expect(params).toMatchObject({
-                NAME: 'PartnerServer',
-                SYS_MODEL: 'PartnerModel',
-                COMMENT: 'PartnerComment',
-            });
-            expect(params?.NAME).not.toMatch(/["\\]/);
-            expect(params?.SYS_MODEL).not.toMatch(/["\\]/);
-            expect(params?.COMMENT).not.toMatch(/["\\]/);
-        });
-
-        it('should correctly pass server_https parameter based on nginx state', async () => {
-            // Mock getters.emhttp to include nginx with sslEnabled=true
-            const mockEmhttpWithSsl = {
-                nginx: { sslEnabled: true },
-                var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' },
-            };
-            vi.mocked(getters.emhttp).mockReturnValue(mockEmhttpWithSsl as any);
-
-            // Set up the service's activationData field directly
-            (service as any).activationData = plainToInstance(ActivationCode, {
-                system: {
-                    serverName: 'PartnerServer',
-                    model: 'PartnerModel',
-                    comment: 'Partner Comment',
-                },
-            });
-
-            // Mock emcmd and capture the params for snapshot testing
-            let sslEnabledParams;
-            vi.mocked(emcmd).mockImplementation(async (params) => {
-                sslEnabledParams = params;
-                return { body: '', ok: true } as any;
-            });
-
-            // Call the method directly to test SSL enabled case
-            await (service as any).applyServerIdentity();
-
-            // Verify emcmd was called
-            expect(emcmd).toHaveBeenCalled();
-            // Use toMatchInlineSnapshot to compare the params
-            expect(sslEnabledParams).toMatchInlineSnapshot(`
-              {
-                "COMMENT": "Partner Comment",
-                "NAME": "PartnerServer",
-                "SYS_MODEL": "PartnerModel",
-                "changeNames": "Apply",
-                "server_addr": "",
-                "server_name": "",
-              }
-            `);
-
-            // Now test with SSL disabled
-            const mockEmhttpNoSsl = {
-                nginx: { sslEnabled: false },
-                var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' },
-            };
-            vi.mocked(getters.emhttp).mockReturnValue(mockEmhttpNoSsl as any);
-
-            // Update the mock to capture params for the second call
-            let sslDisabledParams;
-            vi.mocked(emcmd).mockImplementation(async (params) => {
-                sslDisabledParams = params;
-                return { body: '', ok: true } as any;
-            });
-
-            // Call again to test SSL disabled case
-            await (service as any).applyServerIdentity();
-
-            // Verify emcmd was called again
-            expect(emcmd).toHaveBeenCalled();
-            // Use toMatchInlineSnapshot to compare the params
-            expect(sslDisabledParams).toMatchInlineSnapshot(`
-              {
-                "COMMENT": "Partner Comment",
-                "NAME": "PartnerServer",
-                "SYS_MODEL": "PartnerModel",
-                "changeNames": "Apply",
-                "server_addr": "",
-                "server_name": "",
-              }
-            `);
-        }, 10000);
     });
 });
 
@@ -1722,7 +1373,6 @@ describe('applyActivationCustomizations specific tests', () => {
     const activationDir = mockPaths.activationBase;
     const userDynamixCfg = mockPaths['dynamix-config'][1];
     const caseModelCfg = mockPaths.boot.caseModelConfig;
-    const identCfg = mockPaths.identConfig;
     const bannerSource = mockPaths.activation.banner;
     const bannerTarget = mockPaths.webgui.banner;
     const caseModelSource = mockPaths.activation.caseModel;
@@ -1787,7 +1437,6 @@ describe('applyActivationCustomizations specific tests', () => {
         (service as any).activationDir = activationDir;
         (service as any).configFile = userDynamixCfg;
         (service as any).caseModelCfg = caseModelCfg;
-        (service as any).identCfg = identCfg;
         (service as any).activationData = plainToInstance(ActivationCode, { ...mockActivationData });
 
         // Default mocks for dependencies, override in specific tests if needed
@@ -1797,7 +1446,6 @@ describe('applyActivationCustomizations specific tests', () => {
         vi.mocked(fs.access).mockResolvedValue(undefined); // Assume dirs/files accessible by default
         vi.mocked(fs.readFile).mockImplementation(async (p) => {
             if (p === userDynamixCfg) return ini.stringify({});
-            if (p === identCfg) return ini.stringify({});
             if (p === caseModelCfg) return ''; // Assume empty or non-existent
             return '';
         });

@@ -15,6 +15,23 @@ import {
 export class ServerService {
     private readonly logger = new Logger(ServerService.name);
 
+    private buildIdentityUpdateParams(
+        emhttpState: ReturnType<typeof getters.emhttp>,
+        name: string,
+        comment: string,
+        sysModel: string
+    ): Record<string, string> {
+        return {
+            changeNames: 'Apply',
+            server_https: emhttpState.nginx?.sslEnabled ? 'on' : '',
+            server_name: emhttpState.nginx?.lanName || 'localhost',
+            server_addr: emhttpState.nginx?.lanIp || '127.0.0.1',
+            NAME: name,
+            COMMENT: comment,
+            SYS_MODEL: sysModel,
+        };
+    }
+
     private buildServerResponse(
         emhttpState: ReturnType<typeof getters.emhttp>,
         name: string,
@@ -109,27 +126,23 @@ export class ServerService {
             }
         }
 
-        const params: Record<string, string> = {
-            changeNames: 'Apply',
-            NAME: name,
-        };
-
-        if (comment !== undefined) {
-            params.COMMENT = comment;
-        }
-        if (sysModel !== undefined) {
-            params.SYS_MODEL = sysModel;
-        }
+        const params = this.buildIdentityUpdateParams(currentEmhttp, name, nextComment, nextSysModel);
 
         try {
             await emcmd(params, { waitForToken: true });
             this.logger.log('Server identity updated successfully via emcmd.');
             const latestEmhttp = getters.emhttp();
-            const responseComment = comment ?? latestEmhttp.var?.comment ?? currentComment;
-            return this.buildServerResponse(latestEmhttp, name, responseComment);
+            return this.buildServerResponse(latestEmhttp, name, nextComment);
         } catch (error) {
             this.logger.error('Failed to update server identity', error);
-            throw new GraphQLError('Failed to update server identity');
+            throw new GraphQLError('Failed to update server identity', {
+                extensions: {
+                    cause:
+                        error instanceof Error && error.message
+                            ? error.message
+                            : 'Unknown server identity update failure',
+                },
+            });
         }
     }
 }

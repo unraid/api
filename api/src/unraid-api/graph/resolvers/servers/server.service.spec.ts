@@ -1,5 +1,9 @@
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { GraphQLError } from 'graphql';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { getters } from '@app/store/index.js';
@@ -17,10 +21,14 @@ vi.mock('@app/store/index.js', () => ({
 
 describe('ServerService', () => {
     let service: ServerService;
+    let tempDirectory: string;
+    let identConfigPath: string;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
         service = new ServerService();
+        tempDirectory = await mkdtemp(join(tmpdir(), 'server-service-'));
+        identConfigPath = join(tempDirectory, 'boot/config/ident.cfg');
 
         vi.mocked(getters.emhttp).mockReturnValue({
             var: {
@@ -29,10 +37,27 @@ describe('ServerService', () => {
                 regGuid: 'GUID-123',
                 port: '80',
                 comment: 'Tower comment',
+                sysModel: 'Model X100',
             },
             networks: [{ ipaddr: ['192.168.1.10'] }],
-        } as unknown as ReturnType<typeof getters.emhttp>);
+            nginx: {
+                sslEnabled: true,
+                lanName: 'tower.local',
+                lanIp: '192.168.1.10',
+            },
+        } as ReturnType<typeof getters.emhttp>);
         vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
+
+        await mkdir(join(tempDirectory, 'boot/config'), { recursive: true });
+        await writeFile(
+            identConfigPath,
+            'NAME="Tower"\nCOMMENT="Tower comment"\nSYS_MODEL="Model X100"\nEXTRA="keep-me"\n',
+            'utf8'
+        );
+    });
+
+    afterEach(async () => {
+        await rm(tempDirectory, { recursive: true, force: true });
     });
 
     it('throws for invalid server name characters', async () => {
@@ -87,8 +112,18 @@ describe('ServerService', () => {
                 name: 'Tower',
                 mdState: 'STARTED',
                 fsState: 'Started',
+                regGuid: 'GUID-123',
+                port: '80',
+                comment: 'Tower comment',
+                sysModel: 'Model X100',
             },
-        } as any);
+            networks: [{ ipaddr: ['192.168.1.10'] }],
+            nginx: {
+                sslEnabled: true,
+                lanName: 'tower.local',
+                lanIp: '192.168.1.10',
+            },
+        } as ReturnType<typeof getters.emhttp>);
 
         await expect(service.updateServerIdentity('NewTower', 'desc')).rejects.toThrow(
             'The array must be stopped to change the server name.'
@@ -100,7 +135,7 @@ describe('ServerService', () => {
         });
     });
 
-    it('allows name change when mdState is STOPPED even if fsState is not Stopped (internal boot)', async () => {
+    it('allows name change when mdState is STOPPED even if fsState is not Stopped', async () => {
         vi.mocked(getters.emhttp).mockReturnValue({
             var: {
                 name: 'Tower',
@@ -109,25 +144,48 @@ describe('ServerService', () => {
                 regGuid: 'GUID-123',
                 port: '80',
                 comment: '',
+                sysModel: '',
             },
             networks: [{ ipaddr: ['192.168.1.10'] }],
-        } as unknown as ReturnType<typeof getters.emhttp>);
+            nginx: {
+                sslEnabled: true,
+                lanName: 'tower.local',
+                lanIp: '192.168.1.10',
+            },
+        } as ReturnType<typeof getters.emhttp>);
 
         await expect(service.updateServerIdentity('NewTower', 'desc')).resolves.toMatchObject({
             name: 'NewTower',
         });
     });
 
-    it('calls emcmd with expected params and returns optimistic server', async () => {
-        const result = await service.updateServerIdentity('Tower', 'Primary host');
+    it('sends the Identification.page payload and persists ident.cfg', async () => {
+        vi.mocked(emcmd).mockImplementation(async (params) => {
+            await writeFile(
+                identConfigPath,
+                `NAME="${params.NAME}"\nCOMMENT="${params.COMMENT}"\nSYS_MODEL="${params.SYS_MODEL}"\nEXTRA="keep-me"\n`,
+                'utf8'
+            );
+            return { ok: true } as Awaited<ReturnType<typeof emcmd>>;
+        });
+
+        const result = await service.updateServerIdentity('Test1e', 'Test server1e', 'Model X200');
 
         expect(emcmd).toHaveBeenCalledWith(
             {
                 changeNames: 'Apply',
-                NAME: 'Tower',
-                COMMENT: 'Primary host',
+                server_https: 'on',
+                server_name: 'tower.local',
+                server_addr: '192.168.1.10',
+                NAME: 'Test1e',
+                COMMENT: 'Test server1e',
+                SYS_MODEL: 'Model X200',
             },
             { waitForToken: true }
+        );
+
+        await expect(readFile(identConfigPath, 'utf8')).resolves.toBe(
+            'NAME="Test1e"\nCOMMENT="Test server1e"\nSYS_MODEL="Model X200"\nEXTRA="keep-me"\n'
         );
 
         expect(result).toEqual({
@@ -140,8 +198,8 @@ describe('ServerService', () => {
             },
             guid: 'GUID-123',
             apikey: '',
-            name: 'Tower',
-            comment: 'Primary host',
+            name: 'Test1e',
+            comment: 'Test server1e',
             status: 'ONLINE',
             wanip: '',
             lanip: '192.168.1.10',
@@ -150,10 +208,42 @@ describe('ServerService', () => {
         });
     });
 
+    it('preserves current comment and model when omitted, like the webgui form does', async () => {
+        vi.mocked(emcmd).mockImplementation(async (params) => {
+            await writeFile(
+                identConfigPath,
+                `NAME="${params.NAME}"\nCOMMENT="${params.COMMENT}"\nSYS_MODEL="${params.SYS_MODEL}"\nEXTRA="keep-me"\n`,
+                'utf8'
+            );
+            return { ok: true } as Awaited<ReturnType<typeof emcmd>>;
+        });
+
+        await service.updateServerIdentity('TowerRenamed');
+
+        expect(emcmd).toHaveBeenCalledWith(
+            {
+                changeNames: 'Apply',
+                server_https: 'on',
+                server_name: 'tower.local',
+                server_addr: '192.168.1.10',
+                NAME: 'TowerRenamed',
+                COMMENT: 'Tower comment',
+                SYS_MODEL: 'Model X100',
+            },
+            { waitForToken: true }
+        );
+
+        await expect(readFile(identConfigPath, 'utf8')).resolves.toBe(
+            'NAME="TowerRenamed"\nCOMMENT="Tower comment"\nSYS_MODEL="Model X100"\nEXTRA="keep-me"\n'
+        );
+    });
+
     it('skips emcmd when identity values are unchanged', async () => {
-        const result = await service.updateServerIdentity('Tower', 'Tower comment');
+        const before = await readFile(identConfigPath, 'utf8');
+        const result = await service.updateServerIdentity('Tower', 'Tower comment', 'Model X100');
 
         expect(emcmd).not.toHaveBeenCalled();
+        await expect(readFile(identConfigPath, 'utf8')).resolves.toBe(before);
         expect(result).toMatchObject({
             name: 'Tower',
             comment: 'Tower comment',
@@ -161,7 +251,7 @@ describe('ServerService', () => {
         });
     });
 
-    it('skips emcmd when sysModel is unchanged', async () => {
+    it('writes server_https as empty when ssl is disabled', async () => {
         vi.mocked(getters.emhttp).mockReturnValue({
             var: {
                 name: 'Tower',
@@ -169,35 +259,50 @@ describe('ServerService', () => {
                 regGuid: 'GUID-123',
                 port: '80',
                 comment: 'Tower comment',
-                sysModel: 'Model X200',
+                sysModel: 'Model X100',
             },
             networks: [{ ipaddr: ['192.168.1.10'] }],
-        } as unknown as ReturnType<typeof getters.emhttp>);
+            nginx: {
+                sslEnabled: false,
+                lanName: 'tower.local',
+                lanIp: '192.168.1.10',
+            },
+        } as ReturnType<typeof getters.emhttp>);
 
-        await service.updateServerIdentity('Tower', 'Tower comment', 'Model X200');
-
-        expect(emcmd).not.toHaveBeenCalled();
-    });
-
-    it('includes SYS_MODEL when provided', async () => {
-        await service.updateServerIdentity('Tower', 'Primary host', 'Model X200');
+        await service.updateServerIdentity('Tower', 'Primary host', 'Model X100');
 
         expect(emcmd).toHaveBeenCalledWith(
-            {
-                changeNames: 'Apply',
-                NAME: 'Tower',
-                COMMENT: 'Primary host',
-                SYS_MODEL: 'Model X200',
-            },
+            expect.objectContaining({
+                server_https: '',
+            }),
             { waitForToken: true }
         );
     });
 
-    it('throws generic failure when emcmd fails', async () => {
+    it('throws generic failure when emcmd fails and leaves ident.cfg untouched', async () => {
         vi.mocked(emcmd).mockRejectedValue(new Error('socket failure'));
+        const before = await readFile(identConfigPath, 'utf8');
 
-        await expect(service.updateServerIdentity('Tower', 'Primary host')).rejects.toThrow(
-            'Failed to update server identity'
-        );
+        await expect(service.updateServerIdentity('Tower', 'Primary host')).rejects.toMatchObject({
+            message: 'Failed to update server identity',
+            extensions: {
+                cause: 'socket failure',
+            },
+        });
+
+        await expect(readFile(identConfigPath, 'utf8')).resolves.toBe(before);
+    });
+
+    it('throws generic failure when emcmd fails to persist identity', async () => {
+        vi.mocked(emcmd).mockImplementation(async () => {
+            throw new Error('ident persistence failed');
+        });
+
+        await expect(service.updateServerIdentity('Tower', 'Primary host')).rejects.toMatchObject({
+            message: 'Failed to update server identity',
+            extensions: {
+                cause: 'ident persistence failed',
+            },
+        });
     });
 });
