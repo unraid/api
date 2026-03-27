@@ -1386,6 +1386,8 @@ const handleBack = () => {
 
       <UModal
         :open="showApplyResultDialog"
+        :dismissible="false"
+        :close="false"
         :portal="false"
         :title="applyResultTitle"
         :description="applyResultMessage"
@@ -1396,7 +1398,6 @@ const handleBack = () => {
             ? 'z-50 w-[calc(100vw-2rem)] max-w-3xl'
             : 'z-50 max-w-md',
         }"
-        @update:open="showApplyResultDialog = $event"
       >
         <template v-if="showDiagnosticLogsInResultDialog" #body>
           <div class="space-y-3">
