@@ -85,6 +85,7 @@ describe('ServerService', () => {
         vi.mocked(getters.emhttp).mockReturnValue({
             var: {
                 name: 'Tower',
+                mdState: 'STARTED',
                 fsState: 'Started',
             },
         } as any);
@@ -96,6 +97,24 @@ describe('ServerService', () => {
         await expect(service.updateServerIdentity('Tower', 'desc')).resolves.toMatchObject({
             name: 'Tower',
             comment: 'desc',
+        });
+    });
+
+    it('allows name change when mdState is STOPPED even if fsState is not Stopped (internal boot)', async () => {
+        vi.mocked(getters.emhttp).mockReturnValue({
+            var: {
+                name: 'Tower',
+                mdState: 'STOPPED',
+                fsState: 'Started',
+                regGuid: 'GUID-123',
+                port: '80',
+                comment: '',
+            },
+            networks: [{ ipaddr: ['192.168.1.10'] }],
+        } as unknown as ReturnType<typeof getters.emhttp>);
+
+        await expect(service.updateServerIdentity('NewTower', 'desc')).resolves.toMatchObject({
+            name: 'NewTower',
         });
     });
 
