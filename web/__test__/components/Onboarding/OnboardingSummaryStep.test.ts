@@ -255,9 +255,9 @@ const mountComponent = (props: Record<string, unknown> = {}) => {
           template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
         },
         UModal: {
-          props: ['open', 'ui', 'title', 'description'],
+          props: ['open', 'ui', 'title', 'description', 'dismissible', 'close'],
           template: `
-            <div v-if="open" data-testid="dialog" :class="ui?.content">
+            <div v-if="open" data-testid="dialog" :class="ui?.content" :data-dismissible="dismissible" :data-close="close" :data-title="title">
               <div>{{ title }}</div>
               <div>{{ description }}</div>
               <slot name="body" />
@@ -582,6 +582,20 @@ describe('OnboardingSummaryStep', () => {
       message: 'There were no onboarding updates to apply, so nothing was changed.',
       severity: 'success',
     });
+  });
+
+  it('only allows closing the apply result dialog via the OK button', async () => {
+    const { wrapper, onComplete } = mountComponent();
+
+    await clickApply(wrapper);
+
+    const vm = getSummaryVm(wrapper);
+    expect(vm.showApplyResultDialog).toBe(true);
+    expect(onComplete).not.toHaveBeenCalled();
+
+    vm.handleApplyResultConfirm();
+    expect(vm.showApplyResultDialog).toBe(false);
+    expect(onComplete).toHaveBeenCalledOnce();
   });
 
   it.each([
