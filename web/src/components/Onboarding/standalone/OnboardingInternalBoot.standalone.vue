@@ -9,7 +9,6 @@ import {
   XMarkIcon,
 } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
-import InternalBootConfirmDialog from '@/components/Onboarding/components/InternalBootConfirmDialog.vue';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import {
   applyInternalBootSelection,
@@ -54,11 +53,8 @@ const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
 
 const isLocked = computed(() => draftStore.internalBootApplyAttempted);
-const pendingPowerAction = ref<'reboot' | 'shutdown' | null>(null);
 
-const handleConfirmPowerAction = () => {
-  const action = pendingPowerAction.value;
-  pendingPowerAction.value = null;
+const handlePowerAction = (action: 'reboot' | 'shutdown') => {
   cleanupOnboardingStorage();
   if (action === 'shutdown') {
     submitInternalBootShutdown();
@@ -462,7 +458,7 @@ onUnmounted(() => {
                     type="button"
                     data-testid="internal-boot-standalone-shutdown"
                     class="text-muted hover:text-highlighted text-sm font-medium transition-colors"
-                    @click="pendingPowerAction = 'shutdown'"
+                    @click="handlePowerAction('shutdown')"
                   >
                     {{ t('onboarding.nextSteps.shutdown') }}
                   </button>
@@ -470,7 +466,7 @@ onUnmounted(() => {
                     type="button"
                     data-testid="internal-boot-standalone-reboot"
                     class="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
-                    @click="pendingPowerAction = 'reboot'"
+                    @click="handlePowerAction('reboot')"
                   >
                     {{ t('onboarding.nextSteps.reboot') }}
                   </button>
@@ -491,11 +487,4 @@ onUnmounted(() => {
       </div>
     </div>
   </Dialog>
-
-  <InternalBootConfirmDialog
-    :open="pendingPowerAction !== null"
-    :action="pendingPowerAction ?? 'reboot'"
-    @confirm="handleConfirmPowerAction"
-    @cancel="pendingPowerAction = null"
-  />
 </template>
