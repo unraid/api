@@ -306,10 +306,13 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
 });
 
 const closeModal = async () => {
-  await onboardingModalStore.closeModal();
-  cleanupOnboardingStorage();
-  clearHistorySession();
-  window.location.reload();
+  try {
+    await onboardingModalStore.closeModal();
+  } finally {
+    cleanupOnboardingStorage();
+    clearHistorySession();
+    window.location.reload();
+  }
 };
 
 const setActiveStepByIndex = (stepIndex: number) => {
