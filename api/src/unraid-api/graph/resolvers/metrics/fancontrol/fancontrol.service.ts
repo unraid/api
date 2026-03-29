@@ -7,11 +7,13 @@ import {
 } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/controller.interface.js';
 import { HwmonService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/hwmon.service.js';
 import { IpmiFanService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/ipmi_fan.service.js';
+import { FanCurveService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fan-curve.service.js';
 import { FanControlConfigService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.service.js';
 import {
     Fan,
     FanControlMetrics,
     FanControlSummary,
+    FanProfile,
     FanSpeed,
     FanType,
 } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol.model.js';
@@ -28,7 +30,8 @@ export class FanControlService implements OnModuleInit {
     constructor(
         private readonly hwmonService: HwmonService,
         private readonly ipmiFanService: IpmiFanService,
-        private readonly configService: FanControlConfigService
+        private readonly configService: FanControlConfigService,
+        private readonly fanCurveService: FanCurveService
     ) {}
 
     async onModuleInit(): Promise<void> {
@@ -103,10 +106,12 @@ export class FanControlService implements OnModuleInit {
 
         const summary = this.buildSummary(fans);
 
+        const profiles = this.getProfiles();
+
         const metrics = Object.assign(new FanControlMetrics(), {
             id: 'fanControl',
             fans,
-            profiles: [],
+            profiles,
             summary,
         });
 
@@ -114,6 +119,27 @@ export class FanControlService implements OnModuleInit {
         this.cacheTimestamp = Date.now();
 
         return metrics;
+    }
+
+    private getProfiles(): FanProfile[] {
+        const defaultProfiles = this.fanCurveService.getProfiles();
+        const config = this.configService.getConfig();
+        const customProfiles = config.profiles ?? {};
+
+        const allProfiles = { ...defaultProfiles, ...customProfiles };
+
+        return Object.entries(allProfiles).map(([name, profileConfig]) =>
+            Object.assign(new FanProfile(), {
+                name,
+                description: profileConfig.description,
+                curvePoints: (profileConfig.curve ?? []).map((point) => ({
+                    temperature: point.temp ?? 0,
+                    speed: point.speed ?? 0,
+                })),
+                minSpeed: 20,
+                maxSpeed: 100,
+            })
+        );
     }
 
     private buildSummary(fans: Fan[]): FanControlSummary {

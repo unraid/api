@@ -39,7 +39,7 @@ export class IpmiFanService implements FanControllerProvider {
         if (!Number.isFinite(value) || value < 0 || value > 255) {
             throw new Error(`Invalid PWM value: ${value}. Must be a number between 0 and 255.`);
         }
-        const percent = Math.round((Math.max(0, Math.min(255, value)) / 255) * 100);
+        const percent = Math.round((value / 255) * 100);
         try {
             // NOTE: raw command 0x30 0x70 0x66 is Supermicro-specific fan control
             await execa(

@@ -6,14 +6,20 @@ import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { pwmEnableToControlMode } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/controller.interface.js';
 import { HwmonService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/hwmon.service.js';
+import { FanCurveService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fan-curve.service.js';
 import { FanSafetyService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fan-safety.service.js';
-import { UpdateFanControlConfigInput } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.model.js';
+import {
+    FanControlConfig,
+    UpdateFanControlConfigInput,
+} from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.model.js';
 import { FanControlConfigService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.service.js';
 import {
     SetFanModeInput,
+    SetFanProfileInput,
     SetFanSpeedInput,
 } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol.input.js';
 import {
+    CreateFanProfileInput,
     FanControlMetrics,
     FanControlMode,
 } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol.model.js';
@@ -25,7 +31,8 @@ export class FanControlResolver {
     constructor(
         private readonly hwmonService: HwmonService,
         private readonly safetyService: FanSafetyService,
-        private readonly configService: FanControlConfigService
+        private readonly configService: FanControlConfigService,
+        private readonly fanCurveService: FanCurveService
     ) {}
 
     @Mutation(() => Boolean, { description: 'Set fan PWM speed' })
@@ -150,6 +157,97 @@ export class FanControlResolver {
         }
 
         this.configService.replaceConfig(updated);
+
+        if (updated.control_enabled && updated.zones && updated.zones.length > 0) {
+            this.fanCurveService.start(updated.zones);
+            this.logger.log('Fan curve engine started with zone config');
+        } else if (!updated.control_enabled) {
+            this.fanCurveService.stop();
+            this.logger.log('Fan curve engine stopped');
+        }
+
+        return true;
+    }
+
+    @Mutation(() => Boolean, { description: 'Assign a fan profile to a specific fan' })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.CONFIG,
+    })
+    async setFanProfile(
+        @Args('input', { type: () => SetFanProfileInput }) input: SetFanProfileInput
+    ): Promise<boolean> {
+        const config = this.configService.getConfig();
+        if (!config.control_enabled) {
+            throw new Error('Fan control is not enabled. Enable it in config first.');
+        }
+
+        const allProfiles = { ...this.fanCurveService.getProfiles(), ...(config.profiles ?? {}) };
+        if (!allProfiles[input.profileName]) {
+            throw new Error(
+                `Profile "${input.profileName}" not found. Available: ${Object.keys(allProfiles).join(', ')}`
+            );
+        }
+
+        const readings = await this.hwmonService.readAll();
+        const fan = readings.find((r) => r.id === input.fanId);
+        if (!fan) {
+            throw new Error(`Fan ${input.fanId} not found`);
+        }
+
+        const zones = config.zones ?? [];
+        const existingZoneIdx = zones.findIndex((z) => z.fans.includes(input.fanId));
+        if (existingZoneIdx >= 0) {
+            zones[existingZoneIdx].profile = input.profileName;
+            if (input.temperatureSensorId) {
+                zones[existingZoneIdx].sensor = input.temperatureSensorId;
+            }
+        } else {
+            zones.push({
+                fans: [input.fanId],
+                sensor: input.temperatureSensorId ?? '',
+                profile: input.profileName,
+            });
+        }
+
+        const updated: FanControlConfig = { ...config, zones };
+        this.configService.replaceConfig(updated);
+
+        if (updated.control_enabled && zones.length > 0) {
+            this.fanCurveService.start(zones);
+        }
+
+        this.logger.log(`Assigned profile "${input.profileName}" to fan ${input.fanId}`);
+        return true;
+    }
+
+    @Mutation(() => Boolean, { description: 'Create a custom fan profile' })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.CONFIG,
+    })
+    async createFanProfile(
+        @Args('input', { type: () => CreateFanProfileInput }) input: CreateFanProfileInput
+    ): Promise<boolean> {
+        const config = this.configService.getConfig();
+        const profiles = config.profiles ?? {};
+
+        const defaultProfiles = this.fanCurveService.getProfiles();
+        if (defaultProfiles[input.name]) {
+            throw new Error(
+                `Cannot overwrite built-in profile "${input.name}". Choose a different name.`
+            );
+        }
+
+        profiles[input.name] = {
+            description: input.description,
+            curve: input.curvePoints.map((p) => ({ temp: p.temperature, speed: p.speed })),
+        };
+
+        const updated: FanControlConfig = { ...config, profiles };
+        this.configService.replaceConfig(updated);
+
+        this.logger.log(`Created custom fan profile "${input.name}"`);
         return true;
     }
 

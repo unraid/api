@@ -8,6 +8,7 @@ import {
 } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/controller.interface.js';
 import { HwmonService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/hwmon.service.js';
 import { IpmiFanService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/ipmi_fan.service.js';
+import { FanCurveService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fan-curve.service.js';
 import { FanControlConfigService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.service.js';
 import {
     FanConnectorType,
@@ -20,6 +21,7 @@ describe('FanControlService', () => {
     let hwmon: Partial<FanControllerProvider>;
     let ipmi: Partial<FanControllerProvider>;
     let configService: FanControlConfigService;
+    let fanCurveService: Partial<FanCurveService>;
 
     const mockReading: RawFanReading = {
         id: 'nct6793:fan1',
@@ -91,12 +93,41 @@ describe('FanControlService', () => {
                 max_temp_before_full: 85,
                 fan_failure_threshold: 0,
             },
+            zones: [],
+            profiles: {},
         });
+
+        fanCurveService = {
+            getProfiles: vi.fn().mockReturnValue({
+                silent: {
+                    description: 'Low noise, higher temperatures',
+                    curve: [
+                        { temp: 30, speed: 20 },
+                        { temp: 85, speed: 100 },
+                    ],
+                },
+                balanced: {
+                    description: 'Balance between noise and cooling',
+                    curve: [
+                        { temp: 30, speed: 30 },
+                        { temp: 80, speed: 100 },
+                    ],
+                },
+                performance: {
+                    description: 'Maximum cooling, higher noise',
+                    curve: [
+                        { temp: 30, speed: 50 },
+                        { temp: 75, speed: 100 },
+                    ],
+                },
+            }),
+        };
 
         service = new FanControlService(
             hwmon as unknown as HwmonService,
             ipmi as unknown as IpmiFanService,
-            configService
+            configService,
+            fanCurveService as unknown as FanCurveService
         );
     });
 
@@ -181,6 +212,47 @@ describe('FanControlService', () => {
             const metrics = await service.getMetrics();
 
             expect(metrics.fans).toHaveLength(1);
+        });
+
+        it('should populate profiles from FanCurveService', async () => {
+            await service.onModuleInit();
+            const metrics = await service.getMetrics();
+
+            expect(metrics.profiles).toHaveLength(3);
+            expect(metrics.profiles.map((p) => p.name)).toContain('silent');
+            expect(metrics.profiles.map((p) => p.name)).toContain('balanced');
+            expect(metrics.profiles.map((p) => p.name)).toContain('performance');
+        });
+
+        it('should merge custom profiles from config', async () => {
+            vi.mocked(configService.getConfig).mockReturnValue({
+                enabled: true,
+                control_enabled: false,
+                polling_interval: 2000,
+                control_method: 'auto',
+                safety: {
+                    min_speed_percent: 20,
+                    cpu_min_speed_percent: 30,
+                    max_temp_before_full: 85,
+                    fan_failure_threshold: 0,
+                },
+                zones: [],
+                profiles: {
+                    custom: {
+                        description: 'My custom profile',
+                        curve: [
+                            { temp: 30, speed: 40 },
+                            { temp: 80, speed: 90 },
+                        ],
+                    },
+                },
+            });
+
+            await service.onModuleInit();
+            const metrics = await service.getMetrics();
+
+            expect(metrics.profiles).toHaveLength(4);
+            expect(metrics.profiles.map((p) => p.name)).toContain('custom');
         });
     });
 });

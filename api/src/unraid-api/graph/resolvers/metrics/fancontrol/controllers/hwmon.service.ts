@@ -116,12 +116,20 @@ export class HwmonService implements FanControllerProvider {
 
                     const fans = files
                         .filter((f) => /^fan\d+_input$/.test(f))
-                        .map((f) => parseInt(f.match(/^fan(\d+)_input$/)![1], 10))
+                        .map((f) => {
+                            const m = f.match(/^fan(\d+)_input$/);
+                            return m ? parseInt(m[1], 10) : NaN;
+                        })
+                        .filter((n) => !Number.isNaN(n))
                         .sort((a, b) => a - b);
 
                     const pwms = files
                         .filter((f) => /^pwm\d+$/.test(f))
-                        .map((f) => parseInt(f.match(/^pwm(\d+)$/)![1], 10))
+                        .map((f) => {
+                            const m = f.match(/^pwm(\d+)$/);
+                            return m ? parseInt(m[1], 10) : NaN;
+                        })
+                        .filter((n) => !Number.isNaN(n))
                         .sort((a, b) => a - b);
 
                     if (fans.length > 0) {

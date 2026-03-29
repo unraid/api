@@ -36,6 +36,8 @@ export class FanControlConfigService extends ConfigFilePersister<FanControlConfi
                 max_temp_before_full: 85,
                 fan_failure_threshold: 0,
             },
+            zones: [],
+            profiles: {},
         };
     }
 

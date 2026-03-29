@@ -1,7 +1,18 @@
 import { Field, Float, InputType, Int, ObjectType } from '@nestjs/graphql';
 
-import { Type } from 'class-transformer';
-import { IsBoolean, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { plainToInstance, Type } from 'class-transformer';
+import {
+    IsBoolean,
+    IsNumber,
+    IsOptional,
+    IsString,
+    Validate,
+    ValidateNested,
+    validateSync,
+    ValidatorConstraint,
+    ValidatorConstraintInterface,
+} from 'class-validator';
+import { GraphQLJSON } from 'graphql-scalars';
 
 @ObjectType()
 export class FanControlSafetyConfig {
@@ -65,6 +76,30 @@ export class FanZoneConfig {
     profile!: string;
 }
 
+@ValidatorConstraint({ name: 'ValidateProfiles', async: false })
+class ValidateProfiles implements ValidatorConstraintInterface {
+    validate(value: unknown): boolean {
+        if (value === null || value === undefined) {
+            return true;
+        }
+        if (typeof value !== 'object' || Array.isArray(value)) {
+            return false;
+        }
+        for (const [, entry] of Object.entries(value as Record<string, unknown>)) {
+            const instance = plainToInstance(FanProfileConfig, entry);
+            const errors = validateSync(instance);
+            if (errors.length > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    defaultMessage(): string {
+        return 'Each profile must be a valid FanProfileConfig with a curve array of {temp, speed} points';
+    }
+}
+
 @ObjectType()
 export class FanControlConfig {
     @Field({ nullable: true })
@@ -92,6 +127,20 @@ export class FanControlConfig {
     @Type(() => FanControlSafetyConfig)
     @IsOptional()
     safety?: FanControlSafetyConfig;
+
+    @Field(() => [FanZoneConfig], {
+        nullable: true,
+        description: 'Fan zone configurations for automatic curve control',
+    })
+    @ValidateNested({ each: true })
+    @Type(() => FanZoneConfig)
+    @IsOptional()
+    zones?: FanZoneConfig[];
+
+    @Field(() => GraphQLJSON, { nullable: true, description: 'Custom fan profiles (name -> config)' })
+    @Validate(ValidateProfiles)
+    @IsOptional()
+    profiles?: Record<string, FanProfileConfig>;
 }
 
 @InputType()
@@ -118,6 +167,21 @@ export class FanControlSafetyInput {
 }
 
 @InputType()
+export class FanZoneConfigInput {
+    @Field(() => [String], { description: 'Fan IDs in this zone' })
+    @IsString({ each: true })
+    fans!: string[];
+
+    @Field(() => String, { description: 'Temperature sensor ID' })
+    @IsString()
+    sensor!: string;
+
+    @Field(() => String, { description: 'Profile name to use' })
+    @IsString()
+    profile!: string;
+}
+
+@InputType()
 export class UpdateFanControlConfigInput {
     @Field({ nullable: true })
     @IsBoolean()
@@ -139,4 +203,13 @@ export class UpdateFanControlConfigInput {
     @Type(() => FanControlSafetyInput)
     @IsOptional()
     safety?: FanControlSafetyInput;
+
+    @Field(() => [FanZoneConfigInput], {
+        nullable: true,
+        description: 'Zone configurations for automatic curve control',
+    })
+    @ValidateNested({ each: true })
+    @Type(() => FanZoneConfigInput)
+    @IsOptional()
+    zones?: FanZoneConfigInput[];
 }

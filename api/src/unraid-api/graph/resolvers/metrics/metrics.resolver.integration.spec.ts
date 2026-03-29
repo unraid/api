@@ -37,12 +37,6 @@ describe('MetricsResolver Integration Tests', () => {
                         getMetrics: vi.fn().mockResolvedValue(null),
                     },
                 },
-                {
-                    provide: FanControlService,
-                    useValue: {
-                        getMetrics: vi.fn().mockResolvedValue(null),
-                    },
-                },
                 SubscriptionTrackerService,
                 SubscriptionHelperService,
                 SubscriptionManagerService,
@@ -59,9 +53,15 @@ describe('MetricsResolver Integration Tests', () => {
                     },
                 },
                 {
+                    provide: FanControlService,
+                    useValue: {
+                        getMetrics: vi.fn().mockResolvedValue(null),
+                    },
+                },
+                {
                     provide: FanControlConfigService,
                     useValue: {
-                        getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 2000 }),
+                        getConfig: vi.fn().mockReturnValue({ enabled: false }),
                     },
                 },
             ],

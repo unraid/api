@@ -116,12 +116,6 @@ describe('Temperature GraphQL Integration', () => {
                     },
                 },
                 {
-                    provide: FanControlService,
-                    useValue: {
-                        getMetrics: vi.fn().mockResolvedValue(null),
-                    },
-                },
-                {
                     provide: SubscriptionTrackerService,
                     useValue: {
                         registerTopic: vi.fn(),
@@ -153,9 +147,15 @@ describe('Temperature GraphQL Integration', () => {
                     },
                 },
                 {
+                    provide: FanControlService,
+                    useValue: {
+                        getMetrics: vi.fn().mockResolvedValue(null),
+                    },
+                },
+                {
                     provide: FanControlConfigService,
                     useValue: {
-                        getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 2000 }),
+                        getConfig: vi.fn().mockReturnValue({ enabled: false }),
                     },
                 },
             ],

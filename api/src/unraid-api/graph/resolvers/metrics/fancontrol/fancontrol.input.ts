@@ -1,6 +1,6 @@
-import { Field, Float, InputType, Int } from '@nestjs/graphql';
+import { Field, InputType, Int } from '@nestjs/graphql';
 
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 import { FanControlMode } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol.model.js';
 
@@ -11,7 +11,9 @@ export class SetFanSpeedInput {
     fanId!: string;
 
     @Field(() => Int, { description: 'PWM value (0-255)' })
-    @IsNumber()
+    @IsInt()
+    @Min(0)
+    @Max(255)
     pwmValue!: number;
 }
 

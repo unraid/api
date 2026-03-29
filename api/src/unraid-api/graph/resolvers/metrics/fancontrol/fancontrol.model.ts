@@ -169,7 +169,7 @@ export class Fan extends Node {
 
 @ObjectType()
 export class FanControlSummary {
-    @Field(() => Int, { description: 'Total number of fans detected' })
+    @Field(() => Int, { description: 'Total number of fan headers reported by hardware' })
     @IsNumber()
     totalFans!: number;
 
@@ -195,7 +195,10 @@ export class FanControlSummary {
 
 @ObjectType({ implements: () => Node })
 export class FanControlMetrics extends Node {
-    @Field(() => [Fan], { description: 'All detected fans' })
+    @Field(() => [Fan], {
+        description:
+            'All fans reported by hardware, including entries that may be undetected or disconnected',
+    })
     fans!: Fan[];
 
     @Field(() => [FanProfile], { description: 'Available fan profiles' })

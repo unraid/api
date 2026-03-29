@@ -103,11 +103,19 @@ export class FanCurveService implements OnModuleDestroy {
         const config = this.configService.getConfig();
         const interval = config.polling_interval ?? 2000;
 
+        if (config.profiles) {
+            this.profiles = { ...DEFAULT_PROFILES, ...config.profiles };
+        }
+
         this.curveInterval = setInterval(async () => {
             if (this.isApplyingCurves) {
                 return;
             }
-            await this.applyCurves();
+            try {
+                await this.applyCurves();
+            } catch (err) {
+                this.logger.error(`Error applying fan curves: ${err}`);
+            }
         }, interval);
 
         await this.applyCurves();
@@ -141,6 +149,21 @@ export class FanCurveService implements OnModuleDestroy {
 
             const readings = await this.hwmonService.readAll();
 
+            const zoneSensorIds = new Set(this.activeZones.map((z) => z.sensor));
+            const zoneSensors = tempMetrics.sensors.filter(
+                (s) => zoneSensorIds.has(s.id) || zoneSensorIds.has(s.name)
+            );
+
+            const isOvertemp = await this.safetyService.checkTemperatureSafety(zoneSensors);
+            if (isOvertemp) {
+                return;
+            }
+
+            const isFanFailure = await this.safetyService.checkFanFailure(readings);
+            if (isFanFailure || this.safetyService.isInEmergencyMode()) {
+                return;
+            }
+
             for (const zone of this.activeZones) {
                 const profile = this.profiles[zone.profile];
                 if (!profile) {
@@ -163,10 +186,11 @@ export class FanCurveService implements OnModuleDestroy {
                     try {
                         const fan = readings.find((r) => r.id === fanId);
                         if (!fan || !fan.hasPwmControl) {
+                            this.logger.debug(`Fan ${fanId} not found or not controllable, skipping`);
                             continue;
                         }
 
-                        await this.safetyService.captureState(fanId, fan.devicePath, fan.pwmNumber);
+                        await this.safetyService.captureState(fanId, fan.devicePath, fan.pwmNumber, fan);
 
                         const isCpuFan = fan.fanNumber === 1 || fan.name.toLowerCase().includes('cpu');
                         const safePwm = isCpuFan
