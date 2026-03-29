@@ -247,6 +247,12 @@ export class FanControlResolver {
             );
         }
 
+        if (profiles[input.name]) {
+            throw new Error(
+                `A custom profile named "${input.name}" already exists. Delete it first or choose a different name.`
+            );
+        }
+
         profiles[input.name] = {
             description: input.description,
             curve: input.curvePoints.map((p) => ({ temp: p.temperature, speed: p.speed })),

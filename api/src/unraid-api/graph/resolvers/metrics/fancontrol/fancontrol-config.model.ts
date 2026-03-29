@@ -55,6 +55,8 @@ export class FanCurvePointConfig {
 
     @Field(() => Float)
     @IsNumber()
+    @Min(0)
+    @Max(100)
     speed!: number;
 }
 
