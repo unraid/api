@@ -162,7 +162,7 @@ export class FanControlResolver {
             await this.fanCurveService.start(updated.zones);
             this.logger.log('Fan curve engine started with zone config');
         } else if (!updated.control_enabled || !updated.zones?.length) {
-            this.fanCurveService.stop();
+            await this.fanCurveService.stop();
             this.logger.log('Fan curve engine stopped');
         }
 
@@ -206,9 +206,14 @@ export class FanControlResolver {
                 zones[existingZoneIdx].sensor = input.temperatureSensorId;
             }
         } else {
+            if (!input.temperatureSensorId) {
+                throw new Error(
+                    'temperatureSensorId is required when assigning a profile to a fan not already in a zone'
+                );
+            }
             zones.push({
                 fans: [input.fanId],
-                sensor: input.temperatureSensorId ?? '',
+                sensor: input.temperatureSensorId,
                 profile: input.profileName,
             });
         }
@@ -235,8 +240,8 @@ export class FanControlResolver {
         const config = this.configService.getConfig();
         const profiles = config.profiles ?? {};
 
-        const defaultProfiles = this.fanCurveService.getProfiles();
-        if (defaultProfiles[input.name]) {
+        const builtInProfiles = this.fanCurveService.getDefaultProfiles();
+        if (builtInProfiles[input.name]) {
             throw new Error(
                 `Cannot overwrite built-in profile "${input.name}". Choose a different name.`
             );
@@ -262,10 +267,10 @@ export class FanControlResolver {
                 return 1;
             case FanControlMode.AUTOMATIC:
                 return 2;
-            // FIXED maps to pwm_enable=1 (same as MANUAL). Hardware cannot distinguish
-            // between FIXED and MANUAL; readAll() will report MANUAL for both.
             case FanControlMode.FIXED:
-                return 1;
+                throw new Error(
+                    'FIXED mode cannot be set directly — hardware maps it identically to MANUAL. Use MANUAL instead.'
+                );
             case FanControlMode.OFF:
                 return 0;
             default:

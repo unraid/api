@@ -58,8 +58,8 @@ export class FanCurveService implements OnModuleDestroy {
         private readonly configService: FanControlConfigService
     ) {}
 
-    onModuleDestroy(): void {
-        this.stop();
+    async onModuleDestroy(): Promise<void> {
+        await this.stop();
     }
 
     getProfiles(): Record<string, FanProfileConfig> {
@@ -100,7 +100,7 @@ export class FanCurveService implements OnModuleDestroy {
     }
 
     async start(zones: FanZoneConfig[]): Promise<void> {
-        this.stop();
+        await this.stop();
         this.activeZones = zones;
 
         const config = this.configService.getConfig();
@@ -109,6 +109,8 @@ export class FanCurveService implements OnModuleDestroy {
         if (config.profiles) {
             this.profiles = { ...DEFAULT_PROFILES, ...config.profiles };
         }
+
+        await this.applyCurves();
 
         this.curveInterval = setInterval(async () => {
             if (this.isApplyingCurves) {
@@ -121,15 +123,15 @@ export class FanCurveService implements OnModuleDestroy {
             }
         }, interval);
 
-        await this.applyCurves();
         this.logger.log(`Fan curve engine started with ${zones.length} zone(s)`);
     }
 
-    stop(): void {
+    async stop(): Promise<void> {
         if (this.curveInterval) {
             clearInterval(this.curveInterval);
             this.curveInterval = null;
             this.activeZones = [];
+            await this.safetyService.restoreAllFans();
             this.logger.log('Fan curve engine stopped');
         }
     }

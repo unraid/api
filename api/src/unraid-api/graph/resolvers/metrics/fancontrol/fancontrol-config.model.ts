@@ -3,6 +3,7 @@ import { Field, Float, InputType, Int, ObjectType } from '@nestjs/graphql';
 import { plainToInstance, Type } from 'class-transformer';
 import {
     IsBoolean,
+    IsInt,
     IsNumber,
     IsOptional,
     IsString,
@@ -123,6 +124,32 @@ class ValidateProfiles implements ValidatorConstraintInterface {
     }
 }
 
+@ValidatorConstraint({ name: 'ValidateUniqueFanIdsAcrossZones', async: false })
+class ValidateUniqueFanIdsAcrossZones implements ValidatorConstraintInterface {
+    validate(zones: unknown): boolean {
+        if (!Array.isArray(zones)) {
+            return true;
+        }
+        const seen = new Set<string>();
+        for (const zone of zones) {
+            if (!zone || !Array.isArray(zone.fans)) {
+                continue;
+            }
+            for (const fanId of zone.fans as string[]) {
+                if (seen.has(fanId)) {
+                    return false;
+                }
+                seen.add(fanId);
+            }
+        }
+        return true;
+    }
+
+    defaultMessage(): string {
+        return 'A fan ID must not appear in more than one zone';
+    }
+}
+
 @ObjectType()
 export class FanControlConfig {
     @Field({ nullable: true })
@@ -136,8 +163,9 @@ export class FanControlConfig {
     control_enabled?: boolean;
 
     @Field(() => Int, { nullable: true })
-    @IsNumber()
+    @IsInt()
     @IsOptional()
+    @Min(1)
     polling_interval?: number;
 
     @Field(() => String, { nullable: true })
@@ -157,6 +185,7 @@ export class FanControlConfig {
     })
     @ValidateNested({ each: true })
     @Type(() => FanZoneConfig)
+    @Validate(ValidateUniqueFanIdsAcrossZones)
     @IsOptional()
     zones?: FanZoneConfig[];
 
@@ -224,8 +253,9 @@ export class UpdateFanControlConfigInput {
     control_enabled?: boolean;
 
     @Field(() => Int, { nullable: true })
-    @IsNumber()
+    @IsInt()
     @IsOptional()
+    @Min(1)
     polling_interval?: number;
 
     @Field(() => FanControlSafetyInput, { nullable: true })
@@ -240,6 +270,7 @@ export class UpdateFanControlConfigInput {
     })
     @ValidateNested({ each: true })
     @Type(() => FanZoneConfigInput)
+    @Validate(ValidateUniqueFanIdsAcrossZones)
     @IsOptional()
     zones?: FanZoneConfigInput[];
 }
