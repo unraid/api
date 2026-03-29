@@ -6,6 +6,8 @@ import {
     IsNumber,
     IsOptional,
     IsString,
+    Max,
+    Min,
     Validate,
     ValidateNested,
     validateSync,
@@ -19,21 +21,28 @@ export class FanControlSafetyConfig {
     @Field(() => Float, { nullable: true })
     @IsNumber()
     @IsOptional()
+    @Min(0)
+    @Max(100)
     min_speed_percent?: number;
 
     @Field(() => Float, { nullable: true })
     @IsNumber()
     @IsOptional()
+    @Min(0)
+    @Max(100)
     cpu_min_speed_percent?: number;
 
     @Field(() => Float, { nullable: true })
     @IsNumber()
     @IsOptional()
+    @Min(0)
+    @Max(150)
     max_temp_before_full?: number;
 
     @Field(() => Int, { nullable: true })
     @IsNumber()
     @IsOptional()
+    @Min(0)
     fan_failure_threshold?: number;
 }
 
@@ -59,6 +68,20 @@ export class FanProfileConfig {
     @ValidateNested({ each: true })
     @Type(() => FanCurvePointConfig)
     curve!: FanCurvePointConfig[];
+
+    @Field(() => Float, { nullable: true, description: 'Minimum fan speed percentage' })
+    @IsNumber()
+    @IsOptional()
+    @Min(0)
+    @Max(100)
+    minSpeed?: number;
+
+    @Field(() => Float, { nullable: true, description: 'Maximum fan speed percentage' })
+    @IsNumber()
+    @IsOptional()
+    @Min(0)
+    @Max(100)
+    maxSpeed?: number;
 }
 
 @ObjectType()
@@ -148,21 +171,28 @@ export class FanControlSafetyInput {
     @Field(() => Float, { nullable: true })
     @IsNumber()
     @IsOptional()
+    @Min(0)
+    @Max(100)
     min_speed_percent?: number;
 
     @Field(() => Float, { nullable: true })
     @IsNumber()
     @IsOptional()
+    @Min(0)
+    @Max(100)
     cpu_min_speed_percent?: number;
 
     @Field(() => Float, { nullable: true })
     @IsNumber()
     @IsOptional()
+    @Min(0)
+    @Max(150)
     max_temp_before_full?: number;
 
     @Field(() => Int, { nullable: true })
     @IsNumber()
     @IsOptional()
+    @Min(0)
     fan_failure_threshold?: number;
 }
 

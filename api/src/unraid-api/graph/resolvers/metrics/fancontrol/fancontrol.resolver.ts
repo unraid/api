@@ -159,9 +159,9 @@ export class FanControlResolver {
         this.configService.replaceConfig(updated);
 
         if (updated.control_enabled && updated.zones && updated.zones.length > 0) {
-            this.fanCurveService.start(updated.zones);
+            await this.fanCurveService.start(updated.zones);
             this.logger.log('Fan curve engine started with zone config');
-        } else if (!updated.control_enabled) {
+        } else if (!updated.control_enabled || !updated.zones?.length) {
             this.fanCurveService.stop();
             this.logger.log('Fan curve engine stopped');
         }
@@ -194,6 +194,9 @@ export class FanControlResolver {
         if (!fan) {
             throw new Error(`Fan ${input.fanId} not found`);
         }
+        if (!fan.hasPwmControl) {
+            throw new Error(`Fan ${input.fanId} does not support PWM control`);
+        }
 
         const zones = config.zones ?? [];
         const existingZoneIdx = zones.findIndex((z) => z.fans.includes(input.fanId));
@@ -214,7 +217,7 @@ export class FanControlResolver {
         this.configService.replaceConfig(updated);
 
         if (updated.control_enabled && zones.length > 0) {
-            this.fanCurveService.start(zones);
+            await this.fanCurveService.start(zones);
         }
 
         this.logger.log(`Assigned profile "${input.profileName}" to fan ${input.fanId}`);
@@ -242,6 +245,8 @@ export class FanControlResolver {
         profiles[input.name] = {
             description: input.description,
             curve: input.curvePoints.map((p) => ({ temp: p.temperature, speed: p.speed })),
+            minSpeed: input.minSpeed,
+            maxSpeed: input.maxSpeed,
         };
 
         const updated: FanControlConfig = { ...config, profiles };
@@ -257,6 +262,8 @@ export class FanControlResolver {
                 return 1;
             case FanControlMode.AUTOMATIC:
                 return 2;
+            // FIXED maps to pwm_enable=1 (same as MANUAL). Hardware cannot distinguish
+            // between FIXED and MANUAL; readAll() will report MANUAL for both.
             case FanControlMode.FIXED:
                 return 1;
             case FanControlMode.OFF:

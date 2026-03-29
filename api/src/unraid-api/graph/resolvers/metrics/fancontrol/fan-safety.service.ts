@@ -128,12 +128,17 @@ export class FanSafetyService implements OnModuleDestroy {
         const failedFans: string[] = [];
         for (const [fanId, state] of this.originalStates.entries()) {
             try {
+                if (state.pwmEnable === 1) {
+                    await this.hwmonService.setPwm(state.devicePath, state.pwmNumber, state.pwmValue);
+                }
                 await this.hwmonService.restoreAutomatic(
                     state.devicePath,
                     state.pwmNumber,
                     state.pwmEnable
                 );
-                this.logger.log(`Restored fan ${fanId} to enable=${state.pwmEnable}`);
+                this.logger.log(
+                    `Restored fan ${fanId} to enable=${state.pwmEnable}, pwm=${state.pwmValue}`
+                );
                 this.originalStates.delete(fanId);
             } catch (err) {
                 this.logger.error(`Failed to restore fan ${fanId}: ${err}`);

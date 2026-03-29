@@ -88,6 +88,9 @@ export class FanCurveService implements OnModuleDestroy {
             const lower = sorted[i];
             const upper = sorted[i + 1];
             if (temperature >= lower.temp && temperature <= upper.temp) {
+                if (upper.temp === lower.temp) {
+                    return upper.speed;
+                }
                 const ratio = (temperature - lower.temp) / (upper.temp - lower.temp);
                 return lower.speed + ratio * (upper.speed - lower.speed);
             }
@@ -149,12 +152,7 @@ export class FanCurveService implements OnModuleDestroy {
 
             const readings = await this.hwmonService.readAll();
 
-            const zoneSensorIds = new Set(this.activeZones.map((z) => z.sensor));
-            const zoneSensors = tempMetrics.sensors.filter(
-                (s) => zoneSensorIds.has(s.id) || zoneSensorIds.has(s.name)
-            );
-
-            const isOvertemp = await this.safetyService.checkTemperatureSafety(zoneSensors);
+            const isOvertemp = await this.safetyService.checkTemperatureSafety(tempMetrics.sensors);
             if (isOvertemp) {
                 return;
             }
