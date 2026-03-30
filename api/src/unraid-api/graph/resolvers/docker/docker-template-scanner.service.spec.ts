@@ -159,6 +159,22 @@ describe('DockerTemplateScannerService', () => {
             expect(result).toBeNull();
         });
 
+        it('should still match by repository when the container has no name', () => {
+            const container: DockerContainer = {
+                id: 'abc123',
+                names: [],
+                image: 'test/image:latest',
+            } as DockerContainer;
+
+            const templates = [
+                { filePath: '/path/1', name: 'different', repository: 'test/image:v1.0' },
+            ];
+
+            const result = (service as any).matchContainerToTemplate(container, templates);
+
+            expect(result).toEqual(templates[0]);
+        });
+
         it('should be case-insensitive', () => {
             const container: DockerContainer = {
                 id: 'abc123',
@@ -247,6 +263,33 @@ describe('DockerTemplateScannerService', () => {
 
             expect(result.skipped).toBe(1);
             expect(result.matched).toBe(0);
+        });
+
+        it('should skip nameless containers instead of crashing', async () => {
+            const containers: DockerContainer[] = [
+                {
+                    id: 'container1',
+                    names: [],
+                    image: 'redis:latest',
+                } as DockerContainer,
+            ];
+
+            vi.mocked(dockerService.getRawContainers).mockResolvedValue(containers);
+            vi.mocked(dockerConfigService.getConfig).mockReturnValue({
+                updateCheckCronSchedule: '0 6 * * *',
+                templateMappings: {},
+                skipTemplatePaths: [],
+            });
+
+            const result = await service.scanTemplates();
+
+            expect(result.errors).toHaveLength(0);
+            expect(result.skipped).toBe(1);
+            expect(dockerConfigService.replaceConfig).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    templateMappings: {},
+                })
+            );
         });
 
         it('should handle missing template directory gracefully', async () => {
@@ -387,6 +430,29 @@ describe('DockerTemplateScannerService', () => {
             expect(result).toBe(false);
             expect(scanSpy).not.toHaveBeenCalled();
         });
+
+        it('should ignore containers without a primary Docker name', async () => {
+            const containers: DockerContainer[] = [
+                {
+                    id: 'container1',
+                    names: [],
+                    image: 'redis:latest',
+                } as DockerContainer,
+            ];
+
+            vi.mocked(dockerConfigService.getConfig).mockReturnValue({
+                updateCheckCronSchedule: '0 6 * * *',
+                templateMappings: {},
+                skipTemplatePaths: [],
+            });
+
+            const scanSpy = vi.spyOn(service, 'scanTemplates');
+
+            const result = await service.syncMissingContainers(containers);
+
+            expect(result).toBe(false);
+            expect(scanSpy).not.toHaveBeenCalled();
+        });
     });
 
     describe('normalizeContainerName', () => {
@@ -398,6 +464,11 @@ describe('DockerTemplateScannerService', () => {
         it('should convert to lowercase', () => {
             const result = (service as any).normalizeContainerName('/Container-Name');
             expect(result).toBe('container-name');
+        });
+
+        it('should return null for missing container names', () => {
+            expect((service as any).normalizeContainerName(undefined)).toBeNull();
+            expect((service as any).normalizeContainerName('')).toBeNull();
         });
     });
 
