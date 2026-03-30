@@ -37,7 +37,7 @@ const {
       poolName: string;
       slotCount: number;
       devices: string[];
-      bootSizeMb: number;
+      bootSizeMiB: number;
       updateBios: boolean;
       poolMode: 'dedicated' | 'hybrid';
     } | null,
@@ -270,7 +270,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -295,7 +295,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       {
         poolName: 'cache',
         devices: ['DISK-A'],
-        bootSizeMb: 16000,
+        bootSizeMiB: 16384,
         updateBios: true,
         slotCount: 1,
         poolMode: 'hybrid',
@@ -323,7 +323,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
     };
@@ -384,7 +384,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -465,7 +465,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       poolName: 'boot-pool',
       slotCount: 1,
       devices: ['sda'],
-      bootSizeMb: 512,
+      bootSizeMiB: 512,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -511,7 +511,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
     };
@@ -530,7 +530,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
     };
@@ -555,7 +555,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -575,7 +575,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -596,7 +596,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
     };

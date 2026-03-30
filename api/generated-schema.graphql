@@ -1509,7 +1509,7 @@ input PartnerInfoOverrideInput {
 input CreateInternalBootPoolInput {
   poolName: String!
   devices: [String!]!
-  bootSizeMb: Int!
+  bootSizeMiB: Int!
   updateBios: Boolean!
   reboot: Boolean
 }

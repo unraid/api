@@ -13,7 +13,7 @@ type MockInternalBootSelection = {
   poolName: string;
   slotCount: number;
   devices: string[];
-  bootSizeMb: number;
+  bootSizeMiB: number;
   updateBios: boolean;
   poolMode: 'dedicated' | 'hybrid';
 };
@@ -316,7 +316,7 @@ describe('OnboardingInternalBootStep', () => {
       poolName: '',
       slotCount: 1,
       devices: [],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -348,7 +348,7 @@ describe('OnboardingInternalBootStep', () => {
       poolName: '',
       slotCount: 1,
       devices: [],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -482,7 +482,7 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
   });
 
-  it('allows 8 GB devices at the decimal minimum and rejects smaller drives', async () => {
+  it('allows marketed 8 GB devices in dedicated mode but not hybrid mode', async () => {
     draftStore.bootMode = 'storage';
     contextResult.value = buildContext({
       assignableDisks: [
@@ -491,13 +491,6 @@ describe('OnboardingInternalBootStep', () => {
           device: '/dev/sda',
           size: 8_000_000_000,
           serialNum: 'DEDICATED-8GB',
-          interfaceType: DiskInterfaceType.SATA,
-        },
-        {
-          id: 'SMALLER-THAN-8GB',
-          device: '/dev/sdc',
-          size: 7_900_000_000,
-          serialNum: 'SMALLER-THAN-8GB',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
@@ -518,22 +511,15 @@ describe('OnboardingInternalBootStep', () => {
     expect(vm.getDeviceSelectItems(0)).toEqual(
       expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-8GB' })])
     );
-    expect(vm.getDeviceSelectItems(0)).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ value: 'SMALLER-THAN-8GB' })])
-    );
-
     vm.poolMode = 'hybrid';
     await flushPromises();
 
-    expect(vm.getDeviceSelectItems(0)).toEqual(
-      expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-8GB' })])
-    );
     expect(vm.getDeviceSelectItems(0)).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ value: 'SMALLER-THAN-8GB' })])
+      expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-8GB' })])
     );
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
     await flushPromises();
-    expect(wrapper.text()).toContain('SMALLER-THAN-8GB - 7.9 GB (sdc)');
+    expect(wrapper.text()).toContain('DEDICATED-8GB - 8.0 GB (sda)');
     expect(wrapper.text()).toContain('TOO_SMALL');
   });
 

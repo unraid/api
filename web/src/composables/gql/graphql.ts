@@ -658,7 +658,7 @@ export type CreateApiKeyInput = {
 
 /** Input for creating an internal boot pool during onboarding */
 export type CreateInternalBootPoolInput = {
-  bootSizeMb: Scalars['Int']['input'];
+  bootSizeMiB: Scalars['Int']['input'];
   devices: Array<Scalars['String']['input']>;
   poolName: Scalars['String']['input'];
   reboot?: InputMaybe<Scalars['Boolean']['input']>;

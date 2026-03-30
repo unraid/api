@@ -559,11 +559,11 @@ export class OnboardingInternalBootService {
             }
 
             await this.runStep(
-                `cmdMakeBootable=apply&poolName=${input.poolName}&poolBootSize=${input.bootSizeMb}`,
+                `cmdMakeBootable=apply&poolName=${input.poolName}&poolBootSize=${input.bootSizeMiB}`,
                 {
                     cmdMakeBootable: 'apply',
                     poolName: input.poolName,
-                    poolBootSize: String(input.bootSizeMb),
+                    poolBootSize: String(input.bootSizeMiB),
                 },
                 output
             );

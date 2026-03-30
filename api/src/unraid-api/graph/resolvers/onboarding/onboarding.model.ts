@@ -307,7 +307,7 @@ export class CreateInternalBootPoolInput {
     @Field(() => Int)
     @IsInt()
     @Min(0)
-    bootSizeMb!: number;
+    bootSizeMiB!: number;
 
     @Field(() => Boolean)
     @IsBoolean()

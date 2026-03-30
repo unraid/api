@@ -215,7 +215,7 @@ describe('OnboardingMutationsResolver', () => {
         const input: CreateInternalBootPoolInput = {
             poolName: 'cache',
             devices: ['disk-1'],
-            bootSizeMb: 16000,
+            bootSizeMiB: 16384,
             updateBios: true,
         };
 

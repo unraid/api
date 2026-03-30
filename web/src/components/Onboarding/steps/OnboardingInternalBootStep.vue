@@ -39,7 +39,7 @@ interface InternalBootDeviceOption {
   label: string;
   device: string;
   sizeBytes: number | null;
-  sizeMb: number | null;
+  sizeMiB: number | null;
   warningCodes: InternalBootDiskWarningCode[];
 }
 
@@ -47,8 +47,8 @@ interface InternalBootTemplateData {
   poolNameDefault: string;
   slotOptions: number[];
   deviceOptions: InternalBootDeviceOption[];
-  bootSizePresetsMb: number[];
-  defaultBootSizeMb: number;
+  bootSizePresetsMiB: number[];
+  defaultBootSizeMiB: number;
   defaultUpdateBios: boolean;
   reservedNames: string[];
   shareNames: string[];
@@ -73,11 +73,11 @@ type InternalBootDiskEligibilityCode = 'TOO_SMALL';
 type InternalBootDiskWarningCode = 'HAS_INTERNAL_BOOT_PARTITIONS';
 type InternalBootDiskIssueCode = InternalBootDiskEligibilityCode | InternalBootDiskWarningCode;
 
-const MIN_BOOT_SIZE_MB = 4000;
+const MIN_BOOT_SIZE_MIB = 4096;
 const MIN_DEDICATED_DEVICE_SIZE_BYTES = 8 * 1000 * 1000 * 1000;
-const MIN_HYBRID_DEVICE_SIZE_MB = MIN_BOOT_SIZE_MB * 2;
-const DEFAULT_BOOT_SIZE_MB = 16000;
-const BOOT_SIZE_PRESETS_MB = [16000, 32000, 64000, 128000];
+const MIN_HYBRID_DEVICE_SIZE_MIB = MIN_BOOT_SIZE_MIB * 2;
+const DEFAULT_BOOT_SIZE_MIB = 16384;
+const BOOT_SIZE_PRESETS_MIB = [16384, 32768, 65536, 131072];
 const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode, string> = {
   NO_UNASSIGNED_DISKS: 'onboarding.internalBootStep.eligibility.codes.NO_UNASSIGNED_DISKS',
   ENABLE_BOOT_TRANSFER_DISABLED:
@@ -103,11 +103,11 @@ const formatBytes = (bytes: number) => {
   return `${converted.quantity.toFixed(precision)} ${converted.unit}`;
 };
 
-const toSizeMb = (bytes: number): number | null => {
+const toSizeMiB = (bytes: number): number | null => {
   if (!Number.isFinite(bytes) || bytes <= 0) {
     return null;
   }
-  return Math.floor(bytes / 1000 / 1000);
+  return Math.floor(bytes / 1024 / 1024);
 };
 
 const normalizeDeviceName = (value: string | null | undefined): string => {
@@ -159,7 +159,7 @@ const updateBios = ref(true);
 const internalBootContext = computed(() => contextResult.value?.internalBootContext ?? null);
 
 const getIneligibilityCodes = (
-  option: Pick<InternalBootDeviceOption, 'sizeBytes' | 'sizeMb'>
+  option: Pick<InternalBootDeviceOption, 'sizeBytes' | 'sizeMiB'>
 ): InternalBootDiskEligibilityCode[] => {
   if (poolMode.value === 'dedicated') {
     return option.sizeBytes !== null && option.sizeBytes < MIN_DEDICATED_DEVICE_SIZE_BYTES
@@ -167,7 +167,7 @@ const getIneligibilityCodes = (
       : [];
   }
 
-  return option.sizeMb !== null && option.sizeMb < MIN_HYBRID_DEVICE_SIZE_MB ? ['TOO_SMALL'] : [];
+  return option.sizeMiB !== null && option.sizeMiB < MIN_HYBRID_DEVICE_SIZE_MIB ? ['TOO_SMALL'] : [];
 };
 
 const templateData = computed<InternalBootTemplateData | null>(() => {
@@ -180,7 +180,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
     .map<InternalBootDeviceOption>((disk) => {
       const device = normalizeDeviceName(disk.device);
       const sizeBytes = disk.size;
-      const sizeMb = toSizeMb(sizeBytes);
+      const sizeMiB = toSizeMiB(sizeBytes);
       const warningCodes: InternalBootDiskWarningCode[] = [];
 
       const serialNum = disk.serialNum?.trim() || '';
@@ -199,7 +199,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
         label: buildDeviceLabel(displayId, sizeLabel, device),
         device,
         sizeBytes: Number.isFinite(sizeBytes) && sizeBytes > 0 ? sizeBytes : null,
-        sizeMb,
+        sizeMiB,
         warningCodes,
       };
     })
@@ -233,8 +233,8 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
     poolNameDefault: poolNameSet.size === 0 ? 'cache' : '',
     slotOptions: [1, 2],
     deviceOptions,
-    bootSizePresetsMb: BOOT_SIZE_PRESETS_MB,
-    defaultBootSizeMb: DEFAULT_BOOT_SIZE_MB,
+    bootSizePresetsMiB: BOOT_SIZE_PRESETS_MIB,
+    defaultBootSizeMiB: DEFAULT_BOOT_SIZE_MIB,
     defaultUpdateBios: true,
     reservedNames: Array.from(reservedNameSet),
     shareNames: Array.from(shareNameSet),
@@ -376,8 +376,8 @@ const loadStatusMessage = computed(() => {
 const deviceSizeById = computed(() => {
   const entries = new Map<string, number>();
   for (const option of deviceOptions.value) {
-    if (option.sizeMb !== null) {
-      entries.set(option.value, option.sizeMb);
+    if (option.sizeMiB !== null) {
+      entries.set(option.value, option.sizeMiB);
     }
   }
   return entries;
@@ -389,7 +389,7 @@ const selectedSlotDevices = computed(() =>
     .filter((value): value is string => !!value && value.length > 0)
 );
 
-const smallestSelectedDeviceMb = computed(() => {
+const smallestSelectedDeviceMiB = computed(() => {
   let minValue: number | null = null;
   for (const device of selectedSlotDevices.value) {
     const size = deviceSizeById.value.get(device);
@@ -401,31 +401,31 @@ const smallestSelectedDeviceMb = computed(() => {
   return minValue;
 });
 
-const maxBootSizeMb = computed(() => {
-  if (smallestSelectedDeviceMb.value === null) {
+const maxBootSizeMiB = computed(() => {
+  if (smallestSelectedDeviceMiB.value === null) {
     return null;
   }
-  return Math.floor(smallestSelectedDeviceMb.value / 2);
+  return Math.floor(smallestSelectedDeviceMiB.value / 2);
 });
 
 const maxCustomBootSizeGb = computed(() => {
-  if (maxBootSizeMb.value === null) {
+  if (maxBootSizeMiB.value === null) {
     return null;
   }
-  return Math.max(1, Math.floor(maxBootSizeMb.value / 1000));
+  return Math.max(1, Math.floor(maxBootSizeMiB.value / 1024));
 });
 
 const visiblePresetOptions = computed(() => {
-  const presets = templateData.value?.bootSizePresetsMb ?? [];
-  const maxSizeMb = maxBootSizeMb.value;
+  const presets = templateData.value?.bootSizePresetsMiB ?? [];
+  const maxSizeMiB = maxBootSizeMiB.value;
   const filtered = presets.filter((value) => {
     if (value === 0) {
       return true;
     }
-    if (maxSizeMb === null) {
+    if (maxSizeMiB === null) {
       return true;
     }
-    return value <= maxSizeMb;
+    return value <= maxSizeMiB;
   });
 
   return filtered.map((value) => ({
@@ -433,7 +433,7 @@ const visiblePresetOptions = computed(() => {
     label:
       value === 0
         ? t('onboarding.internalBootStep.bootSize.wholeDrive')
-        : t('onboarding.internalBootStep.bootSize.gbLabel', { size: Math.round(value / 1000) }),
+        : t('onboarding.internalBootStep.bootSize.gbLabel', { size: Math.round(value / 1024) }),
   }));
 });
 
@@ -455,13 +455,13 @@ const bootSizePresetItems = computed<SelectMenuItem[]>(() => [
   },
 ]);
 
-const bootSizeMb = computed(() => {
+const bootSizeMiB = computed(() => {
   if (bootSizePreset.value === 'custom') {
     const sizeGb = Number.parseInt(customBootSizeGb.value, 10);
     if (!Number.isFinite(sizeGb)) {
       return null;
     }
-    return sizeGb * 1000;
+    return sizeGb * 1024;
   }
 
   const presetValue = Number.parseInt(bootSizePreset.value, 10);
@@ -486,9 +486,9 @@ const normalizeSelectedDevices = (count: number) => {
   selectedDevices.value = nextDevices;
 };
 
-const applyBootSizeSelection = (valueMb: number) => {
+const applyBootSizeSelection = (valueMiB: number) => {
   const presetMatch = visiblePresetOptions.value.find(
-    (option) => Number.parseInt(option.value, 10) === valueMb
+    (option) => Number.parseInt(option.value, 10) === valueMiB
   );
   if (presetMatch) {
     bootSizePreset.value = presetMatch.value;
@@ -497,7 +497,7 @@ const applyBootSizeSelection = (valueMb: number) => {
   }
 
   bootSizePreset.value = 'custom';
-  const sizeGb = Math.max(4, Math.round(valueMb / 1000));
+  const sizeGb = Math.max(4, Math.round(valueMiB / 1024));
   customBootSizeGb.value = String(sizeGb);
 };
 
@@ -646,22 +646,22 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
       poolName: normalizedPoolName,
       slotCount: slotCount.value,
       devices,
-      bootSizeMb: 0,
+      bootSizeMiB: 0,
       updateBios: updateBios.value,
       poolMode: 'dedicated' as const,
     };
   }
 
-  const selectedBootSizeMb = bootSizeMb.value;
-  if (selectedBootSizeMb === null || !Number.isFinite(selectedBootSizeMb)) {
+  const selectedBootSizeMiB = bootSizeMiB.value;
+  if (selectedBootSizeMiB === null || !Number.isFinite(selectedBootSizeMiB)) {
     formError.value = t('onboarding.internalBootStep.validation.bootSizeRequired');
     return null;
   }
-  if (selectedBootSizeMb < MIN_BOOT_SIZE_MB) {
+  if (selectedBootSizeMiB < MIN_BOOT_SIZE_MIB) {
     formError.value = t('onboarding.internalBootStep.validation.bootSizeMin');
     return null;
   }
-  if (maxBootSizeMb.value !== null && selectedBootSizeMb > maxBootSizeMb.value) {
+  if (maxBootSizeMiB.value !== null && selectedBootSizeMiB > maxBootSizeMiB.value) {
     formError.value = t('onboarding.internalBootStep.validation.bootSizeMax');
     return null;
   }
@@ -670,7 +670,7 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
     poolName: normalizedPoolName,
     slotCount: slotCount.value,
     devices,
-    bootSizeMb: selectedBootSizeMb,
+    bootSizeMiB: selectedBootSizeMiB,
     updateBios: updateBios.value,
     poolMode: 'hybrid' as const,
   };
@@ -692,7 +692,7 @@ const initializeForm = (data: InternalBootTemplateData) => {
   normalizeSelectedDevices(slotCount.value);
 
   updateBios.value = draftSelection?.updateBios ?? data.defaultUpdateBios;
-  applyBootSizeSelection(draftSelection?.bootSizeMb ?? data.defaultBootSizeMb);
+  applyBootSizeSelection(draftSelection?.bootSizeMiB ?? data.defaultBootSizeMiB);
 };
 
 watch(
@@ -720,7 +720,7 @@ watch(
     selectedDevices.value = [...selection.devices];
     normalizeSelectedDevices(slotCount.value);
     updateBios.value = selection.updateBios;
-    applyBootSizeSelection(selection.bootSizeMb);
+    applyBootSizeSelection(selection.bootSizeMiB);
   }
 );
 

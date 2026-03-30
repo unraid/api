@@ -201,7 +201,7 @@ describe('OnboardingInternalBootService', () => {
         const result = await service.createInternalBootPool({
             poolName: 'cache',
             devices: ['disk-1', 'disk-2'],
-            bootSizeMb: 16000,
+            bootSizeMiB: 16384,
             updateBios: false,
         });
 
@@ -234,7 +234,7 @@ describe('OnboardingInternalBootService', () => {
             {
                 cmdMakeBootable: 'apply',
                 poolName: 'cache',
-                poolBootSize: '16000',
+                poolBootSize: '16384',
             },
             { waitForToken: true }
         );
@@ -293,7 +293,7 @@ describe('OnboardingInternalBootService', () => {
         const result = await service.createInternalBootPool({
             poolName: 'cache',
             devices: ['disk-1'],
-            bootSizeMb: 16000,
+            bootSizeMiB: 16384,
             updateBios: true,
         });
 
@@ -366,7 +366,7 @@ describe('OnboardingInternalBootService', () => {
         const result = await service.createInternalBootPool({
             poolName: 'cache',
             devices: ['disk-1'],
-            bootSizeMb: 16000,
+            bootSizeMiB: 16384,
             updateBios: true,
         });
 
@@ -400,7 +400,7 @@ describe('OnboardingInternalBootService', () => {
         const result = await service.createInternalBootPool({
             poolName: 'cache',
             devices: ['disk-1'],
-            bootSizeMb: 16000,
+            bootSizeMiB: 16384,
             updateBios: false,
         });
 
@@ -421,7 +421,7 @@ describe('OnboardingInternalBootService', () => {
         const result = await service.createInternalBootPool({
             poolName: 'cache',
             devices: ['disk-1', 'disk-1'],
-            bootSizeMb: 16000,
+            bootSizeMiB: 16384,
             updateBios: false,
         });
 
@@ -442,7 +442,7 @@ describe('OnboardingInternalBootService', () => {
         const result = await service.createInternalBootPool({
             poolName: 'cache',
             devices: ['disk-1'],
-            bootSizeMb: 16000,
+            bootSizeMiB: 16384,
             updateBios: false,
         });
 
@@ -461,7 +461,7 @@ describe('OnboardingInternalBootService', () => {
         const result = await service.createInternalBootPool({
             poolName: 'cache',
             devices: ['disk-1'],
-            bootSizeMb: 16000,
+            bootSizeMiB: 16384,
             updateBios: false,
         });
 

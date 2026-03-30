@@ -10,7 +10,7 @@ export type PoolMode = 'dedicated' | 'hybrid';
 export interface InternalBootSelection {
   poolName: string;
   devices: string[];
-  bootSizeMb: number;
+  bootSizeMiB: number;
   updateBios: boolean;
   poolMode: PoolMode;
 }
@@ -65,7 +65,7 @@ export const submitInternalBootCreation = async (
         input: {
           poolName: selection.poolName,
           devices: selection.devices,
-          bootSizeMb: selection.bootSizeMb,
+          bootSizeMiB: selection.bootSizeMiB,
           updateBios: selection.updateBios,
           reboot: Boolean(options.reboot),
         },
@@ -112,7 +112,7 @@ export const summarizeInternalBootBiosLogs = (output: string): InternalBootBiosL
 const buildMutationVariables = (selection: InternalBootSelection) => ({
   poolName: selection.poolName,
   devices: selection.devices,
-  bootSizeMb: selection.bootSizeMb,
+  bootSizeMiB: selection.bootSizeMiB,
   updateBios: selection.updateBios,
   reboot: false,
 });

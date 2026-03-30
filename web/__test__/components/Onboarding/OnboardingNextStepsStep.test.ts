@@ -24,7 +24,7 @@ const {
       poolName: string;
       slotCount: number;
       devices: string[];
-      bootSizeMb: number;
+      bootSizeMiB: number;
       updateBios: boolean;
       poolMode: 'dedicated' | 'hybrid';
     } | null,
@@ -166,7 +166,7 @@ describe('OnboardingNextStepsStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
     };
@@ -230,7 +230,7 @@ describe('OnboardingNextStepsStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
     };
@@ -246,7 +246,7 @@ describe('OnboardingNextStepsStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
     };
@@ -262,7 +262,7 @@ describe('OnboardingNextStepsStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -278,7 +278,7 @@ describe('OnboardingNextStepsStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
     };
@@ -308,7 +308,7 @@ describe('OnboardingNextStepsStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
     };
@@ -328,7 +328,7 @@ describe('OnboardingNextStepsStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -363,7 +363,7 @@ describe('OnboardingNextStepsStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
     };

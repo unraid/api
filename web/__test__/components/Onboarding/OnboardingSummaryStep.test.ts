@@ -63,7 +63,7 @@ const {
       poolName: string;
       slotCount: number;
       devices: string[];
-      bootSizeMb: number;
+      bootSizeMiB: number;
       updateBios: boolean;
       poolMode: 'dedicated' | 'hybrid';
     } | null,
@@ -1174,7 +1174,7 @@ describe('OnboardingSummaryStep', () => {
       poolName: 'boot',
       slotCount: 2,
       devices: ['DISK-A', 'DISK-B'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -1191,7 +1191,7 @@ describe('OnboardingSummaryStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -1217,7 +1217,7 @@ describe('OnboardingSummaryStep', () => {
       poolName: 'cache',
       slotCount: 2,
       devices: ['DISK-A', 'DISK-B'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -1245,7 +1245,7 @@ describe('OnboardingSummaryStep', () => {
       {
         poolName: 'cache',
         devices: ['DISK-A', 'DISK-B'],
-        bootSizeMb: 16000,
+        bootSizeMiB: 16384,
         updateBios: true,
         slotCount: 2,
         poolMode: 'hybrid',
@@ -1271,7 +1271,7 @@ describe('OnboardingSummaryStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
     };
@@ -1302,7 +1302,7 @@ describe('OnboardingSummaryStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMb: 16000,
+      bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
     };

@@ -11,7 +11,7 @@ export interface OnboardingInternalBootSelection {
   poolName: string;
   slotCount: number;
   devices: string[];
-  bootSizeMb: number;
+  bootSizeMiB: number;
   updateBios: boolean;
   poolMode: OnboardingPoolMode;
 }
@@ -64,7 +64,7 @@ const normalizePersistedPoolMode = (value: unknown): OnboardingPoolMode => {
   return 'hybrid';
 };
 
-const DEFAULT_BOOT_SIZE_MB = 16000;
+const DEFAULT_BOOT_SIZE_MIB = 16384;
 
 const normalizePersistedInternalBootSelection = (
   value: unknown
@@ -77,7 +77,7 @@ const normalizePersistedInternalBootSelection = (
     poolName?: unknown;
     slotCount?: unknown;
     devices?: unknown;
-    bootSizeMb?: unknown;
+    bootSizeMiB?: unknown;
     updateBios?: unknown;
     poolMode?: unknown;
   };
@@ -89,19 +89,19 @@ const normalizePersistedInternalBootSelection = (
   const devices = Array.isArray(candidate.devices)
     ? candidate.devices.filter((item): item is string => typeof item === 'string')
     : [];
-  const parsedBootSizeMb = Number(candidate.bootSizeMb);
-  const bootSizeMb =
+  const parsedBootSizeMiB = Number(candidate.bootSizeMiB);
+  const bootSizeMiB =
     poolMode === 'dedicated'
       ? 0
-      : Number.isFinite(parsedBootSizeMb) && parsedBootSizeMb > 0
-        ? parsedBootSizeMb
-        : DEFAULT_BOOT_SIZE_MB;
+      : Number.isFinite(parsedBootSizeMiB) && parsedBootSizeMiB > 0
+        ? parsedBootSizeMiB
+        : DEFAULT_BOOT_SIZE_MIB;
 
   return {
     poolName,
     slotCount,
     devices,
-    bootSizeMb,
+    bootSizeMiB,
     updateBios: normalizePersistedBoolean(candidate.updateBios, false),
     poolMode,
   };
@@ -210,7 +210,7 @@ export const useOnboardingDraftStore = defineStore(
         poolName: selection.poolName,
         slotCount: selection.slotCount,
         devices: [...selection.devices],
-        bootSizeMb: selection.bootSizeMb,
+        bootSizeMiB: selection.bootSizeMiB,
         updateBios: selection.updateBios,
         poolMode: selection.poolMode,
       };

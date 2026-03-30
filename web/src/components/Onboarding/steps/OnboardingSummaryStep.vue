@@ -146,11 +146,11 @@ const internalBootSelection = computed(() => draftStore.internalBootSelection ??
 
 const hasInternalBootSelection = computed(() => Boolean(internalBootSelection.value));
 
-const formatBootSize = (bootSizeMb: number) => {
-  if (bootSizeMb === 0) {
+const formatBootSize = (bootSizeMiB: number) => {
+  if (bootSizeMiB === 0) {
     return t('onboarding.internalBootStep.bootSize.wholeDrive');
   }
-  return t('onboarding.internalBootStep.bootSize.gbLabel', { size: Math.round(bootSizeMb / 1000) });
+  return t('onboarding.internalBootStep.bootSize.gbLabel', { size: Math.round(bootSizeMiB / 1024) });
 };
 
 const formatBytes = (bytes: number) => {
@@ -212,7 +212,7 @@ const internalBootSummary = computed(() => {
     poolName: selection.poolName,
     slotCount: selection.slotCount,
     devices: selection.devices,
-    bootReservedSize: formatBootSize(selection.bootSizeMb),
+    bootReservedSize: formatBootSize(selection.bootSizeMiB),
     updateBios: selection.updateBios,
   };
 });
