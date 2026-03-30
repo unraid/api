@@ -550,11 +550,17 @@ watch(
 );
 
 watch(poolMode, (mode) => {
+  slotCount.value = 1;
+  selectedDevices.value = [undefined];
+  updateBios.value = templateData.value?.defaultUpdateBios ?? true;
+  applyBootSizeSelection(templateData.value?.defaultBootSizeMiB ?? DEFAULT_BOOT_SIZE_MIB);
+
   if (mode === 'dedicated') {
     poolName.value = 'boot';
-  } else if (poolName.value === 'boot') {
-    poolName.value = templateData.value?.poolNameDefault ?? '';
+    return;
   }
+
+  poolName.value = templateData.value?.poolNameDefault ?? '';
 });
 
 const isDeviceDisabled = (deviceId: string, index: number) => {
