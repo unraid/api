@@ -11,6 +11,7 @@ import {
     DockerService,
     RawDockerContainer,
 } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { getNormalizedDockerContainerPrimaryName } from '@app/unraid-api/graph/resolvers/docker/utils/docker-container-name.js';
 
 interface ParsedTemplate {
     filePath: string;
@@ -62,7 +63,10 @@ export class DockerTemplateScannerService {
         const skipSet = new Set(config.skipTemplatePaths || []);
 
         const needsSync = containers.filter((c) => {
-            const containerName = this.normalizeContainerName(c.names[0]);
+            const containerName = this.getPrimaryContainerName(c);
+            if (!containerName) {
+                return false;
+            }
             return !mappings[containerName] && !skipSet.has(containerName);
         });
 
@@ -95,7 +99,12 @@ export class DockerTemplateScannerService {
             const newMappings: Record<string, string | null> = { ...currentMappings };
 
             for (const container of containers) {
-                const containerName = this.normalizeContainerName(container.names[0]);
+                const containerName = this.getPrimaryContainerName(container);
+                if (!containerName) {
+                    result.skipped++;
+                    continue;
+                }
+
                 if (skipSet.has(containerName)) {
                     result.skipped++;
                     continue;
@@ -247,12 +256,14 @@ export class DockerTemplateScannerService {
         container: RawDockerContainer,
         templates: ParsedTemplate[]
     ): ParsedTemplate | null {
-        const containerName = this.normalizeContainerName(container.names[0]);
+        const containerName = getNormalizedDockerContainerPrimaryName(container);
         const containerImage = this.normalizeRepository(container.image);
 
-        for (const template of templates) {
-            if (template.name && this.normalizeContainerName(template.name) === containerName) {
-                return template;
+        if (containerName) {
+            for (const template of templates) {
+                if (template.name && this.normalizeContainerName(template.name) === containerName) {
+                    return template;
+                }
             }
         }
 
@@ -268,8 +279,24 @@ export class DockerTemplateScannerService {
         return null;
     }
 
-    private normalizeContainerName(name: string): string {
+    private normalizeContainerName(name?: string | null): string | null {
+        if (!name) {
+            return null;
+        }
+
         return name.replace(/^\//, '').toLowerCase();
+    }
+
+    private getPrimaryContainerName(container: Pick<RawDockerContainer, 'id' | 'names'>): string | null {
+        const normalizedName = getNormalizedDockerContainerPrimaryName(container);
+        if (normalizedName) {
+            return normalizedName;
+        }
+
+        this.logger.warn(
+            `Skipping container ${container.id} during template scan because it has no primary Docker name`
+        );
+        return null;
     }
 
     private normalizeRepository(repository: string): string {

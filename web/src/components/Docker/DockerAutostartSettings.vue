@@ -5,7 +5,7 @@ import { useMutation } from '@vue/apollo-composable';
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
 import { UPDATE_DOCKER_AUTOSTART_CONFIGURATION } from '@/components/Docker/docker-update-autostart-configuration.mutation';
 import { useTreeData } from '@/composables/useTreeData';
-import { stripLeadingSlash } from '@/utils/docker';
+import { getPrimaryContainerName } from '@/utils/docker';
 
 import type { DockerContainer } from '@/composables/gql/graphql';
 import type { DropEvent } from '@/composables/useDragDrop';
@@ -54,8 +54,8 @@ function sortContainers(containers: DockerContainer[]): DockerContainer[] {
     }
     if (aEnabled) return -1;
     if (bEnabled) return 1;
-    const aName = stripLeadingSlash(a.names?.[0]);
-    const bName = stripLeadingSlash(b.names?.[0]);
+    const aName = getPrimaryContainerName(a);
+    const bName = getPrimaryContainerName(b);
     return aName.localeCompare(bName);
   });
 }
@@ -104,7 +104,7 @@ watch(
 const { treeData } = useTreeData<AutostartEntry>({
   flatData: entries,
   buildFlatRow(entry) {
-    const name = stripLeadingSlash(entry.container.names?.[0]) || 'Unknown';
+    const name = getPrimaryContainerName(entry.container) || 'Unknown';
     return {
       id: entry.id,
       type: 'container',

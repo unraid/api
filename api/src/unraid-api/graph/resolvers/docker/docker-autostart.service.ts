@@ -8,6 +8,7 @@ import {
     DockerAutostartEntryInput,
     DockerContainer,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { getDockerContainerPrimaryName } from '@app/unraid-api/graph/resolvers/docker/utils/docker-container-name.js';
 
 export interface AutoStartEntry {
     name: string;
@@ -76,10 +77,7 @@ export class DockerAutostartService {
     }
 
     public getContainerPrimaryName(container: Docker.ContainerInfo | DockerContainer): string | null {
-        const names =
-            'Names' in container ? container.Names : 'names' in container ? container.names : undefined;
-        const firstName = names?.[0] ?? '';
-        return firstName ? firstName.replace(/^\//, '') : null;
+        return getDockerContainerPrimaryName(container);
     }
 
     private buildUserPreferenceLines(

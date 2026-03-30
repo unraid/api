@@ -34,6 +34,7 @@ import {
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
+import { getDockerContainerPrimaryName } from '@app/unraid-api/graph/resolvers/docker/utils/docker-container-name.js';
 import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 import { DEFAULT_ORGANIZER_ROOT_ID } from '@app/unraid-api/organizer/organizer.js';
@@ -106,13 +107,13 @@ export class DockerResolver {
             const names = Array.from(
                 new Set(
                     rawContainers
-                        .map((container) => container.names?.[0]?.replace(/^\//, '') || null)
+                        .map((container) => getDockerContainerPrimaryName(container))
                         .filter((name): name is string => Boolean(name))
                 )
             );
             const logSizes = await this.dockerService.getContainerLogSizes(names);
             rawContainers.forEach((container) => {
-                const normalized = container.names?.[0]?.replace(/^\//, '') || '';
+                const normalized = getDockerContainerPrimaryName(container) ?? '';
                 (container as { sizeLog?: number }).sizeLog = normalized
                     ? (logSizes.get(normalized) ?? 0)
                     : 0;

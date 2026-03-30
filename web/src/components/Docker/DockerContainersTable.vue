@@ -42,7 +42,12 @@ import { useFolderTree } from '@/composables/useFolderTree';
 import { usePersistentColumnVisibility } from '@/composables/usePersistentColumnVisibility';
 import { getSelectableDescendants } from '@/composables/useRowSelection';
 import { useTreeData } from '@/composables/useTreeData';
-import { getRowDisplayLabel, stripLeadingSlash, toContainerTreeRow } from '@/utils/docker';
+import {
+  getPrimaryContainerName,
+  getRowDisplayLabel,
+  stripLeadingSlash,
+  toContainerTreeRow,
+} from '@/utils/docker';
 
 import type {
   DockerContainer,
@@ -330,7 +335,7 @@ async function handleConfirmRemoveContainer(withImage: boolean) {
   const row = containerToRemove.value;
   if (!row || !row.containerId) return;
 
-  const containerName = stripLeadingSlash(row.meta?.names?.[0]) || row.name || '';
+  const containerName = getPrimaryContainerName(row.meta) || row.name || '';
   setRowsBusy([row.id], true);
 
   try {

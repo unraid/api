@@ -17,6 +17,7 @@ import {
     DockerContainer,
     TailscaleStatus,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { getDockerContainerPrimaryName } from '@app/unraid-api/graph/resolvers/docker/utils/docker-container-name.js';
 
 @Resolver(() => DockerContainer)
 export class DockerContainerResolver {
@@ -259,7 +260,7 @@ export class DockerContainerResolver {
             };
         }
 
-        const containerName = container.names[0];
+        const containerName = getDockerContainerPrimaryName(container);
         if (!containerName) {
             return null;
         }

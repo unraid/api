@@ -1,5 +1,5 @@
 import { ContainerState } from '@/composables/gql/graphql';
-import { getWebUiUrl, openLanIpInNewTab, stripLeadingSlash } from '@/utils/docker';
+import { getPrimaryContainerName, getWebUiUrl, openLanIpInNewTab } from '@/utils/docker';
 
 import type { DockerContainer } from '@/composables/gql/graphql';
 import type { TreeRow } from '@/composables/useTreeData';
@@ -67,7 +67,7 @@ export function useDockerRowActions(options: DockerRowActionsOptions) {
 
   function getContainerNameFromRow(row: TreeRow<DockerContainer>): string {
     const meta = row.meta as DockerContainer | undefined;
-    return stripLeadingSlash(meta?.names?.[0]) || row.name || '';
+    return getPrimaryContainerName(meta) || row.name || '';
   }
 
   function getReorderActions(rowId: string): ActionDropdownItem[] {

@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useMutation } from '@vue/apollo-composable';
 
-import { stripLeadingSlash } from '@/utils/docker';
+import { getPrimaryContainerName } from '@/utils/docker';
 import gql from 'graphql-tag';
 
 import type { DockerContainer } from '@/composables/gql/graphql';
@@ -29,7 +29,7 @@ const { mutate: removeContainer, loading: removing } = useMutation(REMOVE_CONTAI
 const errorMessage = ref<string | null>(null);
 
 async function handleRemove(container: DockerContainer) {
-  const name = stripLeadingSlash(container.names[0]) || 'container';
+  const name = getPrimaryContainerName(container) || 'container';
   if (!confirm(`Are you sure you want to remove orphaned container "${name}"?`)) return;
 
   errorMessage.value = null;
@@ -48,7 +48,7 @@ function dismissError() {
 }
 
 function formatContainerName(container: DockerContainer): string {
-  return stripLeadingSlash(container.names[0]) || 'Unknown';
+  return getPrimaryContainerName(container) || 'Unknown';
 }
 </script>
 
