@@ -20,6 +20,7 @@ type MockInternalBootSelection = {
 
 type InternalBootVm = {
   poolMode: 'dedicated' | 'hybrid';
+  selectedDevices: Array<string | undefined>;
   getDeviceSelectItems: (index: number) => Array<{ value: string; label: string; disabled?: boolean }>;
 };
 
@@ -511,6 +512,8 @@ describe('OnboardingInternalBootStep', () => {
     expect(vm.getDeviceSelectItems(0)).toEqual(
       expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-6GIB' })])
     );
+    vm.selectedDevices[0] = 'DEDICATED-6GIB';
+    await flushPromises();
 
     vm.poolMode = 'hybrid';
     await flushPromises();
@@ -518,6 +521,7 @@ describe('OnboardingInternalBootStep', () => {
     expect(vm.getDeviceSelectItems(0)).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-6GIB' })])
     );
+    expect(vm.selectedDevices[0]).toBeUndefined();
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
     await flushPromises();
     expect(wrapper.text()).toContain('DEDICATED-6GIB - 6.4 GB (sda)');
