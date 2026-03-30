@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
-import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
 vi.mock('@app/environment.js', () => ({
@@ -55,6 +55,23 @@ describe('DockerTemplateScannerService', () => {
     afterEach(async () => {
         await rm(testTemplateDir, { recursive: true, force: true });
     });
+
+    function createContainer(overrides: Partial<DockerContainer> = {}): DockerContainer {
+        return {
+            id: 'container-id',
+            names: ['/test-container'],
+            image: 'test/image:latest',
+            imageId: 'sha256:test',
+            command: 'test-command',
+            created: 0,
+            ports: [],
+            state: ContainerState.EXITED,
+            status: 'Exited (0)',
+            autoStart: false,
+            isOrphaned: false,
+            ...overrides,
+        };
+    }
 
     describe('parseTemplate', () => {
         it('should parse valid XML template', async () => {
@@ -160,11 +177,11 @@ describe('DockerTemplateScannerService', () => {
         });
 
         it('should still match by repository when the container has no name', () => {
-            const container: DockerContainer = {
+            const container = createContainer({
                 id: 'abc123',
                 names: [],
                 image: 'test/image:latest',
-            } as DockerContainer;
+            });
 
             const templates = [
                 { filePath: '/path/1', name: 'different', repository: 'test/image:v1.0' },
@@ -267,11 +284,11 @@ describe('DockerTemplateScannerService', () => {
 
         it('should skip nameless containers instead of crashing', async () => {
             const containers: DockerContainer[] = [
-                {
+                createContainer({
                     id: 'container1',
                     names: [],
                     image: 'redis:latest',
-                } as DockerContainer,
+                }),
             ];
 
             vi.mocked(dockerService.getRawContainers).mockResolvedValue(containers);
@@ -433,11 +450,11 @@ describe('DockerTemplateScannerService', () => {
 
         it('should ignore containers without a primary Docker name', async () => {
             const containers: DockerContainer[] = [
-                {
+                createContainer({
                     id: 'container1',
                     names: [],
                     image: 'redis:latest',
-                } as DockerContainer,
+                }),
             ];
 
             vi.mocked(dockerConfigService.getConfig).mockReturnValue({

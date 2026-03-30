@@ -11,9 +11,9 @@ import {
   formatNetwork,
   formatUptime,
   formatVolumes,
+  getPrimaryContainerName,
   getWebUiUrl,
   openLanIpInNewTab,
-  stripLeadingSlash,
 } from '@/utils/docker';
 
 import type { DockerContainer, TailscaleStatus } from '@/composables/gql/graphql';
@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
 });
 
-const containerName = computed(() => stripLeadingSlash(props.container?.names?.[0]) || 'Unknown');
+const containerName = computed(() => getPrimaryContainerName(props.container) || 'Unknown');
 
 const stateColor = computed(() => {
   const state = props.container?.state;

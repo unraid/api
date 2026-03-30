@@ -1,4 +1,5 @@
 import { featureFlags } from '@/helpers/env';
+import { getPrimaryContainerName } from '@/utils/docker';
 
 import type { DockerContainer } from '@/composables/gql/graphql';
 
@@ -24,7 +25,7 @@ export function useDockerEditNavigation() {
       return null;
     }
 
-    const name = containerName || (container?.names?.[0] || '').replace(/^\//, '');
+    const name = containerName || getPrimaryContainerName(container);
     const templatePath = container?.templatePath;
 
     if (!name || !templatePath) {

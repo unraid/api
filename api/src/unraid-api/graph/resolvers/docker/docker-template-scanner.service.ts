@@ -11,6 +11,7 @@ import {
     DockerService,
     RawDockerContainer,
 } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { getNormalizedDockerContainerPrimaryName } from '@app/unraid-api/graph/resolvers/docker/utils/docker-container-name.js';
 
 interface ParsedTemplate {
     filePath: string;
@@ -255,7 +256,7 @@ export class DockerTemplateScannerService {
         container: RawDockerContainer,
         templates: ParsedTemplate[]
     ): ParsedTemplate | null {
-        const containerName = this.normalizeContainerName(container.names?.[0]);
+        const containerName = getNormalizedDockerContainerPrimaryName(container);
         const containerImage = this.normalizeRepository(container.image);
 
         if (containerName) {
@@ -287,7 +288,7 @@ export class DockerTemplateScannerService {
     }
 
     private getPrimaryContainerName(container: Pick<RawDockerContainer, 'id' | 'names'>): string | null {
-        const normalizedName = this.normalizeContainerName(container.names?.[0]);
+        const normalizedName = getNormalizedDockerContainerPrimaryName(container);
         if (normalizedName) {
             return normalizedName;
         }

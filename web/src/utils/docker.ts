@@ -2,10 +2,15 @@ import type { DockerContainer } from '@/composables/gql/graphql';
 import type { TreeRow } from '@/composables/useTreeData';
 
 const COMMA_SEPARATED_LIST = /\s*,\s*/;
+type DockerContainerNames = Pick<DockerContainer, 'names'> | null | undefined;
 
 export function stripLeadingSlash(name: string | null | undefined): string {
   if (!name) return '';
   return name.replace(/^\//, '');
+}
+
+export function getPrimaryContainerName(container: DockerContainerNames): string {
+  return stripLeadingSlash(container?.names?.[0]);
 }
 
 const URL_WITH_PROTOCOL = /^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\//;
@@ -148,7 +153,7 @@ export function normalizeMultiValue(value: unknown): string[] {
 export function getRowDisplayLabel(row?: TreeRow<DockerContainer> | null, fallback?: string): string {
   if (!row) return fallback || '';
   const meta = row.meta as DockerContainer | undefined;
-  const metaName = stripLeadingSlash(meta?.names?.[0]);
+  const metaName = getPrimaryContainerName(meta);
   return metaName || row.name || fallback || '';
 }
 
@@ -156,7 +161,7 @@ export function toContainerTreeRow(
   meta: DockerContainer | null | undefined,
   fallbackName?: string
 ): TreeRow<DockerContainer> {
-  const name = stripLeadingSlash(meta?.names?.[0]) || fallbackName || 'Unknown';
+  const name = getPrimaryContainerName(meta) || fallbackName || 'Unknown';
   const updatesParts: string[] = [];
   if (meta?.isUpdateAvailable) updatesParts.push('Update');
   if (meta?.isRebuildReady) updatesParts.push('Rebuild');

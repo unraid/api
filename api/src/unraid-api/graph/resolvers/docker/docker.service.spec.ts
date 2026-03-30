@@ -14,6 +14,7 @@ import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/doc
 import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
 import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { getDockerContainerPrimaryName } from '@app/unraid-api/graph/resolvers/docker/utils/docker-container-name.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
 // Mock pubsub
@@ -132,11 +133,7 @@ const mockNotificationsService = {
 const mockDockerAutostartService = {
     refreshAutoStartEntries: vi.fn().mockResolvedValue(undefined),
     getAutoStarts: vi.fn().mockResolvedValue([]),
-    getContainerPrimaryName: vi.fn((c) => {
-        if ('Names' in c) return c.Names[0]?.replace(/^\//, '') || null;
-        if ('names' in c) return c.names[0]?.replace(/^\//, '') || null;
-        return null;
-    }),
+    getContainerPrimaryName: vi.fn((c) => getDockerContainerPrimaryName(c)),
     getAutoStartEntry: vi.fn(),
     updateAutostartConfiguration: vi.fn().mockResolvedValue(undefined),
 };

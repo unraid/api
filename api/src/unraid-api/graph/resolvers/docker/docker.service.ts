@@ -23,6 +23,10 @@ import {
     DockerPortConflicts,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { getDockerClient } from '@app/unraid-api/graph/resolvers/docker/utils/docker-client.js';
+import {
+    getDockerContainerPrimaryName,
+    getNormalizedDockerContainerPrimaryName,
+} from '@app/unraid-api/graph/resolvers/docker/utils/docker-container-name.js';
 
 export type RawDockerContainer = Omit<DockerContainer, 'isOrphaned' | 'templatePath'>;
 
@@ -130,7 +134,7 @@ export class DockerService {
     public enrichWithOrphanStatus(containers: RawDockerContainer[]): DockerContainer[] {
         const config = this.dockerConfigService.getConfig();
         return containers.map((c) => {
-            const containerName = c.names[0]?.replace(/^\//, '').toLowerCase() ?? '';
+            const containerName = getNormalizedDockerContainerPrimaryName(c) ?? '';
             const templatePath = config.templateMappings?.[containerName] || undefined;
             return {
                 ...c,
@@ -328,7 +332,7 @@ export class DockerService {
             throw new Error(`Container ${id} not found`);
         }
 
-        const containerName = container.names?.[0]?.replace(/^\//, '');
+        const containerName = getDockerContainerPrimaryName(container);
         if (!containerName) {
             throw new Error(`Container ${id} has no name`);
         }
@@ -348,7 +352,7 @@ export class DockerService {
 
         const updatedContainers = await this.getContainers();
         const updatedContainer = updatedContainers.find(
-            (c) => c.names?.some((name) => name.replace(/^\//, '') === containerName) || c.id === id
+            (c) => getDockerContainerPrimaryName(c) === containerName || c.id === id
         );
         if (!updatedContainer) {
             throw new Error(`Container ${id} not found after update`);

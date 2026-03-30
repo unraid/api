@@ -11,6 +11,7 @@ import {
     DockerPortConflictContainer,
     DockerPortConflicts,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { getDockerContainerPrimaryName } from '@app/unraid-api/graph/resolvers/docker/utils/docker-container-name.js';
 
 @Injectable()
 export class DockerPortService {
@@ -44,19 +45,11 @@ export class DockerPortService {
     }
 
     private buildPortConflictContainerRef(container: DockerContainer): DockerPortConflictContainer {
-        const primaryName = this.getContainerPrimaryName(container);
-        const fallback = container.names?.[0] ?? container.id;
-        const normalized = typeof fallback === 'string' ? fallback.replace(/^\//, '') : container.id;
+        const primaryName = getDockerContainerPrimaryName(container);
         return {
             id: container.id,
-            name: primaryName || normalized,
+            name: primaryName ?? container.id,
         };
-    }
-
-    private getContainerPrimaryName(container: DockerContainer): string | null {
-        const names = container.names;
-        const firstName = names?.[0] ?? '';
-        return firstName ? firstName.replace(/^\//, '') : null;
     }
 
     private buildContainerPortConflicts(containers: DockerContainer[]): DockerContainerPortConflict[] {

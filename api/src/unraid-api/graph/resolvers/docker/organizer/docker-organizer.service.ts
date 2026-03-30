@@ -6,6 +6,7 @@ import { AppError } from '@app/core/errors/app-error.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { getDockerContainerPrimaryName } from '@app/unraid-api/graph/resolvers/docker/utils/docker-container-name.js';
 import { DockerOrganizerConfigService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer-config.service.js';
 import {
     addMissingResourcesToView,
@@ -27,7 +28,8 @@ import {
 } from '@app/unraid-api/organizer/organizer.model.js';
 
 export function containerToResource(container: DockerContainer): OrganizerContainerResource {
-    const stableRef = container.names[0] || container.image;
+    const stableRef =
+        getDockerContainerPrimaryName(container, { stripLeadingSlash: false }) ?? container.image;
     return {
         id: stableRef,
         type: 'container',
