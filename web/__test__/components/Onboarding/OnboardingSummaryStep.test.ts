@@ -63,7 +63,7 @@ const {
       poolName: string;
       slotCount: number;
       devices: string[];
-      bootSizeMiB: number;
+      bootSizeMb: number;
       updateBios: boolean;
       poolMode: 'dedicated' | 'hybrid';
     } | null,
@@ -430,14 +430,14 @@ describe('OnboardingSummaryStep', () => {
           {
             id: 'DISK-A',
             device: '/dev/sda',
-            size: 500 * 1024 * 1024 * 1024,
+            size: 500 * 1000 * 1000 * 1000,
             serialNum: 'DISK-A',
             interfaceType: DiskInterfaceType.SATA,
           },
           {
             id: 'DISK-B',
             device: '/dev/sdb',
-            size: 250 * 1024 * 1024 * 1024,
+            size: 250 * 1000 * 1000 * 1000,
             serialNum: 'DISK-B',
             interfaceType: DiskInterfaceType.SATA,
           },
@@ -1174,15 +1174,15 @@ describe('OnboardingSummaryStep', () => {
       poolName: 'boot',
       slotCount: 2,
       devices: ['DISK-A', 'DISK-B'],
-      bootSizeMiB: 16384,
+      bootSizeMb: 16000,
       updateBios: true,
       poolMode: 'hybrid',
     };
 
     const { wrapper } = mountComponent();
 
-    expect(wrapper.text()).toContain('DISK-A - 537 GB (sda)');
-    expect(wrapper.text()).toContain('DISK-B - 268 GB (sdb)');
+    expect(wrapper.text()).toContain('DISK-A - 500 GB (sda)');
+    expect(wrapper.text()).toContain('DISK-B - 250 GB (sdb)');
   });
 
   it('requires confirmation before applying storage boot drive changes', async () => {
@@ -1191,7 +1191,7 @@ describe('OnboardingSummaryStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMiB: 16384,
+      bootSizeMb: 16000,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -1217,7 +1217,7 @@ describe('OnboardingSummaryStep', () => {
       poolName: 'cache',
       slotCount: 2,
       devices: ['DISK-A', 'DISK-B'],
-      bootSizeMiB: 16384,
+      bootSizeMb: 16000,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -1245,7 +1245,7 @@ describe('OnboardingSummaryStep', () => {
       {
         poolName: 'cache',
         devices: ['DISK-A', 'DISK-B'],
-        bootSizeMiB: 16384,
+        bootSizeMb: 16000,
         updateBios: true,
         slotCount: 2,
         poolMode: 'hybrid',
@@ -1271,7 +1271,7 @@ describe('OnboardingSummaryStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMiB: 16384,
+      bootSizeMb: 16000,
       updateBios: false,
       poolMode: 'hybrid',
     };
@@ -1302,7 +1302,7 @@ describe('OnboardingSummaryStep', () => {
       poolName: 'cache',
       slotCount: 1,
       devices: ['DISK-A'],
-      bootSizeMiB: 16384,
+      bootSizeMb: 16000,
       updateBios: true,
       poolMode: 'hybrid',
     };

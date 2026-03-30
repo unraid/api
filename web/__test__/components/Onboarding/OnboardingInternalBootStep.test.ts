@@ -13,7 +13,7 @@ type MockInternalBootSelection = {
   poolName: string;
   slotCount: number;
   devices: string[];
-  bootSizeMiB: number;
+  bootSizeMb: number;
   updateBios: boolean;
   poolMode: 'dedicated' | 'hybrid';
 };
@@ -101,7 +101,7 @@ vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
   useOnboardingDraftStore: () => draftStore,
 }));
 
-const gib = (value: number) => value * 1024 * 1024 * 1024;
+const gb = (value: number) => value * 1000 * 1000 * 1000;
 
 const buildContext = (
   overrides: Partial<GetInternalBootContextQuery['internalBootContext']> = {}
@@ -212,42 +212,42 @@ describe('OnboardingInternalBootStep', () => {
         {
           id: 'BOOT-1',
           device: '/dev/sda',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'BOOT-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           id: 'PARITY-1',
           device: '/dev/sdb',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'PARITY-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           id: 'ARRAY-1',
           device: '/dev/sdc',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'ARRAY-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           id: 'CACHE-1',
           device: '/dev/sdd',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'CACHE-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           id: 'SMALL-1',
           device: '/dev/sde',
-          size: gib(6),
+          size: gb(6),
           serialNum: 'SMALL-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           id: 'USB-1',
           device: '/dev/sdf',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'USB-1',
           interfaceType: DiskInterfaceType.USB,
         },
@@ -289,7 +289,7 @@ describe('OnboardingInternalBootStep', () => {
         {
           id: 'WD-TEST-1234',
           device: '/dev/sda',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'WD-TEST-1234',
           interfaceType: DiskInterfaceType.SATA,
         },
@@ -304,7 +304,7 @@ describe('OnboardingInternalBootStep', () => {
       expect.arrayContaining([
         expect.objectContaining({
           value: 'WD-TEST-1234',
-          label: 'WD-TEST-1234 - 34.4 GB (sda)',
+          label: 'WD-TEST-1234 - 32.0 GB (sda)',
         }),
       ])
     );
@@ -316,7 +316,7 @@ describe('OnboardingInternalBootStep', () => {
       poolName: '',
       slotCount: 1,
       devices: [],
-      bootSizeMiB: 16384,
+      bootSizeMb: 16000,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -325,7 +325,7 @@ describe('OnboardingInternalBootStep', () => {
         {
           id: 'ELIGIBLE-1',
           device: '/dev/sda',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'ELIGIBLE-1',
           interfaceType: DiskInterfaceType.SATA,
         },
@@ -348,7 +348,7 @@ describe('OnboardingInternalBootStep', () => {
       poolName: '',
       slotCount: 1,
       devices: [],
-      bootSizeMiB: 16384,
+      bootSizeMb: 16000,
       updateBios: true,
       poolMode: 'hybrid',
     };
@@ -358,7 +358,7 @@ describe('OnboardingInternalBootStep', () => {
         {
           id: 'ELIGIBLE-1',
           device: '/dev/sda',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'ELIGIBLE-1',
           interfaceType: DiskInterfaceType.SATA,
         },
@@ -403,7 +403,7 @@ describe('OnboardingInternalBootStep', () => {
         {
           id: 'ELIGIBLE-1',
           device: '/dev/sda',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'ELIGIBLE-1',
           interfaceType: DiskInterfaceType.SATA,
         },
@@ -434,21 +434,21 @@ describe('OnboardingInternalBootStep', () => {
         {
           id: 'SMALL-1',
           device: '/dev/sdb',
-          size: gib(6),
+          size: gb(6),
           serialNum: 'SMALL-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           id: 'ELIGIBLE-1',
           device: '/dev/sdc',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'ELIGIBLE-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           id: 'USB-1',
           device: '/dev/sdd',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'USB-1',
           interfaceType: DiskInterfaceType.USB,
         },
@@ -482,7 +482,7 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
   });
 
-  it('allows marketed 8 GB devices in dedicated mode but not hybrid mode', async () => {
+  it('allows 8 GB devices at the decimal minimum and rejects smaller drives', async () => {
     draftStore.bootMode = 'storage';
     contextResult.value = buildContext({
       assignableDisks: [
@@ -494,9 +494,16 @@ describe('OnboardingInternalBootStep', () => {
           interfaceType: DiskInterfaceType.SATA,
         },
         {
+          id: 'SMALLER-THAN-8GB',
+          device: '/dev/sdc',
+          size: 7_900_000_000,
+          serialNum: 'SMALLER-THAN-8GB',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
           id: 'LARGER-DRIVE',
           device: '/dev/sdb',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'LARGER-DRIVE',
           interfaceType: DiskInterfaceType.SATA,
         },
@@ -511,16 +518,22 @@ describe('OnboardingInternalBootStep', () => {
     expect(vm.getDeviceSelectItems(0)).toEqual(
       expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-8GB' })])
     );
+    expect(vm.getDeviceSelectItems(0)).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 'SMALLER-THAN-8GB' })])
+    );
 
     vm.poolMode = 'hybrid';
     await flushPromises();
 
-    expect(vm.getDeviceSelectItems(0)).not.toEqual(
+    expect(vm.getDeviceSelectItems(0)).toEqual(
       expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-8GB' })])
+    );
+    expect(vm.getDeviceSelectItems(0)).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 'SMALLER-THAN-8GB' })])
     );
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
     await flushPromises();
-    expect(wrapper.text()).toContain('DEDICATED-8GB - 8.0 GB (sda)');
+    expect(wrapper.text()).toContain('SMALLER-THAN-8GB - 7.9 GB (sdc)');
     expect(wrapper.text()).toContain('TOO_SMALL');
   });
 
@@ -531,7 +544,7 @@ describe('OnboardingInternalBootStep', () => {
         {
           id: 'UNASSIGNED-1',
           device: '/dev/sda',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'UNASSIGNED-1',
           interfaceType: DiskInterfaceType.SATA,
         },
@@ -559,7 +572,7 @@ describe('OnboardingInternalBootStep', () => {
         {
           id: 'UNASSIGNED-1',
           device: '/dev/sda',
-          size: gib(32),
+          size: gb(32),
           serialNum: 'UNASSIGNED-1',
           interfaceType: DiskInterfaceType.SATA,
         },

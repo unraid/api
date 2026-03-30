@@ -41,7 +41,7 @@ describe('internalBoot composable', () => {
     const result = await submitInternalBootCreation({
       poolName: 'cache',
       devices: ['disk-1'],
-      bootSizeMiB: 16384,
+      bootSizeMb: 16000,
       updateBios: true,
       poolMode: 'hybrid',
     });
@@ -63,7 +63,7 @@ describe('internalBoot composable', () => {
         input?: {
           poolName?: string;
           devices?: string[];
-          bootSizeMiB?: number;
+          bootSizeMb?: number;
           updateBios?: boolean;
           reboot?: boolean;
         };
@@ -73,7 +73,7 @@ describe('internalBoot composable', () => {
     expect(payload.variables?.input).toEqual({
       poolName: 'cache',
       devices: ['disk-1'],
-      bootSizeMiB: 16384,
+      bootSizeMb: 16000,
       updateBios: true,
       reboot: false,
     });
@@ -91,7 +91,7 @@ describe('internalBoot composable', () => {
     const result = await submitInternalBootCreation({
       poolName: 'cache',
       devices: ['disk-1'],
-      bootSizeMiB: 16384,
+      bootSizeMb: 16000,
       updateBios: true,
       poolMode: 'hybrid',
     });
@@ -106,7 +106,7 @@ describe('internalBoot composable', () => {
     const result = await submitInternalBootCreation({
       poolName: 'cache',
       devices: ['disk-1'],
-      bootSizeMiB: 16384,
+      bootSizeMb: 16000,
       updateBios: true,
       poolMode: 'hybrid',
     });
@@ -133,7 +133,7 @@ describe('internalBoot composable', () => {
       {
         poolName: 'cache',
         devices: ['disk-1'],
-        bootSizeMiB: 16384,
+        bootSizeMb: 16000,
         updateBios: false,
         poolMode: 'hybrid',
       },
@@ -194,7 +194,7 @@ describe('internalBoot composable', () => {
       {
         poolName: 'cache',
         devices: ['disk-1'],
-        bootSizeMiB: 16384,
+        bootSizeMb: 16000,
         updateBios: true,
         poolMode: 'hybrid',
       },
@@ -242,7 +242,7 @@ describe('internalBoot composable', () => {
       {
         poolName: 'cache',
         devices: ['disk-1'],
-        bootSizeMiB: 16384,
+        bootSizeMb: 16000,
         updateBios: true,
         poolMode: 'hybrid',
       },
@@ -286,7 +286,7 @@ describe('internalBoot composable', () => {
       {
         poolName: 'cache',
         devices: ['disk-1'],
-        bootSizeMiB: 16384,
+        bootSizeMb: 16000,
         updateBios: false,
         poolMode: 'hybrid',
       },
@@ -316,7 +316,7 @@ describe('internalBoot composable', () => {
       {
         poolName: 'cache',
         devices: ['disk-1'],
-        bootSizeMiB: 16384,
+        bootSizeMb: 16000,
         updateBios: false,
         poolMode: 'hybrid',
       },
@@ -353,7 +353,7 @@ describe('internalBoot composable', () => {
       {
         poolName: 'cache',
         devices: ['disk-1'],
-        bootSizeMiB: 16384,
+        bootSizeMb: 16000,
         updateBios: false,
         poolMode: 'hybrid',
       },
