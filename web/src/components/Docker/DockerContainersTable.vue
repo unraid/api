@@ -42,7 +42,12 @@ import { useFolderTree } from '@/composables/useFolderTree';
 import { usePersistentColumnVisibility } from '@/composables/usePersistentColumnVisibility';
 import { getSelectableDescendants } from '@/composables/useRowSelection';
 import { useTreeData } from '@/composables/useTreeData';
-import { getPrimaryContainerName, getRowDisplayLabel, stripLeadingSlash, toContainerTreeRow } from '@/utils/docker';
+import {
+  getPrimaryContainerName,
+  getRowDisplayLabel,
+  stripLeadingSlash,
+  toContainerTreeRow,
+} from '@/utils/docker';
 
 import type {
   DockerContainer,
