@@ -259,6 +259,56 @@ describe('UrlResolverService', () => {
             expect(wanFqdnUrl).toBeDefined();
             expect(wanFqdnUrl?.ipv4?.toString()).toBe('https://wan.unraid.net/');
         });
+
+        it('should expose IPv6 FQDN routes through the ipv6 field', () => {
+            const mockStore = {
+                emhttp: {
+                    nginx: {
+                        defaultUrl: 'https://default.unraid.net',
+                        lanIp: '192.168.1.1',
+                        lanIp6: 'ipv6.unraid.local',
+                        lanName: 'unraid.local',
+                        lanMdns: 'unraid.local',
+                        sslEnabled: true,
+                        sslMode: 'yes',
+                        httpPort: 80,
+                        httpsPort: 443,
+                        fqdnUrls: [
+                            {
+                                interface: 'TAILSCALE',
+                                id: 0,
+                                fqdn: '100-64-0-1.hash.myunraid.net',
+                                isIpv6: false,
+                            },
+                            {
+                                interface: 'TAILSCALE',
+                                id: 1,
+                                fqdn: '2001-db8--1.hash.myunraid.net',
+                                isIpv6: true,
+                            },
+                        ],
+                    },
+                },
+            };
+
+            (mockConfigService.get as Mock)
+                .mockReturnValueOnce(mockStore)
+                .mockReturnValueOnce(443);
+
+            const result = service.getServerIps();
+            const tailscaleIpv4Url = result.urls.find(
+                (url) => url.type === URL_TYPE.WIREGUARD && url.name === 'FQDN TAILSCALE 0'
+            );
+            const tailscaleIpv6Url = result.urls.find(
+                (url) => url.type === URL_TYPE.WIREGUARD && url.name === 'FQDN TAILSCALE 1'
+            );
+
+            expect(tailscaleIpv4Url?.ipv4?.toString()).toBe('https://100-64-0-1.hash.myunraid.net/');
+            expect(tailscaleIpv4Url?.ipv6).toBeUndefined();
+            expect(tailscaleIpv6Url?.ipv4).toBeUndefined();
+            expect(tailscaleIpv6Url?.ipv6?.toString()).toBe('https://2001-db8--1.hash.myunraid.net/');
+            expect(result.errors).toHaveLength(0);
+        });
         it('should handle invalid WAN port values gracefully', () => {
             const testCases = [
                 { port: null, description: 'null port' },
@@ -421,6 +471,42 @@ describe('UrlResolverService', () => {
             const result = service.getRemoteAccessUrl();
 
             expect(result).toBeNull();
+        });
+    });
+
+    describe('getAllowedServerIps', () => {
+        it('should include IPv6-only FQDN routes', () => {
+            const mockStore = {
+                emhttp: {
+                    nginx: {
+                        defaultUrl: 'https://default.unraid.net',
+                        lanIp: '192.168.1.1',
+                        lanIp6: 'ipv6.unraid.local',
+                        lanName: 'unraid.local',
+                        lanMdns: 'unraid.local',
+                        sslEnabled: true,
+                        sslMode: 'yes',
+                        httpPort: 80,
+                        httpsPort: 443,
+                        fqdnUrls: [
+                            {
+                                interface: 'CUSTOM',
+                                id: 0,
+                                fqdn: '2001-db8--beef.hash.myunraid.net',
+                                isIpv6: true,
+                            },
+                        ],
+                    },
+                },
+            };
+
+            (mockConfigService.get as Mock)
+                .mockReturnValueOnce(mockStore)
+                .mockReturnValueOnce(undefined);
+
+            const result = service.getAllowedServerIps();
+
+            expect(result).toContain('https://2001-db8--beef.hash.myunraid.net/');
         });
     });
 });
