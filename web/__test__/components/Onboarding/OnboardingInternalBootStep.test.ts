@@ -19,6 +19,7 @@ type MockInternalBootSelection = {
 };
 
 type InternalBootVm = {
+  poolMode: 'dedicated' | 'hybrid';
   getDeviceSelectItems: (index: number) => Array<{ value: string; label: string; disabled?: boolean }>;
 };
 
@@ -239,7 +240,7 @@ describe('OnboardingInternalBootStep', () => {
         {
           id: 'SMALL-1',
           device: '/dev/sde',
-          size: gib(6),
+          size: gib(5),
           serialNum: 'SMALL-1',
           interfaceType: DiskInterfaceType.SATA,
         },
@@ -433,7 +434,7 @@ describe('OnboardingInternalBootStep', () => {
         {
           id: 'SMALL-1',
           device: '/dev/sdb',
-          size: gib(6),
+          size: gib(5),
           serialNum: 'SMALL-1',
           interfaceType: DiskInterfaceType.SATA,
         },
@@ -479,6 +480,48 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
     expect(wrapper.text()).toContain('TOO_SMALL');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
+  });
+
+  it('allows 6 GiB devices in dedicated mode but not hybrid mode', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = buildContext({
+      assignableDisks: [
+        {
+          id: 'DEDICATED-6GIB',
+          device: '/dev/sda',
+          size: gib(6),
+          serialNum: 'DEDICATED-6GIB',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
+          id: 'LARGER-DRIVE',
+          device: '/dev/sdb',
+          size: gib(32),
+          serialNum: 'LARGER-DRIVE',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+      ],
+    });
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    const vm = wrapper.vm as unknown as InternalBootVm;
+    expect(vm.poolMode).toBe('dedicated');
+    expect(vm.getDeviceSelectItems(0)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-6GIB' })])
+    );
+
+    vm.poolMode = 'hybrid';
+    await flushPromises();
+
+    expect(vm.getDeviceSelectItems(0)).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-6GIB' })])
+    );
+    await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
+    await flushPromises();
+    expect(wrapper.text()).toContain('DEDICATED-6GIB - 6.4 GB (sda)');
+    expect(wrapper.text()).toContain('TOO_SMALL');
   });
 
   it('treats disks present in devs.ini as assignable', async () => {

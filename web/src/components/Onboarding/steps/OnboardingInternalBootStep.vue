@@ -74,7 +74,8 @@ type InternalBootDiskWarningCode = 'HAS_INTERNAL_BOOT_PARTITIONS';
 type InternalBootDiskIssueCode = InternalBootDiskEligibilityCode | InternalBootDiskWarningCode;
 
 const MIN_BOOT_SIZE_MIB = 4096;
-const MIN_ELIGIBLE_DEVICE_SIZE_MIB = MIN_BOOT_SIZE_MIB * 2;
+const MIN_DEDICATED_DEVICE_SIZE_MIB = 6144;
+const MIN_HYBRID_DEVICE_SIZE_MIB = MIN_BOOT_SIZE_MIB * 2;
 const DEFAULT_BOOT_SIZE_MIB = 16384;
 const BOOT_SIZE_PRESETS_MIB = [16384, 32768, 65536, 131072];
 const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode, string> = {
@@ -170,8 +171,10 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
       const sizeMiB = toSizeMiB(sizeBytes);
       const ineligibilityCodes: InternalBootDiskEligibilityCode[] = [];
       const warningCodes: InternalBootDiskWarningCode[] = [];
+      const minEligibleDeviceSizeMiB =
+        poolMode.value === 'dedicated' ? MIN_DEDICATED_DEVICE_SIZE_MIB : MIN_HYBRID_DEVICE_SIZE_MIB;
 
-      if (sizeMiB !== null && sizeMiB < MIN_ELIGIBLE_DEVICE_SIZE_MIB) {
+      if (sizeMiB !== null && sizeMiB < minEligibleDeviceSizeMiB) {
         ineligibilityCodes.push('TOO_SMALL');
       }
 
