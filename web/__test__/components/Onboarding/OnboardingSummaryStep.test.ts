@@ -430,14 +430,14 @@ describe('OnboardingSummaryStep', () => {
           {
             id: 'DISK-A',
             device: '/dev/sda',
-            size: 500 * 1000 * 1000 * 1000,
+            size: 500 * 1024 * 1024 * 1024,
             serialNum: 'DISK-A',
             interfaceType: DiskInterfaceType.SATA,
           },
           {
             id: 'DISK-B',
             device: '/dev/sdb',
-            size: 250 * 1000 * 1000 * 1000,
+            size: 250 * 1024 * 1024 * 1024,
             serialNum: 'DISK-B',
             interfaceType: DiskInterfaceType.SATA,
           },
@@ -1181,8 +1181,8 @@ describe('OnboardingSummaryStep', () => {
 
     const { wrapper } = mountComponent();
 
-    expect(wrapper.text()).toContain('DISK-A - 500 GB (sda)');
-    expect(wrapper.text()).toContain('DISK-B - 250 GB (sdb)');
+    expect(wrapper.text()).toContain('DISK-A - 537 GB (sda)');
+    expect(wrapper.text()).toContain('DISK-B - 268 GB (sdb)');
   });
 
   it('requires confirmation before applying storage boot drive changes', async () => {

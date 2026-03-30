@@ -64,8 +64,6 @@ const normalizePersistedPoolMode = (value: unknown): OnboardingPoolMode => {
   return 'hybrid';
 };
 
-const DEFAULT_BOOT_SIZE_MIB = 16384;
-
 const normalizePersistedInternalBootSelection = (
   value: unknown
 ): OnboardingInternalBootSelection | null => {
@@ -89,13 +87,13 @@ const normalizePersistedInternalBootSelection = (
   const devices = Array.isArray(candidate.devices)
     ? candidate.devices.filter((item): item is string => typeof item === 'string')
     : [];
-  const parsedBootSizeMiB = Number(candidate.bootSizeMiB);
+  const parsedBootSize = Number(candidate.bootSizeMiB);
   const bootSizeMiB =
     poolMode === 'dedicated'
       ? 0
-      : Number.isFinite(parsedBootSizeMiB) && parsedBootSizeMiB > 0
-        ? parsedBootSizeMiB
-        : DEFAULT_BOOT_SIZE_MIB;
+      : Number.isFinite(parsedBootSize) && parsedBootSize > 0
+        ? parsedBootSize
+        : 16384;
 
   return {
     poolName,

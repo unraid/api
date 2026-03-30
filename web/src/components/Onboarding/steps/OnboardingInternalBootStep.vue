@@ -38,8 +38,8 @@ interface InternalBootDeviceOption {
   value: string;
   label: string;
   device: string;
-  sizeBytes: number | null;
   sizeMiB: number | null;
+  ineligibilityCodes: InternalBootDiskEligibilityCode[];
   warningCodes: InternalBootDiskWarningCode[];
 }
 
@@ -74,7 +74,7 @@ type InternalBootDiskWarningCode = 'HAS_INTERNAL_BOOT_PARTITIONS';
 type InternalBootDiskIssueCode = InternalBootDiskEligibilityCode | InternalBootDiskWarningCode;
 
 const MIN_BOOT_SIZE_MIB = 4096;
-const MIN_DEDICATED_DEVICE_SIZE_BYTES = 8 * 1000 * 1000 * 1000;
+const MIN_DEDICATED_DEVICE_SIZE_MIB = 6144;
 const MIN_HYBRID_DEVICE_SIZE_MIB = MIN_BOOT_SIZE_MIB * 2;
 const DEFAULT_BOOT_SIZE_MIB = 16384;
 const BOOT_SIZE_PRESETS_MIB = [16384, 32768, 65536, 131072];
@@ -158,18 +158,6 @@ const updateBios = ref(true);
 
 const internalBootContext = computed(() => contextResult.value?.internalBootContext ?? null);
 
-const getIneligibilityCodes = (
-  option: Pick<InternalBootDeviceOption, 'sizeBytes' | 'sizeMiB'>
-): InternalBootDiskEligibilityCode[] => {
-  if (poolMode.value === 'dedicated') {
-    return option.sizeBytes !== null && option.sizeBytes < MIN_DEDICATED_DEVICE_SIZE_BYTES
-      ? ['TOO_SMALL']
-      : [];
-  }
-
-  return option.sizeMiB !== null && option.sizeMiB < MIN_HYBRID_DEVICE_SIZE_MIB ? ['TOO_SMALL'] : [];
-};
-
 const templateData = computed<InternalBootTemplateData | null>(() => {
   const data: GetInternalBootContextQuery['internalBootContext'] | null = internalBootContext.value;
   if (!data) {
@@ -181,7 +169,14 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
       const device = normalizeDeviceName(disk.device);
       const sizeBytes = disk.size;
       const sizeMiB = toSizeMiB(sizeBytes);
+      const ineligibilityCodes: InternalBootDiskEligibilityCode[] = [];
       const warningCodes: InternalBootDiskWarningCode[] = [];
+      const minEligibleDeviceSizeMiB =
+        poolMode.value === 'dedicated' ? MIN_DEDICATED_DEVICE_SIZE_MIB : MIN_HYBRID_DEVICE_SIZE_MIB;
+
+      if (sizeMiB !== null && sizeMiB < minEligibleDeviceSizeMiB) {
+        ineligibilityCodes.push('TOO_SMALL');
+      }
 
       const serialNum = disk.serialNum?.trim() || '';
       const diskId = disk.id?.trim() || '';
@@ -198,8 +193,8 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
         value: optionValue,
         label: buildDeviceLabel(displayId, sizeLabel, device),
         device,
-        sizeBytes: Number.isFinite(sizeBytes) && sizeBytes > 0 ? sizeBytes : null,
         sizeMiB,
+        ineligibilityCodes,
         warningCodes,
       };
     })
@@ -272,7 +267,7 @@ const bootEligibilityState = computed<InternalBootEligibilityState>(() => {
 });
 const allDeviceOptions = computed(() => templateData.value?.deviceOptions ?? []);
 const deviceOptions = computed(() =>
-  allDeviceOptions.value.filter((option) => getIneligibilityCodes(option).length === 0)
+  allDeviceOptions.value.filter((option) => option.ineligibilityCodes.length === 0)
 );
 const slotOptions = computed(() => templateData.value?.slotOptions ?? [1, 2]);
 const reservedNames = computed(() => new Set(templateData.value?.reservedNames ?? []));
@@ -301,14 +296,10 @@ const systemEligibilityCodes = computed<InternalBootSystemEligibilityCode[]>(() 
 });
 const diskEligibilityIssues = computed(() =>
   allDeviceOptions.value
+    .filter((option) => option.ineligibilityCodes.length > 0)
     .map((option) => ({
       label: option.label,
-      codes: getIneligibilityCodes(option),
-    }))
-    .filter((option) => option.codes.length > 0)
-    .map((option) => ({
-      label: option.label,
-      codes: [...option.codes],
+      codes: [...option.ineligibilityCodes],
     }))
 );
 const selectedDriveWarnings = computed(() =>
