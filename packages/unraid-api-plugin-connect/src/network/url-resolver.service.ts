@@ -360,7 +360,8 @@ export class UrlResolverService {
                 urls.push({
                     name: `FQDN ${fqdnUrl.interface}${fqdnUrl.id !== null ? ` ${fqdnUrl.id}` : ''}`,
                     type: urlType,
-                    ipv4: fqdnUrlToUse,
+                    ipv4: fqdnUrl.isIpv6 ? undefined : fqdnUrlToUse,
+                    ipv6: fqdnUrl.isIpv6 ? fqdnUrlToUse : undefined,
                 });
             });
         });
