@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
@@ -57,7 +57,7 @@ import {
 } from '~/composables/gql/graphql';
 
 export interface Props {
-  onComplete: () => void;
+  onComplete: () => void | Promise<void>;
   onBack?: () => void;
   showBack?: boolean;
 }
@@ -227,6 +227,7 @@ const showBootDriveWarningDialog = ref(false);
 const applyResultTitle = ref('');
 const applyResultMessage = ref('');
 const applyResultSeverity = ref<'success' | 'warning' | 'error'>('success');
+const shouldReloadAfterApplyResult = ref(false);
 const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
 
@@ -316,6 +317,8 @@ const isTransientNetworkError = (error: unknown): boolean => {
 };
 
 const sleepMs = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+const isHttpsWindow = () =>
+  typeof window !== 'undefined' && window.location.protocol.toLowerCase() === 'https:';
 
 const runWithTransientNetworkRetry = async <T,>(
   operation: () => Promise<T>,
@@ -579,6 +582,7 @@ const handleComplete = async () => {
   isProcessing.value = true;
   error.value = null;
   logs.value = []; // Clear logs
+  shouldReloadAfterApplyResult.value = false;
 
   addLog(summaryT('logs.startingConfiguration'), 'info');
   draftStore.setInternalBootApplySucceeded(false);
@@ -617,6 +621,7 @@ const handleComplete = async () => {
       ? Boolean(coreSettingsResult.value?.vars?.useSsh || false)
       : TRUSTED_DEFAULT_PROFILE.useSsh;
     const currentSysModel = baselineLoaded ? coreSettingsResult.value?.vars?.sysModel || '' : '';
+    const serverNameChanged = baselineLoaded ? targetCoreSettings.serverName !== currentName : false;
     const shouldApplyPartnerSysModel = Boolean(
       isFreshInstall.value &&
         activationSystemModel.value &&
@@ -657,6 +662,9 @@ const handleComplete = async () => {
             }),
           shouldRetryNetworkMutations
         );
+        if (serverNameChanged && isHttpsWindow()) {
+          shouldReloadAfterApplyResult.value = true;
+        }
         addLog(summaryT('logs.serverIdentityUpdated'), 'success');
       } catch (caughtError: unknown) {
         hadNonOptimisticFailures = true;
@@ -1032,9 +1040,17 @@ const handleComplete = async () => {
   }
 };
 
-const handleApplyResultConfirm = () => {
+const handleApplyResultConfirm = async () => {
   showApplyResultDialog.value = false;
-  props.onComplete();
+  await Promise.resolve(props.onComplete());
+
+  if (!shouldReloadAfterApplyResult.value) {
+    return;
+  }
+
+  shouldReloadAfterApplyResult.value = false;
+  await nextTick();
+  window.location.reload();
 };
 
 const handleApplyClick = async () => {

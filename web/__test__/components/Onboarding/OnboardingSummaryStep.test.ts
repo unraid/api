@@ -295,7 +295,7 @@ interface SummaryVm {
   applyResultSeverity: 'success' | 'warning' | 'error';
   handleBootDriveWarningConfirm: () => Promise<void>;
   handleBootDriveWarningCancel: () => void;
-  handleApplyResultConfirm: () => void;
+  handleApplyResultConfirm: () => Promise<void>;
 }
 
 const getSummaryVm = (wrapper: ReturnType<typeof mountComponent>['wrapper']) =>
@@ -332,7 +332,7 @@ const clickButtonByText = async (
     } else if (normalizedTarget === 'cancel') {
       vm.handleBootDriveWarningCancel();
     } else if (normalizedTarget === 'ok') {
-      vm.handleApplyResultConfirm();
+      await vm.handleApplyResultConfirm();
     } else {
       expect(button).toBeTruthy();
     }
@@ -1013,6 +1013,30 @@ describe('OnboardingSummaryStep', () => {
     expect(getSummaryVm(wrapper).showApplyResultDialog).toBe(true);
     expect(wrapper.text()).toContain('No Updates Needed');
     expect(onComplete).not.toHaveBeenCalled();
+  });
+
+  it('advances to next steps before reloading after a successful HTTPS server rename', async () => {
+    draftStore.serverName = 'Newtower';
+    const protocolSpy = vi.spyOn(window.location, 'protocol', 'get').mockReturnValue('https:');
+    const reloadSpy = vi.spyOn(window.location, 'reload').mockImplementation(() => undefined);
+    const { wrapper, onComplete } = mountComponent();
+
+    await clickApply(wrapper);
+
+    expect(updateServerIdentityMock).toHaveBeenCalledWith({
+      name: 'Newtower',
+      comment: '',
+      sysModel: undefined,
+    });
+    expect(onComplete).not.toHaveBeenCalled();
+
+    await clickButtonByText(wrapper, 'OK');
+
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
+
+    protocolSpy.mockRestore();
+    reloadSpy.mockRestore();
   });
 
   it('retries final identity update after transient network errors when SSH changed', async () => {
