@@ -19,6 +19,7 @@ type MockInternalBootSelection = {
 };
 
 type InternalBootVm = {
+  poolMode: 'dedicated' | 'hybrid';
   getDeviceSelectItems: (index: number) => Array<{ value: string; label: string; disabled?: boolean }>;
 };
 
@@ -479,6 +480,48 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
     expect(wrapper.text()).toContain('TOO_SMALL');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
+  });
+
+  it('allows marketed 8 GB devices in dedicated mode but not hybrid mode', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = buildContext({
+      assignableDisks: [
+        {
+          id: 'DEDICATED-8GB',
+          device: '/dev/sda',
+          size: 8_000_000_000,
+          serialNum: 'DEDICATED-8GB',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
+          id: 'LARGER-DRIVE',
+          device: '/dev/sdb',
+          size: gib(32),
+          serialNum: 'LARGER-DRIVE',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+      ],
+    });
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    const vm = wrapper.vm as unknown as InternalBootVm;
+    expect(vm.poolMode).toBe('dedicated');
+    expect(vm.getDeviceSelectItems(0)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-8GB' })])
+    );
+
+    vm.poolMode = 'hybrid';
+    await flushPromises();
+
+    expect(vm.getDeviceSelectItems(0)).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-8GB' })])
+    );
+    await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
+    await flushPromises();
+    expect(wrapper.text()).toContain('DEDICATED-8GB - 8.0 GB (sda)');
+    expect(wrapper.text()).toContain('TOO_SMALL');
   });
 
   it('treats disks present in devs.ini as assignable', async () => {
