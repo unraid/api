@@ -14,6 +14,7 @@ import {
 } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 
+import OnboardingLoadingState from '~/components/Onboarding/components/OnboardingLoadingState.vue';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useServerStore } from '~/store/server';
 
@@ -21,6 +22,7 @@ interface Props {
   onComplete?: () => void;
   onBack?: () => void;
   showBack?: boolean;
+  isSavingStep?: boolean;
   activateHref: string;
   activateExternal?: boolean;
   allowSkip?: boolean;
@@ -64,6 +66,7 @@ const isCodeRevealed = ref(false);
 const isHelpDialogOpen = ref(false);
 const isSkipDialogOpen = ref(false);
 const isRefreshing = ref(false);
+const isBusy = computed(() => Boolean(props.isSavingStep) || isRefreshing.value);
 
 // Methods
 const openActivate = () => {
@@ -171,7 +174,7 @@ const doSkip = () => {
                 @click="refreshStatus"
                 class="text-muted hover:text-primary -mt-1 -mr-2 p-1 transition-colors focus:outline-none"
                 :title="lt('onboarding.licenseStep.actions.refreshStatus', 'Refresh Status')"
-                :disabled="isRefreshing"
+                :disabled="isBusy"
               >
                 <ArrowPathIcon class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
               </button>
@@ -199,6 +202,7 @@ const doSkip = () => {
               <button
                 @click.stop="toggleCodeReveal"
                 class="text-muted hover:text-primary ml-auto transition-colors focus:outline-none"
+                :disabled="Boolean(props.isSavingStep)"
                 :title="
                   isCodeRevealed
                     ? lt('onboarding.licenseStep.actions.hideCode', 'Hide')
@@ -216,6 +220,7 @@ const doSkip = () => {
         <button
           @click="openActivate"
           class="group relative w-full overflow-hidden rounded-lg p-[1px] shadow-sm transition-all hover:shadow-md active:scale-[0.99]"
+          :disabled="Boolean(props.isSavingStep)"
           :class="
             hasValidLicense
               ? 'bg-muted border-muted border'
@@ -242,9 +247,18 @@ const doSkip = () => {
         <button
           @click="openHelpDialog"
           class="text-muted hover:text-highlighted mt-4 text-xs font-medium underline underline-offset-2 transition-colors"
+          :disabled="Boolean(props.isSavingStep)"
         >
           {{ lt('onboarding.licenseStep.actions.contactSupport', 'Having trouble? Contact Support') }}
         </button>
+
+        <OnboardingLoadingState
+          v-if="props.isSavingStep"
+          compact
+          class="w-full"
+          :title="t('onboarding.loading.title')"
+          :description="t('onboarding.loading.description')"
+        />
 
         <!-- Footer / Navigation (Moved Inside Card) -->
         <div
@@ -254,6 +268,7 @@ const doSkip = () => {
             v-if="showBack"
             @click="handleBack"
             class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
+            :disabled="Boolean(props.isSavingStep)"
           >
             <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
             {{ t('common.back') }}
@@ -267,7 +282,8 @@ const doSkip = () => {
               :variant="hasValidLicense ? 'fill' : 'outline'"
               :class="hasValidLicense ? '!bg-primary hover:!bg-primary/90 !text-white' : '!shadow-none'"
               @click="handleNext"
-              :disabled="!hasValidLicense && !allowSkip"
+              :disabled="Boolean(props.isSavingStep) || (!hasValidLicense && !allowSkip)"
+              :loading="Boolean(props.isSavingStep)"
               :icon-right="ChevronRightIcon"
             />
           </div>

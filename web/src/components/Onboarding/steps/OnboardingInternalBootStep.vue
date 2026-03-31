@@ -1181,6 +1181,14 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         {{ stepError }}
       </div>
 
+      <OnboardingLoadingState
+        v-if="props.isSavingStep"
+        compact
+        class="mt-6"
+        :title="t('onboarding.loading.title')"
+        :description="t('onboarding.loading.description')"
+      />
+
       <div
         class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
       >
