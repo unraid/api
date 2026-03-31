@@ -828,7 +828,13 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
 
 <template>
   <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
-    <div class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
+    <OnboardingLoadingState
+      v-if="props.isSavingStep"
+      :title="t('onboarding.loading.title')"
+      :description="t('onboarding.loading.description')"
+    />
+
+    <div v-else class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
       <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div class="space-y-2">
           <div class="flex items-center gap-3">
@@ -1180,14 +1186,6 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
       >
         {{ stepError }}
       </div>
-
-      <OnboardingLoadingState
-        v-if="props.isSavingStep"
-        compact
-        class="mt-6"
-        :title="t('onboarding.loading.title')"
-        :description="t('onboarding.loading.description')"
-      />
 
       <div
         class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
