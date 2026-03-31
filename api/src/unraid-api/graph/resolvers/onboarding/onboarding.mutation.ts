@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
@@ -10,14 +11,18 @@ import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization
 import { OnboardingMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { OnboardingInternalBootService } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-internal-boot.service.js';
 import {
+    CloseOnboardingInput,
     CreateInternalBootPoolInput,
     OnboardingInternalBootContext,
     OnboardingInternalBootResult,
     OnboardingOverrideInput,
+    SaveOnboardingDraftInput,
 } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 
 @Resolver(() => OnboardingMutations)
 export class OnboardingMutationsResolver {
+    private readonly logger = new Logger(OnboardingMutationsResolver.name);
+
     constructor(
         private readonly onboardingOverrides: OnboardingOverrideService,
         private readonly onboardingService: OnboardingService,
@@ -67,7 +72,12 @@ export class OnboardingMutationsResolver {
         action: AuthAction.UPDATE_ANY,
         resource: Resource.WELCOME,
     })
-    async closeOnboarding(): Promise<Onboarding> {
+    async closeOnboarding(
+        @Args('input', { nullable: true }) input?: CloseOnboardingInput
+    ): Promise<Onboarding> {
+        if (input?.reason) {
+            this.logger.warn(`closeOnboarding invoked with reason=${input.reason}`);
+        }
         await this.onboardingService.closeOnboarding();
         return this.onboardingService.getOnboardingResponse();
     }
@@ -126,6 +136,18 @@ export class OnboardingMutationsResolver {
         this.onboardingOverrides.clearState();
         this.onboardingService.clearActivationDataCache();
         return this.onboardingService.getOnboardingResponse();
+    }
+
+    @ResolveField(() => Boolean, {
+        description: 'Persist server-owned onboarding wizard draft state',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.WELCOME,
+    })
+    async saveOnboardingDraft(@Args('input') input: SaveOnboardingDraftInput): Promise<boolean> {
+        await this.onboardingService.saveOnboardingDraft(input);
+        return true;
     }
 
     @ResolveField(() => OnboardingInternalBootResult, {

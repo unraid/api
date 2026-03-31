@@ -5,9 +5,22 @@ import path from 'path';
 
 import { writeFile } from 'atomically';
 
-import type { TrackerState } from '@app/unraid-api/config/onboarding-tracker.model.js';
+import type {
+    OnboardingBootMode,
+    OnboardingCoreSettingsDraft,
+    OnboardingDraft,
+    OnboardingInternalBootDraft,
+    OnboardingInternalBootSelection,
+    OnboardingInternalBootState,
+    OnboardingNavigationState,
+    OnboardingPluginsDraft,
+    OnboardingPoolMode,
+    OnboardingStepId,
+    TrackerState,
+} from '@app/unraid-api/config/onboarding-tracker.model.js';
 import { PATHS_CONFIG_MODULES } from '@app/environment.js';
 import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
+import { ONBOARDING_STEP_IDS } from '@app/unraid-api/config/onboarding-tracker.model.js';
 
 const TRACKER_FILE_NAME = 'onboarding-tracker.json';
 const CONFIG_PREFIX = 'onboardingTracker';
@@ -15,12 +28,211 @@ const DEFAULT_OS_VERSION_FILE_PATH = '/etc/unraid-version';
 const WRITE_RETRY_ATTEMPTS = 3;
 const WRITE_RETRY_DELAY_MS = 100;
 
-type PublicTrackerState = { completed: boolean; completedAtVersion?: string; forceOpen: boolean };
+export type PublicTrackerState = {
+    completed: boolean;
+    completedAtVersion?: string;
+    forceOpen: boolean;
+    draft: OnboardingDraft;
+    navigation: OnboardingNavigationState;
+    internalBootState: OnboardingInternalBootState;
+};
 
 export type OnboardingTrackerStateResult =
     | { kind: 'ok'; state: PublicTrackerState }
     | { kind: 'missing'; state: PublicTrackerState }
     | { kind: 'error'; error: Error };
+
+type SaveOnboardingDraftInput = {
+    draft?: OnboardingDraft;
+    navigation?: OnboardingNavigationState;
+    internalBootState?: OnboardingInternalBootState;
+};
+
+const normalizeBoolean = (value: unknown, fallback = false): boolean => {
+    if (typeof value === 'boolean') {
+        return value;
+    }
+
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        if (normalized === 'true') {
+            return true;
+        }
+        if (normalized === 'false') {
+            return false;
+        }
+    }
+
+    return fallback;
+};
+
+const normalizeString = (value: unknown): string | undefined => {
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+
+    const normalized = value.trim();
+    return normalized.length > 0 ? normalized : '';
+};
+
+const normalizeStringArray = (value: unknown): string[] => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value.filter((item): item is string => typeof item === 'string');
+};
+
+const normalizeStepId = (value: unknown): OnboardingStepId | undefined => {
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+
+    return ONBOARDING_STEP_IDS.includes(value as OnboardingStepId)
+        ? (value as OnboardingStepId)
+        : undefined;
+};
+
+const normalizePoolMode = (value: unknown): OnboardingPoolMode | undefined => {
+    if (value === 'dedicated' || value === 'hybrid') {
+        return value;
+    }
+
+    return undefined;
+};
+
+const normalizeBootMode = (value: unknown): OnboardingBootMode | undefined => {
+    if (value === 'usb' || value === 'storage') {
+        return value;
+    }
+
+    return undefined;
+};
+
+const normalizeInternalBootSelection = (value: unknown): OnboardingInternalBootSelection | null => {
+    if (value === null) {
+        return null;
+    }
+
+    if (!value || typeof value !== 'object') {
+        return null;
+    }
+
+    const candidate = value as Record<string, unknown>;
+    const parsedSlotCount = Number(candidate.slotCount);
+    const parsedBootSize = Number(candidate.bootSizeMiB);
+
+    return {
+        poolName: normalizeString(candidate.poolName),
+        slotCount: Number.isFinite(parsedSlotCount)
+            ? Math.max(1, Math.min(2, parsedSlotCount))
+            : undefined,
+        devices: normalizeStringArray(candidate.devices),
+        bootSizeMiB: Number.isFinite(parsedBootSize) ? Math.max(0, parsedBootSize) : undefined,
+        updateBios: normalizeBoolean(candidate.updateBios, false),
+        poolMode: normalizePoolMode(candidate.poolMode),
+    };
+};
+
+const normalizeCoreSettingsDraft = (value: unknown): OnboardingCoreSettingsDraft | undefined => {
+    if (!value || typeof value !== 'object') {
+        return undefined;
+    }
+
+    const candidate = value as Record<string, unknown>;
+
+    return {
+        serverName: normalizeString(candidate.serverName),
+        serverDescription: normalizeString(candidate.serverDescription),
+        timeZone: normalizeString(candidate.timeZone),
+        theme: normalizeString(candidate.theme),
+        language: normalizeString(candidate.language),
+        useSsh: typeof candidate.useSsh === 'boolean' ? candidate.useSsh : undefined,
+    };
+};
+
+const normalizePluginsDraft = (value: unknown): OnboardingPluginsDraft | undefined => {
+    if (!value || typeof value !== 'object') {
+        return undefined;
+    }
+
+    const candidate = value as Record<string, unknown>;
+
+    return {
+        selectedIds: normalizeStringArray(candidate.selectedIds),
+    };
+};
+
+const normalizeInternalBootDraft = (value: unknown): OnboardingInternalBootDraft | undefined => {
+    if (!value || typeof value !== 'object') {
+        return undefined;
+    }
+
+    const candidate = value as Record<string, unknown>;
+
+    return {
+        bootMode: normalizeBootMode(candidate.bootMode),
+        skipped: typeof candidate.skipped === 'boolean' ? candidate.skipped : undefined,
+        selection:
+            candidate.selection === undefined
+                ? undefined
+                : normalizeInternalBootSelection(candidate.selection),
+    };
+};
+
+const normalizeDraft = (value: unknown): OnboardingDraft => {
+    if (!value || typeof value !== 'object') {
+        return {};
+    }
+
+    const candidate = value as Record<string, unknown>;
+
+    return {
+        coreSettings: normalizeCoreSettingsDraft(candidate.coreSettings),
+        plugins: normalizePluginsDraft(candidate.plugins),
+        internalBoot: normalizeInternalBootDraft(candidate.internalBoot),
+    };
+};
+
+const normalizeNavigation = (value: unknown): OnboardingNavigationState => {
+    if (!value || typeof value !== 'object') {
+        return {};
+    }
+
+    const candidate = value as Record<string, unknown>;
+
+    return {
+        currentStepId: normalizeStepId(candidate.currentStepId),
+    };
+};
+
+const normalizeInternalBootState = (value: unknown): OnboardingInternalBootState => {
+    if (!value || typeof value !== 'object') {
+        return {
+            applyAttempted: false,
+            applySucceeded: false,
+        };
+    }
+
+    const candidate = value as Record<string, unknown>;
+
+    return {
+        applyAttempted: normalizeBoolean(candidate.applyAttempted, false),
+        applySucceeded: normalizeBoolean(candidate.applySucceeded, false),
+    };
+};
+
+const createEmptyPublicState = (): PublicTrackerState => ({
+    completed: false,
+    completedAtVersion: undefined,
+    forceOpen: false,
+    draft: {},
+    navigation: {},
+    internalBootState: {
+        applyAttempted: false,
+        applySucceeded: false,
+    },
+});
 
 /**
  * Simplified onboarding tracker service.
@@ -53,21 +265,27 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
     }
 
     private getCachedState(): PublicTrackerState {
-        // Check for override first (for testing)
+        const baseState = {
+            ...createEmptyPublicState(),
+            completed: this.state.completed ?? false,
+            completedAtVersion: this.state.completedAtVersion,
+            forceOpen: this.state.forceOpen ?? false,
+            draft: normalizeDraft(this.state.draft),
+            navigation: normalizeNavigation(this.state.navigation),
+            internalBootState: normalizeInternalBootState(this.state.internalBootState),
+        };
+
         const overrideState = this.onboardingOverrides.getState();
         if (overrideState?.onboarding !== undefined) {
             return {
+                ...baseState,
                 completed: overrideState.onboarding.completed ?? false,
                 completedAtVersion: overrideState.onboarding.completedAtVersion ?? undefined,
                 forceOpen: overrideState.onboarding.forceOpen ?? false,
             };
         }
 
-        return {
-            completed: this.state.completed ?? false,
-            completedAtVersion: this.state.completedAtVersion,
-            forceOpen: this.state.forceOpen ?? false,
-        };
+        return baseState;
     }
 
     /**
@@ -127,7 +345,6 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
      */
     async markCompleted(): Promise<{ completed: boolean; completedAtVersion?: string }> {
         this.bypassActive = false;
-        // Check for override first
         const overrideState = this.onboardingOverrides.getState();
         if (overrideState?.onboarding !== undefined) {
             const updatedOverride = {
@@ -148,6 +365,12 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
             completed: true,
             completedAtVersion: this.currentVersion,
             forceOpen: false,
+            draft: {},
+            navigation: {},
+            internalBootState: {
+                applyAttempted: false,
+                applySucceeded: false,
+            },
         };
 
         await this.writeTrackerState(updatedState);
@@ -161,7 +384,6 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
      */
     async reset(): Promise<{ completed: boolean; completedAtVersion?: string }> {
         this.bypassActive = false;
-        // Check for override first
         const overrideState = this.onboardingOverrides.getState();
         if (overrideState?.onboarding !== undefined) {
             const updatedOverride = {
@@ -181,6 +403,12 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
             completed: false,
             completedAtVersion: undefined,
             forceOpen: false,
+            draft: {},
+            navigation: {},
+            internalBootState: {
+                applyAttempted: false,
+                applySucceeded: false,
+            },
         };
 
         await this.writeTrackerState(updatedState);
@@ -221,6 +449,9 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
             completed: currentStateResult.state.completed,
             completedAtVersion: currentStateResult.state.completedAtVersion,
             forceOpen,
+            draft: currentStateResult.state.draft,
+            navigation: currentStateResult.state.navigation,
+            internalBootState: currentStateResult.state.internalBootState,
         };
 
         await this.writeTrackerState(updatedState);
@@ -231,6 +462,43 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
 
     setBypassActive(active: boolean): void {
         this.bypassActive = active;
+    }
+
+    async saveDraft(input: SaveOnboardingDraftInput): Promise<PublicTrackerState> {
+        const currentStateResult = await this.getStateResult();
+        if (currentStateResult.kind === 'error') {
+            throw currentStateResult.error;
+        }
+
+        const currentState = currentStateResult.state;
+        const nextDraft: OnboardingDraft = {
+            ...currentState.draft,
+            ...(input.draft ?? {}),
+        };
+
+        const updatedState: TrackerState = {
+            completed: currentState.completed,
+            completedAtVersion: currentState.completedAtVersion,
+            forceOpen: currentState.forceOpen,
+            draft: nextDraft,
+            navigation: input.navigation
+                ? {
+                      ...currentState.navigation,
+                      ...input.navigation,
+                  }
+                : currentState.navigation,
+            internalBootState: input.internalBootState
+                ? {
+                      ...currentState.internalBootState,
+                      ...input.internalBootState,
+                  }
+                : currentState.internalBootState,
+        };
+
+        await this.writeTrackerState(updatedState);
+        this.syncConfig();
+
+        return this.getCachedState();
     }
 
     private async readCurrentVersion(): Promise<string | undefined> {
@@ -256,6 +524,9 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
                     completed: state.completed ?? false,
                     completedAtVersion: state.completedAtVersion,
                     forceOpen: state.forceOpen ?? false,
+                    draft: normalizeDraft(state.draft),
+                    navigation: normalizeNavigation(state.navigation),
+                    internalBootState: normalizeInternalBootState(state.internalBootState),
                 },
             };
         } catch (error) {
@@ -263,11 +534,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
                 this.logger.debug(`Onboarding tracker state does not exist yet at ${this.trackerPath}.`);
                 return {
                     kind: 'missing',
-                    state: {
-                        completed: false,
-                        completedAtVersion: undefined,
-                        forceOpen: false,
-                    },
+                    state: createEmptyPublicState(),
                 };
             }
 
