@@ -4,10 +4,16 @@ export type OnboardingPoolMode = 'dedicated' | 'hybrid';
 
 export type OnboardingBootMode = 'usb' | 'storage';
 
+export interface OnboardingInternalBootDevice {
+  id: string;
+  sizeBytes: number;
+  deviceName: string;
+}
+
 export interface OnboardingInternalBootSelection {
   poolName?: string;
   slotCount?: number;
-  devices?: string[];
+  devices?: OnboardingInternalBootDevice[];
   bootSizeMiB?: number;
   updateBios?: boolean;
   poolMode?: OnboardingPoolMode;
@@ -75,7 +81,7 @@ export const cloneOnboardingWizardDraft = (draft: OnboardingWizardDraft): Onboar
               : {
                   ...draft.internalBoot.selection,
                   devices: draft.internalBoot.selection.devices
-                    ? [...draft.internalBoot.selection.devices]
+                    ? draft.internalBoot.selection.devices.map((device) => ({ ...device }))
                     : [],
                 },
       }

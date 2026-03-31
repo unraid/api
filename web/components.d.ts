@@ -97,6 +97,7 @@ declare module 'vue' {
     OidcDebugButton: typeof import('./src/components/Logs/OidcDebugButton.vue')['default']
     OidcDebugLogs: typeof import('./src/components/ConnectSettings/OidcDebugLogs.vue')['default']
     'OnboardingAdminPanel.standalone': typeof import('./src/components/Onboarding/standalone/OnboardingAdminPanel.standalone.vue')['default']
+    OnboardingBootConfigurationSummary: typeof import('./src/components/Onboarding/components/bootConfigurationSummary/OnboardingBootConfigurationSummary.vue')['default']
     OnboardingConsole: typeof import('./src/components/Onboarding/components/OnboardingConsole.vue')['default']
     OnboardingCoreSettingsStep: typeof import('./src/components/Onboarding/steps/OnboardingCoreSettingsStep.vue')['default']
     'OnboardingInternalBoot.standalone': typeof import('./src/components/Onboarding/standalone/OnboardingInternalBoot.standalone.vue')['default']

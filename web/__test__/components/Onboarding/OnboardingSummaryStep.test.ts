@@ -62,7 +62,7 @@ const {
     internalBootSelection: null as {
       poolName: string;
       slotCount: number;
-      devices: string[];
+      devices: Array<{ id: string; sizeBytes: number; deviceName: string }>;
       bootSizeMiB: number;
       updateBios: boolean;
       poolMode: 'dedicated' | 'hybrid';
@@ -112,6 +112,12 @@ const {
   useMutationMock: vi.fn(),
   useQueryMock: vi.fn(),
 }));
+
+const createBootDevice = (id: string, sizeBytes: number, deviceName: string) => ({
+  id,
+  sizeBytes,
+  deviceName,
+});
 
 vi.mock('pinia', async (importOriginal) => {
   const actual = await importOriginal<typeof import('pinia')>();
@@ -1184,6 +1190,7 @@ describe('OnboardingSummaryStep', () => {
 
     expect(wrapper.text()).toContain('Boot Configuration');
     expect(wrapper.text()).toContain('USB/Flash Drive');
+    expect(wrapper.find('[data-testid="boot-configuration-summary"]').exists()).toBe(true);
   });
 
   it('hides boot configuration section when internal boot step was skipped', () => {
@@ -1213,7 +1220,10 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'boot',
       slotCount: 2,
-      devices: ['DISK-A', 'DISK-B'],
+      devices: [
+        createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda'),
+        createBootDevice('DISK-B', 250 * 1024 * 1024 * 1024, 'sdb'),
+      ],
       bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
@@ -1221,8 +1231,30 @@ describe('OnboardingSummaryStep', () => {
 
     const { wrapper } = mountComponent();
 
+    expect(wrapper.find('[data-testid="boot-configuration-summary"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('DISK-A - 537 GB (sda)');
     expect(wrapper.text()).toContain('DISK-B - 268 GB (sdb)');
+  });
+
+  it('shows an inline warning and blocks apply when boot configuration is incomplete', () => {
+    draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = {
+      poolName: '',
+      slotCount: 1,
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
+      bootSizeMiB: 16384,
+      updateBios: true,
+      poolMode: 'hybrid',
+    };
+
+    const { wrapper } = mountComponent();
+    const buttons = wrapper.findAll('[data-testid="brand-button"]');
+    const applyButton = buttons[buttons.length - 1];
+
+    expect(wrapper.find('[data-testid="boot-configuration-summary"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="boot-configuration-summary-invalid"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('This boot configuration is incomplete.');
+    expect(applyButton.attributes('disabled')).toBeDefined();
   });
 
   it('requires confirmation before applying storage boot drive changes', async () => {
@@ -1230,7 +1262,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['DISK-A'],
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
       bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
@@ -1256,7 +1288,10 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 2,
-      devices: ['DISK-A', 'DISK-B'],
+      devices: [
+        createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda'),
+        createBootDevice('DISK-B', 250 * 1024 * 1024 * 1024, 'sdb'),
+      ],
       bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
@@ -1310,7 +1345,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['DISK-A'],
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
       bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
@@ -1341,7 +1376,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['DISK-A'],
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
       bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',

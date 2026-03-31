@@ -10,6 +10,7 @@ import OnboardingLoadingState from '@/components/Onboarding/components/Onboardin
 import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
 import {
   type OnboardingBootMode,
+  type OnboardingInternalBootDevice,
   type OnboardingInternalBootDraft,
   type OnboardingInternalBootSelection,
   type OnboardingPoolMode,
@@ -38,6 +39,7 @@ const toBootMode = (value: unknown): OnboardingBootMode => (value === 'storage' 
 interface InternalBootDeviceOption {
   value: string;
   label: string;
+  sizeBytes: number;
   device: string;
   sizeMiB: number | null;
   ineligibilityCodes: InternalBootDiskEligibilityCode[];
@@ -193,6 +195,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
       return {
         value: optionValue,
         label: buildDeviceLabel(displayId, sizeLabel, device),
+        sizeBytes,
         device,
         sizeMiB,
         ineligibilityCodes,
@@ -578,6 +581,20 @@ const getDeviceSelectItems = (index: number): SelectMenuItem[] =>
     disabled: isDeviceDisabled(option.value, index),
   }));
 
+const selectedDeviceById = computed(() => {
+  const devices = new Map<string, OnboardingInternalBootDevice>();
+
+  for (const option of deviceOptions.value) {
+    devices.set(option.value, {
+      id: option.value,
+      sizeBytes: option.sizeBytes,
+      deviceName: option.device,
+    });
+  }
+
+  return devices;
+});
+
 const handleUpdateBiosChange = (value: boolean | 'indeterminate') => {
   updateBios.value = value === true;
 };
@@ -632,11 +649,20 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
     formError.value = t('onboarding.internalBootStep.validation.devicePerSlot');
     return null;
   }
-  const devices = rawDevices.filter((d): d is string => !!d);
+  const deviceIds = rawDevices.filter((d): d is string => !!d);
 
-  const uniqueDevices = new Set(devices);
-  if (uniqueDevices.size !== devices.length) {
+  const uniqueDevices = new Set(deviceIds);
+  if (uniqueDevices.size !== deviceIds.length) {
     formError.value = t('onboarding.internalBootStep.validation.uniqueDevices');
+    return null;
+  }
+
+  const devices = deviceIds
+    .map((deviceId) => selectedDeviceById.value.get(deviceId))
+    .filter((device): device is OnboardingInternalBootDevice => device !== undefined);
+
+  if (devices.length !== deviceIds.length) {
+    formError.value = t('onboarding.internalBootStep.validation.devicePerSlot');
     return null;
   }
 
@@ -688,6 +714,9 @@ const buildDraftSnapshot = (): OnboardingInternalBootDraft => {
   const devices = selectedDevices.value
     .slice(0, slotCount.value)
     .filter((device): device is string => typeof device === 'string' && device.length > 0);
+  const selectedDraftDevices = devices
+    .map((deviceId) => selectedDeviceById.value.get(deviceId))
+    .filter((device): device is OnboardingInternalBootDevice => device !== undefined);
   const currentBootSizeMiB = bootSizeMiB.value ?? undefined;
 
   return {
@@ -696,7 +725,7 @@ const buildDraftSnapshot = (): OnboardingInternalBootDraft => {
     selection: {
       poolName: trimmedPoolName,
       slotCount: slotCount.value,
-      devices,
+      devices: selectedDraftDevices,
       bootSizeMiB: currentBootSizeMiB,
       updateBios: updateBios.value,
       poolMode: poolMode.value,
@@ -715,7 +744,7 @@ const initializeForm = (data: InternalBootTemplateData) => {
     (poolMode.value === 'dedicated' ? 'boot' : (data.poolNameDefault ?? 'cache'));
   slotCount.value = draftSelection?.slotCount ?? defaultSlot;
   selectedDevices.value =
-    draftSelection?.devices?.slice(0, slotCount.value) ??
+    draftSelection?.devices?.map((device) => device.id).slice(0, slotCount.value) ??
     Array.from({ length: slotCount.value }, (): string | undefined => undefined);
   normalizeSelectedDevices(slotCount.value);
 
@@ -750,7 +779,7 @@ watch(
     poolMode.value = draft.selection.poolMode ?? 'hybrid';
     poolName.value = draft.selection.poolName ?? poolName.value;
     slotCount.value = draft.selection.slotCount ?? slotCount.value;
-    selectedDevices.value = [...(draft.selection.devices ?? [])];
+    selectedDevices.value = (draft.selection.devices ?? []).map((device) => device.id);
     normalizeSelectedDevices(slotCount.value);
     updateBios.value = draft.selection.updateBios ?? updateBios.value;
     applyBootSizeSelection(draft.selection.bootSizeMiB ?? DEFAULT_BOOT_SIZE_MIB);

@@ -9,6 +9,8 @@ import {
   XMarkIcon,
 } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
+import { buildBootConfigurationSummaryViewModel } from '@/components/Onboarding/components/bootConfigurationSummary/buildBootConfigurationSummaryViewModel';
+import OnboardingBootConfigurationSummary from '@/components/Onboarding/components/bootConfigurationSummary/OnboardingBootConfigurationSummary.vue';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import {
   applyInternalBootSelection,
@@ -19,6 +21,7 @@ import OnboardingSteps from '@/components/Onboarding/OnboardingSteps.vue';
 import { createEmptyOnboardingWizardInternalBootState } from '@/components/Onboarding/onboardingWizardState';
 import OnboardingInternalBootStep from '@/components/Onboarding/steps/OnboardingInternalBootStep.vue';
 import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
+import { convert } from 'convert';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
 import type {
@@ -60,6 +63,8 @@ const standaloneSteps: Array<{ id: StepId; required: boolean }> = [
 
 const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
+const standaloneSummaryInvalidMessage =
+  'Your boot configuration is incomplete. Go back and review the boot settings before applying changes.';
 
 const isLocked = computed(() => internalBootState.value.applyAttempted);
 
@@ -80,6 +85,37 @@ const canReturnToConfigure = () =>
 const showConsole = computed(() => confirmationState.value === 'saving' || logs.value.length > 0);
 const isSaving = computed(() => confirmationState.value === 'saving');
 const canEditAgain = computed(() => currentStep.value === 'SUMMARY' && canReturnToConfigure());
+const formatDeviceSize = (sizeBytes: number) => {
+  const converted = convert(sizeBytes, 'B').to('best', 'metric');
+  const precision = converted.quantity >= 100 || converted.unit === 'B' ? 0 : 1;
+  return `${converted.quantity.toFixed(precision)} ${converted.unit}`;
+};
+const bootConfigurationSummaryState = computed(() =>
+  buildBootConfigurationSummaryViewModel(internalBootDraft.value, {
+    labels: {
+      title: summaryT('bootConfig.title'),
+      bootMethod: summaryT('bootConfig.bootMethod'),
+      bootMethodStorage: summaryT('bootConfig.bootMethodStorage'),
+      bootMethodUsb: summaryT('bootConfig.bootMethodUsb'),
+      poolMode: summaryT('bootConfig.poolMode'),
+      poolModeDedicated: summaryT('bootConfig.poolModeDedicated'),
+      poolModeHybrid: summaryT('bootConfig.poolModeHybrid'),
+      pool: summaryT('bootConfig.pool'),
+      slots: summaryT('bootConfig.slots'),
+      bootReserved: summaryT('bootConfig.bootReserved'),
+      updateBios: summaryT('bootConfig.updateBios'),
+      devices: summaryT('bootConfig.devices'),
+      yes: summaryT('yes'),
+      no: summaryT('no'),
+    },
+    formatBootSize: (bootSizeMiB) =>
+      bootSizeMiB === 0
+        ? t('onboarding.internalBootStep.bootSize.wholeDrive')
+        : t('onboarding.internalBootStep.bootSize.gbLabel', { size: Math.round(bootSizeMiB / 1024) }),
+    formatDeviceSize,
+    missingStorageSelectionBehavior: 'invalid',
+  })
+);
 const currentStepIndex = computed(() =>
   standaloneSteps.findIndex((step) => step.id === currentStep.value)
 );
@@ -171,7 +207,7 @@ const toInternalBootSelection = (draft: OnboardingInternalBootDraft): InternalBo
   return {
     poolName: selection.poolName,
     slotCount: selection.slotCount,
-    devices: [...selection.devices],
+    devices: selection.devices.map((device) => device.id),
     bootSizeMiB: selection.bootSizeMiB,
     updateBios: selection.updateBios,
     poolMode: selection.poolMode,
@@ -242,7 +278,9 @@ const handleConfigureStepComplete = async (draft: OnboardingInternalBootDraft) =
           ? null
           : {
               ...draft.selection,
-              devices: draft.selection.devices ? [...draft.selection.devices] : [],
+              devices: draft.selection.devices
+                ? draft.selection.devices.map((device) => ({ ...device }))
+                : [],
             },
   };
   currentStep.value = 'SUMMARY';
@@ -259,7 +297,9 @@ const handleConfigureStepBack = async (draft: OnboardingInternalBootDraft) => {
           ? null
           : {
               ...draft.selection,
-              devices: draft.selection.devices ? [...draft.selection.devices] : [],
+              devices: draft.selection.devices
+                ? draft.selection.devices.map((device) => ({ ...device }))
+                : [],
             },
   };
 };
@@ -496,23 +536,18 @@ onUnmounted(() => {
                 </p>
               </div>
 
-              <div v-if="internalBootDraft.selection" class="mt-6 grid gap-4 text-sm md:grid-cols-2">
-                <div>
-                  <p class="text-muted font-medium">{{ summaryT('bootConfig.bootMethod') }}</p>
-                  <p class="text-highlighted mt-1 font-semibold">
-                    {{
-                      internalBootDraft.bootMode === 'storage'
-                        ? summaryT('bootConfig.bootMethodStorage')
-                        : summaryT('bootConfig.bootMethodUsb')
-                    }}
-                  </p>
-                </div>
-                <div>
-                  <p class="text-muted font-medium">{{ summaryT('bootConfig.devices') }}</p>
-                  <p class="text-highlighted mt-1 font-semibold">
-                    {{ internalBootDraft.selection.devices?.join(', ') || t('common.none') }}
-                  </p>
-                </div>
+              <div v-if="bootConfigurationSummaryState.kind === 'ready'" class="mt-6">
+                <OnboardingBootConfigurationSummary :summary="bootConfigurationSummaryState.summary" />
+              </div>
+
+              <div
+                v-else-if="bootConfigurationSummaryState.kind === 'invalid'"
+                data-testid="internal-boot-summary-invalid"
+                class="mt-6 rounded-lg border border-amber-200 bg-amber-50/70 p-4"
+              >
+                <p class="text-sm font-medium text-amber-700">
+                  {{ standaloneSummaryInvalidMessage }}
+                </p>
               </div>
 
               <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -524,6 +559,7 @@ onUnmounted(() => {
                   {{ t('common.back') }}
                 </button>
                 <button
+                  v-if="bootConfigurationSummaryState.kind !== 'invalid'"
                   type="button"
                   class="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
                   @click="handleSummaryContinue"

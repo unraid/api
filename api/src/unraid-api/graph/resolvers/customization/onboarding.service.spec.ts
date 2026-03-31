@@ -23,6 +23,12 @@ import {
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 
+const createBootDevice = (id: string, sizeBytes: number, deviceName: string) => ({
+    id,
+    sizeBytes,
+    deviceName,
+});
+
 vi.mock('@app/core/utils/files/file-exists.js');
 vi.mock('fs/promises', async () => {
     const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');
@@ -1946,7 +1952,10 @@ describe('OnboardingService - updateCfgFile', () => {
                         selection: {
                             poolName: 'cache',
                             slotCount: 2,
-                            devices: ['disk1', 'disk2'],
+                            devices: [
+                                createBootDevice('disk1', 500_000_000_000, 'sda'),
+                                createBootDevice('disk2', 250_000_000_000, 'sdb'),
+                            ],
                             bootSizeMiB: 32768,
                             updateBios: true,
                             poolMode: OnboardingWizardPoolMode.HYBRID,
@@ -1974,7 +1983,10 @@ describe('OnboardingService - updateCfgFile', () => {
                         selection: {
                             poolName: 'cache',
                             slotCount: 2,
-                            devices: ['disk1', 'disk2'],
+                            devices: [
+                                createBootDevice('disk1', 500_000_000_000, 'sda'),
+                                createBootDevice('disk2', 250_000_000_000, 'sdb'),
+                            ],
                             bootSizeMiB: 32768,
                             updateBios: true,
                             poolMode: 'hybrid',

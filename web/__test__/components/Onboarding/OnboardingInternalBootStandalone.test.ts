@@ -14,6 +14,12 @@ import { createTestI18n } from '../../utils/i18n';
 
 const INTERNAL_BOOT_HISTORY_STATE_KEY = '__unraidOnboardingInternalBoot';
 
+const createBootDevice = (id: string, sizeBytes: number, deviceName: string) => ({
+  id,
+  sizeBytes,
+  deviceName,
+});
+
 type InternalBootHistoryState = {
   sessionId: string;
   stepId: 'CONFIGURE_BOOT' | 'SUMMARY';
@@ -113,7 +119,7 @@ vi.mock('@/components/Onboarding/steps/OnboardingInternalBootStep.vue', () => ({
                 ? null
                 : {
                     ...initialDraft.selection,
-                    devices: [...(initialDraft.selection.devices ?? [])],
+                    devices: (initialDraft.selection.devices ?? []).map((device) => ({ ...device })),
                   },
         };
       };
@@ -256,6 +262,8 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     const wrapper = mountComponent();
 
     await advanceToSummary(wrapper);
+
+    expect(wrapper.find('[data-testid="boot-configuration-summary"]').exists()).toBe(false);
     await confirmAndApply(wrapper);
 
     expect(applyInternalBootSelectionMock).not.toHaveBeenCalled();
@@ -274,7 +282,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       selection: {
         poolName: 'cache',
         slotCount: 1,
-        devices: ['DISK-A'],
+        devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
         bootSizeMiB: 16384,
         updateBios: true,
         poolMode: 'hybrid',
@@ -290,6 +298,11 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     const wrapper = mountComponent();
 
     await advanceToSummary(wrapper);
+
+    expect(wrapper.find('[data-testid="boot-configuration-summary"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Boot Configuration');
+    expect(wrapper.text()).toContain('Storage Drive(s)');
+    expect(wrapper.text()).toContain('DISK-A - 537 GB (sda)');
     await confirmAndApply(wrapper);
 
     expect(applyInternalBootSelectionMock).toHaveBeenCalledWith(
@@ -318,6 +331,38 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     });
   });
 
+  it('shows an editable error state when the standalone boot summary is invalid', async () => {
+    configureDraftState.value = {
+      bootMode: 'storage',
+      skipped: false,
+      selection: {
+        poolName: '',
+        slotCount: 1,
+        devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
+        bootSizeMiB: 16384,
+        updateBios: true,
+        poolMode: 'hybrid',
+      },
+    };
+
+    const wrapper = mountComponent();
+
+    await advanceToSummary(wrapper);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="internal-boot-summary-invalid"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Your boot configuration is incomplete.');
+    expect(findButtonByText(wrapper, 'Confirm & Apply')).toBeFalsy();
+
+    await findButtonByText(wrapper, 'Back')!.trigger('click');
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="internal-boot-step-stub"]').exists()).toBe(true);
+    expect(stepperPropsRef.value).toMatchObject({
+      activeStepIndex: 0,
+    });
+  });
+
   it('shows a locked failure result with reboot controls when apply fails', async () => {
     configureDraftState.value = {
       bootMode: 'storage',
@@ -325,7 +370,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       selection: {
         poolName: 'cache',
         slotCount: 1,
-        devices: ['DISK-A'],
+        devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
         bootSizeMiB: 16384,
         updateBios: false,
         poolMode: 'hybrid',
@@ -384,7 +429,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       selection: {
         poolName: 'cache',
         slotCount: 1,
-        devices: ['DISK-A'],
+        devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
         bootSizeMiB: 16384,
         updateBios: true,
         poolMode: 'hybrid',
@@ -456,7 +501,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       selection: {
         poolName: 'cache',
         slotCount: 1,
-        devices: ['DISK-A'],
+        devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
         bootSizeMiB: 16384,
         updateBios: true,
         poolMode: 'hybrid',
@@ -481,7 +526,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       selection: {
         poolName: 'cache',
         slotCount: 1,
-        devices: ['DISK-A'],
+        devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
         bootSizeMiB: 16384,
         updateBios: false,
         poolMode: 'hybrid',

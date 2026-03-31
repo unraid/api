@@ -483,7 +483,12 @@ export class OnboardingService implements OnModuleInit {
                               ? {
                                     poolName: draft.internalBoot.selection.poolName,
                                     slotCount: draft.internalBoot.selection.slotCount,
-                                    devices: draft.internalBoot.selection.devices ?? [],
+                                    devices:
+                                        draft.internalBoot.selection.devices?.map((device) => ({
+                                            id: device.id,
+                                            sizeBytes: device.sizeBytes,
+                                            deviceName: device.deviceName,
+                                        })) ?? [],
                                     bootSizeMiB: draft.internalBoot.selection.bootSizeMiB,
                                     updateBios: draft.internalBoot.selection.updateBios,
                                     poolMode: toWizardPoolMode(draft.internalBoot.selection.poolMode),
@@ -606,7 +611,13 @@ export class OnboardingService implements OnModuleInit {
                                           ? {
                                                 poolName: input.draft.internalBoot.selection.poolName,
                                                 slotCount: input.draft.internalBoot.selection.slotCount,
-                                                devices: input.draft.internalBoot.selection.devices,
+                                                devices: input.draft.internalBoot.selection.devices?.map(
+                                                    (device) => ({
+                                                        id: device.id,
+                                                        sizeBytes: device.sizeBytes,
+                                                        deviceName: device.deviceName,
+                                                    })
+                                                ),
                                                 bootSizeMiB:
                                                     input.draft.internalBoot.selection.bootSizeMiB,
                                                 updateBios:
