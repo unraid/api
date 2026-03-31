@@ -544,6 +544,9 @@ const isAwaitingStepData = computed(
     (!hasHydratedWizardState.value || (onboardingContextLoading.value && wizard.value === null))
 );
 const showModalLoadingState = computed(() => isClosingModal.value || isAwaitingStepData.value);
+const showStepTransitionOverlay = computed(
+  () => isSavingTransition.value && !showModalLoadingState.value
+);
 const loadingStateTitle = computed(() =>
   isClosingModal.value ? t('onboarding.modal.closing.title') : t('onboarding.loading.title')
 );
@@ -932,7 +935,25 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
             </div>
           </div>
 
-          <component v-if="currentStepComponent" :is="currentStepComponent" v-bind="currentStepProps" />
+          <div class="relative w-full">
+            <component
+              v-if="currentStepComponent"
+              :is="currentStepComponent"
+              v-bind="currentStepProps"
+            />
+            <div
+              v-if="showStepTransitionOverlay"
+              class="bg-background/70 absolute inset-0 z-10 flex items-center justify-center px-4 pb-4 backdrop-blur-[1px]"
+            >
+              <div class="w-full max-w-4xl">
+                <OnboardingLoadingState
+                  compact
+                  :title="t('onboarding.loading.title')"
+                  :description="t('onboarding.loading.description')"
+                />
+              </div>
+            </div>
+          </div>
         </template>
       </div>
     </div>
