@@ -9,6 +9,7 @@ import type {
     OnboardingBootMode,
     OnboardingCoreSettingsDraft,
     OnboardingDraft,
+    OnboardingInternalBootDevice,
     OnboardingInternalBootDraft,
     OnboardingInternalBootSelection,
     OnboardingInternalBootState,
@@ -83,6 +84,37 @@ const normalizeStringArray = (value: unknown): string[] => {
     return value.filter((item): item is string => typeof item === 'string');
 };
 
+const normalizeBootDevice = (value: unknown): OnboardingInternalBootDevice | null => {
+    if (!value || typeof value !== 'object') {
+        return null;
+    }
+
+    const candidate = value as Record<string, unknown>;
+    const id = normalizeString(candidate.id);
+    const deviceName = normalizeString(candidate.deviceName);
+    const parsedSizeBytes = Number(candidate.sizeBytes);
+
+    if (!id || !deviceName || !Number.isFinite(parsedSizeBytes) || parsedSizeBytes <= 0) {
+        return null;
+    }
+
+    return {
+        id,
+        sizeBytes: parsedSizeBytes,
+        deviceName,
+    };
+};
+
+const normalizeBootDeviceArray = (value: unknown): OnboardingInternalBootDevice[] => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value
+        .map((item) => normalizeBootDevice(item))
+        .filter((item): item is OnboardingInternalBootDevice => item !== null);
+};
+
 const normalizeStepId = (value: unknown): OnboardingStepId | undefined => {
     if (typeof value !== 'string') {
         return undefined;
@@ -127,7 +159,7 @@ const normalizeInternalBootSelection = (value: unknown): OnboardingInternalBootS
         slotCount: Number.isFinite(parsedSlotCount)
             ? Math.max(1, Math.min(2, parsedSlotCount))
             : undefined,
-        devices: normalizeStringArray(candidate.devices),
+        devices: normalizeBootDeviceArray(candidate.devices),
         bootSizeMiB: Number.isFinite(parsedBootSize) ? Math.max(0, parsedBootSize) : undefined,
         updateBios: normalizeBoolean(candidate.updateBios, false),
         poolMode: normalizePoolMode(candidate.poolMode),

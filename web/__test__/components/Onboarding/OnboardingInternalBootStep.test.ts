@@ -12,7 +12,7 @@ import { createTestI18n } from '../../utils/i18n';
 type MockInternalBootSelection = {
   poolName: string;
   slotCount: number;
-  devices: string[];
+  devices: Array<{ id: string; sizeBytes: number; deviceName: string }>;
   bootSizeMiB: number;
   updateBios: boolean;
   poolMode: 'dedicated' | 'hybrid';

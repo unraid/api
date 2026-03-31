@@ -2156,6 +2156,19 @@ export type OnboardingWizardDraftInput = {
   plugins?: InputMaybe<OnboardingWizardPluginsDraftInput>;
 };
 
+export type OnboardingWizardInternalBootDevice = {
+  __typename?: 'OnboardingWizardInternalBootDevice';
+  deviceName: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  sizeBytes: Scalars['BigInt']['output'];
+};
+
+export type OnboardingWizardInternalBootDeviceInput = {
+  deviceName: Scalars['String']['input'];
+  id: Scalars['String']['input'];
+  sizeBytes: Scalars['BigInt']['input'];
+};
+
 export type OnboardingWizardInternalBootDraft = {
   __typename?: 'OnboardingWizardInternalBootDraft';
   bootMode?: Maybe<OnboardingWizardBootMode>;
@@ -2172,7 +2185,7 @@ export type OnboardingWizardInternalBootDraftInput = {
 export type OnboardingWizardInternalBootSelection = {
   __typename?: 'OnboardingWizardInternalBootSelection';
   bootSizeMiB?: Maybe<Scalars['Int']['output']>;
-  devices: Array<Scalars['String']['output']>;
+  devices: Array<OnboardingWizardInternalBootDevice>;
   poolMode?: Maybe<OnboardingWizardPoolMode>;
   poolName?: Maybe<Scalars['String']['output']>;
   slotCount?: Maybe<Scalars['Int']['output']>;
@@ -2181,7 +2194,7 @@ export type OnboardingWizardInternalBootSelection = {
 
 export type OnboardingWizardInternalBootSelectionInput = {
   bootSizeMiB?: InputMaybe<Scalars['Int']['input']>;
-  devices?: InputMaybe<Array<Scalars['String']['input']>>;
+  devices?: InputMaybe<Array<OnboardingWizardInternalBootDeviceInput>>;
   poolMode?: InputMaybe<OnboardingWizardPoolMode>;
   poolName?: InputMaybe<Scalars['String']['input']>;
   slotCount?: InputMaybe<Scalars['Int']['input']>;

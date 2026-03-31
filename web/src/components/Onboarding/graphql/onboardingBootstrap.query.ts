@@ -78,7 +78,11 @@ export const ONBOARDING_BOOTSTRAP_QUERY = graphql(/* GraphQL */ `
               selection {
                 poolName
                 slotCount
-                devices
+                devices {
+                  id
+                  sizeBytes
+                  deviceName
+                }
                 bootSizeMiB
                 updateBios
                 poolMode

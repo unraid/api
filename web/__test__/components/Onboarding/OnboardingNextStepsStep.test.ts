@@ -25,7 +25,7 @@ const {
     internalBootSelection: null as {
       poolName: string;
       slotCount: number;
-      devices: string[];
+      devices: Array<{ id: string; sizeBytes: number; deviceName: string }>;
       bootSizeMiB: number;
       updateBios: boolean;
       poolMode: 'dedicated' | 'hybrid';
@@ -54,6 +54,12 @@ const {
   refetchOnboardingMock: vi.fn().mockResolvedValue({}),
   useMutationMock: vi.fn(),
 }));
+
+const createBootDevice = (id: string, sizeBytes: number, deviceName: string) => ({
+  id,
+  sizeBytes,
+  deviceName,
+});
 
 vi.mock('@unraid/ui', () => ({
   BrandButton: {
@@ -191,7 +197,7 @@ describe('OnboardingNextStepsStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['DISK-A'],
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
       bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
@@ -255,7 +261,7 @@ describe('OnboardingNextStepsStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['DISK-A'],
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
       bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
@@ -271,7 +277,7 @@ describe('OnboardingNextStepsStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['DISK-A'],
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
       bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
@@ -287,7 +293,7 @@ describe('OnboardingNextStepsStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['DISK-A'],
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
       bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
@@ -303,7 +309,7 @@ describe('OnboardingNextStepsStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['DISK-A'],
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
       bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
@@ -334,7 +340,7 @@ describe('OnboardingNextStepsStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['DISK-A'],
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
       bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',
@@ -354,7 +360,7 @@ describe('OnboardingNextStepsStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['DISK-A'],
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
       bootSizeMiB: 16384,
       updateBios: true,
       poolMode: 'hybrid',
@@ -389,7 +395,7 @@ describe('OnboardingNextStepsStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['DISK-A'],
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
       bootSizeMiB: 16384,
       updateBios: false,
       poolMode: 'hybrid',

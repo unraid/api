@@ -15,6 +15,7 @@ import {
     Min,
     ValidateNested,
 } from 'class-validator';
+import { GraphQLBigInt } from 'graphql-scalars';
 
 import {
     OnboardingWizardBootMode,
@@ -342,6 +343,24 @@ export class OnboardingWizardPluginsDraftInput {
 }
 
 @InputType()
+export class OnboardingWizardInternalBootDeviceInput {
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    id!: string;
+
+    @Field(() => GraphQLBigInt)
+    @IsInt()
+    @Min(1)
+    sizeBytes!: number;
+
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    deviceName!: string;
+}
+
+@InputType()
 export class OnboardingWizardInternalBootSelectionInput {
     @Field(() => String, { nullable: true })
     @IsOptional()
@@ -354,10 +373,11 @@ export class OnboardingWizardInternalBootSelectionInput {
     @Min(1)
     slotCount?: number;
 
-    @Field(() => [String], { nullable: true })
+    @Field(() => [OnboardingWizardInternalBootDeviceInput], { nullable: true })
     @IsOptional()
-    @IsString({ each: true })
-    devices?: string[];
+    @ValidateNested({ each: true })
+    @Type(() => OnboardingWizardInternalBootDeviceInput)
+    devices?: OnboardingWizardInternalBootDeviceInput[];
 
     @Field(() => Int, { nullable: true })
     @IsOptional()
