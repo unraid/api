@@ -251,6 +251,14 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
         </p>
       </div>
 
+      <OnboardingLoadingState
+        v-if="props.isSavingStep"
+        compact
+        class="mt-8"
+        :title="t('onboarding.loading.title')"
+        :description="t('onboarding.loading.description')"
+      />
+
       <div
         class="border-muted flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
       >

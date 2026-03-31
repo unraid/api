@@ -24,6 +24,7 @@ import {
 } from '@heroicons/vue/24/solid';
 import { Accordion, BrandButton } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
+import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import {
   applyInternalBootSelection,
   getErrorMessage,
@@ -67,6 +68,7 @@ export interface Props {
   onComplete: () => void | Promise<void>;
   onBack?: () => void;
   showBack?: boolean;
+  isSavingStep?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -546,6 +548,7 @@ const canApply = computed(
 const showApplyReadinessWarning = computed(
   () => !isApplyDataReady.value && (applyReadinessTimedOut.value || hasBaselineQueryError.value)
 );
+const isBusy = computed(() => isProcessing.value || Boolean(props.isSavingStep));
 
 onMounted(() => {
   applyReadinessTimer = setTimeout(() => {
@@ -1419,6 +1422,14 @@ const handleBack = () => {
         </p>
       </div>
 
+      <OnboardingLoadingState
+        v-if="props.isSavingStep"
+        compact
+        class="mt-6"
+        :title="t('onboarding.loading.title')"
+        :description="t('onboarding.loading.description')"
+      />
+
       <UModal
         :open="showBootDriveWarningDialog"
         :portal="false"
@@ -1493,7 +1504,7 @@ const handleBack = () => {
           v-if="showBack"
           @click="handleBack"
           class="text-muted hover:text-toned group flex items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
-          :disabled="isProcessing"
+          :disabled="isBusy"
         >
           <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
           {{ t('common.back') }}
@@ -1503,12 +1514,12 @@ const handleBack = () => {
         <BrandButton
           :text="''"
           :class="`w-full min-w-[200px] font-bold tracking-wide uppercase shadow-md transition-all sm:w-auto ${
-            isProcessing
+            isBusy
               ? '!bg-gray-400 !text-white hover:!bg-gray-400'
               : '!bg-primary hover:!bg-primary/90 !text-white hover:shadow-lg'
           }`"
           @click="handleApplyClick"
-          :disabled="isProcessing || !canApply"
+          :disabled="isBusy || !canApply"
           :icon-right="isProcessing ? undefined : ChevronRightIcon"
         >
           <span class="inline-flex items-center gap-2">
