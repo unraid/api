@@ -1,11 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { OnboardingStatus } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import {
+    OnboardingStatus,
+    OnboardingWizardStepId,
+} from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { CustomizationResolver } from '@app/unraid-api/graph/resolvers/customization/customization.resolver.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
 
 describe('CustomizationResolver', () => {
+    const emptyWizardState = {
+        currentStepId: OnboardingWizardStepId.OVERVIEW,
+        visibleStepIds: [
+            OnboardingWizardStepId.OVERVIEW,
+            OnboardingWizardStepId.CONFIGURE_SETTINGS,
+            OnboardingWizardStepId.ADD_PLUGINS,
+            OnboardingWizardStepId.SUMMARY,
+            OnboardingWizardStepId.NEXT_STEPS,
+        ],
+        draft: {},
+        internalBootState: {
+            applyAttempted: false,
+            applySucceeded: false,
+        },
+    };
     const onboardingService = {
         getActivationData: vi.fn(),
         getActivationDataForPublic: vi.fn(),
@@ -38,6 +56,7 @@ describe('CustomizationResolver', () => {
             completed: false,
             completedAtVersion: undefined,
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -63,6 +82,7 @@ describe('CustomizationResolver', () => {
             completed: false,
             completedAtVersion: undefined,
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -80,6 +100,7 @@ describe('CustomizationResolver', () => {
             completed: false,
             completedAtVersion: undefined,
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -97,6 +118,7 @@ describe('CustomizationResolver', () => {
             completed: true,
             completedAtVersion: '7.2.0',
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -114,6 +136,7 @@ describe('CustomizationResolver', () => {
             completed: true,
             completedAtVersion: '7.2.0',
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -131,6 +154,7 @@ describe('CustomizationResolver', () => {
             completed: true,
             completedAtVersion: '7.2.1',
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -148,6 +172,7 @@ describe('CustomizationResolver', () => {
             completed: true,
             completedAtVersion: '7.2.1',
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -165,6 +190,7 @@ describe('CustomizationResolver', () => {
             completed: true,
             completedAtVersion: '7.1.0',
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -182,6 +208,7 @@ describe('CustomizationResolver', () => {
             completed: true,
             completedAtVersion: '7.1.0',
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -199,6 +226,7 @@ describe('CustomizationResolver', () => {
             completed: true,
             completedAtVersion: '7.3.0',
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -216,6 +244,7 @@ describe('CustomizationResolver', () => {
             completed: true,
             completedAtVersion: '7.3.0',
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -233,6 +262,7 @@ describe('CustomizationResolver', () => {
             completed: false,
             completedAtVersion: undefined,
             shouldOpen: false,
+            wizard: emptyWizardState,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,

@@ -18,6 +18,15 @@ vi.mock('atomically', () => ({
 const mockReadFile = vi.mocked(readFile);
 const mockAtomicWriteFile = vi.mocked(atomicWriteFile);
 
+const createEmptyWizardState = () => ({
+    draft: {},
+    navigation: {},
+    internalBootState: {
+        applyAttempted: false,
+        applySucceeded: false,
+    },
+});
+
 const createConfigService = (dataDir = '/tmp/unraid-data') => {
     const set = vi.fn();
     const get = vi.fn((key: string) => {
@@ -114,6 +123,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
                 completed: false,
                 completedAtVersion: undefined,
                 forceOpen: false,
+                ...createEmptyWizardState(),
             },
         });
     });
@@ -166,6 +176,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
                 completed: true,
                 completedAtVersion: '7.2.0',
                 forceOpen: false,
+                ...createEmptyWizardState(),
             },
         });
     });
@@ -196,6 +207,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
             completed: true,
             completedAtVersion: '7.2.0',
             forceOpen: false,
+            ...createEmptyWizardState(),
         });
     });
 
@@ -225,6 +237,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
             completed: false,
             completedAtVersion: undefined,
             forceOpen: false,
+            ...createEmptyWizardState(),
         });
     });
 
@@ -260,5 +273,182 @@ describe('OnboardingTrackerService tracker state availability', () => {
         await tracker.onApplicationBootstrap();
 
         await expect(tracker.getCompletedAtVersion()).rejects.toThrow('permission denied');
+    });
+
+    it('merges partial draft updates without wiping sibling step data', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+
+            return JSON.stringify({
+                completed: false,
+                completedAtVersion: undefined,
+                forceOpen: true,
+                draft: {
+                    coreSettings: {
+                        serverName: 'Tower',
+                        timeZone: 'America/New_York',
+                    },
+                    plugins: {
+                        selectedIds: ['community.applications'],
+                    },
+                },
+                navigation: {
+                    currentStepId: 'ADD_PLUGINS',
+                },
+                internalBootState: {
+                    applyAttempted: false,
+                    applySucceeded: false,
+                },
+            });
+        });
+        mockAtomicWriteFile.mockResolvedValue(undefined as never);
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(
+            tracker.saveDraft({
+                draft: {
+                    internalBoot: {
+                        bootMode: 'storage',
+                        selection: {
+                            poolName: 'cache',
+                            slotCount: 1,
+                            devices: ['disk1'],
+                            bootSizeMiB: 16384,
+                            updateBios: true,
+                            poolMode: 'dedicated',
+                        },
+                    },
+                },
+                navigation: {
+                    currentStepId: 'SUMMARY',
+                },
+            })
+        ).resolves.toEqual({
+            completed: false,
+            completedAtVersion: undefined,
+            forceOpen: true,
+            draft: {
+                coreSettings: {
+                    serverName: 'Tower',
+                    timeZone: 'America/New_York',
+                },
+                plugins: {
+                    selectedIds: ['community.applications'],
+                },
+                internalBoot: {
+                    bootMode: 'storage',
+                    selection: {
+                        poolName: 'cache',
+                        slotCount: 1,
+                        devices: ['disk1'],
+                        bootSizeMiB: 16384,
+                        updateBios: true,
+                        poolMode: 'dedicated',
+                    },
+                },
+            },
+            navigation: {
+                currentStepId: 'SUMMARY',
+            },
+            internalBootState: {
+                applyAttempted: false,
+                applySucceeded: false,
+            },
+        });
+
+        expect(mockAtomicWriteFile).toHaveBeenCalledTimes(1);
+        const writtenState = JSON.parse(String(mockAtomicWriteFile.mock.calls[0]?.[1])) as {
+            draft?: {
+                coreSettings?: { serverName?: string };
+                internalBoot?: { selection?: { poolName?: string } };
+            };
+            navigation?: { currentStepId?: string };
+        };
+        expect(writtenState.draft?.coreSettings?.serverName).toBe('Tower');
+        expect(writtenState.navigation?.currentStepId).toBe('SUMMARY');
+        expect(writtenState.draft?.internalBoot?.selection?.poolName).toBe('cache');
+    });
+
+    it('persists internal boot status updates while preserving existing draft state', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+
+            return JSON.stringify({
+                completed: false,
+                completedAtVersion: undefined,
+                forceOpen: false,
+                draft: {
+                    internalBoot: {
+                        bootMode: 'storage',
+                        skipped: false,
+                        selection: {
+                            poolName: 'cache',
+                            slotCount: 2,
+                            devices: ['disk1', 'disk2'],
+                            bootSizeMiB: 32768,
+                            updateBios: false,
+                            poolMode: 'hybrid',
+                        },
+                    },
+                },
+                navigation: {
+                    currentStepId: 'SUMMARY',
+                },
+                internalBootState: {
+                    applyAttempted: false,
+                    applySucceeded: false,
+                },
+            });
+        });
+        mockAtomicWriteFile.mockResolvedValue(undefined as never);
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(
+            tracker.saveDraft({
+                internalBootState: {
+                    applyAttempted: true,
+                    applySucceeded: true,
+                },
+            })
+        ).resolves.toEqual({
+            completed: false,
+            completedAtVersion: undefined,
+            forceOpen: false,
+            draft: {
+                internalBoot: {
+                    bootMode: 'storage',
+                    skipped: false,
+                    selection: {
+                        poolName: 'cache',
+                        slotCount: 2,
+                        devices: ['disk1', 'disk2'],
+                        bootSizeMiB: 32768,
+                        updateBios: false,
+                        poolMode: 'hybrid',
+                    },
+                },
+            },
+            navigation: {
+                currentStepId: 'SUMMARY',
+            },
+            internalBootState: {
+                applyAttempted: true,
+                applySucceeded: true,
+            },
+        });
     });
 });

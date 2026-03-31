@@ -9,8 +9,6 @@ import { createTestI18n } from '../../utils/i18n';
 const { draftStore, installedPluginsLoading, installedPluginsResult, useQueryMock } = vi.hoisted(() => ({
   draftStore: {
     selectedPlugins: new Set<string>(),
-    pluginSelectionInitialized: false,
-    setPlugins: vi.fn(),
   },
   installedPluginsLoading: {
     value: false,
@@ -36,10 +34,6 @@ vi.mock('@unraid/ui', () => ({
   },
 }));
 
-vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: () => draftStore,
-}));
-
 vi.mock('@vue/apollo-composable', async () => {
   const actual =
     await vi.importActual<typeof import('@vue/apollo-composable')>('@vue/apollo-composable');
@@ -54,7 +48,6 @@ describe('OnboardingPluginsStep', () => {
     vi.clearAllMocks();
     document.body.innerHTML = '';
     draftStore.selectedPlugins = new Set();
-    draftStore.pluginSelectionInitialized = false;
     installedPluginsLoading.value = false;
     installedPluginsResult.value = {
       installedUnraidPlugins: [],
@@ -76,6 +69,9 @@ describe('OnboardingPluginsStep', () => {
       onComplete: vi.fn(),
       onBack: vi.fn(),
       onSkip: vi.fn(),
+      initialDraft: {
+        selectedIds: Array.from(draftStore.selectedPlugins),
+      },
       showBack: true,
       showSkip: true,
       ...overrides,
@@ -132,11 +128,10 @@ describe('OnboardingPluginsStep', () => {
     expect(nextButton).toBeTruthy();
     await nextButton!.trigger('click');
 
-    expect(draftStore.setPlugins).toHaveBeenCalled();
-    const lastCallIndex = draftStore.setPlugins.mock.calls.length - 1;
-    const selected = draftStore.setPlugins.mock.calls[lastCallIndex][0] as Set<string>;
-    expect(Array.from(selected)).toEqual(['community-apps']);
     expect(props.onComplete).toHaveBeenCalledTimes(1);
+    expect(props.onComplete).toHaveBeenCalledWith({
+      selectedIds: ['community-apps'],
+    });
   });
 
   it('persists already installed plugins alongside manual selections', async () => {
@@ -161,11 +156,10 @@ describe('OnboardingPluginsStep', () => {
     expect(nextButton).toBeTruthy();
     await nextButton!.trigger('click');
 
-    expect(draftStore.setPlugins).toHaveBeenCalled();
-    const lastCallIndex = draftStore.setPlugins.mock.calls.length - 1;
-    const selected = draftStore.setPlugins.mock.calls[lastCallIndex][0] as Set<string>;
-    expect(Array.from(selected).sort()).toEqual(['community-apps', 'fix-common-problems', 'tailscale']);
     expect(props.onComplete).toHaveBeenCalledTimes(1);
+    expect(props.onComplete).toHaveBeenCalledWith({
+      selectedIds: ['community-apps', 'fix-common-problems', 'tailscale'],
+    });
   });
 
   it('disables the primary action until installed plugins finish loading', async () => {
@@ -185,7 +179,6 @@ describe('OnboardingPluginsStep', () => {
   });
 
   it('skip clears selection and calls onSkip', async () => {
-    draftStore.pluginSelectionInitialized = true;
     draftStore.selectedPlugins = new Set(['community-apps']);
 
     const { wrapper, props } = mountComponent();
@@ -199,15 +192,14 @@ describe('OnboardingPluginsStep', () => {
     expect(skipButton).toBeTruthy();
     await skipButton!.trigger('click');
 
-    expect(draftStore.setPlugins).toHaveBeenCalledTimes(1);
-    const selected = draftStore.setPlugins.mock.calls[0][0] as Set<string>;
-    expect(selected.size).toBe(0);
     expect(props.onSkip).toHaveBeenCalledTimes(1);
+    expect(props.onSkip).toHaveBeenCalledWith({
+      selectedIds: [],
+    });
     expect(props.onComplete).not.toHaveBeenCalled();
   });
 
   it('skip preserves detected installed plugins without keeping manual selections', async () => {
-    draftStore.pluginSelectionInitialized = true;
     draftStore.selectedPlugins = new Set(['community-apps', 'tailscale']);
     installedPluginsResult.value = {
       installedUnraidPlugins: ['fix.common.problems.plg'],
@@ -224,10 +216,10 @@ describe('OnboardingPluginsStep', () => {
     expect(skipButton).toBeTruthy();
     await skipButton!.trigger('click');
 
-    expect(draftStore.setPlugins).toHaveBeenCalledTimes(1);
-    const selected = draftStore.setPlugins.mock.calls[0][0] as Set<string>;
-    expect(Array.from(selected)).toEqual(['fix-common-problems']);
     expect(props.onSkip).toHaveBeenCalledTimes(1);
+    expect(props.onSkip).toHaveBeenCalledWith({
+      selectedIds: ['fix-common-problems'],
+    });
     expect(props.onComplete).not.toHaveBeenCalled();
   });
 });

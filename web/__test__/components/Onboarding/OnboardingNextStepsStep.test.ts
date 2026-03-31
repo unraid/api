@@ -61,10 +61,6 @@ vi.mock('@unraid/ui', () => ({
   },
 }));
 
-vi.mock('~/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: () => reactive(draftStore),
-}));
-
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: () => reactive(activationCodeDataStore),
 }));
@@ -114,6 +110,17 @@ describe('OnboardingNextStepsStep', () => {
     const onComplete = vi.fn();
     const wrapper = mount(OnboardingNextStepsStep, {
       props: {
+        draft: {
+          internalBoot: {
+            bootMode: draftStore.internalBootSelection ? 'storage' : 'usb',
+            skipped: draftStore.internalBootSelection === null,
+            selection: draftStore.internalBootSelection,
+          },
+        },
+        internalBootState: {
+          applyAttempted: draftStore.internalBootApplyAttempted,
+          applySucceeded: draftStore.internalBootApplySucceeded,
+        },
         onComplete,
         showBack: true,
       },
@@ -137,6 +144,18 @@ describe('OnboardingNextStepsStep', () => {
                 <div>{{ description }}</div>
                 <slot name="body" />
                 <slot name="footer" />
+              </div>
+            `,
+          },
+          InternalBootConfirmDialog: {
+            props: ['open', 'action', 'disabled'],
+            emits: ['confirm', 'cancel'],
+            template: `
+              <div v-if="open" data-testid="power-dialog">
+                <div>{{ action === 'shutdown' ? 'Confirm Shutdown' : 'Confirm Reboot' }}</div>
+                <div>Please do NOT remove your Unraid flash drive</div>
+                <button :disabled="disabled" @click="$emit('confirm')">I Understand</button>
+                <button :disabled="disabled" @click="$emit('cancel')">Cancel</button>
               </div>
             `,
           },
