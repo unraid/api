@@ -1027,6 +1027,75 @@ type OnboardingState {
   activationRequired: Boolean!
 }
 
+type OnboardingWizardCoreSettingsDraft {
+  serverName: String
+  serverDescription: String
+  timeZone: String
+  theme: String
+  language: String
+  useSsh: Boolean
+}
+
+type OnboardingWizardPluginsDraft {
+  selectedIds: [String!]!
+}
+
+type OnboardingWizardInternalBootSelection {
+  poolName: String
+  slotCount: Int
+  devices: [String!]!
+  bootSizeMiB: Int
+  updateBios: Boolean
+  poolMode: OnboardingWizardPoolMode
+}
+
+"""Pool mode selected for onboarding internal boot setup"""
+enum OnboardingWizardPoolMode {
+  DEDICATED
+  HYBRID
+}
+
+type OnboardingWizardInternalBootDraft {
+  bootMode: OnboardingWizardBootMode
+  skipped: Boolean
+  selection: OnboardingWizardInternalBootSelection
+}
+
+"""Boot mode selected during onboarding"""
+enum OnboardingWizardBootMode {
+  USB
+  STORAGE
+}
+
+type OnboardingWizardDraft {
+  coreSettings: OnboardingWizardCoreSettingsDraft
+  plugins: OnboardingWizardPluginsDraft
+  internalBoot: OnboardingWizardInternalBootDraft
+}
+
+type OnboardingWizardInternalBootState {
+  applyAttempted: Boolean!
+  applySucceeded: Boolean!
+}
+
+type OnboardingWizard {
+  currentStepId: OnboardingWizardStepId
+  visibleStepIds: [OnboardingWizardStepId!]!
+  draft: OnboardingWizardDraft!
+  internalBootState: OnboardingWizardInternalBootState!
+}
+
+"""Server-provided onboarding wizard step identifiers"""
+enum OnboardingWizardStepId {
+  OVERVIEW
+  CONFIGURE_SETTINGS
+  CONFIGURE_BOOT
+  ADD_PLUGINS
+  ACTIVATE_LICENSE
+  SUMMARY
+  NEXT_STEPS
+}
+
 """Onboarding completion state and context"""
 type Onboarding {
   """
@@ -1051,6 +1120,9 @@ type Onboarding {
 
   """Runtime onboarding state values used by the onboarding flow"""
   onboardingState: OnboardingState!
+
+  """Server-owned onboarding wizard state used by the web onboarding modal"""
+  wizard: OnboardingWizard!
 }
 
 """
@@ -1210,6 +1282,16 @@ type ArrayMutations {
 input ArrayStateInput {
   """Array state"""
   desiredState: ArrayStateInputState!
+
+  """
+  Optional password used to unlock encrypted array disks when starting the array
+  """
+  decryptionPassword: String
+
+  """
+  Optional keyfile contents used to unlock encrypted array disks when starting the array. Accepts a data URL or raw base64 payload.
+  """
+  decryptionKeyfile: String
 }
 
 enum ArrayStateInputState {
@@ -1408,7 +1490,7 @@ type OnboardingMutations {
   openOnboarding: Onboarding!
 
   """Close the onboarding modal"""
-  closeOnboarding: Onboarding!
+  closeOnboarding(input: CloseOnboardingInput): Onboarding!
 
   """Temporarily bypass onboarding in API memory"""
   bypassOnboarding: Onboarding!
@@ -1422,6 +1504,9 @@ type OnboardingMutations {
   """Clear onboarding override state and reload from disk"""
   clearOnboardingOverride: Onboarding!
 
+  """Persist server-owned onboarding wizard draft state"""
+  saveOnboardingDraft(input: SaveOnboardingDraftInput!): Boolean!
+
   """Create and configure internal boot pool via emcmd operations"""
   createInternalBootPool(input: CreateInternalBootPoolInput!): OnboardingInternalBootResult!
 
@@ -1429,6 +1514,15 @@ type OnboardingMutations {
   Refresh the internal boot onboarding context from the latest emhttp state
   """
   refreshInternalBootContext: OnboardingInternalBootContext!
+}
+
+input CloseOnboardingInput {
+  reason: CloseOnboardingReason
+}
+
+"""Optional reason metadata for closing onboarding"""
+enum CloseOnboardingReason {
+  SAVE_FAILURE
 }
 
 """Onboarding override input for testing"""
@@ -1503,6 +1597,55 @@ input SystemConfigInput {
 input PartnerInfoOverrideInput {
   partner: PartnerConfigInput
   branding: BrandingConfigInput
+}
+
+input SaveOnboardingDraftInput {
+  draft: OnboardingWizardDraftInput
+  navigation: OnboardingWizardNavigationInput
+  internalBootState: OnboardingWizardInternalBootStateInput
+}
+
+input OnboardingWizardDraftInput {
+  coreSettings: OnboardingWizardCoreSettingsDraftInput
+  plugins: OnboardingWizardPluginsDraftInput
+  internalBoot: OnboardingWizardInternalBootDraftInput
+}
+
+input OnboardingWizardCoreSettingsDraftInput {
+  serverName: String
+  serverDescription: String
+  timeZone: String
+  theme: String
+  language: String
+  useSsh: Boolean
+}
+
+input OnboardingWizardPluginsDraftInput {
+  selectedIds: [String!]
+}
+
+input OnboardingWizardInternalBootDraftInput {
+  bootMode: OnboardingWizardBootMode
+  skipped: Boolean
+  selection: OnboardingWizardInternalBootSelectionInput
+}
+
+input OnboardingWizardInternalBootSelectionInput {
+  poolName: String
+  slotCount: Int
+  devices: [String!]
+  bootSizeMiB: Int
+  updateBios: Boolean
+  poolMode: OnboardingWizardPoolMode
+}
+
+input OnboardingWizardNavigationInput {
+  currentStepId: OnboardingWizardStepId
+}
+
+input OnboardingWizardInternalBootStateInput {
+  applyAttempted: Boolean
+  applySucceeded: Boolean
 }
 
 """Input for creating an internal boot pool during onboarding"""

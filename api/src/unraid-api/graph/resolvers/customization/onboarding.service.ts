@@ -9,6 +9,10 @@ import * as ini from 'ini';
 import coerce from 'semver/functions/coerce.js';
 import gte from 'semver/functions/gte.js';
 
+import type {
+    OnboardingDraft,
+    OnboardingStepId,
+} from '@app/unraid-api/config/onboarding-tracker.model.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer.js';
 import { loadDynamixConfigFromDiskSync } from '@app/store/actions/load-dynamix-config-file.js';
@@ -23,6 +27,10 @@ import {
     Onboarding,
     OnboardingState,
     OnboardingStatus,
+    OnboardingWizard,
+    OnboardingWizardBootMode,
+    OnboardingWizardPoolMode,
+    OnboardingWizardStepId,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import {
@@ -31,8 +39,46 @@ import {
 } from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 import { Theme, ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import { getOnboardingVersionDirection } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-status.util.js';
+import { SaveOnboardingDraftInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 
 const MIN_ONBOARDING_VERSION = '7.3.0';
+const WIZARD_STEP_ORDER: OnboardingWizardStepId[] = [
+    OnboardingWizardStepId.OVERVIEW,
+    OnboardingWizardStepId.CONFIGURE_SETTINGS,
+    OnboardingWizardStepId.CONFIGURE_BOOT,
+    OnboardingWizardStepId.ADD_PLUGINS,
+    OnboardingWizardStepId.ACTIVATE_LICENSE,
+    OnboardingWizardStepId.SUMMARY,
+    OnboardingWizardStepId.NEXT_STEPS,
+];
+
+const toWizardBootMode = (
+    value: 'usb' | 'storage' | undefined
+): OnboardingWizardBootMode | undefined => {
+    if (value === 'usb') {
+        return OnboardingWizardBootMode.USB;
+    }
+
+    if (value === 'storage') {
+        return OnboardingWizardBootMode.STORAGE;
+    }
+
+    return undefined;
+};
+
+const toWizardPoolMode = (
+    value: 'dedicated' | 'hybrid' | undefined
+): OnboardingWizardPoolMode | undefined => {
+    if (value === 'dedicated') {
+        return OnboardingWizardPoolMode.DEDICATED;
+    }
+
+    if (value === 'hybrid') {
+        return OnboardingWizardPoolMode.HYBRID;
+    }
+
+    return undefined;
+};
 
 @Injectable()
 export class OnboardingService implements OnModuleInit {
@@ -344,6 +390,115 @@ export class OnboardingService implements OnModuleInit {
         };
     }
 
+    private shouldShowInternalBootStep(): boolean {
+        const enableBootTransfer = getters.emhttp().var?.enableBootTransfer;
+        return (
+            typeof enableBootTransfer === 'string' && enableBootTransfer.trim().toLowerCase() === 'yes'
+        );
+    }
+
+    private getVisibleWizardStepIds(onboardingState: OnboardingState): OnboardingWizardStepId[] {
+        const visibleStepIds: OnboardingWizardStepId[] = [
+            OnboardingWizardStepId.OVERVIEW,
+            OnboardingWizardStepId.CONFIGURE_SETTINGS,
+        ];
+
+        if (this.shouldShowInternalBootStep()) {
+            visibleStepIds.push(OnboardingWizardStepId.CONFIGURE_BOOT);
+        }
+
+        visibleStepIds.push(OnboardingWizardStepId.ADD_PLUGINS);
+
+        if (onboardingState.activationRequired) {
+            visibleStepIds.push(OnboardingWizardStepId.ACTIVATE_LICENSE);
+        }
+
+        visibleStepIds.push(OnboardingWizardStepId.SUMMARY, OnboardingWizardStepId.NEXT_STEPS);
+
+        return visibleStepIds;
+    }
+
+    private resolveCurrentStepId(
+        currentStepId: OnboardingStepId | undefined,
+        visibleStepIds: OnboardingWizardStepId[]
+    ): OnboardingWizardStepId | undefined {
+        if (currentStepId && visibleStepIds.includes(currentStepId as OnboardingWizardStepId)) {
+            return currentStepId as OnboardingWizardStepId;
+        }
+
+        if (!currentStepId) {
+            return visibleStepIds[0];
+        }
+
+        const currentOrderIndex = WIZARD_STEP_ORDER.indexOf(currentStepId as OnboardingWizardStepId);
+        if (currentOrderIndex < 0) {
+            return visibleStepIds[0];
+        }
+
+        for (let index = currentOrderIndex + 1; index < WIZARD_STEP_ORDER.length; index += 1) {
+            const nextStepId = WIZARD_STEP_ORDER[index];
+            if (nextStepId && visibleStepIds.includes(nextStepId)) {
+                return nextStepId;
+            }
+        }
+
+        for (let index = currentOrderIndex - 1; index >= 0; index -= 1) {
+            const previousStepId = WIZARD_STEP_ORDER[index];
+            if (previousStepId && visibleStepIds.includes(previousStepId)) {
+                return previousStepId;
+            }
+        }
+
+        return visibleStepIds[0];
+    }
+
+    private buildWizardState(
+        state: {
+            draft?: OnboardingDraft;
+            navigation?: { currentStepId?: OnboardingStepId };
+            internalBootState?: { applyAttempted?: boolean; applySucceeded?: boolean };
+        },
+        onboardingState: OnboardingState
+    ): OnboardingWizard {
+        const visibleStepIds = this.getVisibleWizardStepIds(onboardingState);
+        const draft = state.draft ?? {};
+        const navigation = state.navigation ?? {};
+        const internalBootState = state.internalBootState ?? {};
+
+        return {
+            currentStepId: this.resolveCurrentStepId(navigation.currentStepId, visibleStepIds),
+            visibleStepIds,
+            draft: {
+                coreSettings: draft.coreSettings,
+                plugins: draft.plugins
+                    ? {
+                          selectedIds: draft.plugins.selectedIds ?? [],
+                      }
+                    : undefined,
+                internalBoot: draft.internalBoot
+                    ? {
+                          bootMode: toWizardBootMode(draft.internalBoot.bootMode),
+                          skipped: draft.internalBoot.skipped,
+                          selection: draft.internalBoot.selection
+                              ? {
+                                    poolName: draft.internalBoot.selection.poolName,
+                                    slotCount: draft.internalBoot.selection.slotCount,
+                                    devices: draft.internalBoot.selection.devices ?? [],
+                                    bootSizeMiB: draft.internalBoot.selection.bootSizeMiB,
+                                    updateBios: draft.internalBoot.selection.updateBios,
+                                    poolMode: toWizardPoolMode(draft.internalBoot.selection.poolMode),
+                                }
+                              : (draft.internalBoot.selection ?? null),
+                      }
+                    : undefined,
+            },
+            internalBootState: {
+                applyAttempted: internalBootState.applyAttempted ?? false,
+                applySucceeded: internalBootState.applySucceeded ?? false,
+            },
+        };
+    }
+
     public async getOnboardingResponse(options?: {
         includeActivationCode?: boolean;
     }): Promise<Onboarding> {
@@ -383,6 +538,7 @@ export class OnboardingService implements OnModuleInit {
             activationCode,
             shouldOpen: !isBypassed && (isForceOpen || shouldAutoOpen),
             onboardingState,
+            wizard: this.buildWizardState(state, onboardingState),
         };
     }
 
@@ -424,6 +580,53 @@ export class OnboardingService implements OnModuleInit {
 
     public async resumeOnboarding(): Promise<void> {
         this.onboardingTracker.setBypassActive(false);
+    }
+
+    public async saveOnboardingDraft(input: SaveOnboardingDraftInput): Promise<void> {
+        await this.onboardingTracker.saveDraft({
+            draft: input.draft
+                ? {
+                      coreSettings: input.draft.coreSettings,
+                      plugins: input.draft.plugins
+                          ? {
+                                selectedIds: input.draft.plugins.selectedIds,
+                            }
+                          : undefined,
+                      internalBoot: input.draft.internalBoot
+                          ? {
+                                bootMode: input.draft.internalBoot.bootMode,
+                                skipped: input.draft.internalBoot.skipped,
+                                selection:
+                                    input.draft.internalBoot.selection === undefined
+                                        ? undefined
+                                        : input.draft.internalBoot.selection
+                                          ? {
+                                                poolName: input.draft.internalBoot.selection.poolName,
+                                                slotCount: input.draft.internalBoot.selection.slotCount,
+                                                devices: input.draft.internalBoot.selection.devices,
+                                                bootSizeMiB:
+                                                    input.draft.internalBoot.selection.bootSizeMiB,
+                                                updateBios:
+                                                    input.draft.internalBoot.selection.updateBios,
+                                                poolMode: input.draft.internalBoot.selection.poolMode,
+                                            }
+                                          : null,
+                            }
+                          : undefined,
+                  }
+                : undefined,
+            navigation: input.navigation
+                ? {
+                      currentStepId: input.navigation.currentStepId,
+                  }
+                : undefined,
+            internalBootState: input.internalBootState
+                ? {
+                      applyAttempted: input.internalBootState.applyAttempted,
+                      applySucceeded: input.internalBootState.applySucceeded,
+                  }
+                : undefined,
+        });
     }
 
     public isFreshInstall(): boolean {
