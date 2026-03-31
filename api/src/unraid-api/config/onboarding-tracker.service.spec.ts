@@ -95,6 +95,45 @@ describe('OnboardingTrackerService write retries', () => {
         await expect(tracker.markCompleted()).rejects.toThrow('persistent-write-failure');
         expect(mockAtomicWriteFile).toHaveBeenCalledTimes(3);
     });
+
+    it('clears wizard state while preserving completion metadata', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+
+            return JSON.stringify({
+                completed: true,
+                completedAtVersion: '7.1.0',
+                forceOpen: true,
+                draft: {
+                    coreSettings: {
+                        serverName: 'Tower',
+                    },
+                },
+                navigation: {
+                    currentStepId: 'SUMMARY',
+                },
+                internalBootState: {
+                    applyAttempted: true,
+                    applySucceeded: true,
+                },
+            });
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(tracker.clearWizardState()).resolves.toEqual({
+            completed: true,
+            completedAtVersion: '7.1.0',
+            forceOpen: true,
+            ...createEmptyWizardState(),
+        });
+    });
 });
 
 describe('OnboardingTrackerService tracker state availability', () => {

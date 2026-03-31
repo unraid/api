@@ -464,6 +464,46 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         this.bypassActive = active;
     }
 
+    async clearWizardState(): Promise<PublicTrackerState> {
+        const overrideState = this.onboardingOverrides.getState();
+        if (overrideState?.onboarding !== undefined) {
+            this.state = {
+                ...this.state,
+                draft: {},
+                navigation: {},
+                internalBootState: {
+                    applyAttempted: false,
+                    applySucceeded: false,
+                },
+            };
+
+            return this.getCachedState();
+        }
+
+        const currentStateResult = await this.getStateResult();
+        if (currentStateResult.kind === 'error') {
+            throw currentStateResult.error;
+        }
+
+        const currentState = currentStateResult.state;
+        const updatedState: TrackerState = {
+            completed: currentState.completed,
+            completedAtVersion: currentState.completedAtVersion,
+            forceOpen: currentState.forceOpen,
+            draft: {},
+            navigation: {},
+            internalBootState: {
+                applyAttempted: false,
+                applySucceeded: false,
+            },
+        };
+
+        await this.writeTrackerState(updatedState);
+        this.syncConfig();
+
+        return this.getCachedState();
+    }
+
     async saveDraft(input: SaveOnboardingDraftInput): Promise<PublicTrackerState> {
         const currentStateResult = await this.getStateResult();
         if (currentStateResult.kind === 'error') {

@@ -22,6 +22,7 @@ import {
   submitInternalBootReboot,
   submitInternalBootShutdown,
 } from '@/components/Onboarding/composables/internalBoot';
+import { CLOSE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/closeOnboarding.mutation';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
 import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
@@ -44,6 +45,7 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 const store = useActivationCodeDataStore();
 const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
+const { mutate: closeOnboarding } = useMutation(CLOSE_ONBOARDING_MUTATION);
 const { refetchOnboarding } = useOnboardingStore();
 
 const partnerInfo = computed(() => store.partnerInfo);
@@ -132,6 +134,12 @@ const finishOnboarding = async ({ action }: { action?: 'reboot' | 'shutdown' } =
       completionError.value = t('onboarding.nextSteps.completionFailed');
       isCompleting.value = false;
       return;
+    }
+
+    try {
+      await closeOnboarding();
+    } catch (closeError: unknown) {
+      console.error('Failed to clear onboarding state before power action:', closeError);
     }
   }
 

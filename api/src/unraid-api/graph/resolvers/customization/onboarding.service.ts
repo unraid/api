@@ -571,7 +571,10 @@ export class OnboardingService implements OnModuleInit {
 
         if (shouldAutoOpen) {
             await this.onboardingTracker.markCompleted();
+            return;
         }
+
+        await this.onboardingTracker.clearWizardState();
     }
 
     public async bypassOnboarding(): Promise<void> {
