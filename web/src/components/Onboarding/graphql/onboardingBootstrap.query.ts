@@ -57,11 +57,40 @@ export const ONBOARDING_BOOTSTRAP_QUERY = graphql(/* GraphQL */ `
           hasActivationCode
           activationRequired
         }
+        wizard {
+          currentStepId
+          visibleStepIds
+          draft {
+            coreSettings {
+              serverName
+              serverDescription
+              timeZone
+              theme
+              language
+              useSsh
+            }
+            plugins {
+              selectedIds
+            }
+            internalBoot {
+              bootMode
+              skipped
+              selection {
+                poolName
+                slotCount
+                devices
+                bootSizeMiB
+                updateBios
+                poolMode
+              }
+            }
+          }
+          internalBootState {
+            applyAttempted
+            applySucceeded
+          }
+        }
       }
-    }
-    vars {
-      bootedFromFlashWithInternalBootSetup
-      enableBootTransfer
     }
   }
 `);
