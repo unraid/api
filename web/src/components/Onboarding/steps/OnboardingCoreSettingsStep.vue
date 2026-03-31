@@ -417,7 +417,13 @@ const stepError = computed(() => error.value ?? props.saveError ?? null);
 
 <template>
   <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
-    <div class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
+    <OnboardingLoadingState
+      v-if="props.isSavingStep"
+      :title="t('onboarding.loading.title')"
+      :description="t('onboarding.loading.description')"
+    />
+
+    <div v-else class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
       <!-- Header -->
       <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div class="space-y-2">
@@ -602,14 +608,6 @@ const stepError = computed(() => error.value ?? props.saveError ?? null);
           {{ stepError }}
         </p>
       </div>
-
-      <OnboardingLoadingState
-        v-if="props.isSavingStep"
-        compact
-        class="mt-8"
-        :title="t('onboarding.loading.title')"
-        :description="t('onboarding.loading.description')"
-      />
 
       <!-- Footer -->
       <div
