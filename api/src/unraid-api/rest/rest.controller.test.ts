@@ -191,6 +191,44 @@ describe('RestController', () => {
                 expect(OidcRequestHandler.handleAuthorize).toHaveBeenCalled();
             });
 
+            it('should handle comma-separated forwarded headers from reverse proxies', async () => {
+                const mockRequest = createMockRequest(undefined, {
+                    'x-forwarded-proto': 'https, http',
+                    'x-forwarded-host': 'nas.mydomain.com, 10.0.0.15',
+                    host: '127.0.0.1:3001',
+                });
+
+                await controller.oidcAuthorize(
+                    'test-provider',
+                    'test-state',
+                    'https://nas.mydomain.com/graphql/api/auth/oidc/callback',
+                    mockRequest,
+                    mockReply as FastifyReply
+                );
+
+                expect(mockReply.status).toHaveBeenCalledWith(302);
+                expect(OidcRequestHandler.handleAuthorize).toHaveBeenCalled();
+            });
+
+            it('should handle array-valued forwarded headers', async () => {
+                const mockRequest = createMockRequest(undefined, {
+                    'x-forwarded-proto': ['https', 'http'],
+                    'x-forwarded-host': ['nas.mydomain.com', '10.0.0.15'],
+                    host: '127.0.0.1:3001',
+                });
+
+                await controller.oidcAuthorize(
+                    'test-provider',
+                    'test-state',
+                    'https://nas.mydomain.com/graphql/api/auth/oidc/callback',
+                    mockRequest,
+                    mockReply as FastifyReply
+                );
+
+                expect(mockReply.status).toHaveBeenCalledWith(302);
+                expect(OidcRequestHandler.handleAuthorize).toHaveBeenCalled();
+            });
+
             it('should reject malformed redirect_uri', async () => {
                 const mockRequest = createMockRequest('unraid.mytailnet.ts.net');
 
