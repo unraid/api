@@ -79,15 +79,19 @@ const currentHostname = computed(() => {
 
 const isSaving = ref(false);
 const error = ref<string | null>(null);
+const coreSettingsLoadErrorMessage =
+  "We couldn't load your current server settings. You can retry or continue with default values.";
 
 const { result: timeZoneOptionsResult } = useQuery(TIME_ZONE_OPTIONS_QUERY);
-const { result: coreSettingsResult, onResult: onCoreSettingsResult } = useQuery(
-  GET_CORE_SETTINGS_QUERY,
-  null,
-  {
-    fetchPolicy: 'network-only',
-  }
-);
+const {
+  result: coreSettingsResult,
+  onResult: onCoreSettingsResult,
+  loading: coreSettingsLoading,
+  error: coreSettingsError,
+  refetch: refetchCoreSettings,
+} = useQuery(GET_CORE_SETTINGS_QUERY, null, {
+  fetchPolicy: 'network-only',
+});
 
 type CoreSettingsIdentityData = {
   server?: {
@@ -413,12 +417,28 @@ const serverDescriptionValidation = computed(() => {
 
 const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
 const stepError = computed(() => error.value ?? props.saveError ?? null);
+const isAwaitingInitialServerBaseline = computed(
+  () =>
+    !props.initialDraft &&
+    (onboardingLoading.value || (coreSettingsLoading.value && !coreSettingsResult.value))
+);
+const showCoreSettingsLoadWarning = computed(
+  () => !props.initialDraft && Boolean(coreSettingsError.value)
+);
+
+const handleRetryCoreSettings = async () => {
+  try {
+    await refetchCoreSettings();
+  } catch (queryError) {
+    console.error('Failed to refetch onboarding core settings:', queryError);
+  }
+};
 </script>
 
 <template>
   <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
     <OnboardingLoadingState
-      v-if="props.isSavingStep"
+      v-if="props.isSavingStep || isAwaitingInitialServerBaseline"
       :title="t('onboarding.loading.title')"
       :description="t('onboarding.loading.description')"
     />
@@ -459,6 +479,29 @@ const stepError = computed(() => error.value ?? props.saveError ?? null);
       </div>
 
       <!-- Main Form Content -->
+
+      <UAlert
+        v-if="showCoreSettingsLoadWarning"
+        class="my-8"
+        color="warning"
+        variant="subtle"
+        icon="i-lucide-triangle-alert"
+      >
+        <template #description>
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm leading-6">
+              {{ coreSettingsLoadErrorMessage }}
+            </p>
+            <button
+              type="button"
+              class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
+              @click="handleRetryCoreSettings"
+            >
+              {{ t('common.retry') }}
+            </button>
+          </div>
+        </template>
+      </UAlert>
 
       <!-- Top Grid: Server Identity & Region -->
       <div class="mb-8 grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2">
