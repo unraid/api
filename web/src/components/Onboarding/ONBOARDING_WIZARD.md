@@ -86,56 +86,6 @@ The old Pinia draft store was removed:
 
 - `web/src/components/Onboarding/store/onboardingDraft.ts`
 
-### Step Queries
-
-Not every step relies only on bootstrap data.
-
-- Bootstrap decides whether onboarding opens and hydrates the server-owned wizard draft.
-- Individual steps can still run live step-specific queries after they mount.
-
-Current step-local query behavior:
-
-- `CONFIGURE_SETTINGS`
-  - runs `GET_CORE_SETTINGS_QUERY` for live server name, description, SSH, theme, language, and server timezone
-  - shows a full-step loading state while that initial live baseline is still pending and there is no draft yet
-  - if that live query fails and there is no draft, the step shows a retryable warning and falls back to editable defaults
-- `ADD_PLUGINS`
-  - runs `INSTALLED_UNRAID_PLUGINS_QUERY`
-  - shows a step-local loading state while installed plugin data is pending
-- `CONFIGURE_BOOT`
-  - runs `GetInternalBootContextDocument`
-  - shows a loading state while the internal-boot context is pending
-  - shows a step-local error state if that query fails
-- `SUMMARY`
-  - runs read-only baseline queries used for the final apply step
-  - does not block rendering, but surfaces readiness warnings if baseline data is unavailable
-
-Steps like `OVERVIEW`, `ACTIVATE_LICENSE`, and `NEXT_STEPS` do not wait on an extra step-local bootstrap-sized query before rendering.
-
-### Core Settings Precedence
-
-Core Settings uses both bootstrap draft state and a live server query. The precedence is intentional.
-
-For server name and description:
-
-- if `initialDraft` exists, use the draft
-- otherwise use live server data from `GET_CORE_SETTINGS_QUERY`
-- on fresh setup with activation metadata, prefer activation identity over the generic API identity
-
-For timezone:
-
-- if draft timezone exists, use draft timezone
-- otherwise wait until onboarding status and the live core-settings query have both settled
-- on fresh setup, prefer browser timezone if there is no draft timezone
-- if browser timezone is unavailable on fresh setup, fall back to the server timezone
-- on non-fresh setup, prefer the server timezone
-
-Why onboarding status matters here:
-
-- timezone precedence is different for fresh setup vs non-fresh setup
-- fresh setup prefers browser timezone if there is no draft
-- non-fresh setup prefers the server timezone
-
 ## Saving Rules
 
 The wizard saves only on step transitions.
