@@ -6,7 +6,6 @@ import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import {
   ChevronLeftIcon,
-  CircleStackIcon,
   ClipboardDocumentCheckIcon,
   CubeIcon,
   GlobeAltIcon,
@@ -23,6 +22,8 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/vue/24/solid';
 import { Accordion, BrandButton } from '@unraid/ui';
+import { buildBootConfigurationSummaryViewModel } from '@/components/Onboarding/components/bootConfigurationSummary/buildBootConfigurationSummaryViewModel';
+import OnboardingBootConfigurationSummary from '@/components/Onboarding/components/bootConfigurationSummary/OnboardingBootConfigurationSummary.vue';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import {
@@ -52,14 +53,9 @@ import type {
   OnboardingWizardDraft,
   OnboardingWizardInternalBootState,
 } from '@/components/Onboarding/onboardingWizardState';
-import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
-import {
-  GetInternalBootContextDocument,
-  PluginInstallStatus,
-  ThemeName,
-} from '~/composables/gql/graphql';
+import { PluginInstallStatus, ThemeName } from '~/composables/gql/graphql';
 
 export interface Props {
   draft: OnboardingWizardDraft;
@@ -112,9 +108,6 @@ const { result: installedPluginsResult, refetch: refetchInstalledPlugins } = use
 const { result: availableLanguagesResult } = useQuery(GET_AVAILABLE_LANGUAGES_QUERY, null, {
   fetchPolicy: 'cache-first',
 });
-const { result: internalBootContextResult } = useQuery(GetInternalBootContextDocument, null, {
-  fetchPolicy: 'network-only',
-});
 
 const draftPluginsCount = computed(() => draftPlugins.value.length);
 
@@ -149,28 +142,7 @@ const summaryServerDescription = computed(
   () => draftCoreSettings.value.serverDescription || coreSettingsResult.value?.server?.comment || ''
 );
 
-const showBootConfiguration = computed(
-  () =>
-    !draftInternalBoot.value.skipped &&
-    (draftInternalBoot.value.bootMode === 'usb' || Boolean(draftInternalBoot.value.selection))
-);
-const selectedBootMode = computed(
-  () => draftInternalBoot.value.bootMode ?? (draftInternalBoot.value.selection ? 'storage' : 'usb')
-);
-const bootModeLabel = computed(() =>
-  selectedBootMode.value === 'storage'
-    ? t('onboarding.summaryStep.bootConfig.bootMethodStorage')
-    : t('onboarding.summaryStep.bootConfig.bootMethodUsb')
-);
-
 const hasInternalBootSelection = computed(() => Boolean(internalBootSelection.value));
-
-const formatBootSize = (bootSizeMiB: number) => {
-  if (bootSizeMiB === 0) {
-    return t('onboarding.internalBootStep.bootSize.wholeDrive');
-  }
-  return t('onboarding.internalBootStep.bootSize.gbLabel', { size: Math.round(bootSizeMiB / 1024) });
-};
 
 const formatBytes = (bytes: number) => {
   if (!Number.isFinite(bytes) || bytes <= 0) {
@@ -181,60 +153,6 @@ const formatBytes = (bytes: number) => {
   const precision = converted.quantity >= 100 || converted.unit === 'B' ? 0 : 1;
   return `${converted.quantity.toFixed(precision)} ${converted.unit}`;
 };
-
-const normalizeDeviceName = (value: string | null | undefined): string => {
-  if (!value) {
-    return '';
-  }
-  const trimmed = value.trim();
-  if (trimmed.startsWith('/dev/')) {
-    return trimmed.slice('/dev/'.length);
-  }
-  return trimmed;
-};
-
-const internalBootDeviceLabelById = computed(() => {
-  const data: GetInternalBootContextQuery | null | undefined = internalBootContextResult.value;
-  const disks = data?.internalBootContext.assignableDisks ?? [];
-  const labels = new Map<string, string>();
-
-  for (const disk of disks) {
-    const device = normalizeDeviceName(disk.device);
-    if (!device) {
-      continue;
-    }
-
-    const serialNum = disk.serialNum?.trim() || '';
-    const diskId = disk.id?.trim() || '';
-    const optionValue = serialNum || diskId || device;
-    const displayId = serialNum || device;
-    const sizeBytes = disk.size;
-    const sizeLabel = formatBytes(sizeBytes);
-    const label =
-      displayId === device ? `${displayId} - ${sizeLabel}` : `${displayId} - ${sizeLabel} (${device})`;
-
-    labels.set(optionValue, label);
-    labels.set(device, label);
-  }
-
-  return labels;
-});
-
-const internalBootSummary = computed(() => {
-  const selection = internalBootSelection.value;
-  if (!selection) {
-    return null;
-  }
-
-  return {
-    poolMode: selection.poolMode ?? 'hybrid',
-    poolName: selection.poolName,
-    slotCount: selection.slotCount,
-    devices: selection.devices,
-    bootReservedSize: formatBootSize(selection.bootSizeMiB ?? 0),
-    updateBios: selection.updateBios,
-  };
-});
 
 const toAppliedInternalBootSelection = (
   selection: NonNullable<typeof internalBootSelection.value>
@@ -253,7 +171,7 @@ const toAppliedInternalBootSelection = (
   return {
     poolName: selection.poolName,
     slotCount: selection.slotCount,
-    devices: [...selection.devices],
+    devices: selection.devices.map((device) => device.id),
     bootSizeMiB: selection.bootSizeMiB,
     updateBios: selection.updateBios,
     poolMode: selection.poolMode,
@@ -298,12 +216,10 @@ const addErrorLog = (message: string, caughtError: unknown, context: OnboardingE
 const showDiagnosticLogsInResultDialog = computed(
   () => applyResultSeverity.value !== 'success' && logs.value.length > 0
 );
-const selectedBootDeviceNames = computed(() => internalBootSummary.value?.devices ?? []);
 const selectedBootDevices = computed(() =>
-  selectedBootDeviceNames.value.map((deviceId) => ({
-    id: deviceId,
-    label: internalBootDeviceLabelById.value.get(deviceId) ?? deviceId,
-  }))
+  bootConfigurationSummaryState.value.kind === 'ready'
+    ? bootConfigurationSummaryState.value.summary.devices
+    : []
 );
 
 const isInstallTimeoutError = (error: unknown): boolean => {
@@ -538,12 +454,45 @@ const isApplyDataReady = computed(() =>
   Boolean(coreSettingsResult.value?.server && coreSettingsResult.value?.vars)
 );
 const hasBaselineQueryError = computed(() => Boolean(coreSettingsError.value));
+const bootConfigurationSummaryState = computed(() =>
+  buildBootConfigurationSummaryViewModel(draftInternalBoot.value, {
+    labels: {
+      title: t('onboarding.summaryStep.bootConfig.title'),
+      bootMethod: t('onboarding.summaryStep.bootConfig.bootMethod'),
+      bootMethodStorage: t('onboarding.summaryStep.bootConfig.bootMethodStorage'),
+      bootMethodUsb: t('onboarding.summaryStep.bootConfig.bootMethodUsb'),
+      poolMode: t('onboarding.summaryStep.bootConfig.poolMode'),
+      poolModeDedicated: t('onboarding.summaryStep.bootConfig.poolModeDedicated'),
+      poolModeHybrid: t('onboarding.summaryStep.bootConfig.poolModeHybrid'),
+      pool: t('onboarding.summaryStep.bootConfig.pool'),
+      slots: t('onboarding.summaryStep.bootConfig.slots'),
+      bootReserved: t('onboarding.summaryStep.bootConfig.bootReserved'),
+      updateBios: t('onboarding.summaryStep.bootConfig.updateBios'),
+      devices: t('onboarding.summaryStep.bootConfig.devices'),
+      yes: t('onboarding.summaryStep.yes'),
+      no: t('onboarding.summaryStep.no'),
+    },
+    formatBootSize: (bootSizeMiB) =>
+      bootSizeMiB === 0
+        ? t('onboarding.internalBootStep.bootSize.wholeDrive')
+        : t('onboarding.internalBootStep.bootSize.gbLabel', { size: Math.round(bootSizeMiB / 1024) }),
+    formatDeviceSize: formatBytes,
+    missingStorageSelectionBehavior: 'hidden',
+  })
+);
+const hasInvalidBootConfiguration = computed(
+  () => bootConfigurationSummaryState.value.kind === 'invalid'
+);
+const bootConfigurationInvalidMessage =
+  'This boot configuration is incomplete. Go back to Configure Boot to review it before applying changes.';
 const applyReadinessTimedOut = ref(false);
 const APPLY_READINESS_TIMEOUT_MS = 10000;
 let applyReadinessTimer: ReturnType<typeof setTimeout> | null = null;
 
 const canApply = computed(
-  () => isApplyDataReady.value || applyReadinessTimedOut.value || hasBaselineQueryError.value
+  () =>
+    !hasInvalidBootConfiguration.value &&
+    (isApplyDataReady.value || applyReadinessTimedOut.value || hasBaselineQueryError.value)
 );
 const showApplyReadinessWarning = computed(
   () => !isApplyDataReady.value && (applyReadinessTimedOut.value || hasBaselineQueryError.value)
@@ -1336,74 +1285,18 @@ const handleBack = () => {
         </Accordion>
       </div>
 
-      <div v-if="showBootConfiguration" class="border-muted bg-bg/50 mt-6 rounded-lg border p-5">
-        <div class="mb-4 flex items-center gap-2">
-          <CircleStackIcon class="text-primary h-5 w-5" />
-          <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
-            {{ t('onboarding.summaryStep.bootConfig.title') }}
-          </h3>
-        </div>
-        <div class="space-y-3">
-          <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-            <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.bootMethod') }}</span>
-            <span class="text-highlighted font-medium break-all sm:text-right">{{ bootModeLabel }}</span>
-          </div>
+      <div v-if="bootConfigurationSummaryState.kind === 'ready'" class="mt-6">
+        <OnboardingBootConfigurationSummary :summary="bootConfigurationSummaryState.summary" />
+      </div>
 
-          <template v-if="internalBootSummary">
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.poolMode') }}</span>
-              <span class="text-highlighted font-medium break-all sm:text-right">{{
-                internalBootSummary.poolMode === 'dedicated'
-                  ? t('onboarding.summaryStep.bootConfig.poolModeDedicated')
-                  : t('onboarding.summaryStep.bootConfig.poolModeHybrid')
-              }}</span>
-            </div>
-            <div
-              v-if="internalBootSummary.poolMode !== 'dedicated'"
-              class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between"
-            >
-              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.pool') }}</span>
-              <span class="text-highlighted font-medium break-all sm:text-right">{{
-                internalBootSummary.poolName
-              }}</span>
-            </div>
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.slots') }}</span>
-              <span class="text-highlighted font-medium break-all sm:text-right">{{
-                internalBootSummary.slotCount
-              }}</span>
-            </div>
-            <div
-              v-if="internalBootSummary.poolMode !== 'dedicated'"
-              class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between"
-            >
-              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.bootReserved') }}</span>
-              <span class="text-highlighted font-medium break-all sm:text-right">{{
-                internalBootSummary.bootReservedSize
-              }}</span>
-            </div>
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.updateBios') }}</span>
-              <span class="text-highlighted font-medium break-all sm:text-right">{{
-                internalBootSummary.updateBios
-                  ? t('onboarding.summaryStep.yes')
-                  : t('onboarding.summaryStep.no')
-              }}</span>
-            </div>
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.devices') }}</span>
-              <div class="flex flex-wrap gap-2 sm:justify-end">
-                <span
-                  v-for="device in selectedBootDevices"
-                  :key="device.id"
-                  class="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-semibold break-all"
-                >
-                  {{ device.label }}
-                </span>
-              </div>
-            </div>
-          </template>
-        </div>
+      <div
+        v-else-if="bootConfigurationSummaryState.kind === 'invalid'"
+        data-testid="boot-configuration-summary-invalid"
+        class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-900/10"
+      >
+        <p class="text-sm font-medium text-amber-700 dark:text-amber-300">
+          {{ bootConfigurationInvalidMessage }}
+        </p>
       </div>
 
       <!-- Processing / Error Status -->

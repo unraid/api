@@ -1040,10 +1040,16 @@ type OnboardingWizardPluginsDraft {
   selectedIds: [String!]!
 }
 
+type OnboardingWizardInternalBootDevice {
+  id: String!
+  sizeBytes: BigInt!
+  deviceName: String!
+}
+
 type OnboardingWizardInternalBootSelection {
   poolName: String
   slotCount: Int
-  devices: [String!]!
+  devices: [OnboardingWizardInternalBootDevice!]!
   bootSizeMiB: Int
   updateBios: Boolean
   poolMode: OnboardingWizardPoolMode
@@ -1630,10 +1636,16 @@ input OnboardingWizardInternalBootDraftInput {
   selection: OnboardingWizardInternalBootSelectionInput
 }
 
+input OnboardingWizardInternalBootDeviceInput {
+  id: String!
+  sizeBytes: BigInt!
+  deviceName: String!
+}
+
 input OnboardingWizardInternalBootSelectionInput {
   poolName: String
   slotCount: Int
-  devices: [String!]
+  devices: [OnboardingWizardInternalBootDeviceInput!]
   bootSizeMiB: Int
   updateBios: Boolean
   poolMode: OnboardingWizardPoolMode

@@ -138,7 +138,7 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
               selection: {
                 poolName: 'cache',
                 slotCount: 1,
-                devices: ['DISK-A'],
+                devices: [{ id: 'DISK-A', sizeBytes: 500 * 1024 * 1024 * 1024, deviceName: 'sda' }],
                 bootSizeMiB: 16384,
                 updateBios: true,
                 poolMode: 'hybrid',

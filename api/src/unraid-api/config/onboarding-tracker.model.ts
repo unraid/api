@@ -14,10 +14,16 @@ export type OnboardingPoolMode = 'dedicated' | 'hybrid';
 
 export type OnboardingBootMode = 'usb' | 'storage';
 
+export type OnboardingInternalBootDevice = {
+    id: string;
+    sizeBytes: number;
+    deviceName: string;
+};
+
 export type OnboardingInternalBootSelection = {
     poolName?: string;
     slotCount?: number;
-    devices?: string[];
+    devices?: OnboardingInternalBootDevice[];
     bootSizeMiB?: number;
     updateBios?: boolean;
     poolMode?: OnboardingPoolMode;

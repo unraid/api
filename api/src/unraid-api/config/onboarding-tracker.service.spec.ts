@@ -42,6 +42,12 @@ const createConfigService = (dataDir = '/tmp/unraid-data') => {
     } as unknown as ConfigService;
 };
 
+const createBootDevice = (id: string, sizeBytes: number, deviceName: string) => ({
+    id,
+    sizeBytes,
+    deviceName,
+});
+
 describe('OnboardingTrackerService write retries', () => {
     beforeEach(() => {
         mockReadFile.mockReset();
@@ -358,7 +364,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
                         selection: {
                             poolName: 'cache',
                             slotCount: 1,
-                            devices: ['disk1'],
+                            devices: [createBootDevice('disk1', 500_000_000_000, 'sda')],
                             bootSizeMiB: 16384,
                             updateBios: true,
                             poolMode: 'dedicated',
@@ -386,7 +392,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
                     selection: {
                         poolName: 'cache',
                         slotCount: 1,
-                        devices: ['disk1'],
+                        devices: [createBootDevice('disk1', 500_000_000_000, 'sda')],
                         bootSizeMiB: 16384,
                         updateBios: true,
                         poolMode: 'dedicated',
@@ -435,7 +441,10 @@ describe('OnboardingTrackerService tracker state availability', () => {
                         selection: {
                             poolName: 'cache',
                             slotCount: 2,
-                            devices: ['disk1', 'disk2'],
+                            devices: [
+                                createBootDevice('disk1', 500_000_000_000, 'sda'),
+                                createBootDevice('disk2', 250_000_000_000, 'sdb'),
+                            ],
                             bootSizeMiB: 32768,
                             updateBios: false,
                             poolMode: 'hybrid',
@@ -474,7 +483,10 @@ describe('OnboardingTrackerService tracker state availability', () => {
                     selection: {
                         poolName: 'cache',
                         slotCount: 2,
-                        devices: ['disk1', 'disk2'],
+                        devices: [
+                            createBootDevice('disk1', 500_000_000_000, 'sda'),
+                            createBootDevice('disk2', 250_000_000_000, 'sdb'),
+                        ],
                         bootSizeMiB: 32768,
                         updateBios: false,
                         poolMode: 'hybrid',

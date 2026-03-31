@@ -2,6 +2,7 @@ import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsOptional, IsString, IsUrl, ValidateNested } from 'class-validator';
+import { GraphQLBigInt } from 'graphql-scalars';
 
 import { Language } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
@@ -434,6 +435,18 @@ export class OnboardingWizardPluginsDraft {
 }
 
 @ObjectType()
+export class OnboardingWizardInternalBootDevice {
+    @Field(() => String)
+    id!: string;
+
+    @Field(() => GraphQLBigInt)
+    sizeBytes!: number;
+
+    @Field(() => String)
+    deviceName!: string;
+}
+
+@ObjectType()
 export class OnboardingWizardInternalBootSelection {
     @Field(() => String, { nullable: true })
     poolName?: string;
@@ -441,8 +454,8 @@ export class OnboardingWizardInternalBootSelection {
     @Field(() => Int, { nullable: true })
     slotCount?: number;
 
-    @Field(() => [String])
-    devices!: string[];
+    @Field(() => [OnboardingWizardInternalBootDevice])
+    devices!: OnboardingWizardInternalBootDevice[];
 
     @Field(() => Int, { nullable: true })
     bootSizeMiB?: number;

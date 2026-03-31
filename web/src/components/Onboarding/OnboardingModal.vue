@@ -220,7 +220,11 @@ const normalizeWizardDraft = (): OnboardingWizardDraft => ({
               : {
                   poolName: wizard.value.draft.internalBoot.selection.poolName ?? undefined,
                   slotCount: wizard.value.draft.internalBoot.selection.slotCount ?? undefined,
-                  devices: [...wizard.value.draft.internalBoot.selection.devices],
+                  devices: wizard.value.draft.internalBoot.selection.devices.map((device) => ({
+                    id: device.id,
+                    sizeBytes: device.sizeBytes,
+                    deviceName: device.deviceName,
+                  })),
                   bootSizeMiB: wizard.value.draft.internalBoot.selection.bootSizeMiB ?? undefined,
                   updateBios: wizard.value.draft.internalBoot.selection.updateBios ?? undefined,
                   poolMode:
@@ -410,7 +414,11 @@ const buildSaveInput = (nextStepId: StepId) => ({
                         poolName: localDraft.value.internalBoot.selection.poolName,
                         slotCount: localDraft.value.internalBoot.selection.slotCount,
                         devices: localDraft.value.internalBoot.selection.devices
-                          ? [...localDraft.value.internalBoot.selection.devices]
+                          ? localDraft.value.internalBoot.selection.devices.map((device) => ({
+                              id: device.id,
+                              sizeBytes: device.sizeBytes,
+                              deviceName: device.deviceName,
+                            }))
                           : [],
                         bootSizeMiB: localDraft.value.internalBoot.selection.bootSizeMiB,
                         updateBios: localDraft.value.internalBoot.selection.updateBios,
@@ -526,7 +534,9 @@ const updateInternalBootDraft = (draft: OnboardingInternalBootDraft) => {
             ? null
             : {
                 ...draft.selection,
-                devices: draft.selection.devices ? [...draft.selection.devices] : [],
+                devices: draft.selection.devices
+                  ? draft.selection.devices.map((device) => ({ ...device }))
+                  : [],
               },
     },
   });
