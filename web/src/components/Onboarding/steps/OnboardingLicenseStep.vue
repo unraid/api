@@ -132,11 +132,20 @@ const doSkip = () => {
 
 <template>
   <div class="relative mx-auto w-full max-w-4xl px-4 text-center">
+    <OnboardingLoadingState
+      v-if="props.isSavingStep"
+      :title="t('onboarding.loading.title')"
+      :description="t('onboarding.loading.description')"
+    />
+
     <!-- Background Logo Cloud (Similar to Welcome Step) -->
 
     <!-- Main Card -->
     <!-- Using bg-elevated/bg-card and semantic borders -->
-    <div class="bg-elevated border-muted mx-auto mt-8 max-w-2xl rounded-xl border p-1 shadow-sm md:p-10">
+    <div
+      v-else
+      class="bg-elevated border-muted mx-auto mt-8 max-w-2xl rounded-xl border p-1 shadow-sm md:p-10"
+    >
       <div class="flex flex-col items-center gap-6">
         <!-- Icon Box -->
         <div
@@ -251,14 +260,6 @@ const doSkip = () => {
         >
           {{ lt('onboarding.licenseStep.actions.contactSupport', 'Having trouble? Contact Support') }}
         </button>
-
-        <OnboardingLoadingState
-          v-if="props.isSavingStep"
-          compact
-          class="w-full"
-          :title="t('onboarding.loading.title')"
-          :description="t('onboarding.loading.description')"
-        />
 
         <!-- Footer / Navigation (Moved Inside Card) -->
         <div

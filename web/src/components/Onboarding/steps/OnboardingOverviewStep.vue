@@ -216,8 +216,14 @@ const openDocs = () => {
 
 <template>
   <div class="relative mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
+    <OnboardingLoadingState
+      v-if="props.isSavingStep"
+      :title="t('onboarding.loading.title')"
+      :description="t('onboarding.loading.description')"
+    />
+
     <!-- Main Card Container -->
-    <div class="bg-elevated border-muted rounded-xl border p-6 shadow-sm md:p-10">
+    <div v-else class="bg-elevated border-muted rounded-xl border p-6 shadow-sm md:p-10">
       <!-- Header Row (Title, Subtitle, and Badge) -->
       <div class="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div class="space-y-2">
@@ -296,14 +302,6 @@ const openDocs = () => {
           {{ t('onboarding.overviewStep.disclaimer') }}
         </p>
       </div> -->
-
-      <OnboardingLoadingState
-        v-if="props.isSavingStep"
-        compact
-        class="mb-6"
-        :title="t('onboarding.loading.title')"
-        :description="t('onboarding.loading.description')"
-      />
 
       <!-- Footer Actions -->
       <div class="border-muted flex items-center justify-between border-t pt-6">
