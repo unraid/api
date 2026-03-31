@@ -137,6 +137,7 @@ const onboardingTrackerMock = {
             ) => Promise<{ completed: boolean; completedAtVersion?: string; forceOpen: boolean }>
         >(),
     setBypassActive: vi.fn<(active: boolean) => void>(),
+    clearWizardState: vi.fn(),
     saveDraft: vi.fn(),
 };
 const onboardingOverridesMock = {
@@ -589,6 +590,7 @@ describe('OnboardingService', () => {
             await service.closeOnboarding();
 
             expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(false);
+            expect(onboardingTrackerMock.clearWizardState).toHaveBeenCalledTimes(1);
         });
 
         it('marks incomplete onboarding complete when closed on supported versions', async () => {
@@ -607,6 +609,7 @@ describe('OnboardingService', () => {
 
             expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
             expect(onboardingTrackerMock.setForceOpen).not.toHaveBeenCalled();
+            expect(onboardingTrackerMock.clearWizardState).not.toHaveBeenCalled();
         });
 
         it('marks licensed incomplete onboarding complete when closed on supported versions', async () => {
@@ -629,6 +632,7 @@ describe('OnboardingService', () => {
 
             expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
             expect(onboardingTrackerMock.setForceOpen).not.toHaveBeenCalled();
+            expect(onboardingTrackerMock.clearWizardState).not.toHaveBeenCalled();
         });
 
         it('closes force-opened fresh incomplete onboarding in one action', async () => {
@@ -647,6 +651,7 @@ describe('OnboardingService', () => {
 
             expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(false);
             expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
+            expect(onboardingTrackerMock.clearWizardState).not.toHaveBeenCalled();
         });
 
         it('enables the in-memory bypass', async () => {

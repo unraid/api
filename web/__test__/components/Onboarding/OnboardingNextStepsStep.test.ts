@@ -3,6 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { CLOSE_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/closeOnboarding.mutation';
 import { COMPLETE_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import OnboardingNextStepsStep from '~/components/Onboarding/steps/OnboardingNextStepsStep.vue';
 import { createTestI18n } from '../../utils/i18n';
@@ -14,6 +15,7 @@ const {
   submitInternalBootShutdownMock,
   cleanupOnboardingStorageMock,
   completeOnboardingMock,
+  closeOnboardingMock,
   refetchOnboardingMock,
   useMutationMock,
 } = vi.hoisted(() => ({
@@ -48,6 +50,7 @@ const {
   submitInternalBootShutdownMock: vi.fn(),
   cleanupOnboardingStorageMock: vi.fn(),
   completeOnboardingMock: vi.fn().mockResolvedValue({}),
+  closeOnboardingMock: vi.fn().mockResolvedValue({}),
   refetchOnboardingMock: vi.fn().mockResolvedValue({}),
   useMutationMock: vi.fn(),
 }));
@@ -97,10 +100,14 @@ describe('OnboardingNextStepsStep', () => {
     draftStore.internalBootApplyAttempted = false;
     draftStore.internalBootSelection = null;
     completeOnboardingMock.mockResolvedValue({});
+    closeOnboardingMock.mockResolvedValue({});
     refetchOnboardingMock.mockResolvedValue({});
     useMutationMock.mockImplementation((doc: unknown) => {
       if (doc === COMPLETE_ONBOARDING_MUTATION) {
         return { mutate: completeOnboardingMock };
+      }
+      if (doc === CLOSE_ONBOARDING_MUTATION) {
+        return { mutate: closeOnboardingMock };
       }
       return { mutate: vi.fn() };
     });
@@ -317,6 +324,7 @@ describe('OnboardingNextStepsStep', () => {
     await flushPromises();
 
     expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+    expect(closeOnboardingMock).toHaveBeenCalledTimes(1);
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
     expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
     expect(onComplete).not.toHaveBeenCalled();
@@ -401,6 +409,7 @@ describe('OnboardingNextStepsStep', () => {
     await confirmButton!.trigger('click');
     await flushPromises();
 
+    expect(closeOnboardingMock).toHaveBeenCalledTimes(1);
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
     expect(submitInternalBootShutdownMock).toHaveBeenCalledTimes(1);
     expect(onComplete).not.toHaveBeenCalled();
