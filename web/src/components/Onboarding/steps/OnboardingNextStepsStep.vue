@@ -24,11 +24,17 @@ import {
 } from '@/components/Onboarding/composables/internalBoot';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
-import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
 import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
 
+import type {
+  OnboardingWizardDraft,
+  OnboardingWizardInternalBootState,
+} from '@/components/Onboarding/onboardingWizardState';
+
 export interface Props {
+  draft: OnboardingWizardDraft;
+  internalBootState: OnboardingWizardInternalBootState;
   onComplete: () => void;
   onBack?: () => void;
   showBack?: boolean;
@@ -37,7 +43,6 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 const store = useActivationCodeDataStore();
-const draftStore = useOnboardingDraftStore();
 const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
 const { refetchOnboarding } = useOnboardingStore();
 
@@ -58,15 +63,16 @@ const hasExtraLinks = computed(() => (partnerInfo.value?.partner?.extraLinks?.le
 // Check if we have any content to show in the "Learn about your server" section
 // Only show if there are LINKS (docs or extra links) - system specs alone isn't enough
 const hasAnyPartnerContent = computed(() => hasCoreDocsLinks.value || hasExtraLinks.value);
-const showRebootButton = computed(() => draftStore.internalBootSelection !== null);
+const internalBootSelection = computed(() => props.draft.internalBoot?.selection ?? null);
+const showRebootButton = computed(() => internalBootSelection.value !== null);
 const internalBootFailed = computed(
   () =>
-    draftStore.internalBootSelection !== null &&
-    draftStore.internalBootApplyAttempted &&
-    !draftStore.internalBootApplySucceeded
+    internalBootSelection.value !== null &&
+    props.internalBootState.applyAttempted &&
+    !props.internalBootState.applySucceeded
 );
 const biosUpdateMissed = computed(
-  () => internalBootFailed.value && (draftStore.internalBootSelection?.updateBios ?? false)
+  () => internalBootFailed.value && (internalBootSelection.value?.updateBios ?? false)
 );
 const primaryButtonText = computed(() =>
   showRebootButton.value

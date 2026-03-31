@@ -14,18 +14,18 @@ export const useOnboardingContextDataStore = defineStore('onboardingContextData'
 
   const onboarding = computed(() => onboardingBootstrapResult.value?.customization?.onboarding ?? null);
   const onboardingState = computed(() => onboarding.value?.onboardingState ?? null);
+  const wizard = computed(() => onboarding.value?.wizard ?? null);
   const activationCode = computed(
     () => onboardingBootstrapResult.value?.customization?.activationCode ?? null
   );
-  const internalBootVisibility = computed(() => onboardingBootstrapResult.value?.vars ?? null);
 
   return {
     loading: computed(() => onboardingBootstrapLoading.value),
     error: computed(() => onboardingBootstrapError.value),
     onboarding,
     onboardingState,
+    wizard,
     activationCode,
-    internalBootVisibility,
     refetchOnboardingContext: refetch,
   };
 });

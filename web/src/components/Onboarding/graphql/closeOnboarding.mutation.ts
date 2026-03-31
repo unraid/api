@@ -1,9 +1,9 @@
 import { graphql } from '~/composables/gql';
 
 export const CLOSE_ONBOARDING_MUTATION = graphql(/* GraphQL */ `
-  mutation CloseOnboarding {
+  mutation CloseOnboarding($input: CloseOnboardingInput) {
     onboarding {
-      closeOnboarding {
+      closeOnboarding(input: $input) {
         status
         completed
         completedAtVersion

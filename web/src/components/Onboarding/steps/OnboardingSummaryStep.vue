@@ -45,11 +45,15 @@ import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/upd
 import { convert } from 'convert';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
+import type { InternalBootSelection } from '@/components/Onboarding/composables/internalBoot';
 import type { OnboardingErrorDiagnostics } from '@/components/Onboarding/composables/onboardingErrorDiagnostics';
+import type {
+  OnboardingWizardDraft,
+  OnboardingWizardInternalBootState,
+} from '@/components/Onboarding/onboardingWizardState';
 import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
-import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import {
   GetInternalBootContextDocument,
   PluginInstallStatus,
@@ -57,6 +61,9 @@ import {
 } from '~/composables/gql/graphql';
 
 export interface Props {
+  draft: OnboardingWizardDraft;
+  internalBootState: OnboardingWizardInternalBootState;
+  onInternalBootStateChange?: (state: OnboardingWizardInternalBootState) => void | Promise<void>;
   onComplete: () => void | Promise<void>;
   onBack?: () => void;
   showBack?: boolean;
@@ -64,8 +71,18 @@ export interface Props {
 
 const props = defineProps<Props>();
 const { t } = useI18n();
-const draftStore = useOnboardingDraftStore();
 const { activationCode, isFreshInstall, registrationState } = storeToRefs(useActivationCodeDataStore());
+const draftCoreSettings = computed(() => props.draft.coreSettings ?? {});
+const draftPlugins = computed(() => props.draft.plugins?.selectedIds ?? []);
+const draftInternalBoot = computed(() => props.draft.internalBoot ?? {});
+const internalBootSelection = computed(() => draftInternalBoot.value.selection ?? null);
+const setInternalBootState = (state: Partial<OnboardingWizardInternalBootState>) => {
+  const nextState: OnboardingWizardInternalBootState = {
+    applyAttempted: state.applyAttempted ?? props.internalBootState.applyAttempted,
+    applySucceeded: state.applySucceeded ?? props.internalBootState.applySucceeded,
+  };
+  void props.onInternalBootStateChange?.(nextState);
+};
 // Setup Mutations
 const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
 const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTATION);
@@ -97,11 +114,11 @@ const { result: internalBootContextResult } = useQuery(GetInternalBootContextDoc
   fetchPolicy: 'network-only',
 });
 
-const draftPluginsCount = computed(() => draftStore.selectedPlugins?.size ?? 0);
+const draftPluginsCount = computed(() => draftPlugins.value.length);
 
 const currentTimeZone = computed(() => {
   return (
-    draftStore.selectedTimeZone ||
+    draftCoreSettings.value.timeZone ||
     coreSettingsResult.value?.systemTime?.timeZone ||
     t('onboarding.coreSettings.notConfigured')
   );
@@ -109,7 +126,7 @@ const currentTimeZone = computed(() => {
 
 const serverName = computed(() => {
   return (
-    draftStore.serverName ||
+    draftCoreSettings.value.serverName ||
     coreSettingsResult.value?.vars?.name ||
     t('onboarding.coreSettings.defaultServerName')
   );
@@ -117,32 +134,32 @@ const serverName = computed(() => {
 
 const activationSystemModel = computed(() => activationCode.value?.system?.model?.trim() || undefined);
 
-const sshEnabled = computed(() => {
-  return draftStore.useSsh;
-});
+const sshEnabled = computed(() => Boolean(draftCoreSettings.value.useSsh));
 
 const displayTheme = computed(() => {
-  return draftStore.selectedTheme || coreSettingsResult.value?.display?.theme || 'white';
+  return draftCoreSettings.value.theme || coreSettingsResult.value?.display?.theme || 'white';
 });
 
 const displayLanguage = computed(() => {
-  return draftStore.selectedLanguage || coreSettingsResult.value?.display?.locale || 'en_US';
+  return draftCoreSettings.value.language || coreSettingsResult.value?.display?.locale || 'en_US';
 });
 const summaryServerDescription = computed(
-  () => draftStore.serverDescription || coreSettingsResult.value?.server?.comment || ''
+  () => draftCoreSettings.value.serverDescription || coreSettingsResult.value?.server?.comment || ''
 );
 
 const showBootConfiguration = computed(
-  () => draftStore.internalBootInitialized && !draftStore.internalBootSkipped
+  () =>
+    !draftInternalBoot.value.skipped &&
+    (draftInternalBoot.value.bootMode === 'usb' || Boolean(draftInternalBoot.value.selection))
 );
-const selectedBootMode = computed(() => (draftStore.internalBootSelection ? 'storage' : 'usb'));
+const selectedBootMode = computed(
+  () => draftInternalBoot.value.bootMode ?? (draftInternalBoot.value.selection ? 'storage' : 'usb')
+);
 const bootModeLabel = computed(() =>
   selectedBootMode.value === 'storage'
     ? t('onboarding.summaryStep.bootConfig.bootMethodStorage')
     : t('onboarding.summaryStep.bootConfig.bootMethodUsb')
 );
-
-const internalBootSelection = computed(() => draftStore.internalBootSelection ?? null);
 
 const hasInternalBootSelection = computed(() => Boolean(internalBootSelection.value));
 
@@ -212,10 +229,34 @@ const internalBootSummary = computed(() => {
     poolName: selection.poolName,
     slotCount: selection.slotCount,
     devices: selection.devices,
-    bootReservedSize: formatBootSize(selection.bootSizeMiB),
+    bootReservedSize: formatBootSize(selection.bootSizeMiB ?? 0),
     updateBios: selection.updateBios,
   };
 });
+
+const toAppliedInternalBootSelection = (
+  selection: NonNullable<typeof internalBootSelection.value>
+): InternalBootSelection | null => {
+  if (
+    !selection.poolName ||
+    typeof selection.slotCount !== 'number' ||
+    !Array.isArray(selection.devices) ||
+    typeof selection.bootSizeMiB !== 'number' ||
+    typeof selection.updateBios !== 'boolean' ||
+    (selection.poolMode !== 'dedicated' && selection.poolMode !== 'hybrid')
+  ) {
+    return null;
+  }
+
+  return {
+    poolName: selection.poolName,
+    slotCount: selection.slotCount,
+    devices: [...selection.devices],
+    bootSizeMiB: selection.bootSizeMiB,
+    updateBios: selection.updateBios,
+    poolMode: selection.poolMode,
+  };
+};
 
 // Processing State
 const isProcessing = ref(false);
@@ -407,12 +448,16 @@ interface CoreSettingsSnapshot {
 }
 
 const resolveTargetCoreSettings = (): CoreSettingsSnapshot => ({
-  serverName: draftStore.serverName || TRUSTED_DEFAULT_PROFILE.serverName,
-  serverDescription: draftStore.serverDescription || TRUSTED_DEFAULT_PROFILE.serverDescription,
-  timeZone: draftStore.selectedTimeZone || TRUSTED_DEFAULT_PROFILE.timeZone,
-  theme: normalizeThemeName(draftStore.selectedTheme || TRUSTED_DEFAULT_PROFILE.theme),
-  locale: draftStore.selectedLanguage || TRUSTED_DEFAULT_PROFILE.locale,
-  useSsh: typeof draftStore.useSsh === 'boolean' ? draftStore.useSsh : TRUSTED_DEFAULT_PROFILE.useSsh,
+  serverName: draftCoreSettings.value.serverName || TRUSTED_DEFAULT_PROFILE.serverName,
+  serverDescription:
+    draftCoreSettings.value.serverDescription || TRUSTED_DEFAULT_PROFILE.serverDescription,
+  timeZone: draftCoreSettings.value.timeZone || TRUSTED_DEFAULT_PROFILE.timeZone,
+  theme: normalizeThemeName(draftCoreSettings.value.theme || TRUSTED_DEFAULT_PROFILE.theme),
+  locale: draftCoreSettings.value.language || TRUSTED_DEFAULT_PROFILE.locale,
+  useSsh:
+    typeof draftCoreSettings.value.useSsh === 'boolean'
+      ? draftCoreSettings.value.useSsh
+      : TRUSTED_DEFAULT_PROFILE.useSsh,
 });
 
 const normalizePluginFileName = (value: string) => value.trim().toLowerCase();
@@ -457,7 +502,7 @@ const installedPluginFileNames = computed(() => {
 });
 
 const pluginIdsToInstall = computed(() => {
-  return Array.from(draftStore.selectedPlugins).filter((pluginId) => {
+  return draftPlugins.value.filter((pluginId) => {
     const details = pluginMap[pluginId];
     if (!details) return false;
     const detectionFileNames = getPluginInstallDetectionFileNames(details);
@@ -469,7 +514,7 @@ const pluginIdsToInstall = computed(() => {
 });
 
 const selectedPluginSummaries = computed(() => {
-  return Array.from(draftStore.selectedPlugins).map((pluginId) => {
+  return draftPlugins.value.map((pluginId) => {
     const details = pluginMap[pluginId];
     const pluginName = details?.name ?? pluginId;
     const pluginDetectionFileNames = details ? getPluginInstallDetectionFileNames(details) : null;
@@ -583,7 +628,10 @@ const handleComplete = async () => {
   shouldReloadAfterApplyResult.value = false;
 
   addLog(summaryT('logs.startingConfiguration'), 'info');
-  draftStore.setInternalBootApplySucceeded(false);
+  setInternalBootState({
+    applyAttempted: props.internalBootState.applyAttempted,
+    applySucceeded: false,
+  });
   if (showApplyReadinessWarning.value) {
     addLog(summaryT('logs.baselineUnavailable'), 'info');
   }
@@ -928,8 +976,14 @@ const handleComplete = async () => {
 
     // 3. Internal boot setup
     if (internalBootSelection.value) {
-      const selection = internalBootSelection.value;
-      draftStore.setInternalBootApplyAttempted(true);
+      const selection = toAppliedInternalBootSelection(internalBootSelection.value);
+      if (!selection) {
+        throw new Error('Internal boot selection is incomplete');
+      }
+      setInternalBootState({
+        applyAttempted: true,
+        applySucceeded: false,
+      });
       addLog(summaryT('logs.internalBootStart'), 'info');
       addLog(summaryT('logs.internalBootConfiguring'), 'info');
       const internalBootProgressTimer = setInterval(() => {
@@ -944,7 +998,10 @@ const handleComplete = async () => {
         });
 
         if (applyResult.applySucceeded) {
-          draftStore.setInternalBootApplySucceeded(true);
+          setInternalBootState({
+            applyAttempted: true,
+            applySucceeded: true,
+          });
         }
 
         hadWarnings ||= applyResult.hadWarnings;

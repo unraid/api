@@ -313,7 +313,7 @@ const formattedOverrides = (value: OnboardingOverridePayload | null) => {
   return JSON.stringify(value, null, 2);
 };
 
-const clearOnboardingDraftStorage = () => {
+const clearLegacyOnboardingDraftStorage = () => {
   if (typeof window === 'undefined') return;
 
   localStorage.removeItem('onboardingDraft');
@@ -457,7 +457,7 @@ const applyAndOpenPreset = async (preset: Preset) => {
   errorMessage.value = '';
 
   if (resetDraftAndHardRefreshOnOpen.value) {
-    clearOnboardingDraftStorage();
+    clearLegacyOnboardingDraftStorage();
   }
 
   await applyOverrides();
@@ -776,9 +776,8 @@ const currentRegistrationState = computed({
                 Reset Draft + Hard Refresh on Open
               </div>
               <div class="text-muted-foreground text-xs">
-                When enabled, pressing <strong>Open</strong> clears
-                <code class="bg-muted rounded px-1">onboardingDraft</code> from localStorage, then
-                reloads the page after applying overrides.
+                When enabled, pressing <strong>Open</strong> clears any legacy onboarding draft keys from
+                localStorage, then reloads the page after applying overrides.
               </div>
             </div>
           </label>

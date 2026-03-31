@@ -9,6 +9,7 @@ export type PoolMode = 'dedicated' | 'hybrid';
 
 export interface InternalBootSelection {
   poolName: string;
+  slotCount?: number;
   devices: string[];
   bootSizeMiB: number;
   updateBios: boolean;

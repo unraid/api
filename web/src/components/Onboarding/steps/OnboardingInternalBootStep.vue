@@ -8,30 +8,31 @@ import { ArrowPathIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { Accordion, BrandButton } from '@unraid/ui';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
-import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
+import {
+  type OnboardingBootMode,
+  type OnboardingInternalBootDraft,
+  type OnboardingInternalBootSelection,
+  type OnboardingPoolMode,
+} from '@/components/Onboarding/onboardingWizardState';
 import { convert } from 'convert';
 
-import type {
-  OnboardingBootMode,
-  OnboardingInternalBootSelection,
-  OnboardingPoolMode,
-} from '@/components/Onboarding/store/onboardingDraft';
 import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
 import { GetInternalBootContextDocument } from '~/composables/gql/graphql';
 
 export interface Props {
-  onComplete: () => void;
-  onSkip?: () => void;
-  onBack?: () => void;
+  initialDraft?: OnboardingInternalBootDraft | null;
+  onComplete: (draft: OnboardingInternalBootDraft) => void | Promise<void>;
+  onSkip?: (draft: OnboardingInternalBootDraft) => void | Promise<void>;
+  onBack?: (draft: OnboardingInternalBootDraft) => void | Promise<void>;
   showSkip?: boolean;
   showBack?: boolean;
   isSavingStep?: boolean;
+  saveError?: string | null;
 }
 
 const props = defineProps<Props>();
 const { t } = useI18n();
-const draftStore = useOnboardingDraftStore();
 const toBootMode = (value: unknown): OnboardingBootMode => (value === 'storage' ? 'storage' : 'usb');
 
 interface InternalBootDeviceOption {
@@ -145,7 +146,7 @@ const formError = ref<string | null>(null);
 const hasInitializedForm = ref(false);
 const isRefreshingContext = ref(false);
 const bootMode = ref<OnboardingBootMode>(
-  toBootMode(draftStore.bootMode ?? (draftStore.internalBootSelection ? 'storage' : 'usb'))
+  toBootMode(props.initialDraft?.bootMode ?? (props.initialDraft?.selection ? 'storage' : 'usb'))
 );
 
 const poolMode = ref<OnboardingPoolMode>('dedicated');
@@ -240,6 +241,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
 const isLoading = computed(() => Boolean(contextLoading.value) && !internalBootContext.value);
 const isBusy = computed(() => Boolean(props.isSavingStep) || isLoading.value);
 const isStepLocked = computed(() => Boolean(props.isSavingStep));
+const stepError = computed(() => props.saveError ?? null);
 const internalBootTransferState = computed<InternalBootTransferState>(() => {
   const setting = internalBootContext.value?.enableBootTransfer;
   if (typeof setting !== 'string') {
@@ -673,8 +675,37 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
   };
 };
 
+const buildDraftSnapshot = (): OnboardingInternalBootDraft => {
+  if (bootMode.value === 'usb') {
+    return {
+      bootMode: 'usb',
+      skipped: true,
+      selection: null,
+    };
+  }
+
+  const trimmedPoolName = poolName.value.trim();
+  const devices = selectedDevices.value
+    .slice(0, slotCount.value)
+    .filter((device): device is string => typeof device === 'string' && device.length > 0);
+  const currentBootSizeMiB = bootSizeMiB.value ?? undefined;
+
+  return {
+    bootMode: 'storage',
+    skipped: false,
+    selection: {
+      poolName: trimmedPoolName,
+      slotCount: slotCount.value,
+      devices,
+      bootSizeMiB: currentBootSizeMiB,
+      updateBios: updateBios.value,
+      poolMode: poolMode.value,
+    },
+  };
+};
+
 const initializeForm = (data: InternalBootTemplateData) => {
-  const draftSelection = draftStore.internalBootSelection;
+  const draftSelection = props.initialDraft?.selection ?? null;
   const firstSlot = data.slotOptions[0] ?? 1;
   const defaultSlot = Math.max(1, Math.min(2, firstSlot));
 
@@ -684,7 +715,7 @@ const initializeForm = (data: InternalBootTemplateData) => {
     (poolMode.value === 'dedicated' ? 'boot' : (data.poolNameDefault ?? 'cache'));
   slotCount.value = draftSelection?.slotCount ?? defaultSlot;
   selectedDevices.value =
-    draftSelection?.devices.slice(0, slotCount.value) ??
+    draftSelection?.devices?.slice(0, slotCount.value) ??
     Array.from({ length: slotCount.value }, (): string | undefined => undefined);
   normalizeSelectedDevices(slotCount.value);
 
@@ -705,47 +736,59 @@ watch(
 );
 
 watch(
-  () => draftStore.internalBootSelection,
-  (selection) => {
-    if (!selection || isLoading.value) {
+  () => props.initialDraft,
+  (draft) => {
+    if (!draft || isLoading.value) {
       return;
     }
 
-    poolMode.value = selection.poolMode ?? 'hybrid';
-    poolName.value = selection.poolName;
-    slotCount.value = selection.slotCount;
-    selectedDevices.value = [...selection.devices];
+    bootMode.value = toBootMode(draft.bootMode ?? (draft.selection ? 'storage' : 'usb'));
+    if (!draft.selection) {
+      return;
+    }
+
+    poolMode.value = draft.selection.poolMode ?? 'hybrid';
+    poolName.value = draft.selection.poolName ?? poolName.value;
+    slotCount.value = draft.selection.slotCount ?? slotCount.value;
+    selectedDevices.value = [...(draft.selection.devices ?? [])];
     normalizeSelectedDevices(slotCount.value);
-    updateBios.value = selection.updateBios;
-    applyBootSizeSelection(selection.bootSizeMiB);
+    updateBios.value = draft.selection.updateBios ?? updateBios.value;
+    applyBootSizeSelection(draft.selection.bootSizeMiB ?? DEFAULT_BOOT_SIZE_MIB);
   }
 );
 
 watch(
-  () => draftStore.bootMode,
+  () => props.initialDraft?.bootMode,
   (mode) => {
     bootMode.value = toBootMode(mode);
   },
   { immediate: true }
 );
 
-const handleBack = () => {
-  props.onBack?.();
+const handleBack = async () => {
+  await props.onBack?.(buildDraftSnapshot());
 };
 
-const handleSkip = () => {
-  draftStore.skipInternalBoot();
+const handleSkip = async () => {
+  const draft: OnboardingInternalBootDraft = {
+    bootMode: 'usb',
+    skipped: true,
+    selection: null,
+  };
   if (props.onSkip) {
-    props.onSkip();
+    await props.onSkip(draft);
   } else {
-    props.onComplete();
+    await props.onComplete(draft);
   }
 };
 
-const handlePrimaryAction = () => {
+const handlePrimaryAction = async () => {
   if (bootMode.value === 'usb') {
-    draftStore.setBootMode('usb');
-    props.onComplete();
+    await props.onComplete({
+      bootMode: 'usb',
+      skipped: true,
+      selection: null,
+    });
     return;
   }
 
@@ -759,8 +802,11 @@ const handlePrimaryAction = () => {
     return;
   }
 
-  draftStore.setInternalBootSelection(selection);
-  props.onComplete();
+  await props.onComplete({
+    bootMode: 'storage',
+    skipped: false,
+    selection,
+  });
 };
 
 const handleRefreshContext = async () => {
@@ -1126,6 +1172,13 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/10 dark:text-red-300"
       >
         {{ formError }}
+      </div>
+
+      <div
+        v-if="stepError"
+        class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/10 dark:text-red-300"
+      >
+        {{ stepError }}
       </div>
 
       <div

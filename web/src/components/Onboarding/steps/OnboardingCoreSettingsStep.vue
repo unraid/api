@@ -16,21 +16,22 @@ import whiteThemeImg from '@/assets/unraid-white-theme.png';
 import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Onboarding/graphql/availableLanguages.query';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
 import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Onboarding/graphql/timeZoneOptions.query';
-// --- Submit Logic ---
-import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
 import { getTimeZones } from '@vvo/tzdb';
 
+import type { OnboardingCoreSettingsDraft } from '@/components/Onboarding/onboardingWizardState';
+
 export interface Props {
-  onComplete: () => void;
-  onBack?: () => void;
+  initialDraft?: OnboardingCoreSettingsDraft | null;
+  onComplete: (draft: OnboardingCoreSettingsDraft) => void | Promise<void>;
+  onBack?: (draft: OnboardingCoreSettingsDraft) => void | Promise<void>;
   showBack?: boolean;
   isSavingStep?: boolean;
+  saveError?: string | null;
 }
 
 const props = defineProps<Props>();
 const { t } = useI18n();
-const draftStore = useOnboardingDraftStore();
 const { completed: onboardingCompleted, loading: onboardingLoading } = storeToRefs(useOnboardingStore());
 
 const TRUSTED_DEFAULT_PROFILE = Object.freeze({
@@ -57,26 +58,14 @@ const themeImages: Record<string, string> = {
   white: whiteThemeImg,
 };
 
-// ... inside script setup ...
-
-const hasCoreDraft = Boolean(draftStore.coreSettingsInitialized);
-
-const selectedTimeZone = ref<string>(
-  hasCoreDraft ? draftStore.selectedTimeZone : resolveInitialTimeZone()
-);
-const serverName = ref<string>(
-  hasCoreDraft ? draftStore.serverName : TRUSTED_DEFAULT_PROFILE.serverName
-);
+const selectedTimeZone = ref<string>(props.initialDraft?.timeZone ?? resolveInitialTimeZone());
+const serverName = ref<string>(props.initialDraft?.serverName ?? TRUSTED_DEFAULT_PROFILE.serverName);
 const serverDescription = ref<string>(
-  hasCoreDraft ? draftStore.serverDescription : TRUSTED_DEFAULT_PROFILE.serverDescription
+  props.initialDraft?.serverDescription ?? TRUSTED_DEFAULT_PROFILE.serverDescription
 );
-const selectedTheme = ref<string>(
-  hasCoreDraft ? draftStore.selectedTheme : TRUSTED_DEFAULT_PROFILE.theme
-);
-const selectedLanguage = ref<string>(
-  hasCoreDraft ? draftStore.selectedLanguage : TRUSTED_DEFAULT_PROFILE.locale
-);
-const useSsh = ref<boolean>(hasCoreDraft ? draftStore.useSsh : TRUSTED_DEFAULT_PROFILE.useSsh);
+const selectedTheme = ref<string>(props.initialDraft?.theme ?? TRUSTED_DEFAULT_PROFILE.theme);
+const selectedLanguage = ref<string>(props.initialDraft?.language ?? TRUSTED_DEFAULT_PROFILE.locale);
+const useSsh = ref<boolean>(props.initialDraft?.useSsh ?? TRUSTED_DEFAULT_PROFILE.useSsh);
 // ipAssignment removed
 const currentIp = ref<string>('');
 const localTld = ref<string>('local'); // Store localTld for hostname computation
@@ -118,9 +107,9 @@ type CoreSettingsIdentityData = {
 };
 
 const applyPreferredIdentity = (data?: CoreSettingsIdentityData | null) => {
-  if (draftStore.coreSettingsInitialized) {
-    serverName.value = draftStore.serverName;
-    serverDescription.value = draftStore.serverDescription;
+  if (props.initialDraft) {
+    serverName.value = props.initialDraft.serverName ?? '';
+    serverDescription.value = props.initialDraft.serverDescription ?? '';
     return;
   }
 
@@ -154,8 +143,8 @@ const applyPreferredIdentity = (data?: CoreSettingsIdentityData | null) => {
 };
 
 const applyPreferredTimeZone = (apiTimeZone?: string | null) => {
-  if (draftStore.coreSettingsInitialized) {
-    selectedTimeZone.value = draftStore.selectedTimeZone;
+  if (props.initialDraft?.timeZone) {
+    selectedTimeZone.value = props.initialDraft.timeZone;
     hasAutoSelected.value = true;
     return;
   }
@@ -166,7 +155,7 @@ const applyPreferredTimeZone = (apiTimeZone?: string | null) => {
   }
 
   const normalizedApiTimeZone = apiTimeZone?.trim();
-  const draftTimeZone = draftStore.selectedTimeZone?.trim();
+  const draftTimeZone = props.initialDraft?.timeZone?.trim();
   const isInitialSetup = onboardingCompleted.value === false;
 
   if (isInitialSetup) {
@@ -198,16 +187,13 @@ const applyPreferredTimeZone = (apiTimeZone?: string | null) => {
 };
 
 onCoreSettingsResult((res) => {
-  // If draft store has values, use them. Otherwise fall back to server data.
-  const d = draftStore; // Alias for brevity
-
-  if (d.coreSettingsInitialized) {
-    serverName.value = d.serverName;
-    serverDescription.value = d.serverDescription;
-    selectedTimeZone.value = d.selectedTimeZone;
-    useSsh.value = d.useSsh;
-    selectedTheme.value = d.selectedTheme;
-    selectedLanguage.value = d.selectedLanguage;
+  if (props.initialDraft) {
+    serverName.value = props.initialDraft.serverName ?? serverName.value;
+    serverDescription.value = props.initialDraft.serverDescription ?? serverDescription.value;
+    selectedTimeZone.value = props.initialDraft.timeZone ?? selectedTimeZone.value;
+    useSsh.value = props.initialDraft.useSsh ?? useSsh.value;
+    selectedTheme.value = props.initialDraft.theme ?? selectedTheme.value;
+    selectedLanguage.value = props.initialDraft.language ?? selectedLanguage.value;
     hasAutoSelected.value = true;
   } else {
     applyPreferredIdentity(res.data);
@@ -231,11 +217,27 @@ onCoreSettingsResult((res) => {
 });
 
 watch([onboardingLoading, onboardingCompleted], () => {
-  if (!draftStore.coreSettingsInitialized) {
+  if (!props.initialDraft) {
     applyPreferredIdentity(coreSettingsResult.value);
     applyPreferredTimeZone(coreSettingsResult.value?.systemTime?.timeZone);
   }
 });
+
+watch(
+  () => props.initialDraft,
+  (draft) => {
+    if (!draft) {
+      return;
+    }
+
+    serverName.value = draft.serverName ?? serverName.value;
+    serverDescription.value = draft.serverDescription ?? serverDescription.value;
+    selectedTimeZone.value = draft.timeZone ?? selectedTimeZone.value;
+    selectedTheme.value = draft.theme ?? selectedTheme.value;
+    selectedLanguage.value = draft.language ?? selectedLanguage.value;
+    useSsh.value = draft.useSsh ?? useSsh.value;
+  }
+);
 
 const tzdbTimeZones = getTimeZones();
 const timeZoneOptions = computed(() => timeZoneOptionsResult.value?.timeZoneOptions ?? []);
@@ -355,6 +357,15 @@ const languageItems = computed(() => {
 });
 
 const isLanguageDisabled = computed(() => isLanguagesLoading.value || !!languagesQueryError.value);
+const buildDraftSnapshot = (): OnboardingCoreSettingsDraft => ({
+  serverName: serverName.value,
+  serverDescription: serverDescription.value,
+  timeZone: selectedTimeZone.value,
+  theme: selectedTheme.value,
+  language: selectedLanguage.value,
+  useSsh: useSsh.value,
+});
+
 const handleSubmit = async () => {
   if (serverNameValidation.value || serverDescriptionValidation.value) {
     error.value = t('common.error');
@@ -365,27 +376,16 @@ const handleSubmit = async () => {
   error.value = null;
 
   try {
-    draftStore.setCoreSettings({
-      serverName: serverName.value,
-      serverDescription: serverDescription.value,
-      timeZone: selectedTimeZone.value,
-      theme: selectedTheme.value,
-      language: selectedLanguage.value,
-      useSsh: useSsh.value,
-    });
-
-    // Simulate a small delay for UX or just proceed
-    props.onComplete();
+    await props.onComplete(buildDraftSnapshot());
   } catch (err: unknown) {
-    console.warn('Failed to save draft settings:', err);
     error.value = err instanceof Error ? err.message : t('common.error');
   } finally {
     isSaving.value = false;
   }
 };
 
-const handleBack = () => {
-  props.onBack?.();
+const handleBack = async () => {
+  await props.onBack?.(buildDraftSnapshot());
 };
 
 const serverNameValidation = computed(() => {
@@ -411,6 +411,7 @@ const serverDescriptionValidation = computed(() => {
 });
 
 const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
+const stepError = computed(() => error.value ?? props.saveError ?? null);
 </script>
 
 <template>
@@ -593,11 +594,11 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
 
       <!-- Error Message -->
       <div
-        v-if="error"
+        v-if="stepError"
         class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
       >
         <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
-          {{ error }}
+          {{ stepError }}
         </p>
       </div>
 
