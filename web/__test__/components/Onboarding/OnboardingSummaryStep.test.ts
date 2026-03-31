@@ -1015,9 +1015,8 @@ describe('OnboardingSummaryStep', () => {
     expect(onComplete).not.toHaveBeenCalled();
   });
 
-  it('advances to next steps before reloading after a successful HTTPS server rename', async () => {
+  it('advances to next steps before reloading after a successful server rename', async () => {
     draftStore.serverName = 'Newtower';
-    const protocolSpy = vi.spyOn(window.location, 'protocol', 'get').mockReturnValue('https:');
     const reloadSpy = vi.spyOn(window.location, 'reload').mockImplementation(() => undefined);
     const { wrapper, onComplete } = mountComponent();
 
@@ -1035,7 +1034,6 @@ describe('OnboardingSummaryStep', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(reloadSpy).toHaveBeenCalledTimes(1);
 
-    protocolSpy.mockRestore();
     reloadSpy.mockRestore();
   });
 

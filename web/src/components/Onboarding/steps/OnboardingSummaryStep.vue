@@ -317,8 +317,6 @@ const isTransientNetworkError = (error: unknown): boolean => {
 };
 
 const sleepMs = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-const isHttpsWindow = () =>
-  typeof window !== 'undefined' && window.location.protocol.toLowerCase() === 'https:';
 
 const runWithTransientNetworkRetry = async <T,>(
   operation: () => Promise<T>,
@@ -662,7 +660,7 @@ const handleComplete = async () => {
             }),
           shouldRetryNetworkMutations
         );
-        if (serverNameChanged && isHttpsWindow()) {
+        if (serverNameChanged) {
           shouldReloadAfterApplyResult.value = true;
         }
         addLog(summaryT('logs.serverIdentityUpdated'), 'success');
