@@ -1,25 +1,43 @@
 <script lang="ts" setup>
-import { computed, nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
+import { useMutation } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
 
 import type { BrandButtonProps } from '@unraid/ui';
+import type {
+  OnboardingCoreSettingsDraft,
+  OnboardingInternalBootDraft,
+  OnboardingPluginsDraft,
+  OnboardingWizardDraft,
+  OnboardingWizardInternalBootState,
+} from '~/components/Onboarding/onboardingWizardState';
 import type { StepId } from '~/components/Onboarding/stepRegistry.js';
 import type { Component } from 'vue';
 
 import OnboardingLoadingState from '~/components/Onboarding/components/OnboardingLoadingState.vue';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/components/Onboarding/constants';
+import { SAVE_ONBOARDING_DRAFT_MUTATION } from '~/components/Onboarding/graphql/saveOnboardingDraft.mutation';
 import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
-import { stepComponents } from '~/components/Onboarding/stepRegistry.js';
+import {
+  cloneOnboardingWizardDraft,
+  createEmptyOnboardingWizardDraft,
+  createEmptyOnboardingWizardInternalBootState,
+} from '~/components/Onboarding/onboardingWizardState';
+import { STEP_IDS, stepComponents } from '~/components/Onboarding/stepRegistry.js';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
-import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
 import { cleanupOnboardingStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
+import {
+  OnboardingWizardBootMode,
+  OnboardingWizardPoolMode,
+  OnboardingWizardStepId,
+} from '~/composables/gql/graphql';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
@@ -36,24 +54,24 @@ type OnboardingHistoryState = {
 
 const onboardingModalStore = useOnboardingModalStore();
 const { isVisible, sessionSource } = storeToRefs(onboardingModalStore);
-const {
-  activationRequired,
-  hasActivationCode,
-  registrationState,
-  loading: activationDataLoading,
-} = storeToRefs(useActivationCodeDataStore());
+const { activationRequired, hasActivationCode } = storeToRefs(useActivationCodeDataStore());
 const onboardingStore = useOnboardingStore();
 const { isVersionDrift, completedAtVersion, canDisplayOnboardingModal } = storeToRefs(onboardingStore);
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
 const themeStore = useThemeStore();
-const { internalBootVisibility, loading: onboardingContextLoading } = storeToRefs(
-  useOnboardingContextDataStore()
+const { wizard, loading: onboardingContextLoading } = storeToRefs(useOnboardingContextDataStore());
+const { mutate: saveOnboardingDraftMutation } = useMutation(SAVE_ONBOARDING_DRAFT_MUTATION);
+
+const localDraft = ref<OnboardingWizardDraft>(createEmptyOnboardingWizardDraft());
+const localCurrentStepId = ref<StepId | null>(null);
+const localInternalBootState = ref<OnboardingWizardInternalBootState>(
+  createEmptyOnboardingWizardInternalBootState()
 );
-const draftStore = useOnboardingDraftStore();
-const { currentStepId, internalBootApplySucceeded, internalBootApplyAttempted } =
-  storeToRefs(draftStore);
-const isInternalBootLocked = computed(() => internalBootApplyAttempted.value);
+const hasHydratedWizardState = ref(false);
+const isSavingTransition = ref(false);
+const saveTransitionError = ref<string | null>(null);
+const isInternalBootLocked = computed(() => localInternalBootState.value.applyAttempted);
 
 onMounted(async () => {
   try {
@@ -64,15 +82,12 @@ onMounted(async () => {
 });
 
 const hasKeyfile = computed(() => Boolean(keyfile.value));
-const ACTIVATION_STEP_REGISTRATION_STATES = new Set(['ENOKEYFILE', 'ENOKEYFILE1', 'ENOKEYFILE2']);
 const allowActivationSkip = computed(
   () => hasKeyfile.value || activationRequired.value || showActivationStep.value
 );
 const showKeyfileHint = computed(() => activationRequired.value && hasKeyfile.value);
 const activateHref = computed(() => purchaseStore.generateUrl('activate'));
 const activateExternal = computed(() => purchaseStore.openInNewTab);
-
-// Hardcoded step definitions - order matters for UI flow
 const HARDCODED_STEPS: Array<{ id: StepId; required: boolean }> = [
   { id: 'OVERVIEW', required: false },
   { id: 'CONFIGURE_SETTINGS', required: false },
@@ -82,51 +97,21 @@ const HARDCODED_STEPS: Array<{ id: StepId; required: boolean }> = [
   { id: 'SUMMARY', required: false },
   { id: 'NEXT_STEPS', required: false },
 ];
-
-const STEP_ORDER = HARDCODED_STEPS.map((step) => step.id);
-
-const showActivationStep = computed(() => {
-  const hasCode = hasActivationCode.value;
-  const regState = registrationState.value ?? '';
-  return hasCode && ACTIVATION_STEP_REGISTRATION_STATES.has(regState);
+const STEP_ORDER = [...STEP_IDS];
+const normalizeStepId = (value: unknown): StepId | null =>
+  typeof value === 'string' && STEP_IDS.includes(value as StepId) ? (value as StepId) : null;
+const visibleStepIds = computed<StepId[]>(() => {
+  const stepIds = wizard.value?.visibleStepIds ?? [];
+  const normalized = stepIds
+    .map((stepId: unknown) => normalizeStepId(stepId))
+    .filter((stepId: StepId | null): stepId is StepId => stepId !== null);
+  return normalized.length > 0 ? normalized : ['OVERVIEW'];
 });
-
-const showInternalBootStep = computed(() => {
-  const setting = internalBootVisibility.value?.enableBootTransfer;
-  return typeof setting === 'string' && setting.trim().toLowerCase() === 'yes';
-});
-
-const shouldKeepResumedInternalBootStep = computed(
-  () =>
-    onboardingContextLoading.value &&
-    currentStepId.value === 'CONFIGURE_BOOT' &&
-    internalBootVisibility.value === null
+const availableSteps = computed<StepId[]>(() => visibleStepIds.value);
+const showActivationStep = computed(() => availableSteps.value.includes('ACTIVATE_LICENSE'));
+const filteredSteps = computed(() =>
+  HARDCODED_STEPS.filter((step) => availableSteps.value.includes(step.id))
 );
-const shouldKeepResumedActivationStep = computed(
-  () =>
-    activationDataLoading.value &&
-    currentStepId.value === 'ACTIVATE_LICENSE' &&
-    !showActivationStep.value
-);
-
-// Determine which steps to show based on user state
-const visibleHardcodedSteps = computed(() =>
-  HARDCODED_STEPS.filter((step) => {
-    if (step.id === 'ACTIVATE_LICENSE') {
-      return showActivationStep.value || shouldKeepResumedActivationStep.value;
-    }
-
-    if (step.id === 'CONFIGURE_BOOT') {
-      return showInternalBootStep.value || shouldKeepResumedInternalBootStep.value;
-    }
-
-    return true;
-  })
-);
-const availableSteps = computed<StepId[]>(() => visibleHardcodedSteps.value.map((step) => step.id));
-
-// Filtered steps as full objects for OnboardingSteps component
-const filteredSteps = computed(() => visibleHardcodedSteps.value);
 
 const showModal = computed(() => {
   if (!canDisplayOnboardingModal.value) {
@@ -202,6 +187,68 @@ const clearHistorySession = () => {
   isApplyingHistoryState.value = false;
 };
 
+const normalizeWizardDraft = (): OnboardingWizardDraft => ({
+  coreSettings: wizard.value?.draft?.coreSettings
+    ? {
+        serverName: wizard.value.draft.coreSettings.serverName ?? undefined,
+        serverDescription: wizard.value.draft.coreSettings.serverDescription ?? undefined,
+        timeZone: wizard.value.draft.coreSettings.timeZone ?? undefined,
+        theme: wizard.value.draft.coreSettings.theme ?? undefined,
+        language: wizard.value.draft.coreSettings.language ?? undefined,
+        useSsh: wizard.value.draft.coreSettings.useSsh ?? undefined,
+      }
+    : undefined,
+  plugins: wizard.value?.draft?.plugins
+    ? {
+        selectedIds: [...wizard.value.draft.plugins.selectedIds],
+      }
+    : undefined,
+  internalBoot: wizard.value?.draft?.internalBoot
+    ? {
+        bootMode:
+          wizard.value.draft.internalBoot.bootMode === OnboardingWizardBootMode.STORAGE
+            ? 'storage'
+            : wizard.value.draft.internalBoot.bootMode === OnboardingWizardBootMode.USB
+              ? 'usb'
+              : undefined,
+        skipped: wizard.value.draft.internalBoot.skipped ?? undefined,
+        selection:
+          wizard.value.draft.internalBoot.selection === undefined
+            ? undefined
+            : wizard.value.draft.internalBoot.selection === null
+              ? null
+              : {
+                  poolName: wizard.value.draft.internalBoot.selection.poolName ?? undefined,
+                  slotCount: wizard.value.draft.internalBoot.selection.slotCount ?? undefined,
+                  devices: [...wizard.value.draft.internalBoot.selection.devices],
+                  bootSizeMiB: wizard.value.draft.internalBoot.selection.bootSizeMiB ?? undefined,
+                  updateBios: wizard.value.draft.internalBoot.selection.updateBios ?? undefined,
+                  poolMode:
+                    wizard.value.draft.internalBoot.selection.poolMode ===
+                    OnboardingWizardPoolMode.DEDICATED
+                      ? 'dedicated'
+                      : wizard.value.draft.internalBoot.selection.poolMode ===
+                          OnboardingWizardPoolMode.HYBRID
+                        ? 'hybrid'
+                        : undefined,
+                },
+      }
+    : undefined,
+});
+
+const hydrateLocalWizardState = () => {
+  localDraft.value = cloneOnboardingWizardDraft(
+    wizard.value?.draft ? normalizeWizardDraft() : createEmptyOnboardingWizardDraft()
+  );
+  localCurrentStepId.value = normalizeStepId(wizard.value?.currentStepId) ?? null;
+  localInternalBootState.value = {
+    applyAttempted: wizard.value?.internalBootState?.applyAttempted ?? false,
+    applySucceeded: wizard.value?.internalBootState?.applySucceeded ?? false,
+  };
+  saveTransitionError.value = null;
+  hasHydratedWizardState.value = true;
+};
+
 const getNearestVisibleStepId = (stepId: StepId): StepId | null => {
   const currentOrderIndex = STEP_ORDER.indexOf(stepId);
   if (currentOrderIndex < 0) {
@@ -226,7 +273,7 @@ const getNearestVisibleStepId = (stepId: StepId): StepId | null => {
 };
 
 const currentStep = computed<StepId | null>(() => {
-  const persistedStepId = currentStepId.value;
+  const persistedStepId = localCurrentStepId.value;
 
   if (persistedStepId && availableSteps.value.includes(persistedStepId)) {
     return persistedStepId;
@@ -249,22 +296,6 @@ const currentDynamicStepIndex = computed(() => {
   }
   const index = availableSteps.value.findIndex((id) => id === currentStep.value);
   return index >= 0 ? index : availableSteps.value.length;
-});
-
-watchEffect(() => {
-  const stepId = currentStep.value;
-
-  if (!stepId || currentDynamicStepIndex.value >= availableSteps.value.length) {
-    return;
-  }
-
-  if (currentStepId.value === null) {
-    return;
-  }
-
-  if (currentStepId.value !== stepId) {
-    draftStore.setCurrentStep(stepId);
-  }
 });
 
 const modalTitle = computed<string>(() => {
@@ -305,12 +336,13 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   ];
 });
 
-const closeModal = async () => {
+const closeModal = async (reason?: 'SAVE_FAILURE') => {
   try {
-    await onboardingModalStore.closeModal();
+    await onboardingModalStore.closeModal(reason);
   } finally {
     cleanupOnboardingStorage();
     clearHistorySession();
+    hasHydratedWizardState.value = false;
     window.location.reload();
   }
 };
@@ -321,36 +353,124 @@ const setActiveStepByIndex = (stepIndex: number) => {
     return;
   }
 
-  draftStore.setCurrentStep(stepId);
+  localCurrentStepId.value = stepId;
 };
 
-const goToNextStep = async () => {
-  if (availableSteps.value.length > 0) {
-    const activeStepIndex = currentDynamicStepIndex.value;
+const toWizardStepId = (stepId: StepId): OnboardingWizardStepId => {
+  switch (stepId) {
+    case 'OVERVIEW':
+      return OnboardingWizardStepId.OVERVIEW;
+    case 'CONFIGURE_SETTINGS':
+      return OnboardingWizardStepId.CONFIGURE_SETTINGS;
+    case 'CONFIGURE_BOOT':
+      return OnboardingWizardStepId.CONFIGURE_BOOT;
+    case 'ADD_PLUGINS':
+      return OnboardingWizardStepId.ADD_PLUGINS;
+    case 'ACTIVATE_LICENSE':
+      return OnboardingWizardStepId.ACTIVATE_LICENSE;
+    case 'SUMMARY':
+      return OnboardingWizardStepId.SUMMARY;
+    case 'NEXT_STEPS':
+      return OnboardingWizardStepId.NEXT_STEPS;
+  }
+};
 
-    if (activeStepIndex < availableSteps.value.length - 1) {
-      setActiveStepByIndex(activeStepIndex + 1);
-    } else {
+const buildSaveInput = (nextStepId: StepId) => ({
+  input: {
+    draft: {
+      coreSettings: localDraft.value.coreSettings
+        ? {
+            ...localDraft.value.coreSettings,
+          }
+        : undefined,
+      plugins: localDraft.value.plugins
+        ? {
+            selectedIds: localDraft.value.plugins.selectedIds
+              ? [...localDraft.value.plugins.selectedIds]
+              : [],
+          }
+        : undefined,
+      internalBoot:
+        localDraft.value.internalBoot === undefined
+          ? undefined
+          : {
+              bootMode:
+                localDraft.value.internalBoot.bootMode === 'storage'
+                  ? OnboardingWizardBootMode.STORAGE
+                  : localDraft.value.internalBoot.bootMode === 'usb'
+                    ? OnboardingWizardBootMode.USB
+                    : undefined,
+              skipped: localDraft.value.internalBoot.skipped,
+              selection:
+                localDraft.value.internalBoot.selection === undefined
+                  ? undefined
+                  : localDraft.value.internalBoot.selection === null
+                    ? null
+                    : {
+                        poolName: localDraft.value.internalBoot.selection.poolName,
+                        slotCount: localDraft.value.internalBoot.selection.slotCount,
+                        devices: localDraft.value.internalBoot.selection.devices
+                          ? [...localDraft.value.internalBoot.selection.devices]
+                          : [],
+                        bootSizeMiB: localDraft.value.internalBoot.selection.bootSizeMiB,
+                        updateBios: localDraft.value.internalBoot.selection.updateBios,
+                        poolMode:
+                          localDraft.value.internalBoot.selection.poolMode === 'dedicated'
+                            ? OnboardingWizardPoolMode.DEDICATED
+                            : localDraft.value.internalBoot.selection.poolMode === 'hybrid'
+                              ? OnboardingWizardPoolMode.HYBRID
+                              : undefined,
+                      },
+            },
+    },
+    navigation: {
+      currentStepId: toWizardStepId(nextStepId),
+    },
+    internalBootState: {
+      applyAttempted: localInternalBootState.value.applyAttempted,
+      applySucceeded: localInternalBootState.value.applySucceeded,
+    },
+  },
+});
+
+const persistStepTransition = async (nextStepId: StepId) => {
+  isSavingTransition.value = true;
+  saveTransitionError.value = null;
+
+  try {
+    const result = await saveOnboardingDraftMutation(buildSaveInput(nextStepId));
+    if (!result?.data?.onboarding?.saveOnboardingDraft) {
+      throw new Error('saveOnboardingDraft returned false');
+    }
+    localCurrentStepId.value = nextStepId;
+    return true;
+  } catch (error) {
+    console.error('Failed to save onboarding draft:', error);
+    saveTransitionError.value =
+      t('onboarding.nextSteps.completionFailed') ||
+      "We couldn't save your onboarding progress right now.";
+    return false;
+  } finally {
+    isSavingTransition.value = false;
+  }
+};
+
+const transitionByOffset = async (offset: number) => {
+  if (isSavingTransition.value) {
+    return;
+  }
+
+  const activeStepIndex = currentDynamicStepIndex.value;
+  const nextStepId = availableSteps.value[activeStepIndex + offset];
+
+  if (!nextStepId) {
+    if (offset > 0) {
       await closeModal();
     }
     return;
   }
 
-  await closeModal();
-};
-
-const goToPreviousStep = () => {
-  if (isInternalBootLocked.value) {
-    return;
-  }
-  if (typeof window !== 'undefined' && historySessionId.value && historyPosition.value > 0) {
-    window.history.back();
-    return;
-  }
-
-  if (currentDynamicStepIndex.value > 0) {
-    setActiveStepByIndex(currentDynamicStepIndex.value - 1);
-  }
+  await persistStepTransition(nextStepId);
 };
 
 const goToStep = (stepIndex: number) => {
@@ -375,13 +495,54 @@ const goToStep = (stepIndex: number) => {
   }
 };
 
+const updateCoreSettingsDraft = (draft: OnboardingCoreSettingsDraft) => {
+  localDraft.value = cloneOnboardingWizardDraft({
+    ...localDraft.value,
+    coreSettings: {
+      ...draft,
+    },
+  });
+};
+
+const updatePluginsDraft = (draft: OnboardingPluginsDraft) => {
+  localDraft.value = cloneOnboardingWizardDraft({
+    ...localDraft.value,
+    plugins: {
+      selectedIds: draft.selectedIds ? [...draft.selectedIds] : [],
+    },
+  });
+};
+
+const updateInternalBootDraft = (draft: OnboardingInternalBootDraft) => {
+  localDraft.value = cloneOnboardingWizardDraft({
+    ...localDraft.value,
+    internalBoot: {
+      bootMode: draft.bootMode,
+      skipped: draft.skipped,
+      selection:
+        draft.selection === undefined
+          ? undefined
+          : draft.selection === null
+            ? null
+            : {
+                ...draft.selection,
+                devices: draft.selection.devices ? [...draft.selection.devices] : [],
+              },
+    },
+  });
+};
+
 const canGoBack = computed(() => currentDynamicStepIndex.value > 0);
 const exitDialogDescription = computed(() =>
-  internalBootApplySucceeded.value
+  localInternalBootState.value.applySucceeded
     ? t('onboarding.modal.exit.internalBootDescription')
     : t('onboarding.modal.exit.description')
 );
-const isAwaitingStepData = computed(() => onboardingContextLoading.value && !currentStepComponent.value);
+const isAwaitingStepData = computed(
+  () =>
+    showModal.value &&
+    (!hasHydratedWizardState.value || (onboardingContextLoading.value && wizard.value === null))
+);
 const showModalLoadingState = computed(() => isClosingModal.value || isAwaitingStepData.value);
 const loadingStateTitle = computed(() =>
   isClosingModal.value ? t('onboarding.modal.closing.title') : t('onboarding.loading.title')
@@ -390,28 +551,59 @@ const loadingStateDescription = computed(() =>
   isClosingModal.value ? t('onboarding.modal.closing.description') : t('onboarding.loading.description')
 );
 
-const handleTimezoneComplete = async () => {
-  await goToNextStep();
+const handleCoreSettingsComplete = async (draft: OnboardingCoreSettingsDraft) => {
+  updateCoreSettingsDraft(draft);
+  await transitionByOffset(1);
 };
 
-const handleTimezoneSkip = async () => {
-  await goToNextStep();
+const handleCoreSettingsBack = async (draft: OnboardingCoreSettingsDraft) => {
+  updateCoreSettingsDraft(draft);
+  await transitionByOffset(-1);
 };
 
-const handlePluginsComplete = async () => {
-  await goToNextStep();
+const handlePluginsComplete = async (draft: OnboardingPluginsDraft) => {
+  updatePluginsDraft(draft);
+  await transitionByOffset(1);
 };
 
-const handlePluginsSkip = async () => {
-  await goToNextStep();
+const handlePluginsSkip = async (draft: OnboardingPluginsDraft) => {
+  updatePluginsDraft(draft);
+  await transitionByOffset(1);
 };
 
-const handleInternalBootComplete = async () => {
-  await goToNextStep();
+const handlePluginsBack = async (draft: OnboardingPluginsDraft) => {
+  updatePluginsDraft(draft);
+  await transitionByOffset(-1);
 };
 
-const handleInternalBootSkip = async () => {
-  await goToNextStep();
+const handleInternalBootComplete = async (draft: OnboardingInternalBootDraft) => {
+  updateInternalBootDraft(draft);
+  await transitionByOffset(1);
+};
+
+const handleInternalBootSkip = async (draft: OnboardingInternalBootDraft) => {
+  updateInternalBootDraft(draft);
+  await transitionByOffset(1);
+};
+
+const handleInternalBootBack = async (draft: OnboardingInternalBootDraft) => {
+  updateInternalBootDraft(draft);
+  await transitionByOffset(-1);
+};
+
+const handleSummaryComplete = async () => {
+  await transitionByOffset(1);
+};
+
+const handleSummaryBack = async () => {
+  await transitionByOffset(-1);
+};
+
+const handleInternalBootStateChange = async (state: OnboardingWizardInternalBootState) => {
+  localInternalBootState.value = {
+    applyAttempted: state.applyAttempted,
+    applySucceeded: state.applySucceeded,
+  };
 };
 
 const handleExitIntent = () => {
@@ -438,6 +630,31 @@ const handleExitConfirm = async () => {
   }
 };
 
+const handleSaveFailureClose = async () => {
+  if (isClosingModal.value) {
+    return;
+  }
+
+  isClosingModal.value = true;
+  try {
+    await closeModal('SAVE_FAILURE');
+  } finally {
+    isClosingModal.value = false;
+  }
+};
+
+const handleModalVisibilityUpdate = async (value: boolean) => {
+  if (!value) {
+    handleExitIntent();
+  }
+};
+
+const handleExitDialogVisibilityUpdate = (value: boolean) => {
+  if (!value) {
+    handleExitCancel();
+  }
+};
+
 const handlePopstate = async (event: PopStateEvent) => {
   if (isInternalBootLocked.value) {
     window.history.forward();
@@ -456,10 +673,10 @@ const handlePopstate = async (event: PopStateEvent) => {
 
     if (
       availableSteps.value.includes(nextHistoryState.stepId) &&
-      currentStepId.value !== nextHistoryState.stepId
+      localCurrentStepId.value !== nextHistoryState.stepId
     ) {
       isApplyingHistoryState.value = true;
-      draftStore.setCurrentStep(nextHistoryState.stepId);
+      localCurrentStepId.value = nextHistoryState.stepId;
       await nextTick();
       isApplyingHistoryState.value = false;
     }
@@ -520,6 +737,35 @@ watch(
   { flush: 'post', immediate: true }
 );
 
+watch(
+  () => showModal.value,
+  (visible, wasVisible) => {
+    if (visible && !wasVisible) {
+      if (wizard.value) {
+        hydrateLocalWizardState();
+      }
+      return;
+    }
+
+    if (!visible) {
+      clearHistorySession();
+      hasHydratedWizardState.value = false;
+      saveTransitionError.value = null;
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  () => wizard.value,
+  (value) => {
+    if (showModal.value && value && !hasHydratedWizardState.value) {
+      hydrateLocalWizardState();
+    }
+  },
+  { immediate: true }
+);
+
 onMounted(() => {
   window?.addEventListener('popstate', handlePopstate);
 });
@@ -535,11 +781,10 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
   }
 
   const baseProps = {
-    onComplete: () => goToNextStep(),
-    onBack: goToPreviousStep,
+    onComplete: () => transitionByOffset(1),
+    onBack: () => transitionByOffset(-1),
     showBack: canGoBack.value && !isInternalBootLocked.value,
-    isCompleted: false, // No server-side step completion tracking
-    isSavingStep: false,
+    isSavingStep: isSavingTransition.value,
   };
 
   switch (step) {
@@ -557,9 +802,11 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
       const hardcodedStep = HARDCODED_STEPS.find((s) => s.id === 'CONFIGURE_SETTINGS');
       return {
         ...baseProps,
-        onComplete: handleTimezoneComplete,
-        onSkip: hardcodedStep?.required ? undefined : handleTimezoneSkip,
+        initialDraft: localDraft.value.coreSettings ?? null,
+        onComplete: handleCoreSettingsComplete,
+        onBack: handleCoreSettingsBack,
         showSkip: !hardcodedStep?.required,
+        saveError: saveTransitionError.value,
       };
     }
 
@@ -567,10 +814,13 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
       const hardcodedStep = HARDCODED_STEPS.find((s) => s.id === 'ADD_PLUGINS');
       return {
         ...baseProps,
+        initialDraft: localDraft.value.plugins ?? null,
         onComplete: handlePluginsComplete,
         onSkip: hardcodedStep?.required ? undefined : handlePluginsSkip,
+        onBack: handlePluginsBack,
         showSkip: !hardcodedStep?.required,
         isRequired: hardcodedStep?.required ?? false,
+        saveError: saveTransitionError.value,
       };
     }
 
@@ -578,15 +828,20 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
       const hardcodedStep = HARDCODED_STEPS.find((s) => s.id === 'CONFIGURE_BOOT');
       return {
         ...baseProps,
+        initialDraft: localDraft.value.internalBoot ?? null,
         onComplete: handleInternalBootComplete,
         onSkip: hardcodedStep?.required ? undefined : handleInternalBootSkip,
+        onBack: handleInternalBootBack,
         showSkip: !hardcodedStep?.required,
+        saveError: saveTransitionError.value,
       };
     }
 
     case 'ACTIVATE_LICENSE':
       return {
         ...baseProps,
+        onComplete: () => transitionByOffset(1),
+        onBack: () => transitionByOffset(-1),
         modalTitle: modalTitle.value,
         modalDescription: modalDescription.value,
         docsButtons: docsButtons.value,
@@ -601,7 +856,19 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     case 'NEXT_STEPS':
       return {
         ...baseProps,
+        draft: localDraft.value,
+        internalBootState: localInternalBootState.value,
         onComplete: () => closeModal(),
+      };
+
+    case 'SUMMARY':
+      return {
+        ...baseProps,
+        draft: localDraft.value,
+        internalBootState: localInternalBootState.value,
+        onInternalBootStateChange: handleInternalBootStateChange,
+        onComplete: handleSummaryComplete,
+        onBack: handleSummaryBack,
       };
 
     default:
@@ -618,13 +885,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     :show-close-button="false"
     size="full"
     class="bg-background pb-0"
-    @update:model-value="
-      async (value) => {
-        if (!value) {
-          handleExitIntent();
-        }
-      }
-    "
+    @update:model-value="handleModalVisibilityUpdate"
   >
     <div class="relative flex h-full min-h-0 w-full flex-col items-center justify-start overflow-y-auto">
       <button
@@ -652,6 +913,25 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
             class="mb-8"
           />
 
+          <div
+            v-if="saveTransitionError"
+            class="mb-6 w-full max-w-4xl rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/10 dark:text-red-300"
+          >
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p class="font-medium">
+                {{ saveTransitionError }}
+              </p>
+              <button
+                type="button"
+                class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
+                :disabled="isClosingModal"
+                @click="handleSaveFailureClose"
+              >
+                {{ t('onboarding.modal.exit.confirm') }}
+              </button>
+            </div>
+          </div>
+
           <component v-if="currentStepComponent" :is="currentStepComponent" v-bind="currentStepProps" />
         </template>
       </div>
@@ -665,13 +945,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     :show-close-button="false"
     size="md"
     class="max-w-md"
-    @update:model-value="
-      (value) => {
-        if (!value) {
-          handleExitCancel();
-        }
-      }
-    "
+    @update:model-value="handleExitDialogVisibilityUpdate"
   >
     <div class="space-y-6 p-2">
       <div class="space-y-2">

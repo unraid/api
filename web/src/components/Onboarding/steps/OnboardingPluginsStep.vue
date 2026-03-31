@@ -8,20 +8,22 @@ import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
-import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
+
+import type { OnboardingPluginsDraft } from '@/components/Onboarding/onboardingWizardState';
 
 export interface Props {
-  onComplete: () => void;
-  onSkip?: () => void;
-  onBack?: () => void;
+  initialDraft?: OnboardingPluginsDraft | null;
+  onComplete: (draft: OnboardingPluginsDraft) => void | Promise<void>;
+  onSkip?: (draft: OnboardingPluginsDraft) => void | Promise<void>;
+  onBack?: (draft: OnboardingPluginsDraft) => void | Promise<void>;
   showSkip?: boolean;
   showBack?: boolean;
   isSavingStep?: boolean;
+  saveError?: string | null;
 }
 
 const props = defineProps<Props>();
 const { t } = useI18n();
-const draftStore = useOnboardingDraftStore();
 
 const normalizePluginFileName = (value: string) => value.trim().toLowerCase();
 
@@ -68,14 +70,12 @@ const getPluginInstallDetectionFileNames = (plugin: { id: string; url: string })
 };
 
 const defaultSelectedPluginIds = new Set<string>(['community-apps']);
+const buildSelectedPluginsFromDraft = (draft?: OnboardingPluginsDraft | null) => {
+  const selectedIds = draft?.selectedIds ?? [];
+  return selectedIds.length > 0 ? new Set(selectedIds) : new Set(defaultSelectedPluginIds);
+};
 
-// Respect persisted draft selections after first interaction with this step.
-// On first visit, keep Community Apps selected and leave the rest optional.
-const initialSelection = draftStore.pluginSelectionInitialized
-  ? new Set(draftStore.selectedPlugins)
-  : defaultSelectedPluginIds;
-
-const selectedPlugins = ref<Set<string>>(initialSelection);
+const selectedPlugins = ref<Set<string>>(buildSelectedPluginsFromDraft(props.initialDraft));
 const installedPluginIds = ref<Set<string>>(new Set());
 
 const { result: installedPluginsResult, loading: installedPluginsLoading } = useQuery(
@@ -94,9 +94,13 @@ const isInstalledPluginsPending = computed(
     installedPluginsLoading.value && !Array.isArray(installedPluginsResult.value?.installedUnraidPlugins)
 );
 const isBusy = computed(() => Boolean(props.isSavingStep) || isInstalledPluginsPending.value);
+const stepError = computed(() => props.saveError ?? null);
 const persistedSelectedPlugins = computed(
   () => new Set<string>([...selectedPlugins.value, ...installedPluginIds.value])
 );
+const buildDraftSnapshot = (): OnboardingPluginsDraft => ({
+  selectedIds: Array.from(persistedSelectedPlugins.value),
+});
 
 const applyInstalledPlugins = (installedPlugins: string[] | null | undefined) => {
   if (!Array.isArray(installedPlugins)) {
@@ -130,6 +134,13 @@ watch(
   { immediate: true }
 );
 
+watch(
+  () => props.initialDraft,
+  (draft) => {
+    selectedPlugins.value = buildSelectedPluginsFromDraft(draft);
+  }
+);
+
 const togglePlugin = (pluginId: string, value: boolean) => {
   if (installedPluginIds.value.has(pluginId) || isBusy.value) {
     return;
@@ -144,22 +155,23 @@ const togglePlugin = (pluginId: string, value: boolean) => {
   selectedPlugins.value = next;
 };
 
-const handleSkip = () => {
-  draftStore.setPlugins(new Set(installedPluginIds.value));
+const handleSkip = async () => {
+  const draft: OnboardingPluginsDraft = {
+    selectedIds: Array.from(installedPluginIds.value),
+  };
   if (props.onSkip) {
-    props.onSkip();
+    await props.onSkip(draft);
   } else {
-    props.onComplete();
+    await props.onComplete(draft);
   }
 };
 
-const handleBack = () => {
-  props.onBack?.();
+const handleBack = async () => {
+  await props.onBack?.(buildDraftSnapshot());
 };
 
 const handlePrimaryAction = async () => {
-  draftStore.setPlugins(persistedSelectedPlugins.value);
-  props.onComplete();
+  await props.onComplete(buildDraftSnapshot());
 };
 
 const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
@@ -228,6 +240,15 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
             />
           </div>
         </div>
+      </div>
+
+      <div
+        v-if="stepError"
+        class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
+      >
+        <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
+          {{ stepError }}
+        </p>
       </div>
 
       <div
