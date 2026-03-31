@@ -98,10 +98,6 @@ useMutationMock.mockImplementation((document: unknown) => {
   };
 });
 
-vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: () => draftStore,
-}));
-
 const gib = (value: number) => value * 1024 * 1024 * 1024;
 
 const buildContext = (
@@ -123,6 +119,11 @@ const buildContext = (
 const mountComponent = () =>
   mount(OnboardingInternalBootStep, {
     props: {
+      initialDraft: {
+        bootMode: draftStore.bootMode,
+        skipped: draftStore.bootMode !== 'storage',
+        selection: draftStore.internalBootSelection,
+      },
       onComplete: vi.fn(),
       showBack: true,
     },

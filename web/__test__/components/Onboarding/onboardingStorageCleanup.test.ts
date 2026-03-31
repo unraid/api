@@ -1,9 +1,6 @@
-import { createPinia, setActivePinia } from 'pinia';
-
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { ONBOARDING_MODAL_HIDDEN_STORAGE_KEY } from '~/components/Onboarding/constants';
-import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import {
   cleanupOnboardingStorage,
   clearLegacyOnboardingModalHiddenSessionState,
@@ -12,7 +9,6 @@ import {
 
 describe('onboardingStorageCleanup', () => {
   beforeEach(() => {
-    setActivePinia(createPinia());
     window.localStorage.clear();
     window.sessionStorage.clear();
   });
@@ -29,23 +25,14 @@ describe('onboardingStorageCleanup', () => {
     expect(window.localStorage.getItem('unrelatedKey')).toBe('keep');
   });
 
-  it('resets the live onboarding draft store when clearing storage', () => {
-    const draftStore = useOnboardingDraftStore();
-    draftStore.setCoreSettings({
-      serverName: 'tower',
-      serverDescription: 'test',
-      timeZone: 'UTC',
-      theme: 'black',
-      language: 'en_US',
-      useSsh: true,
-    });
-    draftStore.setCurrentStep('CONFIGURE_BOOT');
+  it('removes every onboarding draft storage variant without touching session state', () => {
+    window.localStorage.setItem('pinia-onboardingDraft:legacy', '{"currentStepId":"SUMMARY"}');
+    window.sessionStorage.setItem(ONBOARDING_MODAL_HIDDEN_STORAGE_KEY, 'true');
 
     clearOnboardingDraftStorage();
 
-    expect(draftStore.hasResumableDraft).toBe(false);
-    expect(draftStore.currentStepId).toBeNull();
-    expect(draftStore.coreSettingsInitialized).toBe(false);
+    expect(window.localStorage.getItem('pinia-onboardingDraft:legacy')).toBeNull();
+    expect(window.sessionStorage.getItem(ONBOARDING_MODAL_HIDDEN_STORAGE_KEY)).toBe('true');
   });
 
   it('clears legacy hidden onboarding key from sessionStorage', () => {

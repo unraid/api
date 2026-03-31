@@ -88,10 +88,6 @@ vi.mock('@vvo/tzdb', () => ({
   ],
 }));
 
-vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: () => draftStore,
-}));
-
 vi.mock('@/components/Onboarding/store/onboardingStatus', () => ({
   useOnboardingStore: () => onboardingStore,
 }));
@@ -134,9 +130,19 @@ const setupQueryMocks = () => {
 };
 
 const mountComponent = (props: Record<string, unknown> = {}) => {
-  const onComplete = vi.fn();
+  const onComplete = setCoreSettingsMock;
   const wrapper = mount(OnboardingCoreSettingsStep, {
     props: {
+      initialDraft: draftStore.coreSettingsInitialized
+        ? {
+            serverName: draftStore.serverName,
+            serverDescription: draftStore.serverDescription,
+            timeZone: draftStore.selectedTimeZone,
+            theme: draftStore.selectedTheme,
+            language: draftStore.selectedLanguage,
+            useSsh: draftStore.useSsh,
+          }
+        : null,
       onComplete,
       showBack: true,
       ...props,
@@ -235,6 +241,8 @@ describe('OnboardingCoreSettingsStep', () => {
 
   it('prefers non-empty draft timezone over browser and API on initial setup', async () => {
     onboardingStore.completed.value = false;
+    draftStore.coreSettingsInitialized = true;
+    draftStore.serverName = 'Tower';
     draftStore.selectedTimeZone = 'UTC';
 
     const dateTimeFormatSpy = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(

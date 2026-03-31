@@ -3,9 +3,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
 import type { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 import type { OnboardingInternalBootService } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-internal-boot.service.js';
-import type { OnboardingOverrideInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
-import { OnboardingStatus } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
-import { CreateInternalBootPoolInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
+import type {
+    OnboardingOverrideInput,
+    SaveOnboardingDraftInput,
+} from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
+import {
+    OnboardingStatus,
+    OnboardingWizardStepId,
+} from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import {
+    CloseOnboardingReason,
+    CreateInternalBootPoolInput,
+} from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { OnboardingMutationsResolver } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.mutation.js';
 
 describe('OnboardingMutationsResolver', () => {
@@ -21,6 +30,7 @@ describe('OnboardingMutationsResolver', () => {
         closeOnboarding: vi.fn(),
         bypassOnboarding: vi.fn(),
         resumeOnboarding: vi.fn(),
+        saveOnboardingDraft: vi.fn(),
         getOnboardingResponse: vi.fn(),
         clearActivationDataCache: vi.fn(),
     } satisfies Pick<
@@ -31,6 +41,7 @@ describe('OnboardingMutationsResolver', () => {
         | 'closeOnboarding'
         | 'bypassOnboarding'
         | 'resumeOnboarding'
+        | 'saveOnboardingDraft'
         | 'getOnboardingResponse'
         | 'clearActivationDataCache'
     >;
@@ -56,6 +67,15 @@ describe('OnboardingMutationsResolver', () => {
             hasActivationCode: false,
             activationRequired: false,
         },
+        wizard: {
+            currentStepId: 'OVERVIEW',
+            visibleStepIds: ['OVERVIEW', 'CONFIGURE_SETTINGS', 'ADD_PLUGINS', 'SUMMARY', 'NEXT_STEPS'],
+            draft: {},
+            internalBootState: {
+                applyAttempted: false,
+                applySucceeded: false,
+            },
+        },
     };
 
     let resolver: OnboardingMutationsResolver;
@@ -75,6 +95,7 @@ describe('OnboardingMutationsResolver', () => {
         onboardingService.closeOnboarding.mockResolvedValue(undefined);
         onboardingService.bypassOnboarding.mockResolvedValue(undefined);
         onboardingService.resumeOnboarding.mockResolvedValue(undefined);
+        onboardingService.saveOnboardingDraft.mockResolvedValue(undefined);
         onboardingService.getOnboardingResponse.mockResolvedValue(defaultOnboardingResponse);
 
         resolver = createResolver();
@@ -139,6 +160,19 @@ describe('OnboardingMutationsResolver', () => {
         expect(onboardingService.getOnboardingResponse).toHaveBeenCalledWith();
     });
 
+    it('logs save-failure close reasons before delegating closeOnboarding', async () => {
+        const loggerWarn = vi.fn();
+        (resolver as unknown as { logger: { warn: (message: string) => void } }).logger.warn =
+            loggerWarn;
+
+        await expect(
+            resolver.closeOnboarding({ reason: CloseOnboardingReason.SAVE_FAILURE })
+        ).resolves.toEqual(defaultOnboardingResponse);
+
+        expect(loggerWarn).toHaveBeenCalledWith('closeOnboarding invoked with reason=SAVE_FAILURE');
+        expect(onboardingService.closeOnboarding).toHaveBeenCalledTimes(1);
+    });
+
     it('delegates bypassOnboarding through the onboarding service', async () => {
         const response = {
             ...defaultOnboardingResponse,
@@ -197,6 +231,29 @@ describe('OnboardingMutationsResolver', () => {
         expect(onboardingOverrides.clearState).toHaveBeenCalledTimes(1);
         expect(onboardingService.clearActivationDataCache).toHaveBeenCalledTimes(1);
         expect(onboardingService.getOnboardingResponse).toHaveBeenCalledWith();
+    });
+
+    it('delegates saveOnboardingDraft through the onboarding service', async () => {
+        const input: SaveOnboardingDraftInput = {
+            draft: {
+                coreSettings: {
+                    serverName: 'Tower',
+                },
+                plugins: {
+                    selectedIds: ['community.applications'],
+                },
+            },
+            navigation: {
+                currentStepId: OnboardingWizardStepId.ADD_PLUGINS,
+            },
+            internalBootState: {
+                applyAttempted: true,
+                applySucceeded: false,
+            },
+        };
+
+        await expect(resolver.saveOnboardingDraft(input)).resolves.toBe(true);
+        expect(onboardingService.saveOnboardingDraft).toHaveBeenCalledWith(input);
     });
 
     it('propagates onboarding response failures after completion', async () => {

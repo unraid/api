@@ -54,11 +54,20 @@ describe('OnboardingContextData Store', () => {
             onboarding: {
               status: 'INCOMPLETE',
               onboardingState: { isFreshInstall: true },
+              wizard: {
+                currentStepId: 'OVERVIEW',
+                visibleStepIds: ['OVERVIEW', 'CONFIGURE_SETTINGS'],
+                draft: {
+                  coreSettings: {
+                    serverName: 'Tower',
+                  },
+                },
+                internalBootState: {
+                  applyAttempted: false,
+                  applySucceeded: false,
+                },
+              },
             },
-          },
-          vars: {
-            bootedFromFlashWithInternalBootSetup: false,
-            enableBootTransfer: 'yes',
           },
         },
         false
@@ -75,9 +84,9 @@ describe('OnboardingContextData Store', () => {
     expect(store.activationCode).toEqual({ code: 'ABC-123' });
     expect(store.onboarding).toMatchObject({ status: 'INCOMPLETE' });
     expect(store.onboardingState).toMatchObject({ isFreshInstall: true });
-    expect(store.internalBootVisibility).toEqual({
-      bootedFromFlashWithInternalBootSetup: false,
-      enableBootTransfer: 'yes',
+    expect(store.wizard).toMatchObject({
+      currentStepId: 'OVERVIEW',
+      visibleStepIds: ['OVERVIEW', 'CONFIGURE_SETTINGS'],
     });
     expect(store.loading).toBe(false);
   });
@@ -93,6 +102,6 @@ describe('OnboardingContextData Store', () => {
     expect(store.error).toBe(queryError);
     expect(store.onboarding).toBeNull();
     expect(store.activationCode).toBeNull();
-    expect(store.internalBootVisibility).toBeNull();
+    expect(store.wizard).toBeNull();
   });
 });

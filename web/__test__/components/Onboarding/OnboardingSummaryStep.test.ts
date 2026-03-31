@@ -141,14 +141,6 @@ vi.mock('@/components/Onboarding/components/OnboardingConsole.vue', () => ({
   },
 }));
 
-vi.mock('~/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: () => ({
-    ...draftStore,
-    setInternalBootApplySucceeded: setInternalBootApplySucceededMock,
-    setInternalBootApplyAttempted: setInternalBootApplyAttemptedMock,
-  }),
-}));
-
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: () => ({
     registrationState: registrationStateRef,
@@ -241,6 +233,32 @@ const mountComponent = (props: Record<string, unknown> = {}) => {
   const onComplete = vi.fn();
   const wrapper = mount(OnboardingSummaryStep, {
     props: {
+      draft: {
+        coreSettings: {
+          serverName: draftStore.serverName,
+          serverDescription: draftStore.serverDescription,
+          timeZone: draftStore.selectedTimeZone,
+          theme: draftStore.selectedTheme,
+          language: draftStore.selectedLanguage,
+          useSsh: draftStore.useSsh,
+        },
+        plugins: {
+          selectedIds: Array.from(draftStore.selectedPlugins),
+        },
+        internalBoot: {
+          bootMode: draftStore.bootMode,
+          skipped: draftStore.internalBootSkipped,
+          selection: draftStore.internalBootSelection,
+        },
+      },
+      internalBootState: {
+        applyAttempted: draftStore.internalBootApplyAttempted,
+        applySucceeded: draftStore.internalBootApplySucceeded,
+      },
+      onInternalBootStateChange: vi.fn((state: { applyAttempted: boolean; applySucceeded: boolean }) => {
+        setInternalBootApplyAttemptedMock(state.applyAttempted);
+        setInternalBootApplySucceededMock(state.applySucceeded);
+      }),
       onComplete,
       showBack: true,
       ...props,
