@@ -18,6 +18,9 @@ const {
   languagesError,
   coreOnResultHandlers,
   coreSettingsResult,
+  coreSettingsLoading,
+  coreSettingsError,
+  refetchCoreSettingsMock,
   useQueryMock,
 } = vi.hoisted(() => ({
   setCoreSettingsMock: vi.fn(),
@@ -57,12 +60,18 @@ const {
   languagesError: { value: null as unknown },
   coreOnResultHandlers: [] as Array<(payload: unknown) => void>,
   coreSettingsResult: { value: null as unknown },
+  coreSettingsLoading: { value: false },
+  coreSettingsError: { value: null as unknown },
+  refetchCoreSettingsMock: vi.fn().mockResolvedValue({}),
   useQueryMock: vi.fn(),
 }));
 
 draftStore.setCoreSettings = setCoreSettingsMock;
 
 vi.mock('@unraid/ui', () => ({
+  Spinner: {
+    template: '<div data-testid="spinner" />',
+  },
   BrandButton: {
     props: ['text', 'disabled'],
     emits: ['click'],
@@ -109,6 +118,9 @@ const setupQueryMocks = () => {
     if (doc === GET_CORE_SETTINGS_QUERY) {
       return {
         result: coreSettingsResult,
+        loading: coreSettingsLoading,
+        error: coreSettingsError,
+        refetch: refetchCoreSettingsMock,
         onResult: (cb: (payload: unknown) => void) => {
           coreOnResultHandlers.push((payload: unknown) => {
             const candidate = payload as { data?: unknown };
@@ -150,6 +162,9 @@ const mountComponent = (props: Record<string, unknown> = {}) => {
     global: {
       plugins: [createTestI18n()],
       stubs: {
+        UAlert: {
+          template: '<div><slot name="description" /></div>',
+        },
         USelectMenu: {
           props: ['modelValue', 'items', 'disabled'],
           emits: ['update:modelValue'],
@@ -200,9 +215,40 @@ describe('OnboardingCoreSettingsStep', () => {
     onboardingStore.completed.value = true;
     onboardingStore.loading.value = false;
     coreSettingsResult.value = null;
+    coreSettingsLoading.value = false;
+    coreSettingsError.value = null;
+    refetchCoreSettingsMock.mockResolvedValue({});
 
     languagesLoading.value = false;
     languagesError.value = null;
+  });
+
+  it('shows a full-step loading state while waiting for the initial server baseline', async () => {
+    coreSettingsLoading.value = true;
+
+    const { wrapper } = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="brand-button"]').exists()).toBe(false);
+  });
+
+  it('shows a retryable warning when the core settings query fails without a draft', async () => {
+    coreSettingsError.value = new Error('offline');
+
+    const { wrapper } = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("We couldn't load your current server settings.");
+    const retryButton = wrapper
+      .findAll('button')
+      .find((candidate) => candidate.text().trim() === 'Retry');
+    expect(retryButton).toBeTruthy();
+
+    await retryButton!.trigger('click');
+    await flushPromises();
+
+    expect(refetchCoreSettingsMock).toHaveBeenCalledTimes(1);
   });
 
   it('prefers browser timezone over API on initial setup when draft timezone is empty', async () => {
@@ -227,7 +273,9 @@ describe('OnboardingCoreSettingsStep', () => {
         systemTime: { timeZone: 'UTC' },
       },
     });
+    onboardingStore.loading.value = false;
     await flushPromises();
+    await wrapper.vm.$nextTick();
 
     const submitButton = wrapper.find('[data-testid="brand-button"]');
     await submitButton.trigger('click');
@@ -298,6 +346,7 @@ describe('OnboardingCoreSettingsStep', () => {
         systemTime: { timeZone: 'UTC' },
       },
     });
+    onboardingStore.loading.value = false;
     await flushPromises();
 
     const submitButton = wrapper.find('[data-testid="brand-button"]');
@@ -321,11 +370,11 @@ describe('OnboardingCoreSettingsStep', () => {
         }) as Intl.DateTimeFormat
     );
 
-    const { wrapper, onComplete } = mountComponent();
+    const { wrapper } = mountComponent();
     await flushPromises();
 
-    const coreOnResult = coreOnResultHandlers[0];
-    coreOnResult({
+    const initialCoreOnResult = coreOnResultHandlers[0];
+    initialCoreOnResult({
       data: {
         server: { name: 'Tower', comment: '' },
         vars: { name: 'Tower', useSsh: false, localTld: 'local' },
@@ -335,7 +384,25 @@ describe('OnboardingCoreSettingsStep', () => {
     });
     await flushPromises();
 
-    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+    wrapper.unmount();
+
+    onboardingStore.loading.value = false;
+    const { wrapper: settledWrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const settledCoreOnResult = coreOnResultHandlers[1];
+    settledCoreOnResult({
+      data: {
+        server: { name: 'Tower', comment: '' },
+        vars: { name: 'Tower', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = settledWrapper.find('[data-testid="brand-button"]');
     await submitButton.trigger('click');
     await flushPromises();
 
@@ -365,6 +432,7 @@ describe('OnboardingCoreSettingsStep', () => {
         systemTime: { timeZone: 'UTC' },
       },
     });
+    onboardingStore.loading.value = false;
     await flushPromises();
 
     const submitButton = wrapper.find('[data-testid="brand-button"]');
@@ -399,6 +467,7 @@ describe('OnboardingCoreSettingsStep', () => {
         systemTime: { timeZone: 'UTC' },
       },
     });
+    onboardingStore.loading.value = false;
     await flushPromises();
 
     const submitButton = wrapper.find('[data-testid="brand-button"]');
@@ -433,6 +502,7 @@ describe('OnboardingCoreSettingsStep', () => {
         systemTime: { timeZone: 'UTC' },
       },
     });
+    onboardingStore.loading.value = false;
     await flushPromises();
 
     const submitButton = wrapper.find('[data-testid="brand-button"]');
@@ -447,15 +517,15 @@ describe('OnboardingCoreSettingsStep', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('uses API identity while onboarding tracker state is still loading', async () => {
+  it('uses activation identity once onboarding tracker loading resolves', async () => {
     onboardingStore.loading.value = true;
     onboardingStore.completed.value = false;
 
-    const { wrapper, onComplete } = mountComponent();
+    const { wrapper } = mountComponent();
     await flushPromises();
 
-    const coreOnResult = coreOnResultHandlers[0];
-    coreOnResult({
+    const initialCoreOnResult = coreOnResultHandlers[0];
+    initialCoreOnResult({
       data: {
         customization: {
           activationCode: {
@@ -470,14 +540,37 @@ describe('OnboardingCoreSettingsStep', () => {
     });
     await flushPromises();
 
-    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+    wrapper.unmount();
+
+    onboardingStore.loading.value = false;
+    const { wrapper: settledWrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const settledCoreOnResult = coreOnResultHandlers[1];
+    settledCoreOnResult({
+      data: {
+        customization: {
+          activationCode: {
+            system: { serverName: 'Server01', comment: 'Partner-provided comment' },
+          },
+        },
+        server: { name: 'TowerFromServer', comment: 'Comment from API' },
+        vars: { name: 'TowerFromVars', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = settledWrapper.find('[data-testid="brand-button"]');
     await submitButton.trigger('click');
     await flushPromises();
 
     expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
     expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
-      serverName: 'TowerFromServer',
-      serverDescription: 'Comment from API',
+      serverName: 'Server01',
+      serverDescription: 'Partner-provided comment',
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
