@@ -1,5 +1,35 @@
 # Changelog
 
+## [4.32.0](https://github.com/unraid/api/compare/v4.31.1...v4.32.0) (2026-03-31)
+
+
+### Features
+
+* **onboarding:** force reboot after internal boot setup and lock down wizard ([#1966](https://github.com/unraid/api/issues/1966)) ([9323b14](https://github.com/unraid/api/commit/9323b1487989b2689a25c746ec9ae39f36b65683))
+* **web:** add standalone internal boot wizard ([#1956](https://github.com/unraid/api/issues/1956)) ([ea41225](https://github.com/unraid/api/commit/ea412259193e96f747fb02d4eb3488b2813ad91b))
+
+
+### Bug Fixes
+
+* **api:** defer docker startup tasks until ready ([#1952](https://github.com/unraid/api/issues/1952)) ([0e004a7](https://github.com/unraid/api/commit/0e004a7b03b854636d30b019cffef3453865865e))
+* check mdState to determine array stopped during onboarding ([#1969](https://github.com/unraid/api/issues/1969)) ([abe7283](https://github.com/unraid/api/commit/abe72837a9798e9d4bb6b0f34c06c8ff942f1f31))
+* **connect:** expose IPv6 FQDN routes ([#1976](https://github.com/unraid/api/issues/1976)) ([86d31ee](https://github.com/unraid/api/commit/86d31ee4e2ba958d070a7d1e06f5ba68ea78f2d9))
+* **docker:** guard primary container name access ([#1977](https://github.com/unraid/api/issues/1977)) ([7dadaa2](https://github.com/unraid/api/commit/7dadaa2334711e8a18ac3904c15e28636bcf2f96))
+* **onboarding:** fix shutdown/reboot buttons in internal boot wizard ([#1972](https://github.com/unraid/api/issues/1972)) ([7f04f8e](https://github.com/unraid/api/commit/7f04f8eda4098feadb840311221c0ae9cbf7b5e2))
+* **onboarding:** hide boot pool info alert when storage boot is unavailable ([#1973](https://github.com/unraid/api/issues/1973)) ([f82681b](https://github.com/unraid/api/commit/f82681bb38ad3668f5abdc679678771a7bccf17a))
+* **onboarding:** lower dedicated boot minimum to 6 GiB ([#1979](https://github.com/unraid/api/issues/1979)) ([c8773f5](https://github.com/unraid/api/commit/c8773f527f26f1e22d87306c7c68c6c0e1bee830))
+* **onboarding:** prevent Apply Result dialog from being dismissed ([#1971](https://github.com/unraid/api/issues/1971)) ([0db1410](https://github.com/unraid/api/commit/0db14107aa542e2bfe2d1a5d216fadcb40d96622))
+* **onboarding:** reload after server rename ([#1981](https://github.com/unraid/api/issues/1981)) ([6897f7e](https://github.com/unraid/api/commit/6897f7ee10ee23c57e5638c9f07162377bb79632))
+* **onboarding:** reset internal boot form on mode switch ([#1980](https://github.com/unraid/api/issues/1980)) ([a78b895](https://github.com/unraid/api/commit/a78b895a0c5f28798d33222ed2002c2d7f8f74c2))
+* **onboarding:** restore page refresh on Go to Dashboard ([#1967](https://github.com/unraid/api/issues/1967)) ([29f814b](https://github.com/unraid/api/commit/29f814b9618b6981a5a2ce2b1a9670a35eb09e26))
+* **onboarding:** surface drive warnings for internal boot ([#1963](https://github.com/unraid/api/issues/1963)) ([9e0e89e](https://github.com/unraid/api/commit/9e0e89ec3182110d906cbdf13a9ff033f0282349))
+* Revert "fix(web): avoid legacy dropdown id collisions" ([#1961](https://github.com/unraid/api/issues/1961)) ([ffeb148](https://github.com/unraid/api/commit/ffeb148fb914aeb67b3a9ea8892bfac11614b6a6))
+* **server-identity:** handle onboarding persistence mismatches ([#1974](https://github.com/unraid/api/issues/1974)) ([8432974](https://github.com/unraid/api/commit/8432974569cd6acac166607bdda2aa78db4f1528))
+* **theme:** remove stale dark root class in light mode ([#1960](https://github.com/unraid/api/issues/1960)) ([2815f85](https://github.com/unraid/api/commit/2815f8567cc775e81471a20989a4ad8b4326cba0))
+* **web:** avoid dropdown id collisions with ZFS Master ([#1958](https://github.com/unraid/api/issues/1958)) ([98d37bb](https://github.com/unraid/api/commit/98d37bbe7f5e2381feeebe9cdfa5550ed9f7d11a))
+* **web:** include connect metadata in callbacks ([#1957](https://github.com/unraid/api/issues/1957)) ([c392146](https://github.com/unraid/api/commit/c3921466431c8c797640a3ad0972b7f1710ef555))
+* **web:** restore dropdown id compatibility safely ([#1962](https://github.com/unraid/api/issues/1962)) ([d948b32](https://github.com/unraid/api/commit/d948b32cfeb9e232866bea8e49c8f6707dba0ca4))
+
 ## [4.31.1](https://github.com/unraid/api/compare/v4.31.0...v4.31.1) (2026-03-23)
 
 
