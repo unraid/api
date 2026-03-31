@@ -7,6 +7,7 @@ import { useMutation } from '@vue/apollo-composable';
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import limitlessImage from '@/assets/limitless_possibilities.jpg';
+import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
 import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
@@ -295,6 +296,14 @@ const openDocs = () => {
           {{ t('onboarding.overviewStep.disclaimer') }}
         </p>
       </div> -->
+
+      <OnboardingLoadingState
+        v-if="props.isSavingStep"
+        compact
+        class="mb-6"
+        :title="t('onboarding.loading.title')"
+        :description="t('onboarding.loading.description')"
+      />
 
       <!-- Footer Actions -->
       <div class="border-muted flex items-center justify-between border-t pt-6">

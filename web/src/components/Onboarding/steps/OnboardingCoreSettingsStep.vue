@@ -12,6 +12,7 @@ import azureThemeImg from '@/assets/unraid-azure-theme.png';
 import blackThemeImg from '@/assets/unraid-black-theme.png';
 import grayThemeImg from '@/assets/unraid-gray-theme.png';
 import whiteThemeImg from '@/assets/unraid-white-theme.png';
+import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 // --- Language Logic ---
 import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Onboarding/graphql/availableLanguages.query';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
@@ -601,6 +602,14 @@ const stepError = computed(() => error.value ?? props.saveError ?? null);
           {{ stepError }}
         </p>
       </div>
+
+      <OnboardingLoadingState
+        v-if="props.isSavingStep"
+        compact
+        class="mt-8"
+        :title="t('onboarding.loading.title')"
+        :description="t('onboarding.loading.description')"
+      />
 
       <!-- Footer -->
       <div
