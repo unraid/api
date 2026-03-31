@@ -1,4 +1,4 @@
-import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsOptional, IsString, IsUrl, ValidateNested } from 'class-validator';
@@ -371,6 +371,137 @@ registerEnumType(OnboardingStatus, {
     description: 'The current onboarding status based on completion state and version relationship',
 });
 
+export enum OnboardingWizardStepId {
+    OVERVIEW = 'OVERVIEW',
+    CONFIGURE_SETTINGS = 'CONFIGURE_SETTINGS',
+    CONFIGURE_BOOT = 'CONFIGURE_BOOT',
+    ADD_PLUGINS = 'ADD_PLUGINS',
+    ACTIVATE_LICENSE = 'ACTIVATE_LICENSE',
+    SUMMARY = 'SUMMARY',
+    NEXT_STEPS = 'NEXT_STEPS',
+}
+
+registerEnumType(OnboardingWizardStepId, {
+    name: 'OnboardingWizardStepId',
+    description: 'Server-provided onboarding wizard step identifiers',
+});
+
+export enum OnboardingWizardBootMode {
+    USB = 'usb',
+    STORAGE = 'storage',
+}
+
+registerEnumType(OnboardingWizardBootMode, {
+    name: 'OnboardingWizardBootMode',
+    description: 'Boot mode selected during onboarding',
+});
+
+export enum OnboardingWizardPoolMode {
+    DEDICATED = 'dedicated',
+    HYBRID = 'hybrid',
+}
+
+registerEnumType(OnboardingWizardPoolMode, {
+    name: 'OnboardingWizardPoolMode',
+    description: 'Pool mode selected for onboarding internal boot setup',
+});
+
+@ObjectType()
+export class OnboardingWizardCoreSettingsDraft {
+    @Field(() => String, { nullable: true })
+    serverName?: string;
+
+    @Field(() => String, { nullable: true })
+    serverDescription?: string;
+
+    @Field(() => String, { nullable: true })
+    timeZone?: string;
+
+    @Field(() => String, { nullable: true })
+    theme?: string;
+
+    @Field(() => String, { nullable: true })
+    language?: string;
+
+    @Field(() => Boolean, { nullable: true })
+    useSsh?: boolean;
+}
+
+@ObjectType()
+export class OnboardingWizardPluginsDraft {
+    @Field(() => [String])
+    selectedIds!: string[];
+}
+
+@ObjectType()
+export class OnboardingWizardInternalBootSelection {
+    @Field(() => String, { nullable: true })
+    poolName?: string;
+
+    @Field(() => Int, { nullable: true })
+    slotCount?: number;
+
+    @Field(() => [String])
+    devices!: string[];
+
+    @Field(() => Int, { nullable: true })
+    bootSizeMiB?: number;
+
+    @Field(() => Boolean, { nullable: true })
+    updateBios?: boolean;
+
+    @Field(() => OnboardingWizardPoolMode, { nullable: true })
+    poolMode?: OnboardingWizardPoolMode;
+}
+
+@ObjectType()
+export class OnboardingWizardInternalBootDraft {
+    @Field(() => OnboardingWizardBootMode, { nullable: true })
+    bootMode?: OnboardingWizardBootMode;
+
+    @Field(() => Boolean, { nullable: true })
+    skipped?: boolean;
+
+    @Field(() => OnboardingWizardInternalBootSelection, { nullable: true })
+    selection?: OnboardingWizardInternalBootSelection | null;
+}
+
+@ObjectType()
+export class OnboardingWizardDraft {
+    @Field(() => OnboardingWizardCoreSettingsDraft, { nullable: true })
+    coreSettings?: OnboardingWizardCoreSettingsDraft;
+
+    @Field(() => OnboardingWizardPluginsDraft, { nullable: true })
+    plugins?: OnboardingWizardPluginsDraft;
+
+    @Field(() => OnboardingWizardInternalBootDraft, { nullable: true })
+    internalBoot?: OnboardingWizardInternalBootDraft;
+}
+
+@ObjectType()
+export class OnboardingWizardInternalBootState {
+    @Field(() => Boolean)
+    applyAttempted!: boolean;
+
+    @Field(() => Boolean)
+    applySucceeded!: boolean;
+}
+
+@ObjectType()
+export class OnboardingWizard {
+    @Field(() => OnboardingWizardStepId, { nullable: true })
+    currentStepId?: OnboardingWizardStepId;
+
+    @Field(() => [OnboardingWizardStepId])
+    visibleStepIds!: OnboardingWizardStepId[];
+
+    @Field(() => OnboardingWizardDraft)
+    draft!: OnboardingWizardDraft;
+
+    @Field(() => OnboardingWizardInternalBootState)
+    internalBootState!: OnboardingWizardInternalBootState;
+}
+
 @ObjectType({
     description: 'Onboarding completion state and context',
 })
@@ -411,6 +542,11 @@ export class Onboarding {
         description: 'Runtime onboarding state values used by the onboarding flow',
     })
     onboardingState!: OnboardingState;
+
+    @Field(() => OnboardingWizard, {
+        description: 'Server-owned onboarding wizard state used by the web onboarding modal',
+    })
+    wizard!: OnboardingWizard;
 }
 
 @ObjectType()

@@ -102,6 +102,11 @@ export class OnboardingMutations {
     })
     clearOnboardingOverride!: Onboarding;
 
+    @Field(() => Boolean, {
+        description: 'Persist server-owned onboarding wizard draft state',
+    })
+    saveOnboardingDraft!: boolean;
+
     @Field(() => OnboardingInternalBootResult, {
         description: 'Create and configure internal boot pool via emcmd operations',
     })

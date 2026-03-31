@@ -1,4 +1,4 @@
-import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Type } from 'class-transformer';
 import {
@@ -16,8 +16,22 @@ import {
     ValidateNested,
 } from 'class-validator';
 
+import {
+    OnboardingWizardBootMode,
+    OnboardingWizardPoolMode,
+    OnboardingWizardStepId,
+} from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
+
+export enum CloseOnboardingReason {
+    SAVE_FAILURE = 'SAVE_FAILURE',
+}
+
+registerEnumType(CloseOnboardingReason, {
+    name: 'CloseOnboardingReason',
+    description: 'Optional reason metadata for closing onboarding',
+});
 
 @InputType({
     description: 'Onboarding completion override input',
@@ -284,6 +298,172 @@ export class OnboardingOverrideInput {
     @IsOptional()
     @IsEnum(RegistrationState)
     registrationState?: RegistrationState;
+}
+
+@InputType()
+export class OnboardingWizardCoreSettingsDraftInput {
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    serverName?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    serverDescription?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    timeZone?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    theme?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    language?: string;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    useSsh?: boolean;
+}
+
+@InputType()
+export class OnboardingWizardPluginsDraftInput {
+    @Field(() => [String], { nullable: true })
+    @IsOptional()
+    @IsString({ each: true })
+    selectedIds?: string[];
+}
+
+@InputType()
+export class OnboardingWizardInternalBootSelectionInput {
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    poolName?: string;
+
+    @Field(() => Int, { nullable: true })
+    @IsOptional()
+    @IsInt()
+    @Min(1)
+    slotCount?: number;
+
+    @Field(() => [String], { nullable: true })
+    @IsOptional()
+    @IsString({ each: true })
+    devices?: string[];
+
+    @Field(() => Int, { nullable: true })
+    @IsOptional()
+    @IsInt()
+    @Min(0)
+    bootSizeMiB?: number;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    updateBios?: boolean;
+
+    @Field(() => OnboardingWizardPoolMode, { nullable: true })
+    @IsOptional()
+    @IsEnum(OnboardingWizardPoolMode)
+    poolMode?: OnboardingWizardPoolMode;
+}
+
+@InputType()
+export class OnboardingWizardInternalBootDraftInput {
+    @Field(() => OnboardingWizardBootMode, { nullable: true })
+    @IsOptional()
+    @IsEnum(OnboardingWizardBootMode)
+    bootMode?: OnboardingWizardBootMode;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    skipped?: boolean;
+
+    @Field(() => OnboardingWizardInternalBootSelectionInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => OnboardingWizardInternalBootSelectionInput)
+    selection?: OnboardingWizardInternalBootSelectionInput | null;
+}
+
+@InputType()
+export class OnboardingWizardDraftInput {
+    @Field(() => OnboardingWizardCoreSettingsDraftInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => OnboardingWizardCoreSettingsDraftInput)
+    coreSettings?: OnboardingWizardCoreSettingsDraftInput;
+
+    @Field(() => OnboardingWizardPluginsDraftInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => OnboardingWizardPluginsDraftInput)
+    plugins?: OnboardingWizardPluginsDraftInput;
+
+    @Field(() => OnboardingWizardInternalBootDraftInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => OnboardingWizardInternalBootDraftInput)
+    internalBoot?: OnboardingWizardInternalBootDraftInput;
+}
+
+@InputType()
+export class OnboardingWizardNavigationInput {
+    @Field(() => OnboardingWizardStepId, { nullable: true })
+    @IsOptional()
+    @IsEnum(OnboardingWizardStepId)
+    currentStepId?: OnboardingWizardStepId;
+}
+
+@InputType()
+export class OnboardingWizardInternalBootStateInput {
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    applyAttempted?: boolean;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    applySucceeded?: boolean;
+}
+
+@InputType()
+export class SaveOnboardingDraftInput {
+    @Field(() => OnboardingWizardDraftInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => OnboardingWizardDraftInput)
+    draft?: OnboardingWizardDraftInput;
+
+    @Field(() => OnboardingWizardNavigationInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => OnboardingWizardNavigationInput)
+    navigation?: OnboardingWizardNavigationInput;
+
+    @Field(() => OnboardingWizardInternalBootStateInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => OnboardingWizardInternalBootStateInput)
+    internalBootState?: OnboardingWizardInternalBootStateInput;
+}
+
+@InputType()
+export class CloseOnboardingInput {
+    @Field(() => CloseOnboardingReason, { nullable: true })
+    @IsOptional()
+    @IsEnum(CloseOnboardingReason)
+    reason?: CloseOnboardingReason;
 }
 
 @InputType({
