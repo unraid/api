@@ -17,6 +17,9 @@ import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-trac
 import {
     ActivationCode,
     OnboardingStatus,
+    OnboardingWizardBootMode,
+    OnboardingWizardPoolMode,
+    OnboardingWizardStepId,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 
@@ -134,6 +137,7 @@ const onboardingTrackerMock = {
             ) => Promise<{ completed: boolean; completedAtVersion?: string; forceOpen: boolean }>
         >(),
     setBypassActive: vi.fn<(active: boolean) => void>(),
+    saveDraft: vi.fn(),
 };
 const onboardingOverridesMock = {
     getState: vi.fn(),
@@ -206,6 +210,12 @@ describe('OnboardingService', () => {
                 completed: false,
                 completedAtVersion: undefined,
                 forceOpen: false,
+                draft: {},
+                navigation: {},
+                internalBootState: {
+                    applyAttempted: false,
+                    applySucceeded: false,
+                },
             },
         });
         onboardingTrackerMock.getCurrentVersion.mockReset();
@@ -231,6 +241,18 @@ describe('OnboardingService', () => {
             forceOpen,
         }));
         onboardingTrackerMock.setBypassActive.mockReset();
+        onboardingTrackerMock.saveDraft.mockReset();
+        onboardingTrackerMock.saveDraft.mockResolvedValue({
+            completed: false,
+            completedAtVersion: undefined,
+            forceOpen: false,
+            draft: {},
+            navigation: {},
+            internalBootState: {
+                applyAttempted: false,
+                applySucceeded: false,
+            },
+        });
         onboardingOverridesMock.getState.mockReset();
         onboardingOverridesMock.getState.mockReturnValue(null);
         onboardingOverridesMock.setState.mockReset();
@@ -320,7 +342,7 @@ describe('OnboardingService', () => {
 
             await expect(
                 service.getOnboardingResponse({ includeActivationCode: true })
-            ).resolves.toEqual({
+            ).resolves.toMatchObject({
                 status: OnboardingStatus.COMPLETED,
                 isPartnerBuild: true,
                 completed: true,
@@ -333,6 +355,9 @@ describe('OnboardingService', () => {
                     isFreshInstall: false,
                     hasActivationCode: true,
                     activationRequired: false,
+                },
+                wizard: {
+                    currentStepId: OnboardingWizardStepId.OVERVIEW,
                 },
             });
         });
@@ -1843,6 +1868,122 @@ describe('OnboardingService - updateCfgFile', () => {
 
             setDisplay({ banner: 'image', showBannerGradient: 'no' });
             expect((await service.getTheme()).showBannerGradient).toBe(false);
+        });
+    });
+
+    describe('wizard state', () => {
+        const mockEmhttp = getters.emhttp as unknown as Mock;
+
+        it('returns live-computed visible steps and falls forward when the saved current step is hidden', async () => {
+            mockEmhttp.mockReturnValue({
+                var: {
+                    name: 'Tower',
+                    sysModel: 'Custom',
+                    comment: 'Default',
+                    enableBootTransfer: 'no',
+                },
+            });
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: false,
+                    draft: {
+                        plugins: {
+                            selectedIds: ['community.applications'],
+                        },
+                    },
+                    navigation: {
+                        currentStepId: 'CONFIGURE_BOOT',
+                    },
+                    internalBootState: {
+                        applyAttempted: true,
+                        applySucceeded: false,
+                    },
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            onboardingStateMock.getRegistrationState.mockReturnValue('PRO');
+            onboardingStateMock.isRegistered.mockReturnValue(true);
+            onboardingStateMock.isFreshInstall.mockReturnValue(true);
+            onboardingStateMock.hasActivationCode.mockResolvedValue(false);
+            onboardingStateMock.requiresActivationStep.mockReturnValue(false);
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            const response = await service.getOnboardingResponse();
+
+            expect(response.status).toBe(OnboardingStatus.INCOMPLETE);
+            expect(response.wizard.visibleStepIds).toEqual([
+                OnboardingWizardStepId.OVERVIEW,
+                OnboardingWizardStepId.CONFIGURE_SETTINGS,
+                OnboardingWizardStepId.ADD_PLUGINS,
+                OnboardingWizardStepId.SUMMARY,
+                OnboardingWizardStepId.NEXT_STEPS,
+            ]);
+            expect(response.wizard.currentStepId).toBe(OnboardingWizardStepId.ADD_PLUGINS);
+            expect(response.wizard.internalBootState).toEqual({
+                applyAttempted: true,
+                applySucceeded: false,
+            });
+        });
+
+        it('persists nested wizard draft input in tracker format', async () => {
+            await service.saveOnboardingDraft({
+                draft: {
+                    coreSettings: {
+                        serverName: 'Tower',
+                        timeZone: 'America/New_York',
+                    },
+                    internalBoot: {
+                        bootMode: OnboardingWizardBootMode.STORAGE,
+                        skipped: false,
+                        selection: {
+                            poolName: 'cache',
+                            slotCount: 2,
+                            devices: ['disk1', 'disk2'],
+                            bootSizeMiB: 32768,
+                            updateBios: true,
+                            poolMode: OnboardingWizardPoolMode.HYBRID,
+                        },
+                    },
+                },
+                navigation: {
+                    currentStepId: OnboardingWizardStepId.SUMMARY,
+                },
+                internalBootState: {
+                    applyAttempted: true,
+                    applySucceeded: true,
+                },
+            });
+
+            expect(onboardingTrackerMock.saveDraft).toHaveBeenCalledWith({
+                draft: {
+                    coreSettings: {
+                        serverName: 'Tower',
+                        timeZone: 'America/New_York',
+                    },
+                    internalBoot: {
+                        bootMode: 'storage',
+                        skipped: false,
+                        selection: {
+                            poolName: 'cache',
+                            slotCount: 2,
+                            devices: ['disk1', 'disk2'],
+                            bootSizeMiB: 32768,
+                            updateBios: true,
+                            poolMode: 'hybrid',
+                        },
+                    },
+                },
+                navigation: {
+                    currentStepId: OnboardingWizardStepId.SUMMARY,
+                },
+                internalBootState: {
+                    applyAttempted: true,
+                    applySucceeded: true,
+                },
+            });
         });
     });
 });
