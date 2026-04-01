@@ -183,13 +183,27 @@ describe('RestController OIDC authorize integration', () => {
             expect.stringContaining('https://provider.example.com/oauth/authorize')
         );
 
-        const locationHeader = vi
-            .mocked(mockReply.header)
-            .mock.calls.find(([name]) => name === 'Location')?.[1];
+        const headerMock = mockReply.header;
+        expect(headerMock).toBeDefined();
 
+        if (!headerMock) {
+            throw new Error('Expected reply header mock to be set');
+        }
+
+        const locationHeaderCall = vi
+            .mocked(headerMock)
+            .mock.calls.find(([name]) => name === 'Location');
+
+        expect(locationHeaderCall).toBeDefined();
+
+        const locationHeader = locationHeaderCall?.[1];
         expect(locationHeader).toBeTypeOf('string');
 
-        const locationUrl = new URL(locationHeader as string);
+        if (typeof locationHeader !== 'string') {
+            throw new Error('Expected redirect Location header to be set');
+        }
+
+        const locationUrl = new URL(locationHeader);
         expect(locationUrl.searchParams.get('redirect_uri')).toBe(
             'https://nas.domain.com/graphql/api/auth/oidc/callback'
         );
