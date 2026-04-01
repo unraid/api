@@ -150,14 +150,18 @@ describe('RestController OIDC authorize integration', () => {
     });
 
     it('authorizes successfully through both redirect validation layers for proxied domains', async () => {
-        const mockRequest = createMockRequest(undefined, {
-            'x-forwarded-proto': 'https, http',
-            'x-forwarded-host': 'nas.domain.com, 10.0.0.15',
-            host: '127.0.0.1:3001',
-        }, {
-            host: 'nas.domain.com',
-            protocol: 'https',
-        });
+        const mockRequest = createMockRequest(
+            undefined,
+            {
+                'x-forwarded-proto': 'https, http',
+                'x-forwarded-host': 'nas.domain.com, 10.0.0.15',
+                host: '127.0.0.1:3001',
+            },
+            {
+                host: 'nas.domain.com',
+                protocol: 'https',
+            }
+        );
 
         await controller.oidcAuthorize(
             provider.id,

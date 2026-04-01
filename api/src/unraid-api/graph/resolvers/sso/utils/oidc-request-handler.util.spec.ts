@@ -196,7 +196,10 @@ describe('OidcRequestHandler', () => {
                 handleCallback: vi.fn().mockResolvedValue('paddedToken123'),
             };
 
-            const mockReq: Pick<FastifyRequest, 'id' | 'headers' | 'url' | 'protocol' | 'host' | 'hostname'> = {
+            const mockReq: Pick<
+                FastifyRequest,
+                'id' | 'headers' | 'url' | 'protocol' | 'host' | 'hostname'
+            > = {
                 id: '123',
                 headers: {},
                 protocol: 'https',

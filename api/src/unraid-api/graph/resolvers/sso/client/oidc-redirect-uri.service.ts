@@ -11,10 +11,7 @@ export class OidcRedirectUriService {
 
     constructor(private readonly oidcConfig: OidcConfigPersistence) {}
 
-    async getRedirectUri(
-        requestOrigin: string,
-        requestOriginInfo: RequestOriginInfo
-    ): Promise<string> {
+    async getRedirectUri(requestOrigin: string, requestOriginInfo: RequestOriginInfo): Promise<string> {
         // Extract protocol and host from headers for validation
         const { protocol, host } = requestOriginInfo;
 
@@ -62,5 +59,4 @@ export class OidcRedirectUriService {
             throw new UnauthorizedException('Invalid redirect_uri');
         }
     }
-
 }

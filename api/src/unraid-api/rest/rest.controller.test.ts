@@ -199,14 +199,18 @@ describe('RestController', () => {
             });
 
             it('should handle proxied requests using trusted Fastify request values', async () => {
-                const mockRequest = createMockRequest(undefined, {
-                    'x-forwarded-proto': 'https, http',
-                    'x-forwarded-host': 'nas.mydomain.com, 10.0.0.15',
-                    host: '127.0.0.1:3001',
-                }, {
-                    host: 'nas.mydomain.com',
-                    protocol: 'https',
-                });
+                const mockRequest = createMockRequest(
+                    undefined,
+                    {
+                        'x-forwarded-proto': 'https, http',
+                        'x-forwarded-host': 'nas.mydomain.com, 10.0.0.15',
+                        host: '127.0.0.1:3001',
+                    },
+                    {
+                        host: 'nas.mydomain.com',
+                        protocol: 'https',
+                    }
+                );
 
                 await controller.oidcAuthorize(
                     'test-provider',
@@ -221,14 +225,18 @@ describe('RestController', () => {
             });
 
             it('should handle trusted request values with explicit proxy chains present', async () => {
-                const mockRequest = createMockRequest(undefined, {
-                    'x-forwarded-proto': ['https', 'http'],
-                    'x-forwarded-host': ['nas.mydomain.com', '10.0.0.15'],
-                    host: '127.0.0.1:3001',
-                }, {
-                    host: 'nas.mydomain.com',
-                    protocol: 'https',
-                });
+                const mockRequest = createMockRequest(
+                    undefined,
+                    {
+                        'x-forwarded-proto': ['https', 'http'],
+                        'x-forwarded-host': ['nas.mydomain.com', '10.0.0.15'],
+                        host: '127.0.0.1:3001',
+                    },
+                    {
+                        host: 'nas.mydomain.com',
+                        protocol: 'https',
+                    }
+                );
 
                 await controller.oidcAuthorize(
                     'test-provider',

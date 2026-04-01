@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const createMock = vi.fn();
