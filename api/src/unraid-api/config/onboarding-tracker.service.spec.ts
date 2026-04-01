@@ -502,4 +502,91 @@ describe('OnboardingTrackerService tracker state availability', () => {
             },
         });
     });
+
+    it('drops unknown JSON keys while preserving valid onboarding draft fields', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+
+            return JSON.stringify({
+                completed: false,
+                completedAtVersion: undefined,
+                forceOpen: false,
+                draft: {},
+                navigation: {},
+                internalBootState: {
+                    applyAttempted: false,
+                    applySucceeded: false,
+                },
+            });
+        });
+        mockAtomicWriteFile.mockResolvedValue(undefined as never);
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(
+            tracker.saveDraft({
+                draft: {
+                    coreSettings: {
+                        serverName: 'Tower',
+                        theme: 'black',
+                    },
+                    internalBoot: {
+                        bootMode: 'storage',
+                        selection: {
+                            poolName: 'cache',
+                            slotCount: 1,
+                            devices: [createBootDevice('disk1', 500_000_000_000, 'sda')],
+                            bootSizeMiB: 16384,
+                            updateBios: true,
+                            poolMode: 'hybrid',
+                            ignoredSelectionField: 'ignore-me',
+                        } as unknown as Record<string, unknown>,
+                        ignoredDraftField: 'ignore-me',
+                    } as unknown as Record<string, unknown>,
+                    ignoredTopLevelField: {
+                        nested: true,
+                    },
+                } as unknown as Record<string, unknown>,
+            })
+        ).resolves.toMatchObject({
+            draft: {
+                coreSettings: {
+                    serverName: 'Tower',
+                    theme: 'black',
+                },
+                internalBoot: {
+                    bootMode: 'storage',
+                    selection: {
+                        poolName: 'cache',
+                        slotCount: 1,
+                        devices: [createBootDevice('disk1', 500_000_000_000, 'sda')],
+                        bootSizeMiB: 16384,
+                        updateBios: true,
+                        poolMode: 'hybrid',
+                    },
+                },
+            },
+        });
+
+        const writtenState = JSON.parse(String(mockAtomicWriteFile.mock.calls[0]?.[1])) as {
+            draft?: Record<string, unknown>;
+        };
+        expect(writtenState.draft?.ignoredTopLevelField).toBeUndefined();
+        expect(
+            (writtenState.draft?.internalBoot as Record<string, unknown> | undefined)?.ignoredDraftField
+        ).toBeUndefined();
+        expect(
+            (
+                (writtenState.draft?.internalBoot as Record<string, unknown> | undefined)?.selection as
+                    | Record<string, unknown>
+                    | undefined
+            )?.ignoredSelectionField
+        ).toBeUndefined();
+    });
 });

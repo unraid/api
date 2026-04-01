@@ -310,6 +310,77 @@ describe('OnboardingModal.vue', () => {
     );
   });
 
+  it('normalizes JSON bootstrap draft data before re-saving step transitions', async () => {
+    wizardRef.value = {
+      currentStepId: 'CONFIGURE_SETTINGS',
+      visibleStepIds: ['OVERVIEW', 'CONFIGURE_SETTINGS', 'ADD_PLUGINS', 'SUMMARY'],
+      draft: {
+        coreSettings: {
+          serverName: ' Existing Tower ',
+          useSsh: 'nope',
+        },
+        plugins: {
+          selectedIds: ['community.applications', 42],
+        },
+        internalBoot: {
+          bootMode: 'storage',
+          skipped: false,
+          selection: {
+            poolName: 'cache',
+            slotCount: '2',
+            devices: [{ id: 'DISK-A', sizeBytes: 500 * 1024 * 1024 * 1024, deviceName: 'sda' }, null],
+            bootSizeMiB: 16384,
+            updateBios: true,
+            poolMode: 'hybrid',
+          },
+        },
+      } as unknown as OnboardingWizardDraft,
+      internalBootState: {
+        applyAttempted: false,
+        applySucceeded: false,
+      },
+    };
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="settings-step-complete"]').trigger('click');
+    await flushPromises();
+
+    expect(saveOnboardingDraftMock).toHaveBeenCalledWith({
+      input: {
+        draft: {
+          coreSettings: {
+            serverName: 'Tower',
+            useSsh: true,
+          },
+          plugins: {
+            selectedIds: ['community.applications'],
+          },
+          internalBoot: {
+            bootMode: 'storage',
+            skipped: false,
+            selection: {
+              poolName: 'cache',
+              slotCount: 2,
+              devices: [{ id: 'DISK-A', sizeBytes: 500 * 1024 * 1024 * 1024, deviceName: 'sda' }],
+              bootSizeMiB: 16384,
+              updateBios: true,
+              poolMode: 'hybrid',
+            },
+          },
+        },
+        navigation: {
+          currentStepId: 'ADD_PLUGINS',
+        },
+        internalBootState: {
+          applyAttempted: false,
+          applySucceeded: false,
+        },
+      },
+    });
+  });
+
   it('falls forward to the nearest visible step when the saved step is no longer visible', async () => {
     wizardRef.value = {
       currentStepId: 'CONFIGURE_BOOT',

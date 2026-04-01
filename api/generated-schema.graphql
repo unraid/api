@@ -1027,58 +1027,6 @@ type OnboardingState {
   activationRequired: Boolean!
 }
 
-type OnboardingWizardCoreSettingsDraft {
-  serverName: String
-  serverDescription: String
-  timeZone: String
-  theme: String
-  language: String
-  useSsh: Boolean
-}
-
-type OnboardingWizardPluginsDraft {
-  selectedIds: [String!]!
-}
-
-type OnboardingWizardInternalBootDevice {
-  id: String!
-  sizeBytes: BigInt!
-  deviceName: String!
-}
-
-type OnboardingWizardInternalBootSelection {
-  poolName: String
-  slotCount: Int
-  devices: [OnboardingWizardInternalBootDevice!]!
-  bootSizeMiB: Int
-  updateBios: Boolean
-  poolMode: OnboardingWizardPoolMode
-}
-
-"""Pool mode selected for onboarding internal boot setup"""
-enum OnboardingWizardPoolMode {
-  DEDICATED
-  HYBRID
-}
-
-type OnboardingWizardInternalBootDraft {
-  bootMode: OnboardingWizardBootMode
-  skipped: Boolean
-  selection: OnboardingWizardInternalBootSelection
-}
-
-"""Boot mode selected during onboarding"""
-enum OnboardingWizardBootMode {
-  USB
-  STORAGE
-}
-
-type OnboardingWizardDraft {
-  coreSettings: OnboardingWizardCoreSettingsDraft
-  plugins: OnboardingWizardPluginsDraft
-  internalBoot: OnboardingWizardInternalBootDraft
-}
-
 type OnboardingWizardInternalBootState {
   applyAttempted: Boolean!
   applySucceeded: Boolean!
@@ -1087,7 +1035,7 @@ type OnboardingWizardInternalBootState {
 type OnboardingWizard {
   currentStepId: OnboardingWizardStepId
   visibleStepIds: [OnboardingWizardStepId!]!
-  draft: OnboardingWizardDraft!
+  draft: JSON!
   internalBootState: OnboardingWizardInternalBootState!
 }
 
@@ -1606,49 +1554,9 @@ input PartnerInfoOverrideInput {
 }
 
 input SaveOnboardingDraftInput {
-  draft: OnboardingWizardDraftInput
+  draft: JSON
   navigation: OnboardingWizardNavigationInput
   internalBootState: OnboardingWizardInternalBootStateInput
-}
-
-input OnboardingWizardDraftInput {
-  coreSettings: OnboardingWizardCoreSettingsDraftInput
-  plugins: OnboardingWizardPluginsDraftInput
-  internalBoot: OnboardingWizardInternalBootDraftInput
-}
-
-input OnboardingWizardCoreSettingsDraftInput {
-  serverName: String
-  serverDescription: String
-  timeZone: String
-  theme: String
-  language: String
-  useSsh: Boolean
-}
-
-input OnboardingWizardPluginsDraftInput {
-  selectedIds: [String!]
-}
-
-input OnboardingWizardInternalBootDraftInput {
-  bootMode: OnboardingWizardBootMode
-  skipped: Boolean
-  selection: OnboardingWizardInternalBootSelectionInput
-}
-
-input OnboardingWizardInternalBootDeviceInput {
-  id: String!
-  sizeBytes: BigInt!
-  deviceName: String!
-}
-
-input OnboardingWizardInternalBootSelectionInput {
-  poolName: String
-  slotCount: Int
-  devices: [OnboardingWizardInternalBootDeviceInput!]
-  bootSizeMiB: Int
-  updateBios: Boolean
-  poolMode: OnboardingWizardPoolMode
 }
 
 input OnboardingWizardNavigationInput {

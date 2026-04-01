@@ -28,8 +28,6 @@ import {
     OnboardingState,
     OnboardingStatus,
     OnboardingWizard,
-    OnboardingWizardBootMode,
-    OnboardingWizardPoolMode,
     OnboardingWizardStepId,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
@@ -51,34 +49,6 @@ const WIZARD_STEP_ORDER: OnboardingWizardStepId[] = [
     OnboardingWizardStepId.SUMMARY,
     OnboardingWizardStepId.NEXT_STEPS,
 ];
-
-const toWizardBootMode = (
-    value: 'usb' | 'storage' | undefined
-): OnboardingWizardBootMode | undefined => {
-    if (value === 'usb') {
-        return OnboardingWizardBootMode.USB;
-    }
-
-    if (value === 'storage') {
-        return OnboardingWizardBootMode.STORAGE;
-    }
-
-    return undefined;
-};
-
-const toWizardPoolMode = (
-    value: 'dedicated' | 'hybrid' | undefined
-): OnboardingWizardPoolMode | undefined => {
-    if (value === 'dedicated') {
-        return OnboardingWizardPoolMode.DEDICATED;
-    }
-
-    if (value === 'hybrid') {
-        return OnboardingWizardPoolMode.HYBRID;
-    }
-
-    return undefined;
-};
 
 @Injectable()
 export class OnboardingService implements OnModuleInit {
@@ -468,35 +438,7 @@ export class OnboardingService implements OnModuleInit {
         return {
             currentStepId: this.resolveCurrentStepId(navigation.currentStepId, visibleStepIds),
             visibleStepIds,
-            draft: {
-                coreSettings: draft.coreSettings,
-                plugins: draft.plugins
-                    ? {
-                          selectedIds: draft.plugins.selectedIds ?? [],
-                      }
-                    : undefined,
-                internalBoot: draft.internalBoot
-                    ? {
-                          bootMode: toWizardBootMode(draft.internalBoot.bootMode),
-                          skipped: draft.internalBoot.skipped,
-                          selection: draft.internalBoot.selection
-                              ? {
-                                    poolName: draft.internalBoot.selection.poolName,
-                                    slotCount: draft.internalBoot.selection.slotCount,
-                                    devices:
-                                        draft.internalBoot.selection.devices?.map((device) => ({
-                                            id: device.id,
-                                            sizeBytes: device.sizeBytes,
-                                            deviceName: device.deviceName,
-                                        })) ?? [],
-                                    bootSizeMiB: draft.internalBoot.selection.bootSizeMiB,
-                                    updateBios: draft.internalBoot.selection.updateBios,
-                                    poolMode: toWizardPoolMode(draft.internalBoot.selection.poolMode),
-                                }
-                              : (draft.internalBoot.selection ?? null),
-                      }
-                    : undefined,
-            },
+            draft,
             internalBootState: {
                 applyAttempted: internalBootState.applyAttempted ?? false,
                 applySucceeded: internalBootState.applySucceeded ?? false,
@@ -592,43 +534,7 @@ export class OnboardingService implements OnModuleInit {
 
     public async saveOnboardingDraft(input: SaveOnboardingDraftInput): Promise<void> {
         await this.onboardingTracker.saveDraft({
-            draft: input.draft
-                ? {
-                      coreSettings: input.draft.coreSettings,
-                      plugins: input.draft.plugins
-                          ? {
-                                selectedIds: input.draft.plugins.selectedIds,
-                            }
-                          : undefined,
-                      internalBoot: input.draft.internalBoot
-                          ? {
-                                bootMode: input.draft.internalBoot.bootMode,
-                                skipped: input.draft.internalBoot.skipped,
-                                selection:
-                                    input.draft.internalBoot.selection === undefined
-                                        ? undefined
-                                        : input.draft.internalBoot.selection
-                                          ? {
-                                                poolName: input.draft.internalBoot.selection.poolName,
-                                                slotCount: input.draft.internalBoot.selection.slotCount,
-                                                devices: input.draft.internalBoot.selection.devices?.map(
-                                                    (device) => ({
-                                                        id: device.id,
-                                                        sizeBytes: device.sizeBytes,
-                                                        deviceName: device.deviceName,
-                                                    })
-                                                ),
-                                                bootSizeMiB:
-                                                    input.draft.internalBoot.selection.bootSizeMiB,
-                                                updateBios:
-                                                    input.draft.internalBoot.selection.updateBios,
-                                                poolMode: input.draft.internalBoot.selection.poolMode,
-                                            }
-                                          : null,
-                            }
-                          : undefined,
-                  }
-                : undefined,
+            draft: input.draft,
             navigation: input.navigation
                 ? {
                       currentStepId: input.navigation.currentStepId,
