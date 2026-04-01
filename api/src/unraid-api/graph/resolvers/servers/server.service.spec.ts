@@ -6,11 +6,13 @@ import { GraphQLError } from 'graphql';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
-import { getters } from '@app/store/index.js';
+import { getters, store } from '@app/store/index.js';
 import { type SliceState } from '@app/store/modules/emhttp.js';
 import { FileLoadStatus } from '@app/store/types.js';
+import { AvahiService } from '@app/unraid-api/avahi/avahi.service.js';
 import { ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { ServerService } from '@app/unraid-api/graph/resolvers/servers/server.service.js';
+import { NginxService } from '@app/unraid-api/nginx/nginx.service.js';
 
 vi.mock('@app/core/utils/clients/emcmd.js', () => ({
     emcmd: vi.fn(),
@@ -21,6 +23,9 @@ vi.mock('@app/store/index.js', () => ({
         emhttp: vi.fn(),
         paths: vi.fn(),
     },
+    store: {
+        dispatch: vi.fn(),
+    },
 }));
 
 const createEmhttpState = ({
@@ -30,6 +35,9 @@ const createEmhttpState = ({
     fsState = 'Stopped',
     mdState,
     sslEnabled = true,
+    defaultUrl = 'https://Tower.local:4443',
+    lanMdns = 'Tower.local',
+    lanName = 'tower.local',
 }: {
     name?: string;
     comment?: string;
@@ -37,6 +45,9 @@ const createEmhttpState = ({
     fsState?: string;
     mdState?: SliceState['var']['mdState'];
     sslEnabled?: boolean;
+    defaultUrl?: string;
+    lanMdns?: string;
+    lanName?: string;
 } = {}): SliceState => ({
     status: FileLoadStatus.LOADED,
     var: {
@@ -52,8 +63,10 @@ const createEmhttpState = ({
     networks: [{ ipaddr: ['192.168.1.10'] }] as unknown as SliceState['networks'],
     nginx: {
         sslEnabled,
-        lanName: 'tower.local',
+        defaultUrl,
         lanIp: '192.168.1.10',
+        lanMdns,
+        lanName,
     } as unknown as SliceState['nginx'],
     shares: [],
     disks: [],
@@ -64,12 +77,23 @@ const createEmhttpState = ({
 
 describe('ServerService', () => {
     let service: ServerService;
+    let avahiService: { restart: ReturnType<typeof vi.fn> };
+    let nginxService: { reload: ReturnType<typeof vi.fn> };
     let tempDirectory: string;
     let identConfigPath: string;
 
     beforeEach(async () => {
         vi.clearAllMocks();
-        service = new ServerService();
+        avahiService = {
+            restart: vi.fn().mockResolvedValue(undefined),
+        };
+        nginxService = {
+            reload: vi.fn().mockResolvedValue(true),
+        };
+        service = new ServerService(
+            avahiService as unknown as AvahiService,
+            nginxService as unknown as NginxService
+        );
         tempDirectory = await mkdtemp(join(tmpdir(), 'server-service-'));
         identConfigPath = join(tempDirectory, 'boot/config/ident.cfg');
 
@@ -77,6 +101,9 @@ describe('ServerService', () => {
         vi.mocked(getters.paths).mockReturnValue({
             identConfig: identConfigPath,
         } as ReturnType<typeof getters.paths>);
+        vi.mocked(store.dispatch).mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue({ nginx: {} }),
+        } as unknown as ReturnType<typeof store.dispatch>);
 
         await mkdir(join(tempDirectory, 'boot/config'), { recursive: true });
         await writeFile(
@@ -172,6 +199,24 @@ describe('ServerService', () => {
                 mdState: ArrayState.STOPPED,
             })
         );
+        vi.mocked(store.dispatch).mockImplementation(() => {
+            vi.mocked(getters.emhttp).mockReturnValue(
+                createEmhttpState({
+                    name: 'NewTower',
+                    comment: 'desc',
+                    sysModel: '',
+                    fsState: 'Started',
+                    mdState: ArrayState.STOPPED,
+                    defaultUrl: 'https://NewTower.local:4443',
+                    lanMdns: 'NewTower.local',
+                    lanName: 'NewTower',
+                })
+            );
+
+            return {
+                unwrap: vi.fn().mockResolvedValue({ nginx: {} }),
+            } as unknown as ReturnType<typeof store.dispatch>;
+        });
 
         await expect(service.updateServerIdentity('NewTower', 'desc')).resolves.toMatchObject({
             name: 'NewTower',
@@ -186,6 +231,22 @@ describe('ServerService', () => {
                 'utf8'
             );
             return { ok: true } as Awaited<ReturnType<typeof emcmd>>;
+        });
+        vi.mocked(store.dispatch).mockImplementation(() => {
+            vi.mocked(getters.emhttp).mockReturnValue(
+                createEmhttpState({
+                    name: 'Test1e',
+                    comment: 'Test server1e',
+                    sysModel: 'Model X200',
+                    defaultUrl: 'https://Test1e.local:4443',
+                    lanMdns: 'Test1e.local',
+                    lanName: 'Test1e',
+                })
+            );
+
+            return {
+                unwrap: vi.fn().mockResolvedValue({ nginx: {} }),
+            } as unknown as ReturnType<typeof store.dispatch>;
         });
 
         const result = await service.updateServerIdentity('Test1e', 'Test server1e', 'Model X200');
@@ -224,6 +285,7 @@ describe('ServerService', () => {
             lanip: '192.168.1.10',
             localurl: 'http://192.168.1.10:80',
             remoteurl: '',
+            defaultUrl: 'https://Test1e.local:4443',
         });
     });
 
@@ -235,6 +297,22 @@ describe('ServerService', () => {
                 'utf8'
             );
             return { ok: true } as Awaited<ReturnType<typeof emcmd>>;
+        });
+        vi.mocked(store.dispatch).mockImplementation(() => {
+            vi.mocked(getters.emhttp).mockReturnValue(
+                createEmhttpState({
+                    name: 'TowerRenamed',
+                    comment: 'Tower comment',
+                    sysModel: 'Model X100',
+                    defaultUrl: 'https://TowerRenamed.local:4443',
+                    lanMdns: 'TowerRenamed.local',
+                    lanName: 'TowerRenamed',
+                })
+            );
+
+            return {
+                unwrap: vi.fn().mockResolvedValue({ nginx: {} }),
+            } as unknown as ReturnType<typeof store.dispatch>;
         });
 
         await service.updateServerIdentity('TowerRenamed');
@@ -300,6 +378,107 @@ describe('ServerService', () => {
         await expect(service.updateServerIdentity('Tower', 'Primary host')).resolves.toMatchObject({
             name: 'Tower',
             comment: 'Primary host',
+        });
+        expect(avahiService.restart).not.toHaveBeenCalled();
+        expect(nginxService.reload).not.toHaveBeenCalled();
+    });
+
+    it('restarts Avahi, reloads nginx, refreshes nginx state, and returns live defaultUrl after a name change', async () => {
+        vi.mocked(store.dispatch).mockImplementation(() => {
+            vi.mocked(getters.emhttp).mockReturnValue(
+                createEmhttpState({
+                    name: 'Test1e',
+                    comment: 'Primary host',
+                    sysModel: 'Model X100',
+                    defaultUrl: 'https://Test1e.local:4443',
+                    lanMdns: 'Test1e.local',
+                    lanName: 'Test1e',
+                })
+            );
+
+            return {
+                unwrap: vi.fn().mockResolvedValue({ nginx: {} }),
+            } as unknown as ReturnType<typeof store.dispatch>;
+        });
+
+        const result = await service.updateServerIdentity('Test1e', 'Primary host');
+
+        expect(avahiService.restart).toHaveBeenCalledTimes(1);
+        expect(nginxService.reload).toHaveBeenCalledTimes(1);
+        expect(store.dispatch).toHaveBeenCalledTimes(1);
+        expect(result).toMatchObject({
+            name: 'Test1e',
+            comment: 'Primary host',
+            defaultUrl: 'https://Test1e.local:4443',
+        });
+    });
+
+    it('skips Avahi restart and nginx refresh when only the comment changes', async () => {
+        const result = await service.updateServerIdentity('Tower', 'Primary host');
+
+        expect(avahiService.restart).not.toHaveBeenCalled();
+        expect(nginxService.reload).not.toHaveBeenCalled();
+        expect(store.dispatch).not.toHaveBeenCalled();
+        expect(result).toMatchObject({
+            name: 'Tower',
+            comment: 'Primary host',
+            defaultUrl: 'https://Tower.local:4443',
+        });
+    });
+
+    it('fails when Avahi restart fails after ident.cfg has been updated', async () => {
+        avahiService.restart.mockRejectedValue(new Error('avahi restart failed'));
+
+        await expect(service.updateServerIdentity('Test1e', 'Primary host')).rejects.toMatchObject({
+            message: 'Failed to update server identity',
+            extensions: {
+                cause: 'avahi restart failed',
+                persistedIdentity: {
+                    name: 'Test1e',
+                    comment: 'Primary host',
+                    sysModel: 'Model X100',
+                },
+            },
+        });
+        expect(nginxService.reload).not.toHaveBeenCalled();
+    });
+
+    it('fails when nginx reload fails after Avahi restart', async () => {
+        nginxService.reload.mockResolvedValue(false);
+
+        await expect(service.updateServerIdentity('Test1e', 'Primary host')).rejects.toMatchObject({
+            message: 'Failed to update server identity',
+            extensions: {
+                cause: 'Nginx reload failed after Avahi restart',
+                persistedIdentity: {
+                    name: 'Test1e',
+                    comment: 'Primary host',
+                    sysModel: 'Model X100',
+                },
+            },
+        });
+    });
+
+    it('fails when live nginx state stays stale after Avahi restart and nginx reload', async () => {
+        vi.mocked(store.dispatch).mockReturnValue({
+            unwrap: vi.fn().mockResolvedValue({ nginx: {} }),
+        } as unknown as ReturnType<typeof store.dispatch>);
+
+        await expect(service.updateServerIdentity('Test1e', 'Primary host')).rejects.toMatchObject({
+            message: 'Failed to update server identity',
+            extensions: {
+                cause: 'Live network identity did not converge after Avahi restart and nginx reload',
+                persistedIdentity: {
+                    name: 'Test1e',
+                    comment: 'Primary host',
+                    sysModel: 'Model X100',
+                },
+                liveIdentity: {
+                    lanName: 'tower.local',
+                    lanMdns: 'Tower.local',
+                    defaultUrl: 'https://Tower.local:4443',
+                },
+            },
         });
     });
 

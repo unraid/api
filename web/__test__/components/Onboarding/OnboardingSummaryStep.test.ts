@@ -119,6 +119,15 @@ const createBootDevice = (id: string, sizeBytes: number, deviceName: string) => 
   deviceName,
 });
 
+const mockLocation = {
+  hostname: 'tower.local',
+  pathname: '/',
+  search: '',
+  hash: '',
+  reload: vi.fn(),
+  replace: vi.fn(),
+};
+
 vi.mock('pinia', async (importOriginal) => {
   const actual = await importOriginal<typeof import('pinia')>();
   return {
@@ -126,6 +135,8 @@ vi.mock('pinia', async (importOriginal) => {
     storeToRefs: (store: Record<string, unknown>) => store,
   };
 });
+
+vi.stubGlobal('location', mockLocation);
 
 vi.mock('@unraid/ui', () => ({
   BrandButton: {
@@ -416,6 +427,12 @@ describe('OnboardingSummaryStep', () => {
     vi.clearAllMocks();
     document.body.innerHTML = '';
     setupApolloMocks();
+    mockLocation.hostname = 'tower.local';
+    mockLocation.pathname = '/';
+    mockLocation.search = '';
+    mockLocation.hash = '';
+    mockLocation.reload.mockReset();
+    mockLocation.replace.mockReset();
 
     draftStore.serverName = 'Tower';
     draftStore.serverDescription = '';
@@ -479,7 +496,16 @@ describe('OnboardingSummaryStep', () => {
     };
 
     updateSystemTimeMock.mockResolvedValue({});
-    updateServerIdentityMock.mockResolvedValue({});
+    updateServerIdentityMock.mockResolvedValue({
+      data: {
+        updateServerIdentity: {
+          id: 'local',
+          name: 'Tower',
+          comment: '',
+          defaultUrl: 'https://Tower.local:4443',
+        },
+      },
+    });
     setThemeMock.mockResolvedValue({});
     setLocaleMock.mockResolvedValue({});
     updateSshSettingsMock.mockResolvedValue({});
@@ -1039,9 +1065,22 @@ describe('OnboardingSummaryStep', () => {
     expect(onComplete).not.toHaveBeenCalled();
   });
 
-  it('advances to next steps before reloading after a successful server rename', async () => {
+  it('advances to next steps before redirecting to the returned defaultUrl after a successful server rename', async () => {
     draftStore.serverName = 'Newtower';
-    const reloadSpy = vi.spyOn(window.location, 'reload').mockImplementation(() => undefined);
+    updateServerIdentityMock.mockResolvedValue({
+      data: {
+        updateServerIdentity: {
+          id: 'local',
+          name: 'Newtower',
+          comment: '',
+          defaultUrl: 'https://Newtower.local:4443',
+        },
+      },
+    });
+    mockLocation.hostname = 'tower.local';
+    mockLocation.pathname = '/Dashboard';
+    mockLocation.search = '?foo=bar';
+    mockLocation.hash = '#section';
     const { wrapper, onComplete } = mountComponent();
 
     await clickApply(wrapper);
@@ -1056,9 +1095,39 @@ describe('OnboardingSummaryStep', () => {
     await clickButtonByText(wrapper, 'OK');
 
     expect(onComplete).toHaveBeenCalledTimes(1);
-    expect(reloadSpy).toHaveBeenCalledTimes(1);
+    expect(mockLocation.replace).toHaveBeenCalledWith(
+      'https://newtower.local:4443/Dashboard?foo=bar#section'
+    );
+    expect(mockLocation.reload).not.toHaveBeenCalled();
+  });
 
-    reloadSpy.mockRestore();
+  it('does not redirect after a non-rename server identity update succeeds', async () => {
+    draftStore.serverDescription = 'Primary host';
+    const { wrapper, onComplete } = mountComponent();
+
+    await clickApply(wrapper);
+    await clickButtonByText(wrapper, 'OK');
+
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(mockLocation.replace).not.toHaveBeenCalled();
+    expect(mockLocation.reload).not.toHaveBeenCalled();
+  });
+
+  it('reloads the current page instead of redirecting when the user is on an IP-based URL', async () => {
+    draftStore.serverName = 'Newtower';
+    mockLocation.hostname = '192.168.1.2';
+    mockLocation.pathname = '/Dashboard';
+    mockLocation.search = '?foo=bar';
+    mockLocation.hash = '#section';
+
+    const { wrapper, onComplete } = mountComponent();
+
+    await clickApply(wrapper);
+    await clickButtonByText(wrapper, 'OK');
+
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(mockLocation.reload).toHaveBeenCalledTimes(1);
+    expect(mockLocation.replace).not.toHaveBeenCalled();
   });
 
   it('retries final identity update after transient network errors when SSH changed', async () => {

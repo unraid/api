@@ -189,6 +189,7 @@ const applyResultTitle = ref('');
 const applyResultMessage = ref('');
 const applyResultSeverity = ref<'success' | 'warning' | 'error'>('success');
 const shouldReloadAfterApplyResult = ref(false);
+const redirectUrlAfterApplyResult = ref<string | null>(null);
 const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
 
@@ -303,6 +304,36 @@ const runWithTransientNetworkRetry = async <T,>(
   }
 
   throw lastError;
+};
+
+const normalizeLocationHostname = (hostname: string): string => {
+  if (hostname.startsWith('[') && hostname.endsWith(']')) {
+    return hostname.slice(1, -1);
+  }
+
+  return hostname;
+};
+
+const isIpv4Literal = (hostname: string): boolean => {
+  const parts = hostname.split('.');
+  if (parts.length !== 4) {
+    return false;
+  }
+
+  return parts.every((part) => /^\d+$/.test(part) && Number(part) >= 0 && Number(part) <= 255);
+};
+
+const isIpv6Literal = (hostname: string): boolean =>
+  hostname.includes(':') && /^[\da-f:.]+$/i.test(hostname);
+
+const shouldRedirectAfterRename = (hostname: string): boolean => {
+  const normalizedHostname = normalizeLocationHostname(hostname);
+  return !isIpv4Literal(normalizedHostname) && !isIpv6Literal(normalizedHostname);
+};
+
+const buildRenameRedirectUrl = (defaultUrl: string): string => {
+  const currentPath = `${location.pathname}${location.search}${location.hash}`;
+  return new URL(currentPath, defaultUrl).toString();
 };
 
 const isSshStateVerified = (
@@ -578,6 +609,7 @@ const handleComplete = async () => {
   error.value = null;
   logs.value = []; // Clear logs
   shouldReloadAfterApplyResult.value = false;
+  redirectUrlAfterApplyResult.value = null;
 
   addLog(summaryT('logs.startingConfiguration'), 'info');
   setInternalBootState({
@@ -620,6 +652,7 @@ const handleComplete = async () => {
       : TRUSTED_DEFAULT_PROFILE.useSsh;
     const currentSysModel = baselineLoaded ? coreSettingsResult.value?.vars?.sysModel || '' : '';
     const serverNameChanged = baselineLoaded ? targetCoreSettings.serverName !== currentName : false;
+    const useReturnedDefaultUrlAfterRename = shouldRedirectAfterRename(location.hostname);
     const shouldApplyPartnerSysModel = Boolean(
       isFreshInstall.value &&
         activationSystemModel.value &&
@@ -651,7 +684,7 @@ const handleComplete = async () => {
 
       addLog(summaryT('logs.updatingServerIdentity', { name: targetCoreSettings.serverName }), 'info');
       try {
-        await runWithTransientNetworkRetry(
+        const result = await runWithTransientNetworkRetry(
           () =>
             updateServerIdentity({
               name: targetCoreSettings.serverName,
@@ -661,6 +694,15 @@ const handleComplete = async () => {
           shouldRetryNetworkMutations
         );
         if (serverNameChanged) {
+          if (useReturnedDefaultUrlAfterRename) {
+            const defaultUrl = result?.data?.updateServerIdentity?.defaultUrl;
+            if (!defaultUrl) {
+              throw new Error('Server rename succeeded but no defaultUrl was returned');
+            }
+
+            redirectUrlAfterApplyResult.value = buildRenameRedirectUrl(defaultUrl);
+          }
+
           shouldReloadAfterApplyResult.value = true;
         }
         addLog(summaryT('logs.serverIdentityUpdated'), 'success');
@@ -1056,8 +1098,15 @@ const handleApplyResultConfirm = async () => {
   }
 
   shouldReloadAfterApplyResult.value = false;
+  const redirectUrl = redirectUrlAfterApplyResult.value;
+  redirectUrlAfterApplyResult.value = null;
   await nextTick();
-  window.location.reload();
+  if (redirectUrl) {
+    location.replace(redirectUrl);
+    return;
+  }
+
+  location.reload();
 };
 
 const handleApplyClick = async () => {
