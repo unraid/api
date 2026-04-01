@@ -2694,6 +2694,9 @@ type Server implements Node {
   lanip: String!
   localurl: String!
   remoteurl: String!
+
+  """Preferred live URL from nginx.ini defaultUrl"""
+  defaultUrl: String
 }
 
 enum ServerStatus {

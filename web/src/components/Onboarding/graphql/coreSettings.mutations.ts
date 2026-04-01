@@ -8,6 +8,7 @@ export const UPDATE_SERVER_IDENTITY_MUTATION = gql`
       id
       name
       comment
+      defaultUrl
     }
   }
 `;

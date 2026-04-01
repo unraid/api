@@ -68,7 +68,7 @@ type Documents = {
     "\n  query GetAvailableLanguages {\n    customization {\n      availableLanguages {\n        code\n        name\n        url\n      }\n    }\n  }\n": typeof types.GetAvailableLanguagesDocument,
     "\n  mutation BypassOnboarding {\n    onboarding {\n      bypassOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": typeof types.BypassOnboardingDocument,
     "\n  mutation CompleteOnboarding {\n    onboarding {\n      completeOnboarding {\n        status\n        isPartnerBuild\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": typeof types.CompleteOnboardingDocument,
-    "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n": typeof types.UpdateServerIdentityDocument,
+    "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n  }\n": typeof types.UpdateServerIdentityDocument,
     "\n  mutation SetLocale($locale: String!) {\n    customization {\n      setLocale(locale: $locale)\n    }\n  }\n": typeof types.SetLocaleDocument,
     "\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n": typeof types.UpdateSshSettingsDocument,
     "\n  mutation CreateInternalBootPool($input: CreateInternalBootPoolInput!) {\n    onboarding {\n      createInternalBootPool(input: $input) {\n        ok\n        code\n        output\n      }\n    }\n  }\n": typeof types.CreateInternalBootPoolDocument,
@@ -156,7 +156,7 @@ const documents: Documents = {
     "\n  query GetAvailableLanguages {\n    customization {\n      availableLanguages {\n        code\n        name\n        url\n      }\n    }\n  }\n": types.GetAvailableLanguagesDocument,
     "\n  mutation BypassOnboarding {\n    onboarding {\n      bypassOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": types.BypassOnboardingDocument,
     "\n  mutation CompleteOnboarding {\n    onboarding {\n      completeOnboarding {\n        status\n        isPartnerBuild\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": types.CompleteOnboardingDocument,
-    "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n": types.UpdateServerIdentityDocument,
+    "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n  }\n": types.UpdateServerIdentityDocument,
     "\n  mutation SetLocale($locale: String!) {\n    customization {\n      setLocale(locale: $locale)\n    }\n  }\n": types.SetLocaleDocument,
     "\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n": types.UpdateSshSettingsDocument,
     "\n  mutation CreateInternalBootPool($input: CreateInternalBootPoolInput!) {\n    onboarding {\n      createInternalBootPool(input: $input) {\n        ok\n        code\n        output\n      }\n    }\n  }\n": types.CreateInternalBootPoolDocument,
@@ -423,7 +423,7 @@ export function graphql(source: "\n  mutation CompleteOnboarding {\n    onboardi
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n"];
+export function graphql(source: "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
