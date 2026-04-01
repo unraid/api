@@ -327,12 +327,12 @@ const isDedicatedMode = computed(() => poolMode.value === 'dedicated');
 
 const poolModeItems = computed<SelectMenuItem[]>(() => [
   {
-    value: 'dedicated',
-    label: t('onboarding.internalBootStep.poolMode.dedicated'),
-  },
-  {
     value: 'hybrid',
     label: t('onboarding.internalBootStep.poolMode.hybrid'),
+  },
+  {
+    value: 'dedicated',
+    label: t('onboarding.internalBootStep.poolMode.dedicated'),
   },
 ]);
 
