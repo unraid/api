@@ -60,35 +60,7 @@ export const ONBOARDING_BOOTSTRAP_QUERY = graphql(/* GraphQL */ `
         wizard {
           currentStepId
           visibleStepIds
-          draft {
-            coreSettings {
-              serverName
-              serverDescription
-              timeZone
-              theme
-              language
-              useSsh
-            }
-            plugins {
-              selectedIds
-            }
-            internalBoot {
-              bootMode
-              skipped
-              selection {
-                poolName
-                slotCount
-                devices {
-                  id
-                  sizeBytes
-                  deviceName
-                }
-                bootSizeMiB
-                updateBios
-                poolMode
-              }
-            }
-          }
+          draft
           internalBootState {
             applyAttempted
             applySucceeded

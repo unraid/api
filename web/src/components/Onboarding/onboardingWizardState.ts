@@ -63,6 +63,123 @@ export const createEmptyOnboardingWizardInternalBootState = (): OnboardingWizard
   applySucceeded: false,
 });
 
+const normalizeString = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : '';
+};
+
+const normalizeBoolean = (value: unknown): boolean | undefined =>
+  typeof value === 'boolean' ? value : undefined;
+
+const normalizeStringArray = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+
+const normalizePoolMode = (value: unknown): OnboardingPoolMode | undefined =>
+  value === 'dedicated' || value === 'hybrid' ? value : undefined;
+
+const normalizeBootMode = (value: unknown): OnboardingBootMode | undefined =>
+  value === 'usb' || value === 'storage' ? value : undefined;
+
+const normalizeInternalBootDevice = (value: unknown): OnboardingInternalBootDevice | null => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const id = normalizeString(candidate.id);
+  const deviceName = normalizeString(candidate.deviceName);
+  const parsedSizeBytes = Number(candidate.sizeBytes);
+
+  if (!id || !deviceName || !Number.isFinite(parsedSizeBytes) || parsedSizeBytes <= 0) {
+    return null;
+  }
+
+  return {
+    id,
+    sizeBytes: parsedSizeBytes,
+    deviceName,
+  };
+};
+
+const normalizeInternalBootDevices = (value: unknown): OnboardingInternalBootDevice[] =>
+  Array.isArray(value)
+    ? value
+        .map((device) => normalizeInternalBootDevice(device))
+        .filter((device): device is OnboardingInternalBootDevice => device !== null)
+    : [];
+
+const normalizeInternalBootSelection = (value: unknown): OnboardingInternalBootSelection | null => {
+  if (value === null) {
+    return null;
+  }
+
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const parsedSlotCount = Number(candidate.slotCount);
+  const parsedBootSizeMiB = Number(candidate.bootSizeMiB);
+
+  return {
+    poolName: normalizeString(candidate.poolName),
+    slotCount: Number.isFinite(parsedSlotCount) ? parsedSlotCount : undefined,
+    devices: normalizeInternalBootDevices(candidate.devices),
+    bootSizeMiB: Number.isFinite(parsedBootSizeMiB) ? parsedBootSizeMiB : undefined,
+    updateBios: normalizeBoolean(candidate.updateBios),
+    poolMode: normalizePoolMode(candidate.poolMode),
+  };
+};
+
+export const normalizeOnboardingWizardDraft = (value: unknown): OnboardingWizardDraft => {
+  if (!value || typeof value !== 'object') {
+    return {};
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return {
+    coreSettings:
+      candidate.coreSettings && typeof candidate.coreSettings === 'object'
+        ? {
+            serverName: normalizeString((candidate.coreSettings as Record<string, unknown>).serverName),
+            serverDescription: normalizeString(
+              (candidate.coreSettings as Record<string, unknown>).serverDescription
+            ),
+            timeZone: normalizeString((candidate.coreSettings as Record<string, unknown>).timeZone),
+            theme: normalizeString((candidate.coreSettings as Record<string, unknown>).theme),
+            language: normalizeString((candidate.coreSettings as Record<string, unknown>).language),
+            useSsh: normalizeBoolean((candidate.coreSettings as Record<string, unknown>).useSsh),
+          }
+        : undefined,
+    plugins:
+      candidate.plugins && typeof candidate.plugins === 'object'
+        ? {
+            selectedIds: normalizeStringArray(
+              (candidate.plugins as Record<string, unknown>).selectedIds
+            ),
+          }
+        : undefined,
+    internalBoot:
+      candidate.internalBoot && typeof candidate.internalBoot === 'object'
+        ? {
+            bootMode: normalizeBootMode((candidate.internalBoot as Record<string, unknown>).bootMode),
+            skipped: normalizeBoolean((candidate.internalBoot as Record<string, unknown>).skipped),
+            selection:
+              (candidate.internalBoot as Record<string, unknown>).selection === undefined
+                ? undefined
+                : normalizeInternalBootSelection(
+                    (candidate.internalBoot as Record<string, unknown>).selection
+                  ),
+          }
+        : undefined,
+  };
+};
+
 export const cloneOnboardingWizardDraft = (draft: OnboardingWizardDraft): OnboardingWizardDraft => ({
   coreSettings: draft.coreSettings ? { ...draft.coreSettings } : undefined,
   plugins: draft.plugins

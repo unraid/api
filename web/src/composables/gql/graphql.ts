@@ -2113,92 +2113,9 @@ export enum OnboardingStatus {
 export type OnboardingWizard = {
   __typename?: 'OnboardingWizard';
   currentStepId?: Maybe<OnboardingWizardStepId>;
-  draft: OnboardingWizardDraft;
+  draft: Scalars['JSON']['output'];
   internalBootState: OnboardingWizardInternalBootState;
   visibleStepIds: Array<OnboardingWizardStepId>;
-};
-
-/** Boot mode selected during onboarding */
-export enum OnboardingWizardBootMode {
-  STORAGE = 'STORAGE',
-  USB = 'USB'
-}
-
-export type OnboardingWizardCoreSettingsDraft = {
-  __typename?: 'OnboardingWizardCoreSettingsDraft';
-  language?: Maybe<Scalars['String']['output']>;
-  serverDescription?: Maybe<Scalars['String']['output']>;
-  serverName?: Maybe<Scalars['String']['output']>;
-  theme?: Maybe<Scalars['String']['output']>;
-  timeZone?: Maybe<Scalars['String']['output']>;
-  useSsh?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type OnboardingWizardCoreSettingsDraftInput = {
-  language?: InputMaybe<Scalars['String']['input']>;
-  serverDescription?: InputMaybe<Scalars['String']['input']>;
-  serverName?: InputMaybe<Scalars['String']['input']>;
-  theme?: InputMaybe<Scalars['String']['input']>;
-  timeZone?: InputMaybe<Scalars['String']['input']>;
-  useSsh?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type OnboardingWizardDraft = {
-  __typename?: 'OnboardingWizardDraft';
-  coreSettings?: Maybe<OnboardingWizardCoreSettingsDraft>;
-  internalBoot?: Maybe<OnboardingWizardInternalBootDraft>;
-  plugins?: Maybe<OnboardingWizardPluginsDraft>;
-};
-
-export type OnboardingWizardDraftInput = {
-  coreSettings?: InputMaybe<OnboardingWizardCoreSettingsDraftInput>;
-  internalBoot?: InputMaybe<OnboardingWizardInternalBootDraftInput>;
-  plugins?: InputMaybe<OnboardingWizardPluginsDraftInput>;
-};
-
-export type OnboardingWizardInternalBootDevice = {
-  __typename?: 'OnboardingWizardInternalBootDevice';
-  deviceName: Scalars['String']['output'];
-  id: Scalars['String']['output'];
-  sizeBytes: Scalars['BigInt']['output'];
-};
-
-export type OnboardingWizardInternalBootDeviceInput = {
-  deviceName: Scalars['String']['input'];
-  id: Scalars['String']['input'];
-  sizeBytes: Scalars['BigInt']['input'];
-};
-
-export type OnboardingWizardInternalBootDraft = {
-  __typename?: 'OnboardingWizardInternalBootDraft';
-  bootMode?: Maybe<OnboardingWizardBootMode>;
-  selection?: Maybe<OnboardingWizardInternalBootSelection>;
-  skipped?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type OnboardingWizardInternalBootDraftInput = {
-  bootMode?: InputMaybe<OnboardingWizardBootMode>;
-  selection?: InputMaybe<OnboardingWizardInternalBootSelectionInput>;
-  skipped?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type OnboardingWizardInternalBootSelection = {
-  __typename?: 'OnboardingWizardInternalBootSelection';
-  bootSizeMiB?: Maybe<Scalars['Int']['output']>;
-  devices: Array<OnboardingWizardInternalBootDevice>;
-  poolMode?: Maybe<OnboardingWizardPoolMode>;
-  poolName?: Maybe<Scalars['String']['output']>;
-  slotCount?: Maybe<Scalars['Int']['output']>;
-  updateBios?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type OnboardingWizardInternalBootSelectionInput = {
-  bootSizeMiB?: InputMaybe<Scalars['Int']['input']>;
-  devices?: InputMaybe<Array<OnboardingWizardInternalBootDeviceInput>>;
-  poolMode?: InputMaybe<OnboardingWizardPoolMode>;
-  poolName?: InputMaybe<Scalars['String']['input']>;
-  slotCount?: InputMaybe<Scalars['Int']['input']>;
-  updateBios?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type OnboardingWizardInternalBootState = {
@@ -2215,21 +2132,6 @@ export type OnboardingWizardInternalBootStateInput = {
 export type OnboardingWizardNavigationInput = {
   currentStepId?: InputMaybe<OnboardingWizardStepId>;
 };
-
-export type OnboardingWizardPluginsDraft = {
-  __typename?: 'OnboardingWizardPluginsDraft';
-  selectedIds: Array<Scalars['String']['output']>;
-};
-
-export type OnboardingWizardPluginsDraftInput = {
-  selectedIds?: InputMaybe<Array<Scalars['String']['input']>>;
-};
-
-/** Pool mode selected for onboarding internal boot setup */
-export enum OnboardingWizardPoolMode {
-  DEDICATED = 'DEDICATED',
-  HYBRID = 'HYBRID'
-}
 
 /** Server-provided onboarding wizard step identifiers */
 export enum OnboardingWizardStepId {
@@ -2765,7 +2667,7 @@ export enum Role {
 }
 
 export type SaveOnboardingDraftInput = {
-  draft?: InputMaybe<OnboardingWizardDraftInput>;
+  draft?: InputMaybe<Scalars['JSON']['input']>;
   internalBootState?: InputMaybe<OnboardingWizardInternalBootStateInput>;
   navigation?: InputMaybe<OnboardingWizardNavigationInput>;
 };
@@ -4134,7 +4036,7 @@ export type InstalledUnraidPluginsQuery = { __typename?: 'Query', installedUnrai
 export type OnboardingBootstrapQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnboardingBootstrapQuery = { __typename?: 'Query', customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partner?: { __typename?: 'PartnerConfig', name?: string | null, url?: string | null, hardwareSpecsUrl?: string | null, manualUrl?: string | null, supportUrl?: string | null, extraLinks?: Array<{ __typename?: 'PartnerLink', title: string, url: string }> | null } | null, branding?: { __typename?: 'BrandingConfig', header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: boolean | null, theme?: string | null, bannerImage?: string | null, caseModel?: string | null, caseModelImage?: string | null, partnerLogoLightUrl?: string | null, partnerLogoDarkUrl?: string | null, hasPartnerLogo?: boolean | null, onboardingTitle?: string | null, onboardingSubtitle?: string | null, onboardingTitleFreshInstall?: string | null, onboardingSubtitleFreshInstall?: string | null, onboardingTitleUpgrade?: string | null, onboardingSubtitleUpgrade?: string | null, onboardingTitleDowngrade?: string | null, onboardingSubtitleDowngrade?: string | null, onboardingTitleIncomplete?: string | null, onboardingSubtitleIncomplete?: string | null } | null, system?: { __typename?: 'SystemConfig', serverName?: string | null, model?: string | null } | null } | null, onboarding: { __typename?: 'Onboarding', status: OnboardingStatus, isPartnerBuild: boolean, completed: boolean, completedAtVersion?: string | null, shouldOpen: boolean, onboardingState: { __typename?: 'OnboardingState', registrationState?: RegistrationState | null, isRegistered: boolean, isFreshInstall: boolean, hasActivationCode: boolean, activationRequired: boolean }, wizard: { __typename?: 'OnboardingWizard', currentStepId?: OnboardingWizardStepId | null, visibleStepIds: Array<OnboardingWizardStepId>, draft: { __typename?: 'OnboardingWizardDraft', coreSettings?: { __typename?: 'OnboardingWizardCoreSettingsDraft', serverName?: string | null, serverDescription?: string | null, timeZone?: string | null, theme?: string | null, language?: string | null, useSsh?: boolean | null } | null, plugins?: { __typename?: 'OnboardingWizardPluginsDraft', selectedIds: Array<string> } | null, internalBoot?: { __typename?: 'OnboardingWizardInternalBootDraft', bootMode?: OnboardingWizardBootMode | null, skipped?: boolean | null, selection?: { __typename?: 'OnboardingWizardInternalBootSelection', poolName?: string | null, slotCount?: number | null, bootSizeMiB?: number | null, updateBios?: boolean | null, poolMode?: OnboardingWizardPoolMode | null, devices: Array<{ __typename?: 'OnboardingWizardInternalBootDevice', id: string, sizeBytes: number, deviceName: string }> } | null } | null }, internalBootState: { __typename?: 'OnboardingWizardInternalBootState', applyAttempted: boolean, applySucceeded: boolean } } } } | null };
+export type OnboardingBootstrapQuery = { __typename?: 'Query', customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partner?: { __typename?: 'PartnerConfig', name?: string | null, url?: string | null, hardwareSpecsUrl?: string | null, manualUrl?: string | null, supportUrl?: string | null, extraLinks?: Array<{ __typename?: 'PartnerLink', title: string, url: string }> | null } | null, branding?: { __typename?: 'BrandingConfig', header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: boolean | null, theme?: string | null, bannerImage?: string | null, caseModel?: string | null, caseModelImage?: string | null, partnerLogoLightUrl?: string | null, partnerLogoDarkUrl?: string | null, hasPartnerLogo?: boolean | null, onboardingTitle?: string | null, onboardingSubtitle?: string | null, onboardingTitleFreshInstall?: string | null, onboardingSubtitleFreshInstall?: string | null, onboardingTitleUpgrade?: string | null, onboardingSubtitleUpgrade?: string | null, onboardingTitleDowngrade?: string | null, onboardingSubtitleDowngrade?: string | null, onboardingTitleIncomplete?: string | null, onboardingSubtitleIncomplete?: string | null } | null, system?: { __typename?: 'SystemConfig', serverName?: string | null, model?: string | null } | null } | null, onboarding: { __typename?: 'Onboarding', status: OnboardingStatus, isPartnerBuild: boolean, completed: boolean, completedAtVersion?: string | null, shouldOpen: boolean, onboardingState: { __typename?: 'OnboardingState', registrationState?: RegistrationState | null, isRegistered: boolean, isFreshInstall: boolean, hasActivationCode: boolean, activationRequired: boolean }, wizard: { __typename?: 'OnboardingWizard', currentStepId?: OnboardingWizardStepId | null, visibleStepIds: Array<OnboardingWizardStepId>, draft: any, internalBootState: { __typename?: 'OnboardingWizardInternalBootState', applyAttempted: boolean, applySucceeded: boolean } } } } | null };
 
 export type OpenOnboardingMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -4327,7 +4229,7 @@ export const GetInternalBootContextDocument = {"kind":"Document","definitions":[
 export const InstallLanguageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InstallLanguage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InstallPluginInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraidPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installLanguage"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]}}]} as unknown as DocumentNode<InstallLanguageMutation, InstallLanguageMutationVariables>;
 export const InstallPluginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InstallPlugin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InstallPluginInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraidPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installPlugin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]}}]} as unknown as DocumentNode<InstallPluginMutation, InstallPluginMutationVariables>;
 export const InstalledUnraidPluginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"InstalledUnraidPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installedUnraidPlugins"}}]}}]} as unknown as DocumentNode<InstalledUnraidPluginsQuery, InstalledUnraidPluginsQueryVariables>;
-export const OnboardingBootstrapDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OnboardingBootstrap"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"hardwareSpecsUrl"}},{"kind":"Field","name":{"kind":"Name","value":"manualUrl"}},{"kind":"Field","name":{"kind":"Name","value":"supportUrl"}},{"kind":"Field","name":{"kind":"Name","value":"extraLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"branding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}},{"kind":"Field","name":{"kind":"Name","value":"bannerImage"}},{"kind":"Field","name":{"kind":"Name","value":"caseModel"}},{"kind":"Field","name":{"kind":"Name","value":"caseModelImage"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoLightUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoDarkUrl"}},{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleIncomplete"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleIncomplete"}}]}},{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"model"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"isPartnerBuild"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedAtVersion"}},{"kind":"Field","name":{"kind":"Name","value":"shouldOpen"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"registrationState"}},{"kind":"Field","name":{"kind":"Name","value":"isRegistered"}},{"kind":"Field","name":{"kind":"Name","value":"isFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"hasActivationCode"}},{"kind":"Field","name":{"kind":"Name","value":"activationRequired"}}]}},{"kind":"Field","name":{"kind":"Name","value":"wizard"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentStepId"}},{"kind":"Field","name":{"kind":"Name","value":"visibleStepIds"}},{"kind":"Field","name":{"kind":"Name","value":"draft"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"coreSettings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"serverDescription"}},{"kind":"Field","name":{"kind":"Name","value":"timeZone"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}},{"kind":"Field","name":{"kind":"Name","value":"language"}},{"kind":"Field","name":{"kind":"Name","value":"useSsh"}}]}},{"kind":"Field","name":{"kind":"Name","value":"plugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"selectedIds"}}]}},{"kind":"Field","name":{"kind":"Name","value":"internalBoot"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bootMode"}},{"kind":"Field","name":{"kind":"Name","value":"skipped"}},{"kind":"Field","name":{"kind":"Name","value":"selection"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"poolName"}},{"kind":"Field","name":{"kind":"Name","value":"slotCount"}},{"kind":"Field","name":{"kind":"Name","value":"devices"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"sizeBytes"}},{"kind":"Field","name":{"kind":"Name","value":"deviceName"}}]}},{"kind":"Field","name":{"kind":"Name","value":"bootSizeMiB"}},{"kind":"Field","name":{"kind":"Name","value":"updateBios"}},{"kind":"Field","name":{"kind":"Name","value":"poolMode"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"internalBootState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applyAttempted"}},{"kind":"Field","name":{"kind":"Name","value":"applySucceeded"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<OnboardingBootstrapQuery, OnboardingBootstrapQueryVariables>;
+export const OnboardingBootstrapDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OnboardingBootstrap"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"hardwareSpecsUrl"}},{"kind":"Field","name":{"kind":"Name","value":"manualUrl"}},{"kind":"Field","name":{"kind":"Name","value":"supportUrl"}},{"kind":"Field","name":{"kind":"Name","value":"extraLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"branding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}},{"kind":"Field","name":{"kind":"Name","value":"bannerImage"}},{"kind":"Field","name":{"kind":"Name","value":"caseModel"}},{"kind":"Field","name":{"kind":"Name","value":"caseModelImage"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoLightUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoDarkUrl"}},{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleIncomplete"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleIncomplete"}}]}},{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"model"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"isPartnerBuild"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedAtVersion"}},{"kind":"Field","name":{"kind":"Name","value":"shouldOpen"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"registrationState"}},{"kind":"Field","name":{"kind":"Name","value":"isRegistered"}},{"kind":"Field","name":{"kind":"Name","value":"isFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"hasActivationCode"}},{"kind":"Field","name":{"kind":"Name","value":"activationRequired"}}]}},{"kind":"Field","name":{"kind":"Name","value":"wizard"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentStepId"}},{"kind":"Field","name":{"kind":"Name","value":"visibleStepIds"}},{"kind":"Field","name":{"kind":"Name","value":"draft"}},{"kind":"Field","name":{"kind":"Name","value":"internalBootState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applyAttempted"}},{"kind":"Field","name":{"kind":"Name","value":"applySucceeded"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<OnboardingBootstrapQuery, OnboardingBootstrapQueryVariables>;
 export const OpenOnboardingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"OpenOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"openOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedAtVersion"}},{"kind":"Field","name":{"kind":"Name","value":"shouldOpen"}}]}}]}}]}}]} as unknown as DocumentNode<OpenOnboardingMutation, OpenOnboardingMutationVariables>;
 export const PluginInstallOperationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PluginInstallOperation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pluginInstallOperation"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"operationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]} as unknown as DocumentNode<PluginInstallOperationQuery, PluginInstallOperationQueryVariables>;
 export const PluginInstallUpdatesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"PluginInstallUpdates"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pluginInstallUpdates"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"operationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"operationId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"output"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}}]}}]} as unknown as DocumentNode<PluginInstallUpdatesSubscription, PluginInstallUpdatesSubscriptionVariables>;

@@ -1,9 +1,10 @@
-import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsOptional, IsString, IsUrl, ValidateNested } from 'class-validator';
-import { GraphQLBigInt } from 'graphql-scalars';
+import { GraphQLJSON } from 'graphql-scalars';
 
+import type { OnboardingDraft } from '@app/unraid-api/config/onboarding-tracker.model.js';
 import { Language } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
@@ -408,90 +409,6 @@ registerEnumType(OnboardingWizardPoolMode, {
 });
 
 @ObjectType()
-export class OnboardingWizardCoreSettingsDraft {
-    @Field(() => String, { nullable: true })
-    serverName?: string;
-
-    @Field(() => String, { nullable: true })
-    serverDescription?: string;
-
-    @Field(() => String, { nullable: true })
-    timeZone?: string;
-
-    @Field(() => String, { nullable: true })
-    theme?: string;
-
-    @Field(() => String, { nullable: true })
-    language?: string;
-
-    @Field(() => Boolean, { nullable: true })
-    useSsh?: boolean;
-}
-
-@ObjectType()
-export class OnboardingWizardPluginsDraft {
-    @Field(() => [String])
-    selectedIds!: string[];
-}
-
-@ObjectType()
-export class OnboardingWizardInternalBootDevice {
-    @Field(() => String)
-    id!: string;
-
-    @Field(() => GraphQLBigInt)
-    sizeBytes!: number;
-
-    @Field(() => String)
-    deviceName!: string;
-}
-
-@ObjectType()
-export class OnboardingWizardInternalBootSelection {
-    @Field(() => String, { nullable: true })
-    poolName?: string;
-
-    @Field(() => Int, { nullable: true })
-    slotCount?: number;
-
-    @Field(() => [OnboardingWizardInternalBootDevice])
-    devices!: OnboardingWizardInternalBootDevice[];
-
-    @Field(() => Int, { nullable: true })
-    bootSizeMiB?: number;
-
-    @Field(() => Boolean, { nullable: true })
-    updateBios?: boolean;
-
-    @Field(() => OnboardingWizardPoolMode, { nullable: true })
-    poolMode?: OnboardingWizardPoolMode;
-}
-
-@ObjectType()
-export class OnboardingWizardInternalBootDraft {
-    @Field(() => OnboardingWizardBootMode, { nullable: true })
-    bootMode?: OnboardingWizardBootMode;
-
-    @Field(() => Boolean, { nullable: true })
-    skipped?: boolean;
-
-    @Field(() => OnboardingWizardInternalBootSelection, { nullable: true })
-    selection?: OnboardingWizardInternalBootSelection | null;
-}
-
-@ObjectType()
-export class OnboardingWizardDraft {
-    @Field(() => OnboardingWizardCoreSettingsDraft, { nullable: true })
-    coreSettings?: OnboardingWizardCoreSettingsDraft;
-
-    @Field(() => OnboardingWizardPluginsDraft, { nullable: true })
-    plugins?: OnboardingWizardPluginsDraft;
-
-    @Field(() => OnboardingWizardInternalBootDraft, { nullable: true })
-    internalBoot?: OnboardingWizardInternalBootDraft;
-}
-
-@ObjectType()
 export class OnboardingWizardInternalBootState {
     @Field(() => Boolean)
     applyAttempted!: boolean;
@@ -508,8 +425,8 @@ export class OnboardingWizard {
     @Field(() => [OnboardingWizardStepId])
     visibleStepIds!: OnboardingWizardStepId[];
 
-    @Field(() => OnboardingWizardDraft)
-    draft!: OnboardingWizardDraft;
+    @Field(() => GraphQLJSON)
+    draft!: OnboardingDraft;
 
     @Field(() => OnboardingWizardInternalBootState)
     internalBootState!: OnboardingWizardInternalBootState;

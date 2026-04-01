@@ -543,28 +543,32 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         }
 
         const currentState = currentStateResult.state;
-        const nextDraft: OnboardingDraft = {
+        const nextDraft = normalizeDraft({
             ...currentState.draft,
             ...(input.draft ?? {}),
-        };
+        });
 
         const updatedState: TrackerState = {
             completed: currentState.completed,
             completedAtVersion: currentState.completedAtVersion,
             forceOpen: currentState.forceOpen,
             draft: nextDraft,
-            navigation: input.navigation
-                ? {
-                      ...currentState.navigation,
-                      ...input.navigation,
-                  }
-                : currentState.navigation,
-            internalBootState: input.internalBootState
-                ? {
-                      ...currentState.internalBootState,
-                      ...input.internalBootState,
-                  }
-                : currentState.internalBootState,
+            navigation: normalizeNavigation(
+                input.navigation
+                    ? {
+                          ...currentState.navigation,
+                          ...input.navigation,
+                      }
+                    : currentState.navigation
+            ),
+            internalBootState: normalizeInternalBootState(
+                input.internalBootState
+                    ? {
+                          ...currentState.internalBootState,
+                          ...input.internalBootState,
+                      }
+                    : currentState.internalBootState
+            ),
         };
 
         await this.writeTrackerState(updatedState);
