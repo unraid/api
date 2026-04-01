@@ -20,6 +20,17 @@ const createBootDevice = (id: string, sizeBytes: number, deviceName: string) => 
   deviceName,
 });
 
+const createDeferred = <T>() => {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((innerResolve, innerReject) => {
+    resolve = innerResolve;
+    reject = innerReject;
+  });
+
+  return { promise, resolve, reject };
+};
+
 type InternalBootHistoryState = {
   sessionId: string;
   stepId: 'CONFIGURE_BOOT' | 'SUMMARY';
@@ -515,6 +526,49 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
 
     expect(wrapper.find('[data-testid="internal-boot-standalone-close"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="internal-boot-standalone-result-close"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="internal-boot-standalone-reboot"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="internal-boot-standalone-shutdown"]').exists()).toBe(true);
+  });
+
+  it('hides all summary actions while internal boot apply is still running', async () => {
+    const deferred = createDeferred<InternalBootApplyResult>();
+    configureDraftState.value = {
+      bootMode: 'storage',
+      skipped: false,
+      selection: {
+        poolName: 'cache',
+        slotCount: 1,
+        devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
+        bootSizeMiB: 16384,
+        updateBios: true,
+        poolMode: 'hybrid',
+      },
+    };
+    applyInternalBootSelectionMock.mockReturnValueOnce(deferred.promise);
+
+    const wrapper = mountComponent();
+
+    await advanceToSummary(wrapper);
+    const confirmButton = findButtonByText(wrapper, 'Confirm & Apply');
+    expect(confirmButton).toBeTruthy();
+    await confirmButton!.trigger('click');
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="internal-boot-standalone-close"]').exists()).toBe(false);
+    expect(findButtonByText(wrapper, 'Back')).toBeFalsy();
+    expect(findButtonByText(wrapper, 'Confirm & Apply')).toBeFalsy();
+    expect(wrapper.find('[data-testid="internal-boot-standalone-reboot"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="internal-boot-standalone-shutdown"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="internal-boot-standalone-result-close"]').exists()).toBe(false);
+
+    deferred.resolve({
+      applySucceeded: true,
+      hadWarnings: false,
+      hadNonOptimisticFailures: false,
+      logs: [{ message: 'Internal boot pool configured.', type: 'success' }],
+    });
+    await flushPromises();
+
     expect(wrapper.find('[data-testid="internal-boot-standalone-reboot"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="internal-boot-standalone-shutdown"]').exists()).toBe(true);
   });

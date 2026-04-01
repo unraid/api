@@ -2,12 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import {
-  ArrowPathIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  XMarkIcon,
-} from '@heroicons/vue/24/solid';
+import { CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
 import { buildBootConfigurationSummaryViewModel } from '@/components/Onboarding/components/bootConfigurationSummary/buildBootConfigurationSummaryViewModel';
 import OnboardingBootConfigurationSummary from '@/components/Onboarding/components/bootConfigurationSummary/OnboardingBootConfigurationSummary.vue';
@@ -83,7 +78,6 @@ const canReturnToConfigure = () =>
   (resultSeverity.value !== 'success' || !internalBootState.value.applySucceeded);
 
 const showConsole = computed(() => confirmationState.value === 'saving' || logs.value.length > 0);
-const isSaving = computed(() => confirmationState.value === 'saving');
 const canEditAgain = computed(() => currentStep.value === 'SUMMARY' && canReturnToConfigure());
 const formatDeviceSize = (sizeBytes: number) => {
   const converted = convert(sizeBytes, 'B').to('best', 'metric');
@@ -502,31 +496,7 @@ onUnmounted(() => {
           </div>
 
           <div v-else class="flex w-full max-w-5xl flex-col gap-6">
-            <div
-              v-if="isSaving"
-              data-testid="internal-boot-standalone-saving"
-              class="border-muted bg-elevated rounded-xl border p-6 shadow-sm md:p-8"
-            >
-              <div class="flex items-start gap-4">
-                <ArrowPathIcon class="text-primary mt-0.5 h-7 w-7 flex-shrink-0 animate-spin" />
-
-                <div class="min-w-0 flex-1 space-y-2">
-                  <h2 class="text-highlighted text-xl font-semibold">
-                    {{ summaryT('title') }}
-                  </h2>
-                  <p class="text-muted leading-6">
-                    {{ summaryT('description') }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <OnboardingConsole v-if="showConsole" :logs="logs" />
-
-            <div
-              v-if="confirmationState === 'idle'"
-              class="border-muted bg-elevated rounded-xl border p-6 shadow-sm md:p-8"
-            >
+            <div class="border-muted bg-elevated rounded-xl border p-6 shadow-sm md:p-8">
               <div class="space-y-3">
                 <h2 class="text-highlighted text-xl font-semibold">
                   {{ summaryT('title') }}
@@ -550,71 +520,66 @@ onUnmounted(() => {
                 </p>
               </div>
 
+              <div
+                v-if="confirmationState === 'result'"
+                data-testid="internal-boot-standalone-result"
+                class="mt-6 rounded-lg border p-4"
+                :class="{
+                  'border-muted bg-muted/40': resultSeverity === 'success',
+                  'border-red-200 bg-red-50/70': resultSeverity === 'error',
+                  'border-amber-200 bg-amber-50/70': resultSeverity === 'warning',
+                }"
+              >
+                <div class="flex items-start gap-3">
+                  <CheckCircleIcon
+                    v-if="resultSeverity === 'success'"
+                    class="text-primary mt-0.5 h-5 w-5 flex-shrink-0"
+                  />
+                  <ExclamationTriangleIcon v-else class="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+
+                  <div class="min-w-0 flex-1 space-y-1">
+                    <p class="text-highlighted text-sm font-semibold">
+                      {{ resultTitle }}
+                    </p>
+                    <p class="text-muted text-sm leading-6">
+                      {{ resultMessage }}
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  v-if="
+                    isLocked && resultSeverity === 'error' && internalBootDraft.selection?.updateBios
+                  "
+                  class="mt-3"
+                >
+                  <p class="text-sm text-amber-700">
+                    {{ t('onboarding.nextSteps.internalBootBiosMissed') }}
+                  </p>
+                </div>
+              </div>
+
+              <OnboardingConsole v-if="showConsole" class="mt-6" :logs="logs" />
+
               <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button
+                  v-if="confirmationState === 'idle' || canEditAgain"
                   type="button"
+                  :data-testid="canEditAgain ? 'internal-boot-standalone-edit-again' : undefined"
                   class="text-muted hover:text-highlighted text-sm font-medium transition-colors"
                   @click="handleEditAgain"
                 >
                   {{ t('common.back') }}
                 </button>
                 <button
-                  v-if="bootConfigurationSummaryState.kind !== 'invalid'"
+                  v-if="confirmationState === 'idle' && bootConfigurationSummaryState.kind !== 'invalid'"
                   type="button"
                   class="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
                   @click="handleSummaryContinue"
                 >
                   {{ t('onboarding.summaryStep.confirmAndApply') }}
                 </button>
-              </div>
-            </div>
-
-            <div
-              v-if="confirmationState === 'result'"
-              data-testid="internal-boot-standalone-result"
-              class="border-muted bg-elevated rounded-xl border p-6 shadow-sm md:p-8"
-              :class="{
-                'border-red-200 bg-red-50/70': resultSeverity === 'error',
-                'border-amber-200 bg-amber-50/70': resultSeverity === 'warning',
-              }"
-            >
-              <div class="flex items-start gap-4">
-                <CheckCircleIcon
-                  v-if="resultSeverity === 'success'"
-                  class="text-primary mt-0.5 h-7 w-7 flex-shrink-0"
-                />
-                <ExclamationTriangleIcon v-else class="mt-0.5 h-7 w-7 flex-shrink-0 text-amber-600" />
-
-                <div class="min-w-0 flex-1 space-y-2">
-                  <h2 class="text-highlighted text-xl font-semibold">
-                    {{ resultTitle }}
-                  </h2>
-                  <p class="text-muted leading-6">
-                    {{ resultMessage }}
-                  </p>
-                </div>
-              </div>
-
-              <div
-                v-if="isLocked && resultSeverity === 'error' && internalBootDraft.selection?.updateBios"
-                class="mt-4"
-              >
-                <p class="text-sm text-amber-700">
-                  {{ t('onboarding.nextSteps.internalBootBiosMissed') }}
-                </p>
-              </div>
-
-              <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <button
-                  v-if="canEditAgain"
-                  type="button"
-                  data-testid="internal-boot-standalone-edit-again"
-                  class="text-muted hover:text-highlighted text-sm font-medium transition-colors"
-                  @click="handleEditAgain"
-                >
-                  {{ t('common.back') }}
-                </button>
-                <template v-if="isLocked">
+                <template v-if="isLocked && confirmationState === 'result'">
                   <button
                     type="button"
                     data-testid="internal-boot-standalone-shutdown"
@@ -633,7 +598,7 @@ onUnmounted(() => {
                   </button>
                 </template>
                 <button
-                  v-else
+                  v-else-if="confirmationState === 'result'"
                   type="button"
                   data-testid="internal-boot-standalone-result-close"
                   class="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
