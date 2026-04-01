@@ -77,14 +77,7 @@ export class RestController {
             }
 
             // Security validation: validate redirect_uri with support for allowed origins
-            const forwardedProto = String(req.headers['x-forwarded-proto'] || '')
-                .split(',')[0]
-                ?.trim();
-            const forwardedHost = String(req.headers['x-forwarded-host'] || '')
-                .split(',')[0]
-                ?.trim();
-            const protocol = forwardedProto || 'http';
-            const host = forwardedHost || req.headers.host || req.hostname;
+            const requestInfo = OidcRequestHandler.extractRequestInfo(req);
 
             // Get allowed origins from OIDC config
             const config = await this.oidcConfig.getConfig();
@@ -93,8 +86,8 @@ export class RestController {
             // Validate the redirect URI using the centralized validator
             const validation = validateRedirectUri(
                 params.redirectUri,
-                protocol,
-                host,
+                requestInfo.protocol,
+                requestInfo.host,
                 this.oidcLogger,
                 allowedOrigins
             );

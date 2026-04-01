@@ -13,13 +13,14 @@ import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-pr
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-session.service.js';
 import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state-extractor.util.js';
 import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state.service.js';
+import { RequestOriginInfo } from '@app/unraid-api/graph/resolvers/sso/utils/oidc-request-origin.util.js';
 import { ErrorExtractor } from '@app/unraid-api/utils/error-extractor.util.js';
 
 export interface GetAuthorizationUrlParams {
     providerId: string;
     state: string;
     requestOrigin: string;
-    requestHeaders: Record<string, string | string[] | undefined>;
+    requestOriginInfo: RequestOriginInfo;
 }
 
 export interface HandleCallbackParams {
@@ -48,7 +49,7 @@ export class OidcService {
     ) {}
 
     async getAuthorizationUrl(params: GetAuthorizationUrlParams): Promise<string> {
-        const { providerId, state, requestOrigin, requestHeaders } = params;
+        const { providerId, state, requestOrigin, requestOriginInfo } = params;
 
         const provider = await this.oidcConfig.getProvider(providerId);
         if (!provider) {
@@ -56,7 +57,10 @@ export class OidcService {
         }
 
         // Use requestOrigin with validation
-        const redirectUri = await this.redirectUriService.getRedirectUri(requestOrigin, requestHeaders);
+        const redirectUri = await this.redirectUriService.getRedirectUri(
+            requestOrigin,
+            requestOriginInfo
+        );
 
         this.logger.debug(`Using redirect URI for authorization: ${redirectUri}`);
         this.logger.debug(`Request origin was: ${requestOrigin}`);

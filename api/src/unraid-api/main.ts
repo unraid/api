@@ -63,10 +63,16 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         import('@app/unraid-api/exceptions/http-exceptions.filter.js'),
     ]);
 
-    const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
-        bufferLogs: false,
-        ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
-    });
+    const app = await NestFactory.create<NestFastifyApplication>(
+        AppModule,
+        new FastifyAdapter({
+            trustProxy: '127.0.0.1/8,::1/128',
+        }),
+        {
+            bufferLogs: false,
+            ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
+        }
+    );
     app.enableShutdownHooks(['SIGINT', 'SIGTERM', 'SIGQUIT']);
 
     // Enable validation globally

@@ -2,14 +2,12 @@ import { Logger } from '@nestjs/common';
 
 import type { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { OidcService } from '@app/unraid-api/graph/resolvers/sso/core/oidc.service.js';
+import {
+    extractRequestInfo,
+    extractRequestOriginInfo,
+    RequestInfo,
+} from '@app/unraid-api/graph/resolvers/sso/utils/oidc-request-origin.util.js';
 import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state-extractor.util.js';
-
-export interface RequestInfo {
-    protocol: string;
-    host: string;
-    fullUrl: string;
-    baseUrl: string;
-}
 
 export interface OidcFlowResult {
     providerId: string;
@@ -29,25 +27,7 @@ export class OidcRequestHandler {
      * Extract request information from Fastify request headers
      */
     static extractRequestInfo(req: FastifyRequest): RequestInfo {
-        // Handle potentially comma-separated forwarded headers (take first value)
-        const forwardedProto = String(req.headers['x-forwarded-proto'] || '')
-            .split(',')[0]
-            ?.trim();
-        const forwardedHost = String(req.headers['x-forwarded-host'] || '')
-            .split(',')[0]
-            ?.trim();
-
-        const protocol = forwardedProto || req.protocol || 'http';
-        const host = forwardedHost || req.headers.host || 'localhost:3000';
-        const fullUrl = `${protocol}://${host}${req.url}`;
-        const baseUrl = `${protocol}://${host}`;
-
-        return {
-            protocol,
-            host,
-            fullUrl,
-            baseUrl,
-        };
+        return extractRequestInfo(req);
     }
 
     /**
@@ -72,7 +52,7 @@ export class OidcRequestHandler {
             providerId,
             state,
             requestOrigin: redirectUri,
-            requestHeaders: req.headers as Record<string, string | string[] | undefined>,
+            requestOriginInfo: extractRequestOriginInfo(req),
         });
 
         logger.log(`Redirecting to OIDC provider: ${authUrl}`);
