@@ -151,7 +151,7 @@ const bootMode = ref<OnboardingBootMode>(
   toBootMode(props.initialDraft?.bootMode ?? (props.initialDraft?.selection ? 'storage' : 'usb'))
 );
 
-const poolMode = ref<OnboardingPoolMode>('dedicated');
+const poolMode = ref<OnboardingPoolMode>('hybrid');
 const poolName = ref('boot');
 const slotCount = ref(1);
 const selectedDevices = ref<Array<string | undefined>>([undefined]);
@@ -738,7 +738,7 @@ const initializeForm = (data: InternalBootTemplateData) => {
   const firstSlot = data.slotOptions[0] ?? 1;
   const defaultSlot = Math.max(1, Math.min(2, firstSlot));
 
-  poolMode.value = draftSelection?.poolMode ?? 'dedicated';
+  poolMode.value = draftSelection?.poolMode ?? 'hybrid';
   poolName.value =
     draftSelection?.poolName ||
     (poolMode.value === 'dedicated' ? 'boot' : (data.poolNameDefault ?? 'cache'));

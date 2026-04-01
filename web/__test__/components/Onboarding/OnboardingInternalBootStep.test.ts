@@ -484,6 +484,28 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
   });
 
+  it('defaults storage boot to hybrid mode', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = buildContext({
+      assignableDisks: [
+        {
+          id: 'ELIGIBLE-1',
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'ELIGIBLE-1',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+      ],
+    });
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    const vm = wrapper.vm as unknown as InternalBootVm;
+    expect(vm.poolMode).toBe('hybrid');
+    expect(wrapper.get('input[type="text"]').element).toHaveProperty('value', 'cache');
+  });
+
   it('allows 6 GiB devices in dedicated mode but not hybrid mode', async () => {
     draftStore.bootMode = 'storage';
     contextResult.value = buildContext({
@@ -509,7 +531,14 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     const vm = wrapper.vm as unknown as InternalBootVm;
-    expect(vm.poolMode).toBe('dedicated');
+    expect(vm.poolMode).toBe('hybrid');
+    expect(vm.getDeviceSelectItems(0)).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-6GIB' })])
+    );
+
+    vm.poolMode = 'dedicated';
+    await flushPromises();
+
     expect(vm.getDeviceSelectItems(0)).toEqual(
       expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-6GIB' })])
     );
