@@ -86,6 +86,115 @@ The old Pinia draft store was removed:
 
 - `web/src/components/Onboarding/store/onboardingDraft.ts`
 
+## Core Settings Precedence
+
+The Core Settings step uses two different sources:
+
+- modal bootstrap state from `ONBOARDING_BOOTSTRAP_QUERY`
+- live server values from `GET_CORE_SETTINGS_QUERY`
+
+They do different jobs:
+
+- bootstrap decides whether onboarding opens, which steps are visible, and what saved server-owned draft already exists
+- the Core Settings query provides the live baseline for server identity, timezone, display settings, SSH, hostname/TLD, and current IP
+
+### When The Values Load
+
+1. `ONBOARDING_BOOTSTRAP_QUERY` loads first through `web/src/components/Onboarding/store/onboardingContextData.ts`
+2. `OnboardingModal.vue` hydrates the in-memory wizard draft from `wizard.draft`
+3. when the active step is `CONFIGURE_SETTINGS`, `OnboardingCoreSettingsStep.vue` runs `GET_CORE_SETTINGS_QUERY`
+4. once both the live query and onboarding status are known, the step applies its final precedence rules
+
+That means:
+
+- bootstrap is enough to decide whether the wizard should show
+- bootstrap is not enough to decide the final Core Settings defaults
+- the step still waits for its own live query before it can fully choose between draft values, browser timezone, activation metadata, and current server settings
+
+### Source Priority By Field
+
+#### Server Name
+
+Priority:
+
+- saved draft `coreSettings.serverName`
+- activation metadata on fresh setup when available
+- current API/server name
+- trusted fallback default
+
+Notes:
+
+- the step waits for onboarding status before deciding whether this is a fresh setup
+- on fresh setup, activation metadata wins over the current API/server name
+- after onboarding is already completed, the current API/server name wins over activation metadata
+
+#### Server Description
+
+Priority:
+
+- saved draft `coreSettings.serverDescription`
+- on fresh setup with activation metadata, activation comment if one was provided
+- current API/server comment
+- activation comment as fallback
+- trusted fallback default
+
+Notes:
+
+- on first setup with activation metadata, the description intentionally stays empty unless the activation payload included one
+- after onboarding is already completed, the live server comment wins
+
+#### Time Zone
+
+Priority:
+
+- saved draft `coreSettings.timeZone`
+- for fresh setup with no draft timezone: browser timezone
+- live server timezone
+- trusted fallback default
+
+Why onboarding status matters:
+
+- timezone precedence is different for fresh setup vs non-fresh setup
+- fresh setup prefers browser timezone if there is no draft timezone
+- non-fresh setup prefers the server timezone
+
+Notes:
+
+- the browser timezone is detected client-side
+- if the browser timezone cannot be resolved, the step falls back to the live server timezone
+- if neither is available, it falls back to `UTC`
+
+#### Theme
+
+Priority:
+
+- saved draft `coreSettings.theme`
+- live display theme from `GET_CORE_SETTINGS_QUERY`
+- trusted fallback default
+
+#### Language
+
+Priority:
+
+- saved draft `coreSettings.language`
+- live display locale from `GET_CORE_SETTINGS_QUERY`
+- trusted fallback default
+
+#### SSH Access
+
+Priority:
+
+- saved draft `coreSettings.useSsh`
+- live `vars.useSsh` from `GET_CORE_SETTINGS_QUERY`
+- trusted fallback default
+
+### Supporting Live Values
+
+The Core Settings query also sets a few display-only values that are not part of the draft precedence rules above:
+
+- `vars.localTld` feeds the hostname preview
+- `info.primaryNetwork.ipAddress` feeds the current IP display
+
 ## Saving Rules
 
 The wizard saves only on step transitions.
