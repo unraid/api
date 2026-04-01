@@ -26,6 +26,7 @@ import {
   cloneOnboardingWizardDraft,
   createEmptyOnboardingWizardDraft,
   createEmptyOnboardingWizardInternalBootState,
+  normalizeOnboardingWizardDraft,
 } from '~/components/Onboarding/onboardingWizardState';
 import { STEP_IDS, stepComponents } from '~/components/Onboarding/stepRegistry.js';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
@@ -33,11 +34,7 @@ import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onb
 import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
 import { cleanupOnboardingStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
-import {
-  OnboardingWizardBootMode,
-  OnboardingWizardPoolMode,
-  OnboardingWizardStepId,
-} from '~/composables/gql/graphql';
+import { OnboardingWizardStepId } from '~/composables/gql/graphql';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
@@ -187,62 +184,11 @@ const clearHistorySession = () => {
   isApplyingHistoryState.value = false;
 };
 
-const normalizeWizardDraft = (): OnboardingWizardDraft => ({
-  coreSettings: wizard.value?.draft?.coreSettings
-    ? {
-        serverName: wizard.value.draft.coreSettings.serverName ?? undefined,
-        serverDescription: wizard.value.draft.coreSettings.serverDescription ?? undefined,
-        timeZone: wizard.value.draft.coreSettings.timeZone ?? undefined,
-        theme: wizard.value.draft.coreSettings.theme ?? undefined,
-        language: wizard.value.draft.coreSettings.language ?? undefined,
-        useSsh: wizard.value.draft.coreSettings.useSsh ?? undefined,
-      }
-    : undefined,
-  plugins: wizard.value?.draft?.plugins
-    ? {
-        selectedIds: [...wizard.value.draft.plugins.selectedIds],
-      }
-    : undefined,
-  internalBoot: wizard.value?.draft?.internalBoot
-    ? {
-        bootMode:
-          wizard.value.draft.internalBoot.bootMode === OnboardingWizardBootMode.STORAGE
-            ? 'storage'
-            : wizard.value.draft.internalBoot.bootMode === OnboardingWizardBootMode.USB
-              ? 'usb'
-              : undefined,
-        skipped: wizard.value.draft.internalBoot.skipped ?? undefined,
-        selection:
-          wizard.value.draft.internalBoot.selection === undefined
-            ? undefined
-            : wizard.value.draft.internalBoot.selection === null
-              ? null
-              : {
-                  poolName: wizard.value.draft.internalBoot.selection.poolName ?? undefined,
-                  slotCount: wizard.value.draft.internalBoot.selection.slotCount ?? undefined,
-                  devices: wizard.value.draft.internalBoot.selection.devices.map((device) => ({
-                    id: device.id,
-                    sizeBytes: device.sizeBytes,
-                    deviceName: device.deviceName,
-                  })),
-                  bootSizeMiB: wizard.value.draft.internalBoot.selection.bootSizeMiB ?? undefined,
-                  updateBios: wizard.value.draft.internalBoot.selection.updateBios ?? undefined,
-                  poolMode:
-                    wizard.value.draft.internalBoot.selection.poolMode ===
-                    OnboardingWizardPoolMode.DEDICATED
-                      ? 'dedicated'
-                      : wizard.value.draft.internalBoot.selection.poolMode ===
-                          OnboardingWizardPoolMode.HYBRID
-                        ? 'hybrid'
-                        : undefined,
-                },
-      }
-    : undefined,
-});
-
 const hydrateLocalWizardState = () => {
   localDraft.value = cloneOnboardingWizardDraft(
-    wizard.value?.draft ? normalizeWizardDraft() : createEmptyOnboardingWizardDraft()
+    wizard.value?.draft
+      ? normalizeOnboardingWizardDraft(wizard.value.draft)
+      : createEmptyOnboardingWizardDraft()
   );
   localCurrentStepId.value = normalizeStepId(wizard.value?.currentStepId) ?? null;
   localInternalBootState.value = {
@@ -381,56 +327,7 @@ const toWizardStepId = (stepId: StepId): OnboardingWizardStepId => {
 
 const buildSaveInput = (nextStepId: StepId) => ({
   input: {
-    draft: {
-      coreSettings: localDraft.value.coreSettings
-        ? {
-            ...localDraft.value.coreSettings,
-          }
-        : undefined,
-      plugins: localDraft.value.plugins
-        ? {
-            selectedIds: localDraft.value.plugins.selectedIds
-              ? [...localDraft.value.plugins.selectedIds]
-              : [],
-          }
-        : undefined,
-      internalBoot:
-        localDraft.value.internalBoot === undefined
-          ? undefined
-          : {
-              bootMode:
-                localDraft.value.internalBoot.bootMode === 'storage'
-                  ? OnboardingWizardBootMode.STORAGE
-                  : localDraft.value.internalBoot.bootMode === 'usb'
-                    ? OnboardingWizardBootMode.USB
-                    : undefined,
-              skipped: localDraft.value.internalBoot.skipped,
-              selection:
-                localDraft.value.internalBoot.selection === undefined
-                  ? undefined
-                  : localDraft.value.internalBoot.selection === null
-                    ? null
-                    : {
-                        poolName: localDraft.value.internalBoot.selection.poolName,
-                        slotCount: localDraft.value.internalBoot.selection.slotCount,
-                        devices: localDraft.value.internalBoot.selection.devices
-                          ? localDraft.value.internalBoot.selection.devices.map((device) => ({
-                              id: device.id,
-                              sizeBytes: device.sizeBytes,
-                              deviceName: device.deviceName,
-                            }))
-                          : [],
-                        bootSizeMiB: localDraft.value.internalBoot.selection.bootSizeMiB,
-                        updateBios: localDraft.value.internalBoot.selection.updateBios,
-                        poolMode:
-                          localDraft.value.internalBoot.selection.poolMode === 'dedicated'
-                            ? OnboardingWizardPoolMode.DEDICATED
-                            : localDraft.value.internalBoot.selection.poolMode === 'hybrid'
-                              ? OnboardingWizardPoolMode.HYBRID
-                              : undefined,
-                      },
-            },
-    },
+    draft: cloneOnboardingWizardDraft(localDraft.value),
     navigation: {
       currentStepId: toWizardStepId(nextStepId),
     },

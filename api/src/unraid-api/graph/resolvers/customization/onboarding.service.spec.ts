@@ -17,8 +17,6 @@ import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-trac
 import {
     ActivationCode,
     OnboardingStatus,
-    OnboardingWizardBootMode,
-    OnboardingWizardPoolMode,
     OnboardingWizardStepId,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
@@ -1933,13 +1931,18 @@ describe('OnboardingService - updateCfgFile', () => {
                 OnboardingWizardStepId.NEXT_STEPS,
             ]);
             expect(response.wizard.currentStepId).toBe(OnboardingWizardStepId.ADD_PLUGINS);
+            expect(response.wizard.draft).toEqual({
+                plugins: {
+                    selectedIds: ['community.applications'],
+                },
+            });
             expect(response.wizard.internalBootState).toEqual({
                 applyAttempted: true,
                 applySucceeded: false,
             });
         });
 
-        it('persists nested wizard draft input in tracker format', async () => {
+        it('persists JSON-backed wizard draft input in tracker format', async () => {
             await service.saveOnboardingDraft({
                 draft: {
                     coreSettings: {
@@ -1947,7 +1950,7 @@ describe('OnboardingService - updateCfgFile', () => {
                         timeZone: 'America/New_York',
                     },
                     internalBoot: {
-                        bootMode: OnboardingWizardBootMode.STORAGE,
+                        bootMode: 'storage',
                         skipped: false,
                         selection: {
                             poolName: 'cache',
@@ -1958,7 +1961,7 @@ describe('OnboardingService - updateCfgFile', () => {
                             ],
                             bootSizeMiB: 32768,
                             updateBios: true,
-                            poolMode: OnboardingWizardPoolMode.HYBRID,
+                            poolMode: 'hybrid',
                         },
                     },
                 },

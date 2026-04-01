@@ -15,8 +15,9 @@ import {
     Min,
     ValidateNested,
 } from 'class-validator';
-import { GraphQLBigInt } from 'graphql-scalars';
+import { GraphQLJSON } from 'graphql-scalars';
 
+import type { OnboardingDraft } from '@app/unraid-api/config/onboarding-tracker.model.js';
 import {
     OnboardingWizardBootMode,
     OnboardingWizardPoolMode,
@@ -302,141 +303,6 @@ export class OnboardingOverrideInput {
 }
 
 @InputType()
-export class OnboardingWizardCoreSettingsDraftInput {
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    serverName?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    serverDescription?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    timeZone?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    theme?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    language?: string;
-
-    @Field(() => Boolean, { nullable: true })
-    @IsOptional()
-    @IsBoolean()
-    useSsh?: boolean;
-}
-
-@InputType()
-export class OnboardingWizardPluginsDraftInput {
-    @Field(() => [String], { nullable: true })
-    @IsOptional()
-    @IsString({ each: true })
-    selectedIds?: string[];
-}
-
-@InputType()
-export class OnboardingWizardInternalBootDeviceInput {
-    @Field(() => String)
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
-    @Field(() => GraphQLBigInt)
-    @IsInt()
-    @Min(1)
-    sizeBytes!: number;
-
-    @Field(() => String)
-    @IsString()
-    @IsNotEmpty()
-    deviceName!: string;
-}
-
-@InputType()
-export class OnboardingWizardInternalBootSelectionInput {
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    poolName?: string;
-
-    @Field(() => Int, { nullable: true })
-    @IsOptional()
-    @IsInt()
-    @Min(1)
-    slotCount?: number;
-
-    @Field(() => [OnboardingWizardInternalBootDeviceInput], { nullable: true })
-    @IsOptional()
-    @ValidateNested({ each: true })
-    @Type(() => OnboardingWizardInternalBootDeviceInput)
-    devices?: OnboardingWizardInternalBootDeviceInput[];
-
-    @Field(() => Int, { nullable: true })
-    @IsOptional()
-    @IsInt()
-    @Min(0)
-    bootSizeMiB?: number;
-
-    @Field(() => Boolean, { nullable: true })
-    @IsOptional()
-    @IsBoolean()
-    updateBios?: boolean;
-
-    @Field(() => OnboardingWizardPoolMode, { nullable: true })
-    @IsOptional()
-    @IsEnum(OnboardingWizardPoolMode)
-    poolMode?: OnboardingWizardPoolMode;
-}
-
-@InputType()
-export class OnboardingWizardInternalBootDraftInput {
-    @Field(() => OnboardingWizardBootMode, { nullable: true })
-    @IsOptional()
-    @IsEnum(OnboardingWizardBootMode)
-    bootMode?: OnboardingWizardBootMode;
-
-    @Field(() => Boolean, { nullable: true })
-    @IsOptional()
-    @IsBoolean()
-    skipped?: boolean;
-
-    @Field(() => OnboardingWizardInternalBootSelectionInput, { nullable: true })
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => OnboardingWizardInternalBootSelectionInput)
-    selection?: OnboardingWizardInternalBootSelectionInput | null;
-}
-
-@InputType()
-export class OnboardingWizardDraftInput {
-    @Field(() => OnboardingWizardCoreSettingsDraftInput, { nullable: true })
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => OnboardingWizardCoreSettingsDraftInput)
-    coreSettings?: OnboardingWizardCoreSettingsDraftInput;
-
-    @Field(() => OnboardingWizardPluginsDraftInput, { nullable: true })
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => OnboardingWizardPluginsDraftInput)
-    plugins?: OnboardingWizardPluginsDraftInput;
-
-    @Field(() => OnboardingWizardInternalBootDraftInput, { nullable: true })
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => OnboardingWizardInternalBootDraftInput)
-    internalBoot?: OnboardingWizardInternalBootDraftInput;
-}
-
-@InputType()
 export class OnboardingWizardNavigationInput {
     @Field(() => OnboardingWizardStepId, { nullable: true })
     @IsOptional()
@@ -459,11 +325,9 @@ export class OnboardingWizardInternalBootStateInput {
 
 @InputType()
 export class SaveOnboardingDraftInput {
-    @Field(() => OnboardingWizardDraftInput, { nullable: true })
+    @Field(() => GraphQLJSON, { nullable: true })
     @IsOptional()
-    @ValidateNested()
-    @Type(() => OnboardingWizardDraftInput)
-    draft?: OnboardingWizardDraftInput;
+    draft?: OnboardingDraft;
 
     @Field(() => OnboardingWizardNavigationInput, { nullable: true })
     @IsOptional()

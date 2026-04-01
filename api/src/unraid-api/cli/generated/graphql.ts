@@ -2113,7 +2113,7 @@ export enum OnboardingStatus {
 export type OnboardingWizard = {
   __typename?: 'OnboardingWizard';
   currentStepId?: Maybe<OnboardingWizardStepId>;
-  draft: OnboardingWizardDraft;
+  draft: Scalars['JSON']['output'];
   internalBootState: OnboardingWizardInternalBootState;
   visibleStepIds: Array<OnboardingWizardStepId>;
 };
@@ -2765,7 +2765,7 @@ export enum Role {
 }
 
 export type SaveOnboardingDraftInput = {
-  draft?: InputMaybe<OnboardingWizardDraftInput>;
+  draft?: InputMaybe<Scalars['JSON']['input']>;
   internalBootState?: InputMaybe<OnboardingWizardInternalBootStateInput>;
   navigation?: InputMaybe<OnboardingWizardNavigationInput>;
 };
