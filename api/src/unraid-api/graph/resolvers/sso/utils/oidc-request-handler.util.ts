@@ -5,7 +5,6 @@ import { OidcService } from '@app/unraid-api/graph/resolvers/sso/core/oidc.servi
 import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state-extractor.util.js';
 import {
     extractRequestInfo,
-    extractRequestOriginInfo,
     RequestInfo,
 } from '@app/unraid-api/graph/resolvers/sso/utils/oidc-request-origin.util.js';
 
@@ -52,7 +51,10 @@ export class OidcRequestHandler {
             providerId,
             state,
             requestOrigin: redirectUri,
-            requestOriginInfo: extractRequestOriginInfo(req),
+            requestOriginInfo: {
+                protocol: requestInfo.protocol,
+                host: requestInfo.host,
+            },
         });
 
         logger.log(`Redirecting to OIDC provider: ${authUrl}`);

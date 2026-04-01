@@ -29,7 +29,10 @@ describe('RestController OIDC authorize integration', () => {
     let oidcStateService: {
         generateSecureState: ReturnType<typeof vi.fn>;
     };
-    let mockReply: Partial<FastifyReply>;
+    let headerSpy: ReturnType<typeof vi.fn>;
+    let sendSpy: ReturnType<typeof vi.fn>;
+    let statusSpy: ReturnType<typeof vi.fn>;
+    let mockReply: FastifyReply;
 
     const provider: OidcProvider = {
         id: 'test-provider',
@@ -142,11 +145,26 @@ describe('RestController OIDC authorize integration', () => {
 
         controller = module.get<RestController>(RestController);
 
-        mockReply = {
-            status: vi.fn().mockReturnThis(),
-            header: vi.fn().mockReturnThis(),
-            send: vi.fn().mockReturnThis(),
-        };
+        statusSpy = vi.fn();
+        headerSpy = vi.fn();
+        sendSpy = vi.fn();
+
+        const reply = {} as FastifyReply;
+
+        reply.status = ((statusCode: number) => {
+            statusSpy(statusCode);
+            return reply;
+        }) as FastifyReply['status'];
+        reply.header = ((name: string, value: string) => {
+            headerSpy(name, value);
+            return reply;
+        }) as FastifyReply['header'];
+        reply.send = ((payload?: unknown) => {
+            sendSpy(payload);
+            return reply;
+        }) as FastifyReply['send'];
+
+        mockReply = reply;
     });
 
     it('authorizes successfully through both redirect validation layers for proxied domains', async () => {
@@ -168,7 +186,7 @@ describe('RestController OIDC authorize integration', () => {
             'client-state-123',
             'https://nas.domain.com/graphql/api/auth/oidc/callback',
             mockRequest,
-            mockReply as FastifyReply
+            mockReply
         );
 
         expect(oidcStateService.generateSecureState).toHaveBeenCalledWith(
@@ -177,22 +195,13 @@ describe('RestController OIDC authorize integration', () => {
             'https://nas.domain.com/graphql/api/auth/oidc/callback'
         );
 
-        expect(mockReply.status).toHaveBeenCalledWith(302);
-        expect(mockReply.header).toHaveBeenCalledWith(
+        expect(statusSpy).toHaveBeenCalledWith(302);
+        expect(headerSpy).toHaveBeenCalledWith(
             'Location',
             expect.stringContaining('https://provider.example.com/oauth/authorize')
         );
 
-        const headerMock = mockReply.header;
-        expect(headerMock).toBeDefined();
-
-        if (!headerMock) {
-            throw new Error('Expected reply header mock to be set');
-        }
-
-        const locationHeaderCall = vi
-            .mocked(headerMock)
-            .mock.calls.find(([name]) => name === 'Location');
+        const locationHeaderCall = vi.mocked(headerSpy).mock.calls.find(([name]) => name === 'Location');
 
         expect(locationHeaderCall).toBeDefined();
 

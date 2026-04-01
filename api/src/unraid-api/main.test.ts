@@ -100,7 +100,7 @@ describe('bootstrapNestServer', () => {
         await bootstrapNestServer();
 
         expect(fastifyAdapterConstructor).toHaveBeenCalledWith({
-            trustProxy: '127.0.0.1/8,::1/128',
+            trustProxy: 'loopback',
         });
     });
 });

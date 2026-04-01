@@ -66,7 +66,7 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     const app = await NestFactory.create<NestFastifyApplication>(
         AppModule,
         new FastifyAdapter({
-            trustProxy: '127.0.0.1/8,::1/128',
+            trustProxy: 'loopback',
         }),
         {
             bufferLogs: false,

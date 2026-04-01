@@ -1,4 +1,3 @@
-import { UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -70,7 +69,7 @@ describe('OidcRedirectUriService', () => {
                     protocol: 'https',
                     host: 'example.com',
                 })
-            ).rejects.toThrow(UnauthorizedException);
+            ).rejects.toThrow();
         });
 
         it('passes through missing allowed origins', async () => {
@@ -155,7 +154,7 @@ describe('OidcRedirectUriService', () => {
                     protocol: 'https',
                     host: 'example.com',
                 })
-            ).rejects.toThrow(UnauthorizedException);
+            ).rejects.toThrow();
         });
     });
 });

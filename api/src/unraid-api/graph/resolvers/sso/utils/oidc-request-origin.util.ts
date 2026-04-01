@@ -2,7 +2,7 @@ import type { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 
 export interface RequestOriginInfo {
     protocol: string;
-    host: string | undefined;
+    host: string;
 }
 
 export interface RequestInfo extends RequestOriginInfo {
@@ -20,13 +20,12 @@ export function extractRequestOriginInfo(req: FastifyRequest): RequestOriginInfo
 export function extractRequestInfo(req: FastifyRequest): RequestInfo {
     const { protocol, host } = extractRequestOriginInfo(req);
 
-    const resolvedHost = host || 'localhost:3000';
-    const fullUrl = `${protocol}://${resolvedHost}${req.url}`;
-    const baseUrl = `${protocol}://${resolvedHost}`;
+    const fullUrl = `${protocol}://${host}${req.url}`;
+    const baseUrl = `${protocol}://${host}`;
 
     return {
         protocol,
-        host: resolvedHost,
+        host,
         fullUrl,
         baseUrl,
     };
