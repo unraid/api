@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
+import { AvahiService } from '@app/unraid-api/avahi/avahi.service.js';
 import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
 import { OnboardingOverrideModule } from '@app/unraid-api/config/onboarding-override.module.js';
 import { OnboardingStateModule } from '@app/unraid-api/config/onboarding-state.module.js';
@@ -83,6 +84,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         RootMutationsResolver,
         ServerResolver,
         ServerService,
+        AvahiService,
         ServicesResolver,
         SharesResolver,
         VarsResolver,

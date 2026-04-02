@@ -2118,89 +2118,6 @@ export type OnboardingWizard = {
   visibleStepIds: Array<OnboardingWizardStepId>;
 };
 
-/** Boot mode selected during onboarding */
-export enum OnboardingWizardBootMode {
-  STORAGE = 'STORAGE',
-  USB = 'USB'
-}
-
-export type OnboardingWizardCoreSettingsDraft = {
-  __typename?: 'OnboardingWizardCoreSettingsDraft';
-  language?: Maybe<Scalars['String']['output']>;
-  serverDescription?: Maybe<Scalars['String']['output']>;
-  serverName?: Maybe<Scalars['String']['output']>;
-  theme?: Maybe<Scalars['String']['output']>;
-  timeZone?: Maybe<Scalars['String']['output']>;
-  useSsh?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type OnboardingWizardCoreSettingsDraftInput = {
-  language?: InputMaybe<Scalars['String']['input']>;
-  serverDescription?: InputMaybe<Scalars['String']['input']>;
-  serverName?: InputMaybe<Scalars['String']['input']>;
-  theme?: InputMaybe<Scalars['String']['input']>;
-  timeZone?: InputMaybe<Scalars['String']['input']>;
-  useSsh?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type OnboardingWizardDraft = {
-  __typename?: 'OnboardingWizardDraft';
-  coreSettings?: Maybe<OnboardingWizardCoreSettingsDraft>;
-  internalBoot?: Maybe<OnboardingWizardInternalBootDraft>;
-  plugins?: Maybe<OnboardingWizardPluginsDraft>;
-};
-
-export type OnboardingWizardDraftInput = {
-  coreSettings?: InputMaybe<OnboardingWizardCoreSettingsDraftInput>;
-  internalBoot?: InputMaybe<OnboardingWizardInternalBootDraftInput>;
-  plugins?: InputMaybe<OnboardingWizardPluginsDraftInput>;
-};
-
-export type OnboardingWizardInternalBootDevice = {
-  __typename?: 'OnboardingWizardInternalBootDevice';
-  deviceName: Scalars['String']['output'];
-  id: Scalars['String']['output'];
-  sizeBytes: Scalars['BigInt']['output'];
-};
-
-export type OnboardingWizardInternalBootDeviceInput = {
-  deviceName: Scalars['String']['input'];
-  id: Scalars['String']['input'];
-  sizeBytes: Scalars['BigInt']['input'];
-};
-
-export type OnboardingWizardInternalBootDraft = {
-  __typename?: 'OnboardingWizardInternalBootDraft';
-  bootMode?: Maybe<OnboardingWizardBootMode>;
-  selection?: Maybe<OnboardingWizardInternalBootSelection>;
-  skipped?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type OnboardingWizardInternalBootDraftInput = {
-  bootMode?: InputMaybe<OnboardingWizardBootMode>;
-  selection?: InputMaybe<OnboardingWizardInternalBootSelectionInput>;
-  skipped?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type OnboardingWizardInternalBootSelection = {
-  __typename?: 'OnboardingWizardInternalBootSelection';
-  bootSizeMiB?: Maybe<Scalars['Int']['output']>;
-  devices: Array<OnboardingWizardInternalBootDevice>;
-  poolMode?: Maybe<OnboardingWizardPoolMode>;
-  poolName?: Maybe<Scalars['String']['output']>;
-  slotCount?: Maybe<Scalars['Int']['output']>;
-  updateBios?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type OnboardingWizardInternalBootSelectionInput = {
-  bootSizeMiB?: InputMaybe<Scalars['Int']['input']>;
-  devices?: InputMaybe<Array<OnboardingWizardInternalBootDeviceInput>>;
-  poolMode?: InputMaybe<OnboardingWizardPoolMode>;
-  poolName?: InputMaybe<Scalars['String']['input']>;
-  slotCount?: InputMaybe<Scalars['Int']['input']>;
-  updateBios?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
 export type OnboardingWizardInternalBootState = {
   __typename?: 'OnboardingWizardInternalBootState';
   applyAttempted: Scalars['Boolean']['output'];
@@ -2215,21 +2132,6 @@ export type OnboardingWizardInternalBootStateInput = {
 export type OnboardingWizardNavigationInput = {
   currentStepId?: InputMaybe<OnboardingWizardStepId>;
 };
-
-export type OnboardingWizardPluginsDraft = {
-  __typename?: 'OnboardingWizardPluginsDraft';
-  selectedIds: Array<Scalars['String']['output']>;
-};
-
-export type OnboardingWizardPluginsDraftInput = {
-  selectedIds?: InputMaybe<Array<Scalars['String']['input']>>;
-};
-
-/** Pool mode selected for onboarding internal boot setup */
-export enum OnboardingWizardPoolMode {
-  DEDICATED = 'DEDICATED',
-  HYBRID = 'HYBRID'
-}
 
 /** Server-provided onboarding wizard step identifiers */
 export enum OnboardingWizardStepId {
@@ -2798,6 +2700,8 @@ export type Server = Node & {
   apikey: Scalars['String']['output'];
   /** Server description/comment */
   comment?: Maybe<Scalars['String']['output']>;
+  /** Preferred live URL from nginx.ini defaultUrl */
+  defaultUrl?: Maybe<Scalars['String']['output']>;
   guid: Scalars['String']['output'];
   id: Scalars['PrefixedID']['output'];
   lanip: Scalars['String']['output'];
