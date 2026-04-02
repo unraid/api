@@ -44,7 +44,6 @@ import { ServicesModule } from '@app/unraid-api/graph/services/services.module.j
 import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
 import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
-import { NginxModule } from '@app/unraid-api/nginx/nginx.module.js';
 
 @Module({
     imports: [
@@ -66,7 +65,6 @@ import { NginxModule } from '@app/unraid-api/nginx/nginx.module.js';
         SettingsModule,
         SsoModule,
         MetricsModule,
-        NginxModule,
         SystemTimeModule,
         UPSModule,
         UnraidPluginsModule,
