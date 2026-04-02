@@ -798,4 +798,65 @@ describe('OnboardingTrackerService tracker state availability', () => {
             )?.ignoredSelectionField
         ).toBeUndefined();
     });
+
+    it('truncates persisted internal-boot devices to the clamped slot count', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+
+            return JSON.stringify({
+                completed: false,
+                completedAtVersion: undefined,
+                forceOpen: false,
+                draft: {},
+                navigation: {},
+                internalBootState: {
+                    applyAttempted: false,
+                    applySucceeded: false,
+                },
+            });
+        });
+        mockAtomicWriteFile.mockResolvedValue(undefined as never);
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(
+            tracker.saveDraft({
+                draft: {
+                    internalBoot: {
+                        bootMode: 'storage',
+                        selection: {
+                            poolName: 'cache',
+                            slotCount: 99,
+                            devices: [
+                                createBootDevice('disk1', 500_000_000_000, 'sda'),
+                                createBootDevice('disk2', 250_000_000_000, 'sdb'),
+                                createBootDevice('disk3', 125_000_000_000, 'sdc'),
+                            ],
+                            bootSizeMiB: 16384,
+                            updateBios: true,
+                            poolMode: 'hybrid',
+                        },
+                    },
+                },
+            })
+        ).resolves.toMatchObject({
+            draft: {
+                internalBoot: {
+                    selection: {
+                        slotCount: 2,
+                        devices: [
+                            createBootDevice('disk1', 500_000_000_000, 'sda'),
+                            createBootDevice('disk2', 250_000_000_000, 'sdb'),
+                        ],
+                    },
+                },
+            },
+        });
+    });
 });
