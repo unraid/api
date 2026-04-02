@@ -58,8 +58,7 @@ const standaloneSteps: Array<{ id: StepId; required: boolean }> = [
 
 const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
-const standaloneSummaryInvalidMessage =
-  'Your boot configuration is incomplete. Go back and review the boot settings before applying changes.';
+const standaloneSummaryInvalidMessage = computed(() => summaryT('bootConfig.invalidStandalone'));
 
 const isLocked = computed(() => internalBootState.value.applyAttempted);
 
