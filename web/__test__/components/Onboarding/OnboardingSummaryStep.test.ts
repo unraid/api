@@ -1157,7 +1157,7 @@ describe('OnboardingSummaryStep', () => {
 
     expect(onComplete).not.toHaveBeenCalled();
     expect(mockLocation.replace).toHaveBeenCalledWith(
-      'https://newtower.local:4443/Dashboard?foo=bar&onboardingResumeStep=NEXT_STEPS#section'
+      'https://newtower.local:4443/Dashboard?foo=bar#section'
     );
     expect(mockLocation.reload).not.toHaveBeenCalled();
   });
@@ -1203,9 +1203,7 @@ describe('OnboardingSummaryStep', () => {
       'Your server name has been updated. The page may reload or prompt you to sign in again.'
     );
     expect(onComplete).not.toHaveBeenCalled();
-    expect(mockLocation.replace).toHaveBeenCalledWith(
-      'https://newtower.local:4443/?onboardingResumeStep=NEXT_STEPS'
-    );
+    expect(mockLocation.replace).toHaveBeenCalledWith('https://newtower.local:4443/');
     expect(mockLocation.reload).not.toHaveBeenCalled();
 
     await confirmPromise;
@@ -1229,9 +1227,7 @@ describe('OnboardingSummaryStep', () => {
 
     expect(onComplete).not.toHaveBeenCalled();
     expect(mockLocation.reload).not.toHaveBeenCalled();
-    expect(mockLocation.replace).toHaveBeenCalledWith(
-      'http://192.168.1.2/Dashboard?foo=bar&onboardingResumeStep=NEXT_STEPS#section'
-    );
+    expect(mockLocation.replace).toHaveBeenCalledWith('http://192.168.1.2/Dashboard?foo=bar#section');
   });
 
   it('retries final identity update after transient network errors when SSH changed', async () => {

@@ -57,8 +57,6 @@ export interface OnboardingWizardState {
   internalBootState: OnboardingWizardInternalBootState;
 }
 
-export const ONBOARDING_RESUME_STEP_QUERY_KEY = 'onboardingResumeStep';
-
 export const createEmptyOnboardingWizardDraft = (): OnboardingWizardDraft => ({});
 
 export const createEmptyOnboardingWizardInternalBootState = (): OnboardingWizardInternalBootState => ({

@@ -47,7 +47,6 @@ import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCore
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SERVER_IDENTITY_AND_RESUME_MUTATION } from '@/components/Onboarding/graphql/updateServerIdentityAndResume.mutation';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
-import { ONBOARDING_RESUME_STEP_QUERY_KEY } from '@/components/Onboarding/onboardingWizardState';
 import { convert } from 'convert';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
@@ -362,10 +361,9 @@ const shouldRedirectAfterRename = (hostname: string): boolean => {
   return !isIpv4Literal(normalizedHostname) && !isIpv6Literal(normalizedHostname);
 };
 
-const buildResumeUrl = (baseUrl: string, resumeStepId: string): string => {
+const buildRedirectUrl = (baseUrl: string): string => {
   const currentPath = `${location.pathname}${location.search}${location.hash}`;
   const targetUrl = new URL(currentPath, baseUrl);
-  targetUrl.searchParams.set(ONBOARDING_RESUME_STEP_QUERY_KEY, resumeStepId);
   return targetUrl.toString();
 };
 
@@ -732,7 +730,7 @@ const handleComplete = async () => {
             throw new Error('Server rename succeeded but no redirect target was available');
           }
 
-          redirectUrlAfterApplyResult.value = buildResumeUrl(redirectBaseUrl, 'NEXT_STEPS');
+          redirectUrlAfterApplyResult.value = buildRedirectUrl(redirectBaseUrl);
           shouldReloadAfterApplyResult.value = true;
         }
         addLog(summaryT('logs.serverIdentityUpdated'), 'success');
