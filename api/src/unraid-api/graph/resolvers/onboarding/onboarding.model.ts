@@ -18,11 +18,7 @@ import {
 import { GraphQLJSON } from 'graphql-scalars';
 
 import type { OnboardingDraft } from '@app/unraid-api/config/onboarding-tracker.model.js';
-import {
-    OnboardingWizardBootMode,
-    OnboardingWizardPoolMode,
-    OnboardingWizardStepId,
-} from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import { OnboardingWizardStepId } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
