@@ -36,7 +36,18 @@ The persisted internal-boot draft lives under:
       "selection": {
         "poolName": "cache",
         "slotCount": 2,
-        "devices": ["disk1", "disk2"],
+        "devices": [
+          {
+            "id": "disk1",
+            "sizeBytes": 512110190592,
+            "deviceName": "sda"
+          },
+          {
+            "id": "disk2",
+            "sizeBytes": 512110190592,
+            "deviceName": "sdb"
+          }
+        ],
         "bootSizeMiB": 32768,
         "updateBios": true,
         "poolMode": "hybrid"
@@ -58,6 +69,7 @@ The persisted internal-boot draft lives under:
   - whether the user explicitly skipped the step
 - `selection`
   - the storage pool choice when boot moves off USB
+  - selected devices are persisted as `{ id, sizeBytes, deviceName }` objects so the summary views can render stable labels without re-fetching disk metadata
 
 `internalBootState` means:
 
