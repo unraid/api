@@ -10,6 +10,7 @@ import {
 } from '@/components/Onboarding/graphql/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
+import { UPDATE_SERVER_IDENTITY_AND_RESUME_MUTATION } from '@/components/Onboarding/graphql/updateServerIdentityAndResume.mutation';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -46,6 +47,7 @@ const {
   setModalHiddenMock,
   updateSystemTimeMock,
   updateServerIdentityMock,
+  updateServerIdentityAndResumeMock,
   setThemeMock,
   setLocaleMock,
   updateSshSettingsMock,
@@ -115,6 +117,7 @@ const {
   setModalHiddenMock: vi.fn(),
   updateSystemTimeMock: vi.fn().mockResolvedValue({}),
   updateServerIdentityMock: vi.fn().mockResolvedValue({}),
+  updateServerIdentityAndResumeMock: vi.fn().mockResolvedValue({}),
   setThemeMock: vi.fn().mockResolvedValue({}),
   setLocaleMock: vi.fn().mockResolvedValue({}),
   updateSshSettingsMock: vi.fn().mockResolvedValue({}),
@@ -229,6 +232,9 @@ const setupApolloMocks = () => {
     }
     if (doc === UPDATE_SERVER_IDENTITY_MUTATION) {
       return { mutate: updateServerIdentityMock };
+    }
+    if (doc === UPDATE_SERVER_IDENTITY_AND_RESUME_MUTATION) {
+      return { mutate: updateServerIdentityAndResumeMock };
     }
     if (doc === SET_THEME_MUTATION) {
       return { mutate: setThemeMock };
@@ -357,6 +363,35 @@ const mountComponent = (props: Record<string, unknown> = {}) => {
   return { wrapper, onComplete };
 };
 
+const buildExpectedResumeInput = (expectedServerName: string) => ({
+  draft: {
+    coreSettings: {
+      serverName: draftStore.serverName,
+      serverDescription: draftStore.serverDescription,
+      timeZone: draftStore.selectedTimeZone,
+      theme: draftStore.selectedTheme,
+      language: draftStore.selectedLanguage,
+      useSsh: draftStore.useSsh,
+    },
+    plugins: {
+      selectedIds: Array.from(draftStore.selectedPlugins),
+    },
+    internalBoot: {
+      bootMode: draftStore.bootMode,
+      skipped: draftStore.internalBootSkipped,
+      selection: draftStore.internalBootSelection,
+    },
+  },
+  navigation: {
+    currentStepId: 'NEXT_STEPS',
+  },
+  internalBootState: {
+    applyAttempted: draftStore.internalBootApplyAttempted,
+    applySucceeded: draftStore.internalBootApplySucceeded,
+  },
+  expectedServerName,
+});
+
 interface SummaryVm {
   showApplyResultDialog: boolean;
   showBootDriveWarningDialog: boolean;
@@ -470,6 +505,7 @@ describe('OnboardingSummaryStep', () => {
     mockLocation.hash = '';
     mockLocation.reload.mockReset();
     mockLocation.replace.mockReset();
+    updateServerIdentityAndResumeMock.mockReset();
 
     draftStore.serverName = 'Tower';
     draftStore.serverDescription = '';
@@ -545,6 +581,19 @@ describe('OnboardingSummaryStep', () => {
           name: 'Tower',
           comment: '',
           defaultUrl: 'https://Tower.local:4443',
+        },
+      },
+    });
+    updateServerIdentityAndResumeMock.mockResolvedValue({
+      data: {
+        updateServerIdentity: {
+          id: 'local',
+          name: 'Tower',
+          comment: '',
+          defaultUrl: 'https://Tower.local:4443',
+        },
+        onboarding: {
+          saveOnboardingDraft: true,
         },
       },
     });
@@ -891,6 +940,7 @@ describe('OnboardingSummaryStep', () => {
 
     expect(updateSystemTimeMock).not.toHaveBeenCalled();
     expect(updateServerIdentityMock).not.toHaveBeenCalled();
+    expect(updateServerIdentityAndResumeMock).not.toHaveBeenCalled();
     expect(setThemeMock).not.toHaveBeenCalled();
     expect(setLocaleMock).not.toHaveBeenCalled();
     expect(updateSshSettingsMock).not.toHaveBeenCalled();
@@ -912,6 +962,7 @@ describe('OnboardingSummaryStep', () => {
     await clickApply(wrapper);
 
     expect(updateServerIdentityMock).not.toHaveBeenCalled();
+    expect(updateServerIdentityAndResumeMock).not.toHaveBeenCalled();
     expect(updateSystemTimeMock).not.toHaveBeenCalled();
     expect(setThemeMock).not.toHaveBeenCalled();
     expect(setLocaleMock).not.toHaveBeenCalled();
@@ -925,7 +976,12 @@ describe('OnboardingSummaryStep', () => {
         draftStore.serverName = 'Tower2';
       },
       assertExpected: () => {
-        expect(updateServerIdentityMock).toHaveBeenCalledWith({ name: 'Tower2', comment: '' });
+        expect(updateServerIdentityAndResumeMock).toHaveBeenCalledWith({
+          name: 'Tower2',
+          comment: '',
+          sysModel: undefined,
+          input: buildExpectedResumeInput('Tower2'),
+        });
       },
     },
     {
@@ -996,6 +1052,7 @@ describe('OnboardingSummaryStep', () => {
       scenario.caseName !== 'server identity description only'
     ) {
       expect(updateServerIdentityMock).not.toHaveBeenCalled();
+      expect(updateServerIdentityAndResumeMock).not.toHaveBeenCalled();
     }
     if (scenario.caseName !== 'timezone only') {
       expect(updateSystemTimeMock).not.toHaveBeenCalled();
@@ -1061,13 +1118,16 @@ describe('OnboardingSummaryStep', () => {
 
   it('advances to next steps before redirecting to the returned defaultUrl after a successful server rename', async () => {
     draftStore.serverName = 'Newtower';
-    updateServerIdentityMock.mockResolvedValue({
+    updateServerIdentityAndResumeMock.mockResolvedValue({
       data: {
         updateServerIdentity: {
           id: 'local',
           name: 'Newtower',
           comment: '',
           defaultUrl: 'https://Newtower.local:4443',
+        },
+        onboarding: {
+          saveOnboardingDraft: true,
         },
       },
     });
@@ -1079,10 +1139,11 @@ describe('OnboardingSummaryStep', () => {
 
     await clickApply(wrapper);
 
-    expect(updateServerIdentityMock).toHaveBeenCalledWith({
+    expect(updateServerIdentityAndResumeMock).toHaveBeenCalledWith({
       name: 'Newtower',
       comment: '',
       sysModel: undefined,
+      input: buildExpectedResumeInput('Newtower'),
     });
     expect(onComplete).not.toHaveBeenCalled();
     expect(getSummaryVm(wrapper).applyResultFollowUpMessage).toContain(
@@ -1115,13 +1176,16 @@ describe('OnboardingSummaryStep', () => {
 
   it('shows a loading state while waiting to reconnect after a successful server rename', async () => {
     draftStore.serverName = 'Newtower';
-    updateServerIdentityMock.mockResolvedValue({
+    updateServerIdentityAndResumeMock.mockResolvedValue({
       data: {
         updateServerIdentity: {
           id: 'local',
           name: 'Newtower',
           comment: '',
           defaultUrl: 'https://Newtower.local:4443',
+        },
+        onboarding: {
+          saveOnboardingDraft: true,
         },
       },
     });
@@ -1211,7 +1275,9 @@ describe('OnboardingSummaryStep', () => {
   it('prefers timeout result over warning classification when completion succeeds', async () => {
     draftStore.selectedPlugins = new Set(['community-apps']);
     draftStore.serverName = 'bad name!';
-    updateServerIdentityMock.mockRejectedValue(new Error('Server name contains invalid characters'));
+    updateServerIdentityAndResumeMock.mockRejectedValue(
+      new Error('Server name contains invalid characters')
+    );
     const timeoutError = new Error(
       'Timed out waiting for install operation plugin-op to finish'
     ) as Error & {
@@ -1229,7 +1295,9 @@ describe('OnboardingSummaryStep', () => {
 
   it('continues and classifies warnings when server identity mutation rejects invalid input', async () => {
     draftStore.serverName = 'bad name!';
-    updateServerIdentityMock.mockRejectedValue(new Error('Server name contains invalid characters'));
+    updateServerIdentityAndResumeMock.mockRejectedValue(
+      new Error('Server name contains invalid characters')
+    );
 
     const { wrapper } = mountComponent();
     await clickApply(wrapper);

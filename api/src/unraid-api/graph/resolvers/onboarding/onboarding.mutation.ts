@@ -125,8 +125,7 @@ export class OnboardingMutationsResolver {
         resource: Resource.WELCOME,
     })
     async saveOnboardingDraft(@Args('input') input: SaveOnboardingDraftInput): Promise<boolean> {
-        await this.onboardingService.saveOnboardingDraft(input);
-        return true;
+        return this.onboardingService.saveOnboardingDraft(input);
     }
 
     @ResolveField(() => OnboardingInternalBootResult, {

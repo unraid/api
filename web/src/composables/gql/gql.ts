@@ -85,6 +85,7 @@ type Documents = {
     "\n  mutation ResumeOnboarding {\n    onboarding {\n      resumeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": typeof types.ResumeOnboardingDocument,
     "\n  mutation SaveOnboardingDraft($input: SaveOnboardingDraftInput!) {\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n": typeof types.SaveOnboardingDraftDocument,
     "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": typeof types.TimeZoneOptionsDocument,
+    "\n  mutation UpdateServerIdentityAndResume(\n    $name: String!\n    $comment: String\n    $sysModel: String\n    $input: SaveOnboardingDraftInput!\n  ) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n": typeof types.UpdateServerIdentityAndResumeDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": typeof types.UpdateSystemTimeDocument,
     "\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n": typeof types.CreateRCloneRemoteDocument,
     "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": typeof types.DeleteRCloneRemoteDocument,
@@ -173,6 +174,7 @@ const documents: Documents = {
     "\n  mutation ResumeOnboarding {\n    onboarding {\n      resumeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": types.ResumeOnboardingDocument,
     "\n  mutation SaveOnboardingDraft($input: SaveOnboardingDraftInput!) {\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n": types.SaveOnboardingDraftDocument,
     "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": types.TimeZoneOptionsDocument,
+    "\n  mutation UpdateServerIdentityAndResume(\n    $name: String!\n    $comment: String\n    $sysModel: String\n    $input: SaveOnboardingDraftInput!\n  ) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n": types.UpdateServerIdentityAndResumeDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": types.UpdateSystemTimeDocument,
     "\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n": types.CreateRCloneRemoteDocument,
     "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": types.DeleteRCloneRemoteDocument,
@@ -488,6 +490,10 @@ export function graphql(source: "\n  mutation SaveOnboardingDraft($input: SaveOn
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n"): (typeof documents)["\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateServerIdentityAndResume(\n    $name: String!\n    $comment: String\n    $sysModel: String\n    $input: SaveOnboardingDraftInput!\n  ) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateServerIdentityAndResume(\n    $name: String!\n    $comment: String\n    $sysModel: String\n    $input: SaveOnboardingDraftInput!\n  ) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

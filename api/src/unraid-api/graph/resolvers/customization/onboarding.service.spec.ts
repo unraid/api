@@ -2027,5 +2027,26 @@ describe('OnboardingService - updateCfgFile', () => {
                 },
             });
         });
+
+        it('skips saving the onboarding draft when the expected server name does not match the live identity', async () => {
+            vi.spyOn(getters, 'emhttp').mockReturnValue({
+                ...getters.emhttp(),
+                nginx: {
+                    ...getters.emhttp().nginx,
+                    lanName: 'Tower',
+                },
+            });
+
+            await expect(
+                service.saveOnboardingDraft({
+                    navigation: {
+                        currentStepId: OnboardingWizardStepId.NEXT_STEPS,
+                    },
+                    expectedServerName: 'Cheese',
+                })
+            ).resolves.toBe(false);
+
+            expect(onboardingTrackerMock.saveDraft).not.toHaveBeenCalled();
+        });
     });
 });

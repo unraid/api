@@ -89,7 +89,7 @@ describe('OnboardingMutationsResolver', () => {
         onboardingService.openOnboarding.mockResolvedValue(undefined);
         onboardingService.bypassOnboarding.mockResolvedValue(undefined);
         onboardingService.resumeOnboarding.mockResolvedValue(undefined);
-        onboardingService.saveOnboardingDraft.mockResolvedValue(undefined);
+        onboardingService.saveOnboardingDraft.mockResolvedValue(true);
         onboardingService.getOnboardingResponse.mockResolvedValue(defaultOnboardingResponse);
 
         resolver = createResolver();

@@ -45,6 +45,7 @@ import {
 } from '@/components/Onboarding/graphql/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
+import { UPDATE_SERVER_IDENTITY_AND_RESUME_MUTATION } from '@/components/Onboarding/graphql/updateServerIdentityAndResume.mutation';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
 import { ONBOARDING_RESUME_STEP_QUERY_KEY } from '@/components/Onboarding/onboardingWizardState';
 import { convert } from 'convert';
@@ -58,7 +59,7 @@ import type {
 } from '@/components/Onboarding/onboardingWizardState';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
-import { PluginInstallStatus, ThemeName } from '~/composables/gql/graphql';
+import { OnboardingWizardStepId, PluginInstallStatus, ThemeName } from '~/composables/gql/graphql';
 
 export interface Props {
   draft: OnboardingWizardDraft;
@@ -89,6 +90,9 @@ const setInternalBootState = (state: Partial<OnboardingWizardInternalBootState>)
 // Setup Mutations
 const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
 const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTATION);
+const { mutate: updateServerIdentityAndResume } = useMutation(
+  UPDATE_SERVER_IDENTITY_AND_RESUME_MUTATION
+);
 const { mutate: setTheme } = useMutation(SET_THEME_MUTATION);
 const { mutate: setLocale } = useMutation(SET_LOCALE_MUTATION);
 const { mutate: updateSshSettings } = useMutation(UPDATE_SSH_SETTINGS_MUTATION);
@@ -364,6 +368,15 @@ const buildResumeUrl = (baseUrl: string, resumeStepId: string): string => {
   targetUrl.searchParams.set(ONBOARDING_RESUME_STEP_QUERY_KEY, resumeStepId);
   return targetUrl.toString();
 };
+
+const buildResumeDraftInput = (expectedServerName: string) => ({
+  draft: props.draft,
+  navigation: {
+    currentStepId: OnboardingWizardStepId.NEXT_STEPS,
+  },
+  internalBootState: props.internalBootState,
+  expectedServerName,
+});
 
 const isSshStateVerified = (
   vars: { useSsh?: boolean | null; portssh?: number | string | null } | undefined,
@@ -682,19 +695,38 @@ const handleComplete = async () => {
 
       addLog(summaryT('logs.updatingServerIdentity', { name: targetCoreSettings.serverName }), 'info');
       try {
-        const result = await runWithTransientNetworkRetry(
-          () =>
-            updateServerIdentity({
+        const result = await runWithTransientNetworkRetry(() => {
+          if (serverNameChanged) {
+            // Write the resume step on the same request as the rename so the
+            // server-owned tracker survives cert prompts and re-login.
+            return updateServerIdentityAndResume({
               name: targetCoreSettings.serverName,
               comment: targetCoreSettings.serverDescription,
               sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
-            }),
-          shouldRetryNetworkMutations
-        );
+              input: buildResumeDraftInput(targetCoreSettings.serverName),
+            });
+          }
+
+          return updateServerIdentity({
+            name: targetCoreSettings.serverName,
+            comment: targetCoreSettings.serverDescription,
+            sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
+          });
+        }, shouldRetryNetworkMutations);
         if (serverNameChanged) {
+          const renameResult = result?.data?.updateServerIdentity;
+          const saveOnboardingDraftResult =
+            result?.data && 'onboarding' in result.data
+              ? result.data.onboarding?.saveOnboardingDraft
+              : undefined;
+
+          if (saveOnboardingDraftResult === false) {
+            hadWarnings = true;
+            addLog(summaryT('logs.serverIdentityResumePending'), 'info');
+          }
           applyResultFollowUpMessage.value = summaryT('result.renameFollowUpMessage');
           const redirectBaseUrl = useReturnedDefaultUrlAfterRename
-            ? result?.data?.updateServerIdentity?.defaultUrl
+            ? renameResult?.defaultUrl
             : location.origin;
           if (!redirectBaseUrl) {
             throw new Error('Server rename succeeded but no redirect target was available');
