@@ -110,6 +110,9 @@ const { result: availableLanguagesResult } = useQuery(GET_AVAILABLE_LANGUAGES_QU
 });
 
 const draftPluginsCount = computed(() => draftPlugins.value.length);
+const hasActiveStorageBootSelection = computed(
+  () => draftInternalBoot.value.bootMode === 'storage' && draftInternalBoot.value.skipped !== true
+);
 
 const currentTimeZone = computed(() => {
   return (
@@ -155,8 +158,16 @@ const formatBytes = (bytes: number) => {
 };
 
 const toAppliedInternalBootSelection = (
-  selection: NonNullable<typeof internalBootSelection.value>
+  draft: OnboardingWizardDraft['internalBoot']
 ): InternalBootSelection | null => {
+  if (!draft || draft.bootMode !== 'storage' || draft.skipped === true) {
+    return null;
+  }
+
+  const selection = draft.selection;
+  if (!selection) {
+    return null;
+  }
   if (
     !selection.poolName ||
     typeof selection.slotCount !== 'number' ||
@@ -927,8 +938,8 @@ const handleComplete = async () => {
     }
 
     // 3. Internal boot setup
-    if (internalBootSelection.value) {
-      const selection = toAppliedInternalBootSelection(internalBootSelection.value);
+    if (hasActiveStorageBootSelection.value) {
+      const selection = toAppliedInternalBootSelection(draftInternalBoot.value);
       if (!selection) {
         throw new Error('Internal boot selection is incomplete');
       }

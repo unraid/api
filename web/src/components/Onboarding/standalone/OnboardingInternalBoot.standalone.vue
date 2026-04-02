@@ -185,9 +185,15 @@ const addLogs = (entries: Array<Omit<LogEntry, 'timestamp'>>) => {
 };
 
 const toInternalBootSelection = (draft: OnboardingInternalBootDraft): InternalBootSelection | null => {
+  if (draft.bootMode !== 'storage' || draft.skipped === true) {
+    return null;
+  }
+
   const selection = draft.selection;
+  if (!selection) {
+    return null;
+  }
   if (
-    !selection ||
     !selection.poolName ||
     typeof selection.slotCount !== 'number' ||
     !Array.isArray(selection.devices) ||
