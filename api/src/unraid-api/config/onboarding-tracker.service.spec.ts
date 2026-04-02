@@ -233,6 +233,43 @@ describe('OnboardingTrackerService tracker state availability', () => {
         });
     });
 
+    it('preserves persisted completion fields when a partial override only forces onboarding open', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        overrides.setState({
+            onboarding: {
+                forceOpen: true,
+            },
+        });
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+
+            return JSON.stringify({
+                completed: true,
+                completedAtVersion: '7.2.0',
+                forceOpen: false,
+                ...createEmptyWizardState(),
+            });
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(tracker.getStateResult()).resolves.toEqual({
+            kind: 'ok',
+            state: {
+                completed: true,
+                completedAtVersion: '7.2.0',
+                forceOpen: true,
+                ...createEmptyWizardState(),
+            },
+        });
+    });
+
     it('clears forceOpen when marking override-backed onboarding completed', async () => {
         const config = createConfigService();
         const overrides = new OnboardingOverrideService();
@@ -478,15 +515,21 @@ describe('OnboardingTrackerService tracker state availability', () => {
             })
         ).resolves.toEqual({
             completed: false,
-            completedAtVersion: undefined,
+            completedAtVersion: '7.1.0',
             forceOpen: true,
             draft: {
                 coreSettings: {
                     serverName: 'Tower',
+                    serverDescription: undefined,
+                    timeZone: undefined,
+                    theme: undefined,
+                    language: undefined,
+                    useSsh: undefined,
                 },
                 plugins: {
                     selectedIds: ['community.applications'],
                 },
+                internalBoot: undefined,
             },
             navigation: {
                 currentStepId: 'CONFIGURE_SETTINGS',
@@ -562,9 +605,20 @@ describe('OnboardingTrackerService tracker state availability', () => {
 
         await expect(tracker.clearWizardState()).resolves.toEqual({
             completed: false,
-            completedAtVersion: undefined,
+            completedAtVersion: '7.1.0',
             forceOpen: true,
-            ...createEmptyWizardState(),
+            draft: {
+                coreSettings: undefined,
+                plugins: undefined,
+                internalBoot: undefined,
+            },
+            navigation: {
+                currentStepId: undefined,
+            },
+            internalBootState: {
+                applyAttempted: false,
+                applySucceeded: false,
+            },
         });
 
         expect(mockAtomicWriteFile).toHaveBeenCalledTimes(1);
