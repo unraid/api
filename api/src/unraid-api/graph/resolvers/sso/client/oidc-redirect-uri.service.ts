@@ -1,6 +1,7 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
+import { RequestOriginInfo } from '@app/unraid-api/graph/resolvers/sso/utils/oidc-request-origin.util.js';
 import { validateRedirectUri } from '@app/unraid-api/utils/redirect-uri-validator.js';
 
 @Injectable()
@@ -10,12 +11,9 @@ export class OidcRedirectUriService {
 
     constructor(private readonly oidcConfig: OidcConfigPersistence) {}
 
-    async getRedirectUri(
-        requestOrigin: string,
-        requestHeaders: Record<string, string | string[] | undefined>
-    ): Promise<string> {
+    async getRedirectUri(requestOrigin: string, requestOriginInfo: RequestOriginInfo): Promise<string> {
         // Extract protocol and host from headers for validation
-        const { protocol, host } = this.getRequestOriginInfo(requestHeaders, requestOrigin);
+        const { protocol, host } = requestOriginInfo;
 
         // Get the global allowed origins from OIDC config
         const config = await this.oidcConfig.getConfig();
@@ -60,38 +58,5 @@ export class OidcRedirectUriService {
             );
             throw new UnauthorizedException('Invalid redirect_uri');
         }
-    }
-
-    private getRequestOriginInfo(
-        requestHeaders: Record<string, string | string[] | undefined>,
-        requestOrigin?: string
-    ): {
-        protocol: string;
-        host: string | undefined;
-    } {
-        // Extract protocol from x-forwarded-proto or infer from requestOrigin, default to http
-        const forwardedProto = requestHeaders['x-forwarded-proto'];
-        const protocol = forwardedProto
-            ? Array.isArray(forwardedProto)
-                ? forwardedProto[0]
-                : forwardedProto
-            : requestOrigin?.startsWith('https')
-              ? 'https'
-              : 'http';
-
-        // Extract host from x-forwarded-host or host header
-        const forwardedHost = requestHeaders['x-forwarded-host'];
-        const hostHeader = requestHeaders['host'];
-        const host = forwardedHost
-            ? Array.isArray(forwardedHost)
-                ? forwardedHost[0]
-                : forwardedHost
-            : hostHeader
-              ? Array.isArray(hostHeader)
-                  ? hostHeader[0]
-                  : hostHeader
-              : undefined;
-
-        return { protocol, host };
     }
 }

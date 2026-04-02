@@ -17,13 +17,20 @@ describe('RestController', () => {
     let oidcConfig: OidcConfigPersistence;
     let mockReply: Partial<FastifyReply>;
 
-    // Helper function to create a mock request with the desired hostname
-    const createMockRequest = (hostname?: string, headers: Record<string, any> = {}): FastifyRequest => {
+    const createMockRequest = (
+        hostname?: string,
+        headers: Record<string, any> = {},
+        options: {
+            host?: string;
+            protocol?: string;
+        } = {}
+    ): FastifyRequest => {
         return {
             headers,
             hostname,
+            host: options.host ?? hostname ?? headers.host,
             url: '/test',
-            protocol: 'https',
+            protocol: options.protocol ?? 'https',
         } as FastifyRequest;
     };
 
@@ -191,6 +198,58 @@ describe('RestController', () => {
                 expect(OidcRequestHandler.handleAuthorize).toHaveBeenCalled();
             });
 
+            it('should handle proxied requests using trusted Fastify request values', async () => {
+                const mockRequest = createMockRequest(
+                    undefined,
+                    {
+                        'x-forwarded-proto': 'https, http',
+                        'x-forwarded-host': 'nas.mydomain.com, 10.0.0.15',
+                        host: '127.0.0.1:3001',
+                    },
+                    {
+                        host: 'nas.mydomain.com',
+                        protocol: 'https',
+                    }
+                );
+
+                await controller.oidcAuthorize(
+                    'test-provider',
+                    'test-state',
+                    'https://nas.mydomain.com/graphql/api/auth/oidc/callback',
+                    mockRequest,
+                    mockReply as FastifyReply
+                );
+
+                expect(mockReply.status).toHaveBeenCalledWith(302);
+                expect(OidcRequestHandler.handleAuthorize).toHaveBeenCalled();
+            });
+
+            it('should handle trusted request values with explicit proxy chains present', async () => {
+                const mockRequest = createMockRequest(
+                    undefined,
+                    {
+                        'x-forwarded-proto': ['https', 'http'],
+                        'x-forwarded-host': ['nas.mydomain.com', '10.0.0.15'],
+                        host: '127.0.0.1:3001',
+                    },
+                    {
+                        host: 'nas.mydomain.com',
+                        protocol: 'https',
+                    }
+                );
+
+                await controller.oidcAuthorize(
+                    'test-provider',
+                    'test-state',
+                    'https://nas.mydomain.com/graphql/api/auth/oidc/callback',
+                    mockRequest,
+                    mockReply as FastifyReply
+                );
+
+                expect(mockReply.status).toHaveBeenCalledWith(302);
+                expect(OidcRequestHandler.handleAuthorize).toHaveBeenCalled();
+            });
+
             it('should reject malformed redirect_uri', async () => {
                 const mockRequest = createMockRequest('unraid.mytailnet.ts.net');
 
@@ -249,7 +308,7 @@ describe('RestController', () => {
             });
 
             it('should allow localhost with different ports', async () => {
-                const mockRequest = createMockRequest('localhost');
+                const mockRequest = createMockRequest('localhost', {}, { protocol: 'http' });
 
                 await controller.oidcAuthorize(
                     'test-provider',
@@ -271,7 +330,7 @@ describe('RestController', () => {
             });
 
             it('should allow IP addresses with different ports', async () => {
-                const mockRequest = createMockRequest('192.168.1.100');
+                const mockRequest = createMockRequest('192.168.1.100', {}, { protocol: 'http' });
 
                 await controller.oidcAuthorize(
                     'test-provider',
@@ -344,12 +403,14 @@ describe('RestController', () => {
                             shouldSucceed: true,
                         },
                         {
-                            name: 'respects protocol and hostname from headers',
+                            name: 'respects protocol and hostname from trusted request values',
                             requestHost: undefined,
                             headers: {
                                 'x-forwarded-proto': 'https',
                                 'x-forwarded-host': 'proxy.local',
                             },
+                            trustedHost: 'proxy.local',
+                            trustedProtocol: 'https',
                             redirectUri: 'https://proxy.local/graphql/api/auth/oidc/callback',
                             allowedOrigins: [],
                             expectedStatus: 302,
@@ -363,7 +424,11 @@ describe('RestController', () => {
 
                         const mockRequest = createMockRequest(
                             testCase.requestHost,
-                            testCase.headers || {}
+                            testCase.headers || {},
+                            {
+                                host: testCase.trustedHost,
+                                protocol: testCase.trustedProtocol,
+                            }
                         );
 
                         vi.mocked(oidcConfig.getConfig).mockResolvedValueOnce({

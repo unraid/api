@@ -134,12 +134,16 @@ describe('OidcService Integration', () => {
                 providerId: 'custom-provider',
                 state: 'client-state-123',
                 requestOrigin: 'https://example.com',
-                requestHeaders: { host: 'example.com' },
+                requestOriginInfo: {
+                    protocol: 'https',
+                    host: 'example.com',
+                },
             };
 
             const url = await service.getAuthorizationUrl(params);
 
             expect(redirectUriService.getRedirectUri).toHaveBeenCalledWith('https://example.com', {
+                protocol: 'https',
                 host: 'example.com',
             });
 
@@ -177,7 +181,10 @@ describe('OidcService Integration', () => {
                 providerId: 'discovery-provider',
                 state: 'client-state-123',
                 requestOrigin: 'https://example.com',
-                requestHeaders: {},
+                requestOriginInfo: {
+                    protocol: 'https',
+                    host: 'example.com',
+                },
             };
 
             const url = await service.getAuthorizationUrl(params);
@@ -193,7 +200,10 @@ describe('OidcService Integration', () => {
                 providerId: 'non-existent',
                 state: 'state',
                 requestOrigin: 'https://example.com',
-                requestHeaders: {},
+                requestOriginInfo: {
+                    protocol: 'https',
+                    host: 'example.com',
+                },
             };
 
             await expect(service.getAuthorizationUrl(params)).rejects.toThrow(UnauthorizedException);

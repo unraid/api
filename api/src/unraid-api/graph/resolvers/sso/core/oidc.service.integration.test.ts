@@ -248,7 +248,10 @@ describe('OidcService Integration Tests - Enhanced Logging', () => {
                     providerId: 'auth-url-test',
                     state: 'test-state',
                     requestOrigin: 'http://test.local',
-                    requestHeaders: { host: 'test.local' },
+                    requestOriginInfo: {
+                        protocol: 'http',
+                        host: 'test.local',
+                    },
                 });
 
                 // Verify URL building logs
@@ -278,9 +281,9 @@ describe('OidcService Integration Tests - Enhanced Logging', () => {
                 providerId: 'manual-endpoints',
                 state: 'test-state',
                 requestOrigin: 'http://test.local',
-                requestHeaders: {
-                    'x-forwarded-host': 'test.local',
-                    'x-forwarded-proto': 'http',
+                requestOriginInfo: {
+                    protocol: 'http',
+                    host: 'test.local',
                 },
             });
 

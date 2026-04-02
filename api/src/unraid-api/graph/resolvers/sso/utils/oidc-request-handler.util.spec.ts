@@ -19,13 +19,12 @@ describe('OidcRequestHandler', () => {
     });
 
     describe('extractRequestInfo', () => {
-        it('should extract request info from headers', () => {
+        it('should extract request info from trusted Fastify request values', () => {
             const mockReq = {
-                headers: {
-                    'x-forwarded-proto': 'https',
-                    'x-forwarded-host': 'example.com:8443',
-                },
-                protocol: 'http',
+                headers: {},
+                protocol: 'https',
+                host: 'example.com:8443',
+                hostname: 'example.com',
                 url: '/callback?code=123&state=456',
             } as unknown as FastifyRequest;
 
@@ -37,12 +36,11 @@ describe('OidcRequestHandler', () => {
             expect(result.baseUrl).toBe('https://example.com:8443');
         });
 
-        it('should fall back to request properties when headers are missing', () => {
+        it('should fall back to request hostname when host is missing', () => {
             const mockReq = {
-                headers: {
-                    host: 'localhost:3000',
-                },
+                headers: {},
                 protocol: 'http',
+                hostname: 'localhost:3000',
                 url: '/callback?code=123&state=456',
             } as FastifyRequest;
 
@@ -57,6 +55,7 @@ describe('OidcRequestHandler', () => {
         it('should use defaults when all headers are missing', () => {
             const mockReq = {
                 headers: {},
+                protocol: 'http',
                 url: '/callback?code=123&state=456',
             } as FastifyRequest;
 
@@ -151,7 +150,10 @@ describe('OidcRequestHandler', () => {
             };
 
             const mockReq = {
-                headers: { 'x-forwarded-proto': 'https', 'x-forwarded-host': 'example.com' },
+                headers: {},
+                protocol: 'https',
+                host: 'example.com',
+                hostname: 'example.com',
                 url: '/authorize',
             } as unknown as FastifyRequest;
 
@@ -169,9 +171,9 @@ describe('OidcRequestHandler', () => {
                 providerId: 'provider123',
                 state: 'state456',
                 requestOrigin: 'https://example.com/callback',
-                requestHeaders: {
-                    'x-forwarded-proto': 'https',
-                    'x-forwarded-host': 'example.com',
+                requestOriginInfo: {
+                    protocol: 'https',
+                    host: 'example.com',
                 },
             });
             expect(mockLogger.debug).toHaveBeenCalledWith(
@@ -194,9 +196,15 @@ describe('OidcRequestHandler', () => {
                 handleCallback: vi.fn().mockResolvedValue('paddedToken123'),
             };
 
-            const mockReq: Pick<FastifyRequest, 'id' | 'headers' | 'url'> = {
+            const mockReq: Pick<
+                FastifyRequest,
+                'id' | 'headers' | 'url' | 'protocol' | 'host' | 'hostname'
+            > = {
                 id: '123',
-                headers: { 'x-forwarded-proto': 'https', 'x-forwarded-host': 'example.com' },
+                headers: {},
+                protocol: 'https',
+                host: 'example.com',
+                hostname: 'example.com',
                 url: '/callback?code=123&state=456',
             };
 
@@ -217,10 +225,7 @@ describe('OidcRequestHandler', () => {
                 state: 'state456',
                 requestOrigin: 'https://example.com',
                 fullCallbackUrl: 'https://example.com/callback?code=123&state=456',
-                requestHeaders: {
-                    'x-forwarded-proto': 'https',
-                    'x-forwarded-host': 'example.com',
-                },
+                requestHeaders: {},
             });
             expect(mockLogger.debug).toHaveBeenCalledWith('Callback request - Provider: provider123');
         });
