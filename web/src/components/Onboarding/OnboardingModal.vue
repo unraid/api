@@ -379,6 +379,10 @@ const transitionByOffset = async (offset: number) => {
 };
 
 const goToStep = (stepIndex: number) => {
+  if (isSavingTransition.value) {
+    return;
+  }
+
   if (isInternalBootLocked.value && stepIndex < currentDynamicStepIndex.value) {
     return;
   }

@@ -20,6 +20,7 @@ const {
   themeStore,
   saveOnboardingDraftMock,
   cleanupOnboardingStorageMock,
+  stepperPropsRef,
 } = vi.hoisted(() => ({
   wizardRef: {
     value: {
@@ -59,6 +60,7 @@ const {
   },
   saveOnboardingDraftMock: vi.fn(),
   cleanupOnboardingStorageMock: vi.fn(),
+  stepperPropsRef: { value: null as Record<string, unknown> | null },
 }));
 
 vi.mock('pinia', async (importOriginal) => {
@@ -93,9 +95,15 @@ vi.mock('~/components/Onboarding/components/OnboardingLoadingState.vue', () => (
 
 vi.mock('~/components/Onboarding/OnboardingSteps.vue', () => ({
   default: {
-    props: ['steps', 'activeStepIndex'],
-    template:
-      '<div data-testid="onboarding-steps">{{ steps.map((step) => step.id).join(",") }}|{{ activeStepIndex }}</div>',
+    props: ['steps', 'activeStepIndex', 'onStepClick'],
+    setup(props: Record<string, unknown>) {
+      stepperPropsRef.value = props;
+      return { props };
+    },
+    template: `
+      <div data-testid="onboarding-steps">{{ props.steps.map((step) => step.id).join(",") }}|{{ props.activeStepIndex }}</div>
+      <button data-testid="onboarding-steps-click-0" @click="props.onStepClick?.(0)">step-0</button>
+    `,
   },
 }));
 
@@ -259,6 +267,17 @@ const mountComponent = () =>
 
 const findButtonByText = (wrapper: ReturnType<typeof mountComponent>, text: string) =>
   wrapper.findAll('button').find((button) => button.text().trim().toLowerCase() === text.toLowerCase());
+
+const createDeferred = <T>() => {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((innerResolve, innerReject) => {
+    resolve = innerResolve;
+    reject = innerReject;
+  });
+
+  return { promise, resolve, reject };
+};
 
 describe('OnboardingModal.vue', () => {
   beforeEach(() => {
@@ -435,6 +454,47 @@ describe('OnboardingModal.vue', () => {
         },
       },
     });
+    expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
+  });
+
+  it('ignores stepper navigation while a transition save is still in flight', async () => {
+    wizardRef.value = {
+      currentStepId: 'CONFIGURE_SETTINGS',
+      visibleStepIds: ['OVERVIEW', 'CONFIGURE_SETTINGS', 'ADD_PLUGINS', 'SUMMARY'],
+      draft: {},
+      internalBootState: {
+        applyAttempted: false,
+        applySucceeded: false,
+      },
+    };
+
+    const deferred = createDeferred<{ data: { onboarding: { saveOnboardingDraft: boolean } } }>();
+    saveOnboardingDraftMock.mockReturnValueOnce(deferred.promise);
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="settings-step-complete"]').trigger('click');
+    await flushPromises();
+
+    expect(saveOnboardingDraftMock).toHaveBeenCalledTimes(1);
+    expect(wrapper.find('[data-testid="settings-step"]').exists()).toBe(true);
+
+    await wrapper.get('[data-testid="onboarding-steps-click-0"]').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="settings-step"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="overview-step"]').exists()).toBe(false);
+
+    deferred.resolve({
+      data: {
+        onboarding: {
+          saveOnboardingDraft: true,
+        },
+      },
+    });
+    await flushPromises();
+
     expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
   });
 
