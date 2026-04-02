@@ -153,13 +153,14 @@ const normalizeInternalBootSelection = (value: unknown): OnboardingInternalBootS
     const candidate = value as Record<string, unknown>;
     const parsedSlotCount = Number(candidate.slotCount);
     const parsedBootSize = Number(candidate.bootSizeMiB);
+    const slotCount = Number.isFinite(parsedSlotCount)
+        ? Math.max(1, Math.min(2, parsedSlotCount))
+        : undefined;
 
     return {
         poolName: normalizeString(candidate.poolName),
-        slotCount: Number.isFinite(parsedSlotCount)
-            ? Math.max(1, Math.min(2, parsedSlotCount))
-            : undefined,
-        devices: normalizeBootDeviceArray(candidate.devices),
+        slotCount,
+        devices: normalizeBootDeviceArray(candidate.devices).slice(0, slotCount ?? 2),
         bootSizeMiB: Number.isFinite(parsedBootSize) ? Math.max(0, parsedBootSize) : undefined,
         updateBios: normalizeBoolean(candidate.updateBios, false),
         poolMode: normalizePoolMode(candidate.poolMode),
