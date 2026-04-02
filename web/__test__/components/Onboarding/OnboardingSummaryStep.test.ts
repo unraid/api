@@ -134,6 +134,7 @@ const createBootDevice = (id: string, sizeBytes: number, deviceName: string) => 
 });
 
 const mockLocation = {
+  origin: 'https://tower.local:4443',
   hostname: 'tower.local',
   pathname: '/',
   search: '',
@@ -462,6 +463,7 @@ describe('OnboardingSummaryStep', () => {
     vi.clearAllMocks();
     document.body.innerHTML = '';
     setupApolloMocks();
+    mockLocation.origin = 'https://tower.local:4443';
     mockLocation.hostname = 'tower.local';
     mockLocation.pathname = '/';
     mockLocation.search = '';
@@ -1092,9 +1094,9 @@ describe('OnboardingSummaryStep', () => {
 
     await clickButtonByText(wrapper, 'OK');
 
-    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onComplete).not.toHaveBeenCalled();
     expect(mockLocation.replace).toHaveBeenCalledWith(
-      'https://newtower.local:4443/Dashboard?foo=bar#section'
+      'https://newtower.local:4443/Dashboard?foo=bar&onboardingResumeStep=NEXT_STEPS#section'
     );
     expect(mockLocation.reload).not.toHaveBeenCalled();
   });
@@ -1124,15 +1126,7 @@ describe('OnboardingSummaryStep', () => {
       },
     });
 
-    let resolveOnComplete: (() => void) | undefined;
-    const onComplete = vi.fn(
-      () =>
-        new Promise<void>((resolve) => {
-          resolveOnComplete = resolve;
-        })
-    );
-
-    const { wrapper } = mountComponent({ onComplete });
+    const { wrapper, onComplete } = mountComponent();
 
     await clickApply(wrapper);
 
@@ -1144,19 +1138,21 @@ describe('OnboardingSummaryStep', () => {
     expect(wrapper.text()).toContain(
       'Your server name has been updated. The page may reload or prompt you to sign in again.'
     );
-    expect(mockLocation.replace).not.toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(mockLocation.replace).toHaveBeenCalledWith(
+      'https://newtower.local:4443/?onboardingResumeStep=NEXT_STEPS'
+    );
     expect(mockLocation.reload).not.toHaveBeenCalled();
 
-    resolveOnComplete?.();
     await confirmPromise;
     await flushPromises();
 
-    expect(onComplete).toHaveBeenCalledTimes(1);
-    expect(mockLocation.replace).toHaveBeenCalledWith('https://newtower.local:4443/');
+    expect(onComplete).not.toHaveBeenCalled();
   });
 
   it('reloads the current page instead of redirecting when the user is on an IP-based URL', async () => {
     draftStore.serverName = 'Newtower';
+    mockLocation.origin = 'http://192.168.1.2';
     mockLocation.hostname = '192.168.1.2';
     mockLocation.pathname = '/Dashboard';
     mockLocation.search = '?foo=bar';
@@ -1167,9 +1163,11 @@ describe('OnboardingSummaryStep', () => {
     await clickApply(wrapper);
     await clickButtonByText(wrapper, 'OK');
 
-    expect(onComplete).toHaveBeenCalledTimes(1);
-    expect(mockLocation.reload).toHaveBeenCalledTimes(1);
-    expect(mockLocation.replace).not.toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(mockLocation.reload).not.toHaveBeenCalled();
+    expect(mockLocation.replace).toHaveBeenCalledWith(
+      'http://192.168.1.2/Dashboard?foo=bar&onboardingResumeStep=NEXT_STEPS#section'
+    );
   });
 
   it('retries final identity update after transient network errors when SSH changed', async () => {

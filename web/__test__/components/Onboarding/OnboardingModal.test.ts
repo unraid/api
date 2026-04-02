@@ -321,6 +321,7 @@ const createDeferred = <T>() => {
 describe('OnboardingModal.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.history.replaceState({}, '', 'http://localhost:3000/');
     onboardingModalStoreState.isVisible.value = true;
     onboardingModalStoreState.sessionSource.value = 'automatic';
     onboardingStatusStore.canDisplayOnboardingModal.value = true;

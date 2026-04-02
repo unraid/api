@@ -29,6 +29,7 @@ import {
   createEmptyOnboardingWizardDraft,
   createEmptyOnboardingWizardInternalBootState,
   normalizeOnboardingWizardDraft,
+  ONBOARDING_RESUME_STEP_QUERY_KEY,
 } from '~/components/Onboarding/onboardingWizardState';
 import { STEP_IDS, stepComponents } from '~/components/Onboarding/stepRegistry.js';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
@@ -71,6 +72,7 @@ const localInternalBootState = ref<OnboardingWizardInternalBootState>(
 const hasHydratedWizardState = ref(false);
 const isSavingTransition = ref(false);
 const saveTransitionError = ref<string | null>(null);
+const isPersistingResumeStep = ref(false);
 const isInternalBootLocked = computed(() => localInternalBootState.value.applyAttempted);
 
 onMounted(async () => {
@@ -200,6 +202,7 @@ const hydrateLocalWizardState = () => {
   };
   saveTransitionError.value = null;
   hasHydratedWizardState.value = true;
+  applyResumeStepIfNeeded();
 };
 
 const getNearestVisibleStepId = (stepId: StepId): StepId | null => {
@@ -223,6 +226,80 @@ const getNearestVisibleStepId = (stepId: StepId): StepId | null => {
   }
 
   return availableSteps.value[0] ?? null;
+};
+
+const getResumeStepIdFromLocation = (): StepId | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return normalizeStepId(
+    new URL(window.location.href).searchParams.get(ONBOARDING_RESUME_STEP_QUERY_KEY)
+  );
+};
+
+const clearResumeStepIdFromLocation = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has(ONBOARDING_RESUME_STEP_QUERY_KEY)) {
+    return;
+  }
+
+  url.searchParams.delete(ONBOARDING_RESUME_STEP_QUERY_KEY);
+  window.history.replaceState(window.history.state, '', url.toString());
+};
+
+const shouldResumeToStep = (resumeStepId: StepId, currentStepId: StepId | null): boolean => {
+  if (!availableSteps.value.includes(resumeStepId)) {
+    return false;
+  }
+
+  if (!currentStepId) {
+    return true;
+  }
+
+  const currentIndex = STEP_ORDER.indexOf(currentStepId);
+  const resumeIndex = STEP_ORDER.indexOf(resumeStepId);
+  return resumeIndex >= 0 && (currentIndex < 0 || resumeIndex > currentIndex);
+};
+
+const persistResumeStepTransition = async (resumeStepId: StepId) => {
+  if (isPersistingResumeStep.value) {
+    return;
+  }
+
+  isPersistingResumeStep.value = true;
+  try {
+    const result = await saveOnboardingDraftMutation(buildSaveInput(resumeStepId));
+    if (!result?.data?.onboarding?.saveOnboardingDraft) {
+      throw new Error('saveOnboardingDraft returned false');
+    }
+
+    clearResumeStepIdFromLocation();
+  } catch (error) {
+    console.error('Failed to persist onboarding resume step:', error);
+  } finally {
+    isPersistingResumeStep.value = false;
+  }
+};
+
+const applyResumeStepIfNeeded = () => {
+  const resumeStepId = getResumeStepIdFromLocation();
+  if (!resumeStepId) {
+    return;
+  }
+
+  const persistedStepId = normalizeStepId(wizard.value?.currentStepId) ?? localCurrentStepId.value;
+  if (!shouldResumeToStep(resumeStepId, persistedStepId)) {
+    clearResumeStepIdFromLocation();
+    return;
+  }
+
+  localCurrentStepId.value = resumeStepId;
+  void persistResumeStepTransition(resumeStepId);
 };
 
 const currentStep = computed<StepId | null>(() => {
@@ -667,6 +744,7 @@ watch(
     if (!visible) {
       clearHistorySession();
       hasHydratedWizardState.value = false;
+      isPersistingResumeStep.value = false;
       saveTransitionError.value = null;
     }
   },

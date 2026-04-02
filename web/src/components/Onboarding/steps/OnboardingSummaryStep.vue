@@ -46,6 +46,7 @@ import {
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
+import { ONBOARDING_RESUME_STEP_QUERY_KEY } from '@/components/Onboarding/onboardingWizardState';
 import { convert } from 'convert';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
@@ -357,9 +358,11 @@ const shouldRedirectAfterRename = (hostname: string): boolean => {
   return !isIpv4Literal(normalizedHostname) && !isIpv6Literal(normalizedHostname);
 };
 
-const buildRenameRedirectUrl = (defaultUrl: string): string => {
+const buildResumeUrl = (baseUrl: string, resumeStepId: string): string => {
   const currentPath = `${location.pathname}${location.search}${location.hash}`;
-  return new URL(currentPath, defaultUrl).toString();
+  const targetUrl = new URL(currentPath, baseUrl);
+  targetUrl.searchParams.set(ONBOARDING_RESUME_STEP_QUERY_KEY, resumeStepId);
+  return targetUrl.toString();
 };
 
 const isSshStateVerified = (
@@ -690,15 +693,14 @@ const handleComplete = async () => {
         );
         if (serverNameChanged) {
           applyResultFollowUpMessage.value = summaryT('result.renameFollowUpMessage');
-          if (useReturnedDefaultUrlAfterRename) {
-            const defaultUrl = result?.data?.updateServerIdentity?.defaultUrl;
-            if (!defaultUrl) {
-              throw new Error('Server rename succeeded but no defaultUrl was returned');
-            }
-
-            redirectUrlAfterApplyResult.value = buildRenameRedirectUrl(defaultUrl);
+          const redirectBaseUrl = useReturnedDefaultUrlAfterRename
+            ? result?.data?.updateServerIdentity?.defaultUrl
+            : location.origin;
+          if (!redirectBaseUrl) {
+            throw new Error('Server rename succeeded but no redirect target was available');
           }
 
+          redirectUrlAfterApplyResult.value = buildResumeUrl(redirectBaseUrl, 'NEXT_STEPS');
           shouldReloadAfterApplyResult.value = true;
         }
         addLog(summaryT('logs.serverIdentityUpdated'), 'success');
@@ -1096,17 +1098,21 @@ const handleApplyResultConfirm = async () => {
   const redirectUrl = redirectUrlAfterApplyResult.value;
   shouldReloadAfterApplyResult.value = false;
   redirectUrlAfterApplyResult.value = null;
+  let navigationTriggered = false;
   try {
-    await Promise.resolve(props.onComplete());
     await nextTick();
     if (redirectUrl) {
+      navigationTriggered = true;
       location.replace(redirectUrl);
       return;
     }
 
+    navigationTriggered = true;
     location.reload();
   } finally {
-    isTransitioningAfterApplyResult.value = false;
+    if (!navigationTriggered) {
+      isTransitioningAfterApplyResult.value = false;
+    }
   }
 };
 
