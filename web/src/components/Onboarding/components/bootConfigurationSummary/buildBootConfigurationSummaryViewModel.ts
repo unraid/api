@@ -125,10 +125,6 @@ export const buildBootConfigurationSummaryViewModel = (
   }
 
   if (bootMode === 'usb') {
-    if (selection) {
-      return { kind: 'invalid', reason: 'UNEXPECTED_USB_SELECTION' };
-    }
-
     return {
       kind: 'ready',
       summary: {

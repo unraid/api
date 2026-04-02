@@ -1283,6 +1283,27 @@ describe('OnboardingSummaryStep', () => {
     expect(applyInternalBootSelectionMock).not.toHaveBeenCalled();
   });
 
+  it('ignores stale storage selection data when internal boot is now usb', async () => {
+    draftStore.bootMode = 'usb';
+    draftStore.internalBootSkipped = false;
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
+      bootSizeMiB: 16384,
+      updateBios: true,
+      poolMode: 'hybrid',
+    };
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(applyInternalBootSelectionMock).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('Boot Method');
+    expect(wrapper.text()).toContain('USB/Flash Drive');
+    expect(wrapper.text()).toContain('Setup Applied');
+  });
+
   it('applies internal boot configuration without reboot and records success', async () => {
     draftStore.bootMode = 'storage';
     draftStore.internalBootSelection = {

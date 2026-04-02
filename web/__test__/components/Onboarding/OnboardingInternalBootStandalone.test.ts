@@ -286,6 +286,29 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     });
   });
 
+  it('ignores stale storage selection data when the current draft is usb', async () => {
+    configureDraftState.value = {
+      bootMode: 'usb',
+      skipped: false,
+      selection: {
+        poolName: 'cache',
+        slotCount: 1,
+        devices: [createBootDevice('DISK-A', 500 * 1024 * 1024 * 1024, 'sda')],
+        bootSizeMiB: 16384,
+        updateBios: true,
+        poolMode: 'hybrid',
+      },
+    };
+
+    const wrapper = mountComponent();
+
+    await advanceToSummary(wrapper);
+    await confirmAndApply(wrapper);
+
+    expect(applyInternalBootSelectionMock).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('No Updates Needed');
+  });
+
   it('applies the selected internal boot configuration and records success', async () => {
     configureDraftState.value = {
       bootMode: 'storage',
