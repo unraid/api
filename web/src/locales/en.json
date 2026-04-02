@@ -260,6 +260,8 @@
   "onboarding.summaryStep.bootConfig.bootReserved": "Boot Reserved",
   "onboarding.summaryStep.bootConfig.updateBios": "Update BIOS",
   "onboarding.summaryStep.bootConfig.devices": "Devices",
+  "onboarding.summaryStep.bootConfig.invalid": "This boot configuration is incomplete. Go back to Configure Boot to review it before applying changes.",
+  "onboarding.summaryStep.bootConfig.invalidStandalone": "Your boot configuration is incomplete. Go back and review the boot settings before applying changes.",
   "onboarding.summaryStep.systemSetupLog": "System Setup Log",
   "onboarding.summaryStep.readinessWarning": "We couldn't verify current settings from the server. You can still continue, but setup will apply changes in best-effort mode.",
   "onboarding.summaryStep.driveWipe.title": "Confirm Drive Wipe",

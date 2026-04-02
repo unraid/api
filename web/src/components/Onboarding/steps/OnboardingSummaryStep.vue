@@ -494,8 +494,7 @@ const bootConfigurationSummaryState = computed(() =>
 const hasInvalidBootConfiguration = computed(
   () => bootConfigurationSummaryState.value.kind === 'invalid'
 );
-const bootConfigurationInvalidMessage =
-  'This boot configuration is incomplete. Go back to Configure Boot to review it before applying changes.';
+const bootConfigurationInvalidMessage = computed(() => summaryT('bootConfig.invalid'));
 const applyReadinessTimedOut = ref(false);
 const APPLY_READINESS_TIMEOUT_MS = 10000;
 let applyReadinessTimer: ReturnType<typeof setTimeout> | null = null;
