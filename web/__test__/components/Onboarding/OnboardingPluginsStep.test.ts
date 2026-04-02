@@ -69,9 +69,12 @@ describe('OnboardingPluginsStep', () => {
       onComplete: vi.fn(),
       onBack: vi.fn(),
       onSkip: vi.fn(),
-      initialDraft: {
-        selectedIds: Array.from(draftStore.selectedPlugins),
-      },
+      initialDraft:
+        draftStore.selectedPlugins.size > 0
+          ? {
+              selectedIds: Array.from(draftStore.selectedPlugins),
+            }
+          : undefined,
       showBack: true,
       showSkip: true,
       ...overrides,
@@ -221,5 +224,21 @@ describe('OnboardingPluginsStep', () => {
       selectedIds: ['fix-common-problems'],
     });
     expect(props.onComplete).not.toHaveBeenCalled();
+  });
+
+  it('preserves an explicit empty plugin selection instead of restoring defaults', async () => {
+    const { wrapper } = mountComponent({
+      initialDraft: {
+        selectedIds: [],
+      },
+    });
+
+    await flushPromises();
+
+    const switches = wrapper.findAll('[role="switch"]');
+    expect(switches.length).toBe(3);
+    expect(switches[0].attributes('data-state')).toBe('unchecked');
+    expect(switches[1].attributes('data-state')).toBe('unchecked');
+    expect(switches[2].attributes('data-state')).toBe('unchecked');
   });
 });
