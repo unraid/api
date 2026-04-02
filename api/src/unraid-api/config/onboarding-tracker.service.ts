@@ -311,9 +311,10 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         if (overrideState?.onboarding !== undefined) {
             return {
                 ...baseState,
-                completed: overrideState.onboarding.completed ?? false,
-                completedAtVersion: overrideState.onboarding.completedAtVersion ?? undefined,
-                forceOpen: overrideState.onboarding.forceOpen ?? false,
+                completed: overrideState.onboarding.completed ?? baseState.completed,
+                completedAtVersion:
+                    overrideState.onboarding.completedAtVersion ?? baseState.completedAtVersion,
+                forceOpen: overrideState.onboarding.forceOpen ?? baseState.forceOpen,
             };
         }
 
