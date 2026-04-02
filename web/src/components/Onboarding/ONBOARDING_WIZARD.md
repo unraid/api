@@ -50,7 +50,33 @@ How those fields are determined:
 
 ### Server State
 
-`api/src/unraid-api/config/onboarding-tracker.json` stores the durable wizard state:
+`api/src/unraid-api/config/onboarding-tracker.json` stores the durable wizard state.
+
+The draft is intentionally sparse:
+
+- a fresh/cleared tracker uses `draft: {}`
+- `coreSettings`, `plugins`, and `internalBoot` appear only after that slice is actually written
+- omitted sections are meaningful and should not be treated as preinitialized empty objects
+
+Empty/sparse example:
+
+```json
+{
+  "completed": false,
+  "completedAtVersion": null,
+  "forceOpen": false,
+  "draft": {},
+  "navigation": {
+    "currentStepId": "CONFIGURE_SETTINGS"
+  },
+  "internalBootState": {
+    "applyAttempted": false,
+    "applySucceeded": false
+  }
+}
+```
+
+Example with saved draft data:
 
 ```json
 {
@@ -58,12 +84,35 @@ How those fields are determined:
   "completedAtVersion": null,
   "forceOpen": false,
   "draft": {
-    "coreSettings": {},
-    "plugins": {},
-    "internalBoot": {}
+    "coreSettings": {
+      "serverName": "Tower",
+      "timeZone": "America/New_York",
+      "theme": "white"
+    },
+    "plugins": {
+      "selectedIds": []
+    },
+    "internalBoot": {
+      "bootMode": "storage",
+      "skipped": false,
+      "selection": {
+        "poolName": "cache",
+        "slotCount": 1,
+        "devices": [
+          {
+            "id": "DISK-A",
+            "sizeBytes": 512110190592,
+            "deviceName": "sda"
+          }
+        ],
+        "bootSizeMiB": 16384,
+        "updateBios": true,
+        "poolMode": "hybrid"
+      }
+    }
   },
   "navigation": {
-    "currentStepId": "CONFIGURE_SETTINGS"
+    "currentStepId": "SUMMARY"
   },
   "internalBootState": {
     "applyAttempted": false,
