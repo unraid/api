@@ -12,16 +12,12 @@ import { AvahiService } from '@app/unraid-api/avahi/avahi.service.js';
 import { ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { buildServerResponse } from '@app/unraid-api/graph/resolvers/servers/build-server-response.js';
 import { Server } from '@app/unraid-api/graph/resolvers/servers/server.model.js';
-import { NginxService } from '@app/unraid-api/nginx/nginx.service.js';
 
 @Injectable()
 export class ServerService {
     private readonly logger = new Logger(ServerService.name);
 
-    constructor(
-        private readonly avahiService: AvahiService,
-        private readonly nginxService: NginxService
-    ) {}
+    constructor(private readonly avahiService: AvahiService) {}
 
     private async readPersistedIdentity(): Promise<{
         name: string;
@@ -92,18 +88,6 @@ export class ServerService {
             });
         }
 
-        const nginxReloaded = await this.nginxService.reload();
-
-        if (!nginxReloaded) {
-            this.logger.error('Failed to reload nginx after server rename');
-            throw new GraphQLError('Failed to update server identity', {
-                extensions: {
-                    cause: 'Nginx reload failed after Avahi restart',
-                    persistedIdentity,
-                },
-            });
-        }
-
         try {
             await store.dispatch(loadSingleStateFile(StateFileKey.nginx)).unwrap();
         } catch (error) {
@@ -113,7 +97,7 @@ export class ServerService {
                     cause:
                         error instanceof Error && error.message
                             ? error.message
-                            : 'Failed to reload nginx.ini after nginx reload',
+                            : 'Failed to reload nginx.ini after Avahi restart',
                     persistedIdentity,
                 },
             });
@@ -125,7 +109,7 @@ export class ServerService {
         if (liveIdentity.lanName !== name || !liveIdentity.defaultUrl) {
             throw new GraphQLError('Failed to update server identity', {
                 extensions: {
-                    cause: 'Live network identity did not converge after Avahi restart and nginx reload',
+                    cause: 'Live network identity did not converge after Avahi restart',
                     persistedIdentity,
                     liveIdentity,
                 },

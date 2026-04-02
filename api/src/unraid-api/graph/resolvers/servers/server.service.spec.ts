@@ -12,7 +12,6 @@ import { FileLoadStatus } from '@app/store/types.js';
 import { AvahiService } from '@app/unraid-api/avahi/avahi.service.js';
 import { ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { ServerService } from '@app/unraid-api/graph/resolvers/servers/server.service.js';
-import { NginxService } from '@app/unraid-api/nginx/nginx.service.js';
 
 vi.mock('@app/core/utils/clients/emcmd.js', () => ({
     emcmd: vi.fn(),
@@ -78,7 +77,6 @@ const createEmhttpState = ({
 describe('ServerService', () => {
     let service: ServerService;
     let avahiService: { restart: ReturnType<typeof vi.fn> };
-    let nginxService: { reload: ReturnType<typeof vi.fn> };
     let tempDirectory: string;
     let identConfigPath: string;
 
@@ -87,13 +85,7 @@ describe('ServerService', () => {
         avahiService = {
             restart: vi.fn().mockResolvedValue(undefined),
         };
-        nginxService = {
-            reload: vi.fn().mockResolvedValue(true),
-        };
-        service = new ServerService(
-            avahiService as unknown as AvahiService,
-            nginxService as unknown as NginxService
-        );
+        service = new ServerService(avahiService as unknown as AvahiService);
         tempDirectory = await mkdtemp(join(tmpdir(), 'server-service-'));
         identConfigPath = join(tempDirectory, 'boot/config/ident.cfg');
 
@@ -380,10 +372,9 @@ describe('ServerService', () => {
             comment: 'Primary host',
         });
         expect(avahiService.restart).not.toHaveBeenCalled();
-        expect(nginxService.reload).not.toHaveBeenCalled();
     });
 
-    it('restarts Avahi, reloads nginx, refreshes nginx state, and returns live defaultUrl after a name change', async () => {
+    it('restarts Avahi, refreshes nginx state, and returns live defaultUrl after a name change', async () => {
         vi.mocked(store.dispatch).mockImplementation(() => {
             vi.mocked(getters.emhttp).mockReturnValue(
                 createEmhttpState({
@@ -404,7 +395,6 @@ describe('ServerService', () => {
         const result = await service.updateServerIdentity('Test1e', 'Primary host');
 
         expect(avahiService.restart).toHaveBeenCalledTimes(1);
-        expect(nginxService.reload).toHaveBeenCalledTimes(1);
         expect(store.dispatch).toHaveBeenCalledTimes(1);
         expect(result).toMatchObject({
             name: 'Test1e',
@@ -417,7 +407,6 @@ describe('ServerService', () => {
         const result = await service.updateServerIdentity('Tower', 'Primary host');
 
         expect(avahiService.restart).not.toHaveBeenCalled();
-        expect(nginxService.reload).not.toHaveBeenCalled();
         expect(store.dispatch).not.toHaveBeenCalled();
         expect(result).toMatchObject({
             name: 'Tower',
@@ -440,26 +429,9 @@ describe('ServerService', () => {
                 },
             },
         });
-        expect(nginxService.reload).not.toHaveBeenCalled();
     });
 
-    it('fails when nginx reload fails after Avahi restart', async () => {
-        nginxService.reload.mockResolvedValue(false);
-
-        await expect(service.updateServerIdentity('Test1e', 'Primary host')).rejects.toMatchObject({
-            message: 'Failed to update server identity',
-            extensions: {
-                cause: 'Nginx reload failed after Avahi restart',
-                persistedIdentity: {
-                    name: 'Test1e',
-                    comment: 'Primary host',
-                    sysModel: 'Model X100',
-                },
-            },
-        });
-    });
-
-    it('fails when live nginx state stays stale after Avahi restart and nginx reload', async () => {
+    it('fails when live nginx state stays stale after Avahi restart', async () => {
         vi.mocked(store.dispatch).mockReturnValue({
             unwrap: vi.fn().mockResolvedValue({ nginx: {} }),
         } as unknown as ReturnType<typeof store.dispatch>);
@@ -467,7 +439,7 @@ describe('ServerService', () => {
         await expect(service.updateServerIdentity('Test1e', 'Primary host')).rejects.toMatchObject({
             message: 'Failed to update server identity',
             extensions: {
-                cause: 'Live network identity did not converge after Avahi restart and nginx reload',
+                cause: 'Live network identity did not converge after Avahi restart',
                 persistedIdentity: {
                     name: 'Test1e',
                     comment: 'Primary host',
