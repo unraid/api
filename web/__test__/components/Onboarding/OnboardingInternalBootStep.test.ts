@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { flushPromises, mount } from '@vue/test-utils';
 
 import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
@@ -537,7 +538,7 @@ describe('OnboardingInternalBootStep', () => {
     );
 
     vm.poolMode = 'dedicated';
-    await flushPromises();
+    await nextTick();
 
     expect(vm.getDeviceSelectItems(0)).toEqual(
       expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-6GIB' })])
@@ -546,7 +547,7 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     vm.poolMode = 'hybrid';
-    await flushPromises();
+    await nextTick();
 
     expect(vm.getDeviceSelectItems(0)).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-6GIB' })])
