@@ -188,8 +188,10 @@ const showBootDriveWarningDialog = ref(false);
 const applyResultTitle = ref('');
 const applyResultMessage = ref('');
 const applyResultSeverity = ref<'success' | 'warning' | 'error'>('success');
+const applyResultFollowUpMessage = ref<string | null>(null);
 const shouldReloadAfterApplyResult = ref(false);
 const redirectUrlAfterApplyResult = ref<string | null>(null);
+const isTransitioningAfterApplyResult = ref(false);
 const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
 
@@ -608,6 +610,8 @@ const handleComplete = async () => {
   isProcessing.value = true;
   error.value = null;
   logs.value = []; // Clear logs
+  applyResultFollowUpMessage.value = null;
+  isTransitioningAfterApplyResult.value = false;
   shouldReloadAfterApplyResult.value = false;
   redirectUrlAfterApplyResult.value = null;
 
@@ -694,6 +698,7 @@ const handleComplete = async () => {
           shouldRetryNetworkMutations
         );
         if (serverNameChanged) {
+          applyResultFollowUpMessage.value = summaryT('result.renameFollowUpMessage');
           if (useReturnedDefaultUrlAfterRename) {
             const defaultUrl = result?.data?.updateServerIdentity?.defaultUrl;
             if (!defaultUrl) {
@@ -1091,22 +1096,27 @@ const handleComplete = async () => {
 
 const handleApplyResultConfirm = async () => {
   showApplyResultDialog.value = false;
-  await Promise.resolve(props.onComplete());
-
   if (!shouldReloadAfterApplyResult.value) {
+    await Promise.resolve(props.onComplete());
     return;
   }
 
-  shouldReloadAfterApplyResult.value = false;
+  isTransitioningAfterApplyResult.value = true;
   const redirectUrl = redirectUrlAfterApplyResult.value;
+  shouldReloadAfterApplyResult.value = false;
   redirectUrlAfterApplyResult.value = null;
-  await nextTick();
-  if (redirectUrl) {
-    location.replace(redirectUrl);
-    return;
-  }
+  try {
+    await Promise.resolve(props.onComplete());
+    await nextTick();
+    if (redirectUrl) {
+      location.replace(redirectUrl);
+      return;
+    }
 
-  location.reload();
+    location.reload();
+  } finally {
+    isTransitioningAfterApplyResult.value = false;
+  }
 };
 
 const handleApplyClick = async () => {
@@ -1136,9 +1146,15 @@ const handleBack = () => {
 <template>
   <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
     <OnboardingLoadingState
-      v-if="props.isSavingStep"
-      :title="t('onboarding.loading.title')"
-      :description="t('onboarding.loading.description')"
+      v-if="props.isSavingStep || isTransitioningAfterApplyResult"
+      :title="
+        isTransitioningAfterApplyResult ? summaryT('transition.title') : t('onboarding.loading.title')
+      "
+      :description="
+        isTransitioningAfterApplyResult
+          ? summaryT('transition.description')
+          : t('onboarding.loading.description')
+      "
     />
 
     <div v-else class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
@@ -1421,12 +1437,24 @@ const handleBack = () => {
             : 'z-50 max-w-md',
         }"
       >
-        <template v-if="showDiagnosticLogsInResultDialog" #body>
+        <template v-if="showDiagnosticLogsInResultDialog || applyResultFollowUpMessage" #body>
           <div class="space-y-3">
-            <h4 class="text-sm font-semibold tracking-wide uppercase">
-              {{ t('onboarding.summaryStep.diagnosticLogs') }}
-            </h4>
-            <OnboardingConsole :logs="logs" :title="t('onboarding.summaryStep.onboardingDiagnostics')" />
+            <UAlert
+              v-if="applyResultFollowUpMessage"
+              color="neutral"
+              variant="subtle"
+              :description="applyResultFollowUpMessage"
+              icon="i-heroicons-information-circle"
+            />
+            <template v-if="showDiagnosticLogsInResultDialog">
+              <h4 class="text-sm font-semibold tracking-wide uppercase">
+                {{ t('onboarding.summaryStep.diagnosticLogs') }}
+              </h4>
+              <OnboardingConsole
+                :logs="logs"
+                :title="t('onboarding.summaryStep.onboardingDiagnostics')"
+              />
+            </template>
           </div>
         </template>
         <template #footer>

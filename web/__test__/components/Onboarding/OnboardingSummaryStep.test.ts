@@ -149,6 +149,9 @@ vi.mock('@unraid/ui', () => ({
     props: ['items', 'type', 'collapsible', 'class'],
     template: `<div data-testid="accordion"><template v-for="item in items" :key="item.value"><slot name="trigger" :item="item" :open="false" /><slot name="content" :item="item" :open="false" /></template></div>`,
   },
+  Spinner: {
+    template: '<div data-testid="spinner" />',
+  },
 }));
 
 vi.mock('@/components/Onboarding/components/OnboardingConsole.vue', () => ({
@@ -247,7 +250,9 @@ const setupApolloMocks = () => {
 };
 
 const mountComponent = (props: Record<string, unknown> = {}) => {
-  const onComplete = vi.fn();
+  const onComplete =
+    (props.onComplete as (() => void | Promise<void>) | undefined) ??
+    vi.fn<() => void | Promise<void>>();
   const wrapper = mount(OnboardingSummaryStep, {
     props: {
       draft: {
@@ -312,6 +317,7 @@ const mountComponent = (props: Record<string, unknown> = {}) => {
       vm.showBootDriveWarningDialog ? 'Confirm Drive Wipe' : '',
       vm.showApplyResultDialog ? vm.applyResultTitle : '',
       vm.showApplyResultDialog ? vm.applyResultMessage : '',
+      vm.showApplyResultDialog ? (vm.applyResultFollowUpMessage ?? '') : '',
     ]
       .filter(Boolean)
       .join(' ');
@@ -327,6 +333,7 @@ interface SummaryVm {
   showBootDriveWarningDialog: boolean;
   applyResultTitle: string;
   applyResultMessage: string;
+  applyResultFollowUpMessage: string | null;
   applyResultSeverity: 'success' | 'warning' | 'error';
   handleBootDriveWarningConfirm: () => Promise<void>;
   handleBootDriveWarningCancel: () => void;
@@ -1091,6 +1098,12 @@ describe('OnboardingSummaryStep', () => {
       sysModel: undefined,
     });
     expect(onComplete).not.toHaveBeenCalled();
+    expect(getSummaryVm(wrapper).applyResultFollowUpMessage).toContain(
+      'Your server name has been updated. The page may reload or prompt you to sign in again.'
+    );
+    expect(wrapper.text()).toContain(
+      'Your server name has been updated. The page may reload or prompt you to sign in again.'
+    );
 
     await clickButtonByText(wrapper, 'OK');
 
@@ -1111,6 +1124,50 @@ describe('OnboardingSummaryStep', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(mockLocation.replace).not.toHaveBeenCalled();
     expect(mockLocation.reload).not.toHaveBeenCalled();
+  });
+
+  it('shows a loading state while waiting to reconnect after a successful server rename', async () => {
+    draftStore.serverName = 'Newtower';
+    updateServerIdentityMock.mockResolvedValue({
+      data: {
+        updateServerIdentity: {
+          id: 'local',
+          name: 'Newtower',
+          comment: '',
+          defaultUrl: 'https://Newtower.local:4443',
+        },
+      },
+    });
+
+    let resolveOnComplete: (() => void) | undefined;
+    const onComplete = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveOnComplete = resolve;
+        })
+    );
+
+    const { wrapper } = mountComponent({ onComplete });
+
+    await clickApply(wrapper);
+
+    const confirmPromise = getSummaryVm(wrapper).handleApplyResultConfirm();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Refreshing your connection');
+    expect(wrapper.text()).toContain(
+      'Your server name has been updated. The page may reload or prompt you to sign in again.'
+    );
+    expect(mockLocation.replace).not.toHaveBeenCalled();
+    expect(mockLocation.reload).not.toHaveBeenCalled();
+
+    resolveOnComplete?.();
+    await confirmPromise;
+    await flushPromises();
+
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(mockLocation.replace).toHaveBeenCalledWith('https://newtower.local:4443/');
   });
 
   it('reloads the current page instead of redirecting when the user is on an IP-based URL', async () => {
