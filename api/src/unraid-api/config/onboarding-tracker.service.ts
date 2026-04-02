@@ -364,12 +364,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
             };
         }
 
-        const trackerStateResult = await this.readTrackerStateResult();
-        if (trackerStateResult.kind !== 'error') {
-            this.state = trackerStateResult.state;
-        }
-
-        return trackerStateResult;
+        return this.getPersistedStateResult();
     }
 
     /**
@@ -497,22 +492,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
     }
 
     async clearWizardState(): Promise<PublicTrackerState> {
-        const overrideState = this.onboardingOverrides.getState();
-        if (overrideState?.onboarding !== undefined) {
-            this.state = {
-                ...this.state,
-                draft: {},
-                navigation: {},
-                internalBootState: {
-                    applyAttempted: false,
-                    applySucceeded: false,
-                },
-            };
-
-            return this.getCachedState();
-        }
-
-        const currentStateResult = await this.getStateResult();
+        const currentStateResult = await this.getPersistedStateResult();
         if (currentStateResult.kind === 'error') {
             throw currentStateResult.error;
         }
@@ -537,7 +517,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
     }
 
     async saveDraft(input: SaveOnboardingDraftInput): Promise<PublicTrackerState> {
-        const currentStateResult = await this.getStateResult();
+        const currentStateResult = await this.getPersistedStateResult();
         if (currentStateResult.kind === 'error') {
             throw currentStateResult.error;
         }
@@ -575,6 +555,15 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         this.syncConfig();
 
         return this.getCachedState();
+    }
+
+    private async getPersistedStateResult(): Promise<OnboardingTrackerStateResult> {
+        const trackerStateResult = await this.readTrackerStateResult();
+        if (trackerStateResult.kind !== 'error') {
+            this.state = trackerStateResult.state;
+        }
+
+        return trackerStateResult;
     }
 
     private async readCurrentVersion(): Promise<string | undefined> {

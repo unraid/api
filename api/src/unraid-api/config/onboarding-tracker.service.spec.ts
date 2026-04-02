@@ -139,6 +139,13 @@ describe('OnboardingTrackerService write retries', () => {
             forceOpen: true,
             ...createEmptyWizardState(),
         });
+        expect(mockAtomicWriteFile).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(String(mockAtomicWriteFile.mock.calls[0]?.[1]))).toMatchObject({
+            completed: true,
+            completedAtVersion: '7.1.0',
+            forceOpen: true,
+            ...createEmptyWizardState(),
+        });
     });
 });
 
@@ -419,6 +426,154 @@ describe('OnboardingTrackerService tracker state availability', () => {
         expect(writtenState.draft?.coreSettings?.serverName).toBe('Tower');
         expect(writtenState.navigation?.currentStepId).toBe('SUMMARY');
         expect(writtenState.draft?.internalBoot?.selection?.poolName).toBe('cache');
+    });
+
+    it('saves drafts against persisted tracker state when overrides are active', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        overrides.setState({
+            onboarding: {
+                completed: false,
+                completedAtVersion: undefined,
+                forceOpen: true,
+            },
+        });
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+
+            return JSON.stringify({
+                completed: true,
+                completedAtVersion: '7.1.0',
+                forceOpen: false,
+                draft: {
+                    coreSettings: {
+                        serverName: 'Tower',
+                    },
+                },
+                navigation: {
+                    currentStepId: 'CONFIGURE_SETTINGS',
+                },
+                internalBootState: {
+                    applyAttempted: false,
+                    applySucceeded: false,
+                },
+            });
+        });
+        mockAtomicWriteFile.mockResolvedValue(undefined as never);
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(
+            tracker.saveDraft({
+                draft: {
+                    plugins: {
+                        selectedIds: ['community.applications'],
+                    },
+                },
+            })
+        ).resolves.toEqual({
+            completed: false,
+            completedAtVersion: undefined,
+            forceOpen: true,
+            draft: {
+                coreSettings: {
+                    serverName: 'Tower',
+                },
+                plugins: {
+                    selectedIds: ['community.applications'],
+                },
+            },
+            navigation: {
+                currentStepId: 'CONFIGURE_SETTINGS',
+            },
+            internalBootState: {
+                applyAttempted: false,
+                applySucceeded: false,
+            },
+        });
+
+        expect(mockAtomicWriteFile).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(String(mockAtomicWriteFile.mock.calls[0]?.[1]))).toMatchObject({
+            completed: true,
+            completedAtVersion: '7.1.0',
+            forceOpen: false,
+            draft: {
+                coreSettings: {
+                    serverName: 'Tower',
+                },
+                plugins: {
+                    selectedIds: ['community.applications'],
+                },
+            },
+            navigation: {
+                currentStepId: 'CONFIGURE_SETTINGS',
+            },
+            internalBootState: {
+                applyAttempted: false,
+                applySucceeded: false,
+            },
+        });
+    });
+
+    it('clears wizard state on disk while leaving override-backed onboarding state temporary', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        overrides.setState({
+            onboarding: {
+                completed: false,
+                completedAtVersion: undefined,
+                forceOpen: true,
+            },
+        });
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+
+            return JSON.stringify({
+                completed: true,
+                completedAtVersion: '7.1.0',
+                forceOpen: false,
+                draft: {
+                    coreSettings: {
+                        serverName: 'Tower',
+                    },
+                },
+                navigation: {
+                    currentStepId: 'SUMMARY',
+                },
+                internalBootState: {
+                    applyAttempted: true,
+                    applySucceeded: true,
+                },
+            });
+        });
+        mockAtomicWriteFile.mockResolvedValue(undefined as never);
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(tracker.clearWizardState()).resolves.toEqual({
+            completed: false,
+            completedAtVersion: undefined,
+            forceOpen: true,
+            ...createEmptyWizardState(),
+        });
+
+        expect(mockAtomicWriteFile).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(String(mockAtomicWriteFile.mock.calls[0]?.[1]))).toMatchObject({
+            completed: true,
+            completedAtVersion: '7.1.0',
+            forceOpen: false,
+            ...createEmptyWizardState(),
+        });
     });
 
     it('persists internal boot status updates while preserving existing draft state', async () => {
