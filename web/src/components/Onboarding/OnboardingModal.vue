@@ -413,7 +413,7 @@ const updatePluginsDraft = (draft: OnboardingPluginsDraft) => {
   localDraft.value = cloneOnboardingWizardDraft({
     ...localDraft.value,
     plugins: {
-      selectedIds: draft.selectedIds ? [...draft.selectedIds] : [],
+      selectedIds: draft.selectedIds === undefined ? undefined : [...draft.selectedIds],
     },
   });
 };
@@ -431,9 +431,10 @@ const updateInternalBootDraft = (draft: OnboardingInternalBootDraft) => {
             ? null
             : {
                 ...draft.selection,
-                devices: draft.selection.devices
-                  ? draft.selection.devices.map((device) => ({ ...device }))
-                  : [],
+                devices:
+                  draft.selection.devices === undefined
+                    ? undefined
+                    : draft.selection.devices.map((device) => ({ ...device })),
               },
     },
   });

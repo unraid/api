@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizeOnboardingWizardDraft } from '~/components/Onboarding/onboardingWizardState';
+import {
+  cloneOnboardingWizardDraft,
+  normalizeOnboardingWizardDraft,
+} from '~/components/Onboarding/onboardingWizardState';
 
 describe('normalizeOnboardingWizardDraft', () => {
   it('returns a safe empty draft for non-object values', () => {
@@ -56,6 +59,63 @@ describe('normalizeOnboardingWizardDraft', () => {
           bootSizeMiB: 16384,
           updateBios: true,
           poolMode: 'hybrid',
+        },
+      },
+    });
+  });
+
+  it('preserves omitted optional arrays and malformed selection input as undefined', () => {
+    expect(
+      normalizeOnboardingWizardDraft({
+        plugins: {},
+        internalBoot: {
+          bootMode: 'storage',
+          selection: 'bad-selection',
+        },
+      })
+    ).toEqual({
+      coreSettings: undefined,
+      plugins: {
+        selectedIds: undefined,
+      },
+      internalBoot: {
+        bootMode: 'storage',
+        skipped: undefined,
+        selection: undefined,
+      },
+    });
+  });
+});
+
+describe('cloneOnboardingWizardDraft', () => {
+  it('preserves undefined optional arrays instead of manufacturing empty ones', () => {
+    expect(
+      cloneOnboardingWizardDraft({
+        plugins: {
+          selectedIds: undefined,
+        },
+        internalBoot: {
+          bootMode: 'storage',
+          selection: {
+            devices: undefined,
+          },
+        },
+      })
+    ).toEqual({
+      coreSettings: undefined,
+      plugins: {
+        selectedIds: undefined,
+      },
+      internalBoot: {
+        bootMode: 'storage',
+        skipped: undefined,
+        selection: {
+          poolName: undefined,
+          slotCount: undefined,
+          devices: undefined,
+          bootSizeMiB: undefined,
+          updateBios: undefined,
+          poolMode: undefined,
         },
       },
     });

@@ -75,8 +75,8 @@ const normalizeString = (value: unknown): string | undefined => {
 const normalizeBoolean = (value: unknown): boolean | undefined =>
   typeof value === 'boolean' ? value : undefined;
 
-const normalizeStringArray = (value: unknown): string[] =>
-  Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+const normalizeStringArray = (value: unknown): string[] | undefined =>
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : undefined;
 
 const normalizePoolMode = (value: unknown): OnboardingPoolMode | undefined =>
   value === 'dedicated' || value === 'hybrid' ? value : undefined;
@@ -105,20 +105,22 @@ const normalizeInternalBootDevice = (value: unknown): OnboardingInternalBootDevi
   };
 };
 
-const normalizeInternalBootDevices = (value: unknown): OnboardingInternalBootDevice[] =>
+const normalizeInternalBootDevices = (value: unknown): OnboardingInternalBootDevice[] | undefined =>
   Array.isArray(value)
     ? value
         .map((device) => normalizeInternalBootDevice(device))
         .filter((device): device is OnboardingInternalBootDevice => device !== null)
-    : [];
+    : undefined;
 
-const normalizeInternalBootSelection = (value: unknown): OnboardingInternalBootSelection | null => {
+const normalizeInternalBootSelection = (
+  value: unknown
+): OnboardingInternalBootSelection | null | undefined => {
   if (value === null) {
     return null;
   }
 
   if (!value || typeof value !== 'object') {
-    return null;
+    return undefined;
   }
 
   const candidate = value as Record<string, unknown>;
@@ -184,7 +186,8 @@ export const cloneOnboardingWizardDraft = (draft: OnboardingWizardDraft): Onboar
   coreSettings: draft.coreSettings ? { ...draft.coreSettings } : undefined,
   plugins: draft.plugins
     ? {
-        selectedIds: draft.plugins.selectedIds ? [...draft.plugins.selectedIds] : [],
+        selectedIds:
+          draft.plugins.selectedIds === undefined ? undefined : [...draft.plugins.selectedIds],
       }
     : undefined,
   internalBoot: draft.internalBoot
@@ -197,9 +200,10 @@ export const cloneOnboardingWizardDraft = (draft: OnboardingWizardDraft): Onboar
               ? null
               : {
                   ...draft.internalBoot.selection,
-                  devices: draft.internalBoot.selection.devices
-                    ? draft.internalBoot.selection.devices.map((device) => ({ ...device }))
-                    : [],
+                  devices:
+                    draft.internalBoot.selection.devices === undefined
+                      ? undefined
+                      : draft.internalBoot.selection.devices.map((device) => ({ ...device })),
                 },
       }
     : undefined,

@@ -71,8 +71,11 @@ const getPluginInstallDetectionFileNames = (plugin: { id: string; url: string })
 
 const defaultSelectedPluginIds = new Set<string>(['community-apps']);
 const buildSelectedPluginsFromDraft = (draft?: OnboardingPluginsDraft | null) => {
-  const selectedIds = draft?.selectedIds ?? [];
-  return selectedIds.length > 0 ? new Set(selectedIds) : new Set(defaultSelectedPluginIds);
+  if (!draft || draft.selectedIds === undefined) {
+    return new Set(defaultSelectedPluginIds);
+  }
+
+  return new Set(draft.selectedIds);
 };
 
 const selectedPlugins = ref<Set<string>>(buildSelectedPluginsFromDraft(props.initialDraft));
