@@ -112,6 +112,16 @@ const normalizeInternalBootDevices = (value: unknown): OnboardingInternalBootDev
         .filter((device): device is OnboardingInternalBootDevice => device !== null)
     : undefined;
 
+const normalizeSlotCount = (value: unknown): number | undefined => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && (parsed === 1 || parsed === 2) ? parsed : undefined;
+};
+
+const normalizeBootSizeMiB = (value: unknown): number | undefined => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : undefined;
+};
+
 const normalizeInternalBootSelection = (
   value: unknown
 ): OnboardingInternalBootSelection | null | undefined => {
@@ -124,14 +134,12 @@ const normalizeInternalBootSelection = (
   }
 
   const candidate = value as Record<string, unknown>;
-  const parsedSlotCount = Number(candidate.slotCount);
-  const parsedBootSizeMiB = Number(candidate.bootSizeMiB);
 
   return {
     poolName: normalizeString(candidate.poolName),
-    slotCount: Number.isFinite(parsedSlotCount) ? parsedSlotCount : undefined,
+    slotCount: normalizeSlotCount(candidate.slotCount),
     devices: normalizeInternalBootDevices(candidate.devices),
-    bootSizeMiB: Number.isFinite(parsedBootSizeMiB) ? parsedBootSizeMiB : undefined,
+    bootSizeMiB: normalizeBootSizeMiB(candidate.bootSizeMiB),
     updateBios: normalizeBoolean(candidate.updateBios),
     poolMode: normalizePoolMode(candidate.poolMode),
   };

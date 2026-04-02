@@ -120,4 +120,58 @@ describe('cloneOnboardingWizardDraft', () => {
       },
     });
   });
+
+  it('only keeps valid integer slot counts and allows zero boot size', () => {
+    expect(
+      normalizeOnboardingWizardDraft({
+        internalBoot: {
+          selection: {
+            slotCount: 1.5,
+            bootSizeMiB: 0,
+          },
+        },
+      })
+    ).toEqual({
+      coreSettings: undefined,
+      plugins: undefined,
+      internalBoot: {
+        bootMode: undefined,
+        skipped: undefined,
+        selection: {
+          poolName: undefined,
+          slotCount: undefined,
+          devices: undefined,
+          bootSizeMiB: 0,
+          updateBios: undefined,
+          poolMode: undefined,
+        },
+      },
+    });
+
+    expect(
+      normalizeOnboardingWizardDraft({
+        internalBoot: {
+          selection: {
+            slotCount: '2',
+            bootSizeMiB: -1,
+          },
+        },
+      })
+    ).toEqual({
+      coreSettings: undefined,
+      plugins: undefined,
+      internalBoot: {
+        bootMode: undefined,
+        skipped: undefined,
+        selection: {
+          poolName: undefined,
+          slotCount: 2,
+          devices: undefined,
+          bootSizeMiB: undefined,
+          updateBios: undefined,
+          poolMode: undefined,
+        },
+      },
+    });
+  });
 });
