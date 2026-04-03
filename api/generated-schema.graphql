@@ -1444,7 +1444,7 @@ type OnboardingMutations {
   openOnboarding: Onboarding!
 
   """Close the onboarding modal"""
-  closeOnboarding(input: CloseOnboardingInput): Onboarding!
+  closeOnboarding: Onboarding!
 
   """Temporarily bypass onboarding in API memory"""
   bypassOnboarding: Onboarding!
@@ -1468,15 +1468,6 @@ type OnboardingMutations {
   Refresh the internal boot onboarding context from the latest emhttp state
   """
   refreshInternalBootContext: OnboardingInternalBootContext!
-}
-
-input CloseOnboardingInput {
-  reason: CloseOnboardingReason
-}
-
-"""Optional reason metadata for closing onboarding"""
-enum CloseOnboardingReason {
-  SAVE_FAILURE
 }
 
 """Onboarding override input for testing"""

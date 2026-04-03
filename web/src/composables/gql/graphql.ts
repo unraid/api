@@ -488,15 +488,6 @@ export type Capacity = {
   used: Scalars['String']['output'];
 };
 
-export type CloseOnboardingInput = {
-  reason?: InputMaybe<CloseOnboardingReason>;
-};
-
-/** Optional reason metadata for closing onboarding */
-export enum CloseOnboardingReason {
-  SAVE_FAILURE = 'SAVE_FAILURE'
-}
-
 export type Cloud = {
   __typename?: 'Cloud';
   allowedOrigins: Array<Scalars['String']['output']>;
@@ -2048,12 +2039,6 @@ export type OnboardingMutations = {
   saveOnboardingDraft: Scalars['Boolean']['output'];
   /** Override onboarding state for testing (in-memory only) */
   setOnboardingOverride: Onboarding;
-};
-
-
-/** Onboarding related mutations */
-export type OnboardingMutationsCloseOnboardingArgs = {
-  input?: InputMaybe<CloseOnboardingInput>;
 };
 
 
