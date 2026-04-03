@@ -110,7 +110,7 @@ declare module 'vue' {
     OnboardingPartnerLogo: typeof import('./src/components/Onboarding/components/OnboardingPartnerLogo.vue')['default']
     OnboardingPartnerLogoImg: typeof import('./src/components/Onboarding/components/OnboardingPartnerLogoImg.vue')['default']
     OnboardingPluginsStep: typeof import('./src/components/Onboarding/steps/OnboardingPluginsStep.vue')['default']
-    OnboardingStepQueryGate: typeof import('./src/components/Onboarding/components/OnboardingStepQueryGate.vue')['default']
+    OnboardingStepBlockingState: typeof import('./src/components/Onboarding/components/OnboardingStepBlockingState.vue')['default']
     OnboardingSteps: typeof import('./src/components/Onboarding/OnboardingSteps.vue')['default']
     OnboardingSummaryStep: typeof import('./src/components/Onboarding/steps/OnboardingSummaryStep.vue')['default']
     Overview: typeof import('./src/components/Docker/Overview.vue')['default']

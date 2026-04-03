@@ -7,7 +7,7 @@ import { ChevronLeftIcon, CircleStackIcon } from '@heroicons/vue/24/outline';
 import { ArrowPathIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { Accordion, BrandButton } from '@unraid/ui';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
-import OnboardingStepQueryGate from '@/components/Onboarding/components/OnboardingStepQueryGate.vue';
+import OnboardingStepBlockingState from '@/components/Onboarding/components/OnboardingStepBlockingState.vue';
 import { useOnboardingStepQueryState } from '@/components/Onboarding/composables/useOnboardingStepQueryState';
 import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
 import {
@@ -257,7 +257,7 @@ const {
 });
 const isBusy = computed(() => Boolean(props.isSavingStep));
 const isStepLocked = computed(() => Boolean(props.isSavingStep));
-const stepError = computed(() => props.saveError ?? null);
+const saveTransitionError = computed(() => props.saveError ?? null);
 const internalBootTransferState = computed<InternalBootTransferState>(() => {
   const setting = internalBootContext.value?.enableBootTransfer;
   if (typeof setting !== 'string') {
@@ -880,13 +880,34 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         </div>
       </div>
 
-      <OnboardingStepQueryGate
-        :loading="isStepQueryLoading"
-        :error="stepQueryError"
-        :loading-description="t('onboarding.internalBootStep.loadingDescription')"
-        :on-retry="handleRetryContextQuery"
-        :on-close-onboarding="props.onCloseOnboarding"
-      >
+      <OnboardingStepBlockingState
+        v-if="saveTransitionError"
+        :title="saveTransitionError"
+        :description="t('onboarding.stepSaveFailure.description')"
+        :secondary-action-text="t('onboarding.modal.exit.confirm')"
+        :on-secondary-action="props.onCloseOnboarding"
+      />
+
+      <OnboardingLoadingState
+        v-else-if="isStepQueryLoading"
+        :title="t('onboarding.loading.title')"
+        :description="t('onboarding.internalBootStep.loadingDescription')"
+      />
+
+      <OnboardingStepBlockingState
+        v-else-if="stepQueryError"
+        root-test-id="onboarding-step-query-error"
+        :title="t('onboarding.stepQueryGate.errorTitle')"
+        :description="t('onboarding.stepQueryGate.errorDescription')"
+        :primary-action-text="t('common.retry')"
+        primary-test-id="onboarding-step-query-retry"
+        :secondary-action-text="t('onboarding.modal.exit.confirm')"
+        secondary-test-id="onboarding-step-query-close"
+        :on-primary-action="handleRetryContextQuery"
+        :on-secondary-action="props.onCloseOnboarding"
+      />
+
+      <template v-else>
         <URadioGroup
           v-model="bootMode"
           :items="[
@@ -1211,13 +1232,6 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         </div>
 
         <div
-          v-if="stepError"
-          class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/10 dark:text-red-300"
-        >
-          {{ stepError }}
-        </div>
-
-        <div
           class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
         >
           <button
@@ -1250,7 +1264,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             />
           </div>
         </div>
-      </OnboardingStepQueryGate>
+      </template>
     </div>
   </div>
 </template>

@@ -132,6 +132,7 @@
   "onboarding.loading.description": "We're preparing the next step of setup.",
   "onboarding.stepQueryGate.errorTitle": "We couldn't load this step.",
   "onboarding.stepQueryGate.errorDescription": "Retry to load the latest onboarding data, or exit setup for now.",
+  "onboarding.stepSaveFailure.description": "Exit setup for now, then reopen onboarding when you're ready to continue.",
   "onboarding.modal.closeAriaLabel": "Close onboarding",
   "onboarding.modal.closing.title": "Closing setup...",
   "onboarding.modal.closing.description": "You can skip setup now and continue from the dashboard later.",
