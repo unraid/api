@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { CheckCircleIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/vue/24/solid';
+import { XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
 import { buildBootConfigurationSummaryViewModel } from '@/components/Onboarding/components/bootConfigurationSummary/buildBootConfigurationSummaryViewModel';
 import OnboardingBootConfigurationSummary from '@/components/Onboarding/components/bootConfigurationSummary/OnboardingBootConfigurationSummary.vue';
@@ -78,6 +78,20 @@ const canReturnToConfigure = () =>
 
 const showConsole = computed(() => confirmationState.value === 'saving' || logs.value.length > 0);
 const canEditAgain = computed(() => currentStep.value === 'SUMMARY' && canReturnToConfigure());
+const resultAlertColor = computed(() => {
+  if (resultSeverity.value === 'success') {
+    return 'success';
+  }
+
+  if (resultSeverity.value === 'error') {
+    return 'error';
+  }
+
+  return 'warning';
+});
+const resultAlertIcon = computed(() =>
+  resultSeverity.value === 'success' ? 'i-heroicons-check-circle' : 'i-lucide-triangle-alert'
+);
 const formatDeviceSize = (sizeBytes: number) => {
   const converted = convert(sizeBytes, 'B').to('best', 'metric');
   const precision = converted.quantity >= 100 || converted.unit === 'B' ? 0 : 1;
@@ -525,44 +539,31 @@ onUnmounted(() => {
                 </p>
               </div>
 
-              <div
+              <UAlert
                 v-if="confirmationState === 'result'"
                 data-testid="internal-boot-standalone-result"
-                class="mt-6 rounded-lg border p-4"
-                :class="{
-                  'border-muted bg-muted/40': resultSeverity === 'success',
-                  'border-red-200 bg-red-50/70': resultSeverity === 'error',
-                  'border-amber-200 bg-amber-50/70': resultSeverity === 'warning',
-                }"
+                class="mt-6"
+                variant="subtle"
+                :color="resultAlertColor"
+                :icon="resultAlertIcon"
+                :title="resultTitle"
               >
-                <div class="flex items-start gap-3">
-                  <CheckCircleIcon
-                    v-if="resultSeverity === 'success'"
-                    class="text-primary mt-0.5 h-5 w-5 flex-shrink-0"
-                  />
-                  <ExclamationTriangleIcon v-else class="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
-
-                  <div class="min-w-0 flex-1 space-y-1">
-                    <p class="text-highlighted text-sm font-semibold">
-                      {{ resultTitle }}
-                    </p>
-                    <p class="text-muted text-sm leading-6">
+                <template #description>
+                  <div class="space-y-3">
+                    <p class="text-sm leading-6">
                       {{ resultMessage }}
                     </p>
+                    <p
+                      v-if="
+                        isLocked && resultSeverity === 'error' && internalBootDraft.selection?.updateBios
+                      "
+                      class="text-sm"
+                    >
+                      {{ t('onboarding.nextSteps.internalBootBiosMissed') }}
+                    </p>
                   </div>
-                </div>
-
-                <div
-                  v-if="
-                    isLocked && resultSeverity === 'error' && internalBootDraft.selection?.updateBios
-                  "
-                  class="mt-3"
-                >
-                  <p class="text-sm text-amber-700">
-                    {{ t('onboarding.nextSteps.internalBootBiosMissed') }}
-                  </p>
-                </div>
-              </div>
+                </template>
+              </UAlert>
 
               <OnboardingConsole v-if="showConsole" class="mt-6" :logs="logs" />
 
