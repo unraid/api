@@ -26,7 +26,7 @@ import { buildBootConfigurationSummaryViewModel } from '@/components/Onboarding/
 import OnboardingBootConfigurationSummary from '@/components/Onboarding/components/bootConfigurationSummary/OnboardingBootConfigurationSummary.vue';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
-import OnboardingStepQueryGate from '@/components/Onboarding/components/OnboardingStepQueryGate.vue';
+import OnboardingStepBlockingState from '@/components/Onboarding/components/OnboardingStepBlockingState.vue';
 import {
   applyInternalBootSelection,
   getErrorMessage,
@@ -213,7 +213,8 @@ const applyResultSeverity = ref<'success' | 'warning' | 'error'>('success');
 const shouldReloadAfterApplyResult = ref(false);
 const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
-const stepError = computed(() => error.value ?? props.saveError ?? null);
+const localApplyError = computed(() => error.value ?? null);
+const saveTransitionError = computed(() => props.saveError ?? null);
 
 const addLog = (
   message: string,
@@ -1108,13 +1109,34 @@ const handleBack = () => {
         class="my-8"
       />
 
-      <OnboardingStepQueryGate
-        :loading="isStepQueryLoading"
-        :error="stepQueryError"
-        :loading-description="t('onboarding.summaryStep.loadingDescription')"
-        :on-retry="handleRetryQueries"
-        :on-close-onboarding="props.onCloseOnboarding"
-      >
+      <OnboardingStepBlockingState
+        v-if="saveTransitionError"
+        :title="saveTransitionError"
+        :description="t('onboarding.stepSaveFailure.description')"
+        :secondary-action-text="t('onboarding.modal.exit.confirm')"
+        :on-secondary-action="props.onCloseOnboarding"
+      />
+
+      <OnboardingLoadingState
+        v-else-if="isStepQueryLoading"
+        :title="t('onboarding.loading.title')"
+        :description="t('onboarding.summaryStep.loadingDescription')"
+      />
+
+      <OnboardingStepBlockingState
+        v-else-if="stepQueryError"
+        root-test-id="onboarding-step-query-error"
+        :title="t('onboarding.stepQueryGate.errorTitle')"
+        :description="t('onboarding.stepQueryGate.errorDescription')"
+        :primary-action-text="t('common.retry')"
+        primary-test-id="onboarding-step-query-retry"
+        :secondary-action-text="t('onboarding.modal.exit.confirm')"
+        secondary-test-id="onboarding-step-query-close"
+        :on-primary-action="handleRetryQueries"
+        :on-secondary-action="props.onCloseOnboarding"
+      />
+
+      <template v-else>
         <!-- Summary Grid -->
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
           <!-- Identity Section -->
@@ -1309,11 +1331,11 @@ const handleBack = () => {
         </div>
 
         <div
-          v-if="stepError"
+          v-if="localApplyError"
           class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
         >
           <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
-            {{ stepError }}
+            {{ localApplyError }}
           </p>
         </div>
 
@@ -1422,7 +1444,7 @@ const handleBack = () => {
             </span>
           </BrandButton>
         </div>
-      </OnboardingStepQueryGate>
+      </template>
     </div>
   </div>
 </template>

@@ -7,7 +7,7 @@ import { ChevronLeftIcon, Squares2X2Icon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
-import OnboardingStepQueryGate from '@/components/Onboarding/components/OnboardingStepQueryGate.vue';
+import OnboardingStepBlockingState from '@/components/Onboarding/components/OnboardingStepBlockingState.vue';
 import { useOnboardingStepQueryState } from '@/components/Onboarding/composables/useOnboardingStepQueryState';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 
@@ -110,7 +110,7 @@ const {
   retry: () => refetchInstalledPlugins(),
 });
 const isBusy = computed(() => Boolean(props.isSavingStep));
-const stepError = computed(() => props.saveError ?? null);
+const saveTransitionError = computed(() => props.saveError ?? null);
 const persistedSelectedPlugins = computed(
   () => new Set<string>([...selectedPlugins.value, ...installedPluginIds.value])
 );
@@ -231,13 +231,34 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
         :description="t('onboarding.pluginsStep.tip')"
       />
 
-      <OnboardingStepQueryGate
-        :loading="isStepQueryLoading"
-        :error="stepQueryError"
-        :loading-description="t('onboarding.pluginsStep.loading.description')"
-        :on-retry="handleRetryInstalledPlugins"
-        :on-close-onboarding="props.onCloseOnboarding"
-      >
+      <OnboardingStepBlockingState
+        v-if="saveTransitionError"
+        :title="saveTransitionError"
+        :description="t('onboarding.stepSaveFailure.description')"
+        :secondary-action-text="t('onboarding.modal.exit.confirm')"
+        :on-secondary-action="props.onCloseOnboarding"
+      />
+
+      <OnboardingLoadingState
+        v-else-if="isStepQueryLoading"
+        :title="t('onboarding.loading.title')"
+        :description="t('onboarding.pluginsStep.loading.description')"
+      />
+
+      <OnboardingStepBlockingState
+        v-else-if="stepQueryError"
+        root-test-id="onboarding-step-query-error"
+        :title="t('onboarding.stepQueryGate.errorTitle')"
+        :description="t('onboarding.stepQueryGate.errorDescription')"
+        :primary-action-text="t('common.retry')"
+        primary-test-id="onboarding-step-query-retry"
+        :secondary-action-text="t('onboarding.modal.exit.confirm')"
+        secondary-test-id="onboarding-step-query-close"
+        :on-primary-action="handleRetryInstalledPlugins"
+        :on-secondary-action="props.onCloseOnboarding"
+      />
+
+      <template v-else>
         <!-- Plugin List -->
         <div class="mb-8">
           <div class="grid gap-4">
@@ -263,15 +284,6 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
               />
             </div>
           </div>
-        </div>
-
-        <div
-          v-if="stepError"
-          class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
-        >
-          <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
-            {{ stepError }}
-          </p>
         </div>
 
         <div
@@ -307,7 +319,7 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
             />
           </div>
         </div>
-      </OnboardingStepQueryGate>
+      </template>
     </div>
   </div>
 </template>
