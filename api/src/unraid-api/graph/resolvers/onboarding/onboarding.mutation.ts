@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
@@ -11,7 +10,6 @@ import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization
 import { OnboardingMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { OnboardingInternalBootService } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-internal-boot.service.js';
 import {
-    CloseOnboardingInput,
     CreateInternalBootPoolInput,
     OnboardingInternalBootContext,
     OnboardingInternalBootResult,
@@ -21,8 +19,6 @@ import {
 
 @Resolver(() => OnboardingMutations)
 export class OnboardingMutationsResolver {
-    private readonly logger = new Logger(OnboardingMutationsResolver.name);
-
     constructor(
         private readonly onboardingOverrides: OnboardingOverrideService,
         private readonly onboardingService: OnboardingService,
@@ -72,12 +68,7 @@ export class OnboardingMutationsResolver {
         action: AuthAction.UPDATE_ANY,
         resource: Resource.WELCOME,
     })
-    async closeOnboarding(
-        @Args('input', { nullable: true }) input?: CloseOnboardingInput
-    ): Promise<Onboarding> {
-        if (input?.reason) {
-            this.logger.warn(`closeOnboarding invoked with reason=${input.reason}`);
-        }
+    async closeOnboarding(): Promise<Onboarding> {
         await this.onboardingService.closeOnboarding();
         return this.onboardingService.getOnboardingResponse();
     }

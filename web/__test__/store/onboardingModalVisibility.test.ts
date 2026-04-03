@@ -156,6 +156,7 @@ describe('OnboardingModalVisibility Store', () => {
     await expect(store.closeModal()).resolves.toBe(true);
 
     expect(closeMutationMock).toHaveBeenCalledTimes(1);
+    expect(closeMutationMock).toHaveBeenCalledWith();
     expect(refetchOnboardingMock).toHaveBeenCalledTimes(1);
     expect(store.isVisible).toBe(false);
   });

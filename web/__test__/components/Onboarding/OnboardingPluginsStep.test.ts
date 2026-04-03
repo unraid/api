@@ -6,7 +6,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OnboardingPluginsStep from '~/components/Onboarding/steps/OnboardingPluginsStep.vue';
 import { createTestI18n } from '../../utils/i18n';
 
-const { draftStore, installedPluginsLoading, installedPluginsResult, useQueryMock } = vi.hoisted(() => ({
+const {
+  draftStore,
+  installedPluginsLoading,
+  installedPluginsResult,
+  installedPluginsError,
+  refetchInstalledPluginsMock,
+  useQueryMock,
+} = vi.hoisted(() => ({
   draftStore: {
     selectedPlugins: new Set<string>(),
   },
@@ -18,6 +25,10 @@ const { draftStore, installedPluginsLoading, installedPluginsResult, useQueryMoc
       installedUnraidPlugins: [],
     } as { installedUnraidPlugins: string[] } | null,
   },
+  installedPluginsError: {
+    value: null as unknown,
+  },
+  refetchInstalledPluginsMock: vi.fn().mockResolvedValue(undefined),
   useQueryMock: vi.fn(),
 }));
 
@@ -52,12 +63,15 @@ describe('OnboardingPluginsStep', () => {
     installedPluginsResult.value = {
       installedUnraidPlugins: [],
     };
+    installedPluginsError.value = null;
 
     useQueryMock.mockImplementation((query: unknown) => {
       if (query === INSTALLED_UNRAID_PLUGINS_QUERY) {
         return {
           result: installedPluginsResult,
           loading: installedPluginsLoading,
+          error: installedPluginsError,
+          refetch: refetchInstalledPluginsMock,
         };
       }
       return { result: { value: null } };
@@ -69,6 +83,7 @@ describe('OnboardingPluginsStep', () => {
       onComplete: vi.fn(),
       onBack: vi.fn(),
       onSkip: vi.fn(),
+      onCloseOnboarding: vi.fn(),
       initialDraft:
         draftStore.selectedPlugins.size > 0
           ? {
@@ -173,12 +188,23 @@ describe('OnboardingPluginsStep', () => {
 
     await flushPromises();
 
-    const nextButton = wrapper
-      .findAll('button')
-      .find((button) => button.text().toLowerCase().includes('next'));
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+  });
 
-    expect(nextButton).toBeTruthy();
-    expect((nextButton!.element as HTMLButtonElement).disabled).toBe(true);
+  it('shows retry and close actions when the installed plugins query fails', async () => {
+    installedPluginsError.value = new Error('offline');
+    const onCloseOnboarding = vi.fn();
+
+    const { wrapper } = mountComponent({ onCloseOnboarding });
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-step-query-error"]').exists()).toBe(true);
+
+    await wrapper.get('[data-testid="onboarding-step-query-retry"]').trigger('click');
+    await wrapper.get('[data-testid="onboarding-step-query-close"]').trigger('click');
+
+    expect(refetchInstalledPluginsMock).toHaveBeenCalledTimes(1);
+    expect(onCloseOnboarding).toHaveBeenCalledTimes(1);
   });
 
   it('skip clears selection and calls onSkip', async () => {

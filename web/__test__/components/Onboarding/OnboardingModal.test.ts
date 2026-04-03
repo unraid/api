@@ -119,22 +119,31 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
   ],
   stepComponents: {
     OVERVIEW: {
-      props: ['onComplete', 'onSkipSetup'],
+      props: ['onComplete', 'onSkipSetup', 'saveError'],
       template:
-        '<div data-testid="overview-step"><button data-testid="overview-step-complete" @click="onComplete()">next</button><button data-testid="overview-step-skip" @click="onSkipSetup()">skip</button></div>',
+        '<div data-testid="overview-step"><div data-testid="overview-step-error">{{ saveError }}</div><button data-testid="overview-step-complete" @click="onComplete()">next</button><button data-testid="overview-step-skip" @click="onSkipSetup()">skip</button></div>',
     },
     CONFIGURE_SETTINGS: {
-      props: ['initialDraft', 'onComplete', 'onBack', 'showBack', 'isSavingStep', 'saveError'],
+      props: [
+        'initialDraft',
+        'onComplete',
+        'onBack',
+        'onCloseOnboarding',
+        'showBack',
+        'isSavingStep',
+        'saveError',
+      ],
       template: `
         <div data-testid="settings-step">
           <div data-testid="settings-step-error">{{ saveError }}</div>
           <button data-testid="settings-step-complete" @click="onComplete({ serverName: 'Tower', useSsh: true })">next</button>
           <button v-if="showBack" data-testid="settings-step-back" @click="onBack({ serverName: 'Tower', useSsh: true })">back</button>
+          <button data-testid="settings-step-close" @click="onCloseOnboarding?.()">close</button>
         </div>
       `,
     },
     CONFIGURE_BOOT: {
-      props: ['initialDraft', 'onComplete', 'onBack', 'showBack', 'saveError'],
+      props: ['initialDraft', 'onComplete', 'onBack', 'onCloseOnboarding', 'showBack', 'saveError'],
       template: `
         <div data-testid="internal-boot-step">
           <div data-testid="internal-boot-step-error">{{ saveError }}</div>
@@ -160,7 +169,15 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
       `,
     },
     ADD_PLUGINS: {
-      props: ['initialDraft', 'onComplete', 'onSkip', 'onBack', 'showBack', 'saveError'],
+      props: [
+        'initialDraft',
+        'onComplete',
+        'onSkip',
+        'onBack',
+        'onCloseOnboarding',
+        'showBack',
+        'saveError',
+      ],
       template: `
         <div data-testid="plugins-step">
           <div data-testid="plugins-step-error">{{ saveError }}</div>
@@ -171,9 +188,9 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
       `,
     },
     ACTIVATE_LICENSE: {
-      props: ['onComplete', 'onBack', 'showBack'],
+      props: ['onComplete', 'onBack', 'showBack', 'saveError'],
       template:
-        '<div data-testid="license-step"><button data-testid="license-step-complete" @click="onComplete()">next</button><button v-if="showBack" data-testid="license-step-back" @click="onBack()">back</button></div>',
+        '<div data-testid="license-step"><div data-testid="license-step-error">{{ saveError }}</div><button data-testid="license-step-complete" @click="onComplete()">next</button><button v-if="showBack" data-testid="license-step-back" @click="onBack()">back</button></div>',
     },
     SUMMARY: {
       props: [
@@ -182,10 +199,13 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
         'onInternalBootStateChange',
         'onComplete',
         'onBack',
+        'onCloseOnboarding',
         'showBack',
+        'saveError',
       ],
       template: `
         <div data-testid="summary-step">
+          <div data-testid="summary-step-error">{{ saveError }}</div>
           <button data-testid="summary-step-mark-locked" @click="onInternalBootStateChange({ applyAttempted: true, applySucceeded: true })">lock</button>
           <button data-testid="summary-step-complete" @click="onComplete()">next</button>
           <button v-if="showBack" data-testid="summary-step-back" @click="onBack()">back</button>
@@ -518,16 +538,21 @@ describe('OnboardingModal.vue', () => {
 
     expect(wrapper.find('[data-testid="settings-step"]').exists()).toBe(true);
     expect(wrapper.get('[data-testid="settings-step-error"]').text()).not.toBe('');
+    expect(
+      wrapper.text().match(/We couldn't finish onboarding right now\. Please try again\./g)?.length ?? 0
+    ).toBe(1);
 
-    const closeButton = wrapper
-      .findAll('button')
-      .find((button) => button.text().trim().toLowerCase().includes('exit'));
-    expect(closeButton).toBeTruthy();
-
-    await closeButton!.trigger('click');
+    await wrapper.find('button[aria-label="Close onboarding"]').trigger('click');
     await flushPromises();
 
-    expect(onboardingModalStoreState.closeModal).toHaveBeenCalledWith('SAVE_FAILURE');
+    expect(wrapper.text()).toContain('Exit onboarding?');
+
+    const exitButton = findButtonByText(wrapper, 'Exit setup');
+    expect(exitButton).toBeTruthy();
+    await exitButton!.trigger('click');
+    await flushPromises();
+
+    expect(onboardingModalStoreState.closeModal).toHaveBeenCalledWith();
   });
 
   it('opens exit confirmation and closes through the backend-owned close path', async () => {
@@ -545,9 +570,30 @@ describe('OnboardingModal.vue', () => {
     await exitButton!.trigger('click');
     await flushPromises();
 
-    expect(onboardingModalStoreState.closeModal).toHaveBeenCalledWith(undefined);
+    expect(onboardingModalStoreState.closeModal).toHaveBeenCalledWith();
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledTimes(1);
     expect(reloadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('reuses the existing exit flow when a step requests close onboarding', async () => {
+    wizardRef.value = {
+      currentStepId: 'CONFIGURE_SETTINGS',
+      visibleStepIds: ['OVERVIEW', 'CONFIGURE_SETTINGS', 'ADD_PLUGINS'],
+      draft: {},
+      internalBootState: {
+        applyAttempted: false,
+        applySucceeded: false,
+      },
+    };
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="settings-step-close"]').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Exit onboarding?');
+    expect(onboardingModalStoreState.closeModal).not.toHaveBeenCalled();
   });
 
   it('hides exit controls and back navigation when internal boot is locked', async () => {
@@ -624,7 +670,7 @@ describe('OnboardingModal.vue', () => {
     await flushPromises();
 
     expect(saveOnboardingDraftMock).not.toHaveBeenCalled();
-    expect(onboardingModalStoreState.closeModal).toHaveBeenCalledWith(undefined);
+    expect(onboardingModalStoreState.closeModal).toHaveBeenCalledWith();
     expect(reloadSpy).toHaveBeenCalledTimes(1);
   });
 });

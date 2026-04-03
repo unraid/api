@@ -1,4 +1,4 @@
-import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 
 import { Type } from 'class-transformer';
 import {
@@ -21,15 +21,6 @@ import type { OnboardingDraft } from '@app/unraid-api/config/onboarding-tracker.
 import { OnboardingWizardStepId } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
-
-export enum CloseOnboardingReason {
-    SAVE_FAILURE = 'SAVE_FAILURE',
-}
-
-registerEnumType(CloseOnboardingReason, {
-    name: 'CloseOnboardingReason',
-    description: 'Optional reason metadata for closing onboarding',
-});
 
 @InputType({
     description: 'Onboarding completion override input',
@@ -336,14 +327,6 @@ export class SaveOnboardingDraftInput {
     @ValidateNested()
     @Type(() => OnboardingWizardInternalBootStateInput)
     internalBootState?: OnboardingWizardInternalBootStateInput;
-}
-
-@InputType()
-export class CloseOnboardingInput {
-    @Field(() => CloseOnboardingReason, { nullable: true })
-    @IsOptional()
-    @IsEnum(CloseOnboardingReason)
-    reason?: CloseOnboardingReason;
 }
 
 @InputType({

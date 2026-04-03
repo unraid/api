@@ -11,10 +11,7 @@ import {
     OnboardingStatus,
     OnboardingWizardStepId,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
-import {
-    CloseOnboardingReason,
-    CreateInternalBootPoolInput,
-} from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
+import { CreateInternalBootPoolInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { OnboardingMutationsResolver } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.mutation.js';
 
 describe('OnboardingMutationsResolver', () => {
@@ -158,19 +155,6 @@ describe('OnboardingMutationsResolver', () => {
         await expect(resolver.closeOnboarding()).resolves.toEqual(response);
         expect(onboardingService.closeOnboarding).toHaveBeenCalledTimes(1);
         expect(onboardingService.getOnboardingResponse).toHaveBeenCalledWith();
-    });
-
-    it('logs save-failure close reasons before delegating closeOnboarding', async () => {
-        const loggerWarn = vi.fn();
-        (resolver as unknown as { logger: { warn: (message: string) => void } }).logger.warn =
-            loggerWarn;
-
-        await expect(
-            resolver.closeOnboarding({ reason: CloseOnboardingReason.SAVE_FAILURE })
-        ).resolves.toEqual(defaultOnboardingResponse);
-
-        expect(loggerWarn).toHaveBeenCalledWith('closeOnboarding invoked with reason=SAVE_FAILURE');
-        expect(onboardingService.closeOnboarding).toHaveBeenCalledTimes(1);
     });
 
     it('delegates bypassOnboarding through the onboarding service', async () => {

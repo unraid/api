@@ -31,11 +31,18 @@ const {
   isFreshInstallRef,
   activationCodeRef,
   coreSettingsResult,
+  coreSettingsLoading,
   coreSettingsError,
   internalBootContextResult,
   installedPluginsResult,
+  installedPluginsLoading,
+  installedPluginsError,
   availableLanguagesResult,
+  availableLanguagesLoading,
+  availableLanguagesError,
+  refetchCoreSettingsMock,
   refetchInstalledPluginsMock,
+  refetchAvailableLanguagesMock,
   setModalHiddenMock,
   updateSystemTimeMock,
   updateServerIdentityMock,
@@ -84,9 +91,12 @@ const {
   coreSettingsResult: {
     value: null as unknown,
   },
+  coreSettingsLoading: { value: false },
   coreSettingsError: { value: null as unknown },
   internalBootContextResult: { value: null as GetInternalBootContextQuery | null },
   installedPluginsResult: { value: { installedUnraidPlugins: [] as string[] } },
+  installedPluginsLoading: { value: false },
+  installedPluginsError: { value: null as unknown },
   availableLanguagesResult: {
     value: {
       customization: {
@@ -97,7 +107,11 @@ const {
       },
     },
   },
+  availableLanguagesLoading: { value: false },
+  availableLanguagesError: { value: null as unknown },
+  refetchCoreSettingsMock: vi.fn().mockResolvedValue(undefined),
   refetchInstalledPluginsMock: vi.fn().mockResolvedValue(undefined),
+  refetchAvailableLanguagesMock: vi.fn().mockResolvedValue(undefined),
   setModalHiddenMock: vi.fn(),
   updateSystemTimeMock: vi.fn().mockResolvedValue({}),
   updateServerIdentityMock: vi.fn().mockResolvedValue({}),
@@ -137,6 +151,10 @@ vi.mock('@unraid/ui', () => ({
   Accordion: {
     props: ['items', 'type', 'collapsible', 'class'],
     template: `<div data-testid="accordion"><template v-for="item in items" :key="item.value"><slot name="trigger" :item="item" :open="false" /><slot name="content" :item="item" :open="false" /></template></div>`,
+  },
+  Spinner: {
+    name: 'Spinner',
+    template: '<div data-testid="loading-spinner" />',
   },
 }));
 
@@ -217,7 +235,12 @@ const setupApolloMocks = () => {
 
   useQueryMock.mockImplementation((doc: unknown) => {
     if (doc === GET_CORE_SETTINGS_QUERY) {
-      return { result: coreSettingsResult, error: coreSettingsError };
+      return {
+        result: coreSettingsResult,
+        loading: coreSettingsLoading,
+        error: coreSettingsError,
+        refetch: refetchCoreSettingsMock,
+      };
     }
     if (doc === GetInternalBootContextDocument) {
       return { result: internalBootContextResult };
@@ -225,11 +248,18 @@ const setupApolloMocks = () => {
     if (doc === INSTALLED_UNRAID_PLUGINS_QUERY) {
       return {
         result: installedPluginsResult,
+        loading: installedPluginsLoading,
+        error: installedPluginsError,
         refetch: refetchInstalledPluginsMock,
       };
     }
     if (doc === GET_AVAILABLE_LANGUAGES_QUERY) {
-      return { result: availableLanguagesResult };
+      return {
+        result: availableLanguagesResult,
+        loading: availableLanguagesLoading,
+        error: availableLanguagesError,
+        refetch: refetchAvailableLanguagesMock,
+      };
     }
     return { result: { value: null } };
   });
@@ -266,6 +296,7 @@ const mountComponent = (props: Record<string, unknown> = {}) => {
         setInternalBootApplySucceededMock(state.applySucceeded);
       }),
       onComplete,
+      onCloseOnboarding: vi.fn(),
       showBack: true,
       ...props,
     },
@@ -433,6 +464,7 @@ describe('OnboardingSummaryStep', () => {
     registrationStateRef.value = 'ENOKEYFILE';
     isFreshInstallRef.value = true;
     activationCodeRef.value = null;
+    coreSettingsLoading.value = false;
     coreSettingsError.value = null;
     coreSettingsResult.value = {
       vars: { name: 'Tower', useSsh: false, localTld: 'local' },
@@ -468,7 +500,11 @@ describe('OnboardingSummaryStep', () => {
         ],
       },
     };
+    installedPluginsLoading.value = false;
+    installedPluginsError.value = null;
     installedPluginsResult.value = { installedUnraidPlugins: [] };
+    availableLanguagesLoading.value = false;
+    availableLanguagesError.value = null;
     availableLanguagesResult.value = {
       customization: {
         availableLanguages: [
@@ -501,6 +537,35 @@ describe('OnboardingSummaryStep', () => {
       logs: [],
     });
     refetchInstalledPluginsMock.mockResolvedValue(undefined);
+  });
+
+  it('blocks summary apply behind a loading gate until all required queries are ready', async () => {
+    coreSettingsResult.value = null;
+    coreSettingsLoading.value = true;
+
+    const { wrapper } = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="brand-button"]').exists()).toBe(false);
+  });
+
+  it('shows retry and close actions when a required summary query fails', async () => {
+    coreSettingsError.value = new Error('offline');
+    const onCloseOnboarding = vi.fn();
+
+    const { wrapper } = mountComponent({ onCloseOnboarding });
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-step-query-error"]').exists()).toBe(true);
+
+    await wrapper.get('[data-testid="onboarding-step-query-retry"]').trigger('click');
+    await wrapper.get('[data-testid="onboarding-step-query-close"]').trigger('click');
+
+    expect(refetchCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(refetchInstalledPluginsMock).toHaveBeenCalledTimes(1);
+    expect(refetchAvailableLanguagesMock).toHaveBeenCalledTimes(1);
+    expect(onCloseOnboarding).toHaveBeenCalledTimes(1);
   });
 
   it.each([
@@ -915,117 +980,40 @@ describe('OnboardingSummaryStep', () => {
     }
   });
 
-  it('applies trusted defaults + draft values when baseline query is down', async () => {
+  it('does not apply changes when the baseline queries fail', async () => {
     coreSettingsResult.value = null;
     coreSettingsError.value = new Error('Graphql is offline.');
-    draftStore.serverName = 'MyTower';
-    draftStore.serverDescription = 'Edge host';
-    draftStore.selectedTimeZone = 'America/New_York';
-    draftStore.selectedTheme = 'black';
-    draftStore.selectedLanguage = 'en_US';
-    draftStore.useSsh = true;
 
     const { wrapper } = mountComponent();
-    await clickApply(wrapper);
+    await flushPromises();
 
-    expect(updateSystemTimeMock).toHaveBeenCalledWith({ input: { timeZone: 'America/New_York' } });
-    expect(updateServerIdentityMock).toHaveBeenCalledWith({
-      name: 'MyTower',
-      comment: 'Edge host',
-    });
-    expect(setThemeMock).toHaveBeenCalledWith({ theme: 'black' });
-    expect(setLocaleMock).toHaveBeenCalledWith({ locale: 'en_US' });
-    expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: true, port: 22 });
+    expect(wrapper.find('[data-testid="onboarding-step-query-error"]').exists()).toBe(true);
+    expect(updateSystemTimeMock).not.toHaveBeenCalled();
+    expect(updateServerIdentityMock).not.toHaveBeenCalled();
+    expect(setThemeMock).not.toHaveBeenCalled();
+    expect(setLocaleMock).not.toHaveBeenCalled();
+    expect(updateSshSettingsMock).not.toHaveBeenCalled();
   });
 
-  it('applies trusted defaults when baseline query is down and draft values are empty', async () => {
+  it('stays blocked instead of falling back after waiting for missing baseline data', async () => {
     coreSettingsResult.value = null;
-    coreSettingsError.value = new Error('Graphql is offline.');
-    draftStore.serverName = '';
-    draftStore.serverDescription = '';
-    draftStore.selectedTimeZone = '';
-    draftStore.selectedTheme = '';
-    draftStore.selectedLanguage = '';
-    draftStore.useSsh = false;
-
-    const { wrapper } = mountComponent();
-    await clickApply(wrapper);
-
-    expect(updateSystemTimeMock).toHaveBeenCalledWith({ input: { timeZone: 'UTC' } });
-    expect(updateServerIdentityMock).toHaveBeenCalledWith({
-      name: 'Tower',
-      comment: '',
-    });
-    expect(setThemeMock).toHaveBeenCalledWith({ theme: 'white' });
-    expect(setLocaleMock).toHaveBeenCalledWith({ locale: 'en_US' });
-    expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: false, port: 22 });
-  });
-
-  it('keeps best-effort fallback path once readiness times out before baseline is ready', async () => {
-    coreSettingsResult.value = null;
-    coreSettingsError.value = null;
-    draftStore.serverName = 'Tower';
-    draftStore.serverDescription = '';
-    draftStore.selectedTimeZone = 'UTC';
-    draftStore.selectedTheme = 'white';
-    draftStore.selectedLanguage = 'en_US';
-    draftStore.useSsh = false;
+    coreSettingsLoading.value = true;
 
     const { wrapper } = mountComponent();
     await vi.advanceTimersByTimeAsync(10000);
-
-    coreSettingsResult.value = {
-      vars: { name: 'Tower', useSsh: false, localTld: 'local' },
-      server: { name: 'Tower', comment: '' },
-      display: { theme: 'white', locale: 'en_US' },
-      systemTime: { timeZone: 'UTC' },
-      info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
-    };
     await flushPromises();
 
-    await clickApply(wrapper);
-
-    expect(updateSystemTimeMock).toHaveBeenCalledWith({ input: { timeZone: 'UTC' } });
-    expect(updateServerIdentityMock).toHaveBeenCalledWith({
-      name: 'Tower',
-      comment: '',
-    });
-    expect(setThemeMock).toHaveBeenCalledWith({ theme: 'white' });
-    expect(setLocaleMock).toHaveBeenCalledWith({ locale: 'en_US' });
-    expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: false, port: 22 });
-    expect(wrapper.text()).toContain(
-      'Baseline settings unavailable. Applying trusted defaults + draft values without diff checks.'
-    );
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+    expect(wrapper.text()).not.toContain('Baseline settings unavailable');
   });
 
-  it.each([
-    {
-      caseName: 'baseline available — shows success (completion deferred to NextSteps)',
-      apply: () => {},
-      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
-        expect(completeOnboardingMock).not.toHaveBeenCalled();
-        expect(wrapper.text()).toContain('No Updates Needed');
-        expect(wrapper.text()).not.toContain('Setup Saved in Best-Effort Mode');
-      },
-    },
-    {
-      caseName: 'baseline unavailable — shows best-effort (completion deferred to NextSteps)',
-      apply: () => {
-        coreSettingsResult.value = null;
-        coreSettingsError.value = new Error('Graphql is offline.');
-      },
-      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
-        expect(completeOnboardingMock).not.toHaveBeenCalled();
-        expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
-      },
-    },
-  ])('follows apply-only result matrix ($caseName)', async (scenario) => {
-    scenario.apply();
-
+  it('shows the normal success result when required queries are ready', async () => {
     const { wrapper } = mountComponent();
     await clickApply(wrapper);
 
-    scenario.assertExpected(wrapper);
+    expect(completeOnboardingMock).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain('No Updates Needed');
+    expect(wrapper.text()).not.toContain('Setup Saved in Best-Effort Mode');
   });
 
   it('keeps the success dialog open after apply instead of advancing immediately', async () => {
@@ -1116,22 +1104,6 @@ describe('OnboardingSummaryStep', () => {
 
     expect(wrapper.text()).toContain('Setup Continued After Timeout');
     expect(wrapper.text()).not.toContain('Setup Applied with Warnings');
-  });
-
-  it('shows result dialog in offline mode and advances only after OK', async () => {
-    coreSettingsResult.value = null;
-    coreSettingsError.value = new Error('Graphql is offline.');
-
-    const { wrapper, onComplete } = mountComponent();
-    await clickApply(wrapper);
-
-    expect(getSummaryVm(wrapper).showApplyResultDialog).toBe(true);
-    expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
-    expect(onComplete).not.toHaveBeenCalled();
-
-    await clickButtonByText(wrapper, 'OK');
-
-    expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
   it('continues and classifies warnings when server identity mutation rejects invalid input', async () => {
