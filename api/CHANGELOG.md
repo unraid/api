@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.32.1](https://github.com/unraid/api/compare/v4.32.0...v4.32.1) (2026-04-02)
+
+
+### Bug Fixes
+
+* **oidc:** trust Fastify proxy metadata ([#1982](https://github.com/unraid/api/issues/1982)) ([ad494d7](https://github.com/unraid/api/commit/ad494d793ba8ff8ddcfa812bdf9d607acafbbb1b))
+
 ## [4.32.0](https://github.com/unraid/api/compare/v4.31.1...v4.32.0) (2026-03-31)
 
 
