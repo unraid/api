@@ -7,6 +7,8 @@ import { ChevronLeftIcon, Squares2X2Icon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
+import OnboardingStepQueryGate from '@/components/Onboarding/components/OnboardingStepQueryGate.vue';
+import { useOnboardingStepQueryState } from '@/components/Onboarding/composables/useOnboardingStepQueryState';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 
 import type { OnboardingPluginsDraft } from '@/components/Onboarding/onboardingWizardState';
@@ -16,6 +18,7 @@ export interface Props {
   onComplete: (draft: OnboardingPluginsDraft) => void | Promise<void>;
   onSkip?: (draft: OnboardingPluginsDraft) => void | Promise<void>;
   onBack?: (draft: OnboardingPluginsDraft) => void | Promise<void>;
+  onCloseOnboarding?: () => void | Promise<void>;
   showSkip?: boolean;
   showBack?: boolean;
   isSavingStep?: boolean;
@@ -81,22 +84,32 @@ const buildSelectedPluginsFromDraft = (draft?: OnboardingPluginsDraft | null) =>
 const selectedPlugins = ref<Set<string>>(buildSelectedPluginsFromDraft(props.initialDraft));
 const installedPluginIds = ref<Set<string>>(new Set());
 
-const { result: installedPluginsResult, loading: installedPluginsLoading } = useQuery(
-  INSTALLED_UNRAID_PLUGINS_QUERY,
-  null,
-  {
-    fetchPolicy: 'network-only',
-  }
-);
+const {
+  result: installedPluginsResult,
+  loading: installedPluginsLoading,
+  error: installedPluginsError,
+  refetch: refetchInstalledPlugins,
+} = useQuery(INSTALLED_UNRAID_PLUGINS_QUERY, null, {
+  fetchPolicy: 'network-only',
+});
 
 const isPluginInstalled = (pluginId: string) => installedPluginIds.value.has(pluginId);
 const isPluginEnabled = (pluginId: string) =>
   installedPluginIds.value.has(pluginId) || selectedPlugins.value.has(pluginId);
-const isInstalledPluginsPending = computed(
-  () =>
-    installedPluginsLoading.value && !Array.isArray(installedPluginsResult.value?.installedUnraidPlugins)
+const hasLoadedInstalledPlugins = computed(() =>
+  Array.isArray(installedPluginsResult.value?.installedUnraidPlugins)
 );
-const isBusy = computed(() => Boolean(props.isSavingStep) || isInstalledPluginsPending.value);
+const {
+  isStepQueryLoading,
+  retryQueries: handleRetryInstalledPlugins,
+  stepQueryError,
+} = useOnboardingStepQueryState({
+  errors: [installedPluginsError],
+  loadings: [installedPluginsLoading],
+  ready: hasLoadedInstalledPlugins,
+  retry: () => refetchInstalledPlugins(),
+});
+const isBusy = computed(() => Boolean(props.isSavingStep));
 const stepError = computed(() => props.saveError ?? null);
 const persistedSelectedPlugins = computed(
   () => new Set<string>([...selectedPlugins.value, ...installedPluginIds.value])
@@ -218,81 +231,83 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
         :description="t('onboarding.pluginsStep.tip')"
       />
 
-      <!-- Plugin List -->
-      <div class="mb-8">
-        <OnboardingLoadingState
-          v-if="isInstalledPluginsPending"
-          compact
-          :title="t('onboarding.loading.title')"
-          :description="t('onboarding.pluginsStep.loading.description')"
-        />
-        <div v-else class="grid gap-4">
-          <div
-            v-for="plugin in availablePlugins"
-            :key="plugin.id"
-            class="border-muted bg-bg hover:border-primary/50 flex items-center justify-between rounded-lg border p-5 transition-colors"
-          >
-            <div class="flex-1 pr-4">
-              <h3 class="text-highlighted mb-1 text-base font-bold">
-                {{ plugin.name }}
-              </h3>
-              <p class="text-muted text-sm leading-relaxed">
-                {{ plugin.description }}
-              </p>
-            </div>
+      <OnboardingStepQueryGate
+        :loading="isStepQueryLoading"
+        :error="stepQueryError"
+        :loading-description="t('onboarding.pluginsStep.loading.description')"
+        :on-retry="handleRetryInstalledPlugins"
+        :on-close-onboarding="props.onCloseOnboarding"
+      >
+        <!-- Plugin List -->
+        <div class="mb-8">
+          <div class="grid gap-4">
+            <div
+              v-for="plugin in availablePlugins"
+              :key="plugin.id"
+              class="border-muted bg-bg hover:border-primary/50 flex items-center justify-between rounded-lg border p-5 transition-colors"
+            >
+              <div class="flex-1 pr-4">
+                <h3 class="text-highlighted mb-1 text-base font-bold">
+                  {{ plugin.name }}
+                </h3>
+                <p class="text-muted text-sm leading-relaxed">
+                  {{ plugin.description }}
+                </p>
+              </div>
 
-            <USwitch
-              :model-value="isPluginEnabled(plugin.id)"
-              @update:model-value="(val: boolean) => togglePlugin(plugin.id, val)"
-              :disabled="isBusy || isPluginInstalled(plugin.id)"
-              :aria-label="t('onboarding.pluginsStep.enablePluginAria', { name: plugin.name })"
+              <USwitch
+                :model-value="isPluginEnabled(plugin.id)"
+                @update:model-value="(val: boolean) => togglePlugin(plugin.id, val)"
+                :disabled="isBusy || isPluginInstalled(plugin.id)"
+                :aria-label="t('onboarding.pluginsStep.enablePluginAria', { name: plugin.name })"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="stepError"
+          class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
+        >
+          <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
+            {{ stepError }}
+          </p>
+        </div>
+
+        <div
+          class="border-muted flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
+        >
+          <button
+            v-if="showBack"
+            @click="handleBack"
+            class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
+            :disabled="isBusy"
+          >
+            <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+            {{ t('common.back') }}
+          </button>
+          <div v-else class="hidden w-1 sm:block" />
+
+          <div class="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row">
+            <button
+              v-if="showSkip"
+              @click="handleSkip"
+              class="text-muted hover:text-highlighted text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:mr-2"
+              :disabled="isBusy"
+            >
+              {{ t('common.skipForNow', 'Skip for now') }}
+            </button>
+            <BrandButton
+              :text="primaryButtonText"
+              class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
+              :disabled="isBusy"
+              :loading="isBusy"
+              @click="handlePrimaryAction"
+              :icon-right="ChevronRightIcon"
             />
           </div>
         </div>
-      </div>
-
-      <div
-        v-if="stepError"
-        class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
-      >
-        <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
-          {{ stepError }}
-        </p>
-      </div>
-
-      <div
-        class="border-muted flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
-      >
-        <button
-          v-if="showBack"
-          @click="handleBack"
-          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
-          :disabled="isBusy"
-        >
-          <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
-          {{ t('common.back') }}
-        </button>
-        <div v-else class="hidden w-1 sm:block" />
-
-        <div class="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row">
-          <button
-            v-if="showSkip"
-            @click="handleSkip"
-            class="text-muted hover:text-highlighted text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:mr-2"
-            :disabled="isBusy"
-          >
-            {{ t('common.skipForNow', 'Skip for now') }}
-          </button>
-          <BrandButton
-            :text="primaryButtonText"
-            class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
-            :disabled="isBusy"
-            :loading="isBusy"
-            @click="handlePrimaryAction"
-            :icon-right="ChevronRightIcon"
-          />
-        </div>
-      </div>
+      </OnboardingStepQueryGate>
     </div>
   </div>
 </template>

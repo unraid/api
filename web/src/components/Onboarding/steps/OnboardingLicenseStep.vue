@@ -26,6 +26,7 @@ interface Props {
   activateHref: string;
   activateExternal?: boolean;
   allowSkip?: boolean;
+  saveError?: string | null;
 }
 
 const props = defineProps<Props>();
@@ -67,6 +68,7 @@ const isHelpDialogOpen = ref(false);
 const isSkipDialogOpen = ref(false);
 const isRefreshing = ref(false);
 const isBusy = computed(() => Boolean(props.isSavingStep) || isRefreshing.value);
+const stepError = computed(() => props.saveError ?? null);
 
 // Methods
 const openActivate = () => {
@@ -260,6 +262,15 @@ const doSkip = () => {
         >
           {{ lt('onboarding.licenseStep.actions.contactSupport', 'Having trouble? Contact Support') }}
         </button>
+
+        <div
+          v-if="stepError"
+          class="w-full rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
+        >
+          <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
+            {{ stepError }}
+          </p>
+        </div>
 
         <!-- Footer / Navigation (Moved Inside Card) -->
         <div

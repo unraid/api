@@ -7,7 +7,6 @@ import { OPEN_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/openOn
 import { RESUME_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/resumeOnboarding.mutation';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
 import { clearLegacyOnboardingModalHiddenSessionState } from '~/components/Onboarding/store/onboardingStorageCleanup';
-import { CloseOnboardingReason as GraphqlCloseOnboardingReason } from '~/composables/gql/graphql';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
 const ONBOARDING_QUERY_ACTION_PARAM = 'onboarding';
@@ -16,7 +15,6 @@ const ONBOARDING_URL_ACTION_OPEN = 'open';
 const ONBOARDING_FORCE_OPEN_EVENT = 'unraid:onboarding:open';
 
 export type OnboardingModalSessionSource = 'automatic' | 'manual';
-export type CloseOnboardingReason = 'SAVE_FAILURE';
 
 export const useOnboardingModalStore = defineStore('onboardingModalVisibility', () => {
   const onboardingStore = useOnboardingStore();
@@ -43,18 +41,12 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
     return true;
   };
 
-  const closeModal = async (reason?: CloseOnboardingReason) => {
+  const closeModal = async () => {
     if (!canDisplayOnboardingModal.value) {
       return false;
     }
 
-    await closeOnboardingMutation({
-      input: reason
-        ? {
-            reason: GraphqlCloseOnboardingReason.SAVE_FAILURE,
-          }
-        : undefined,
-    });
+    await closeOnboardingMutation();
     await refetchOnboarding();
     sessionSource.value = 'automatic';
     return true;

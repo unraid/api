@@ -7,6 +7,8 @@ import { ChevronLeftIcon, CircleStackIcon } from '@heroicons/vue/24/outline';
 import { ArrowPathIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { Accordion, BrandButton } from '@unraid/ui';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
+import OnboardingStepQueryGate from '@/components/Onboarding/components/OnboardingStepQueryGate.vue';
+import { useOnboardingStepQueryState } from '@/components/Onboarding/composables/useOnboardingStepQueryState';
 import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
 import {
   type OnboardingBootMode,
@@ -26,6 +28,7 @@ export interface Props {
   onComplete: (draft: OnboardingInternalBootDraft) => void | Promise<void>;
   onSkip?: (draft: OnboardingInternalBootDraft) => void | Promise<void>;
   onBack?: (draft: OnboardingInternalBootDraft) => void | Promise<void>;
+  onCloseOnboarding?: () => void | Promise<void>;
   showSkip?: boolean;
   showBack?: boolean;
   isSavingStep?: boolean;
@@ -241,8 +244,18 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
   };
 });
 
-const isLoading = computed(() => Boolean(contextLoading.value) && !internalBootContext.value);
-const isBusy = computed(() => Boolean(props.isSavingStep) || isLoading.value);
+const hasLoadedInternalBootContext = computed(() => Boolean(internalBootContext.value));
+const {
+  isStepQueryLoading,
+  retryQueries: handleRetryContextQuery,
+  stepQueryError,
+} = useOnboardingStepQueryState({
+  errors: [contextError],
+  loadings: [contextLoading],
+  ready: hasLoadedInternalBootContext,
+  retry: () => refetchContext(),
+});
+const isBusy = computed(() => Boolean(props.isSavingStep));
 const isStepLocked = computed(() => Boolean(props.isSavingStep));
 const stepError = computed(() => props.saveError ?? null);
 const internalBootTransferState = computed<InternalBootTransferState>(() => {
@@ -337,15 +350,11 @@ const poolModeItems = computed<SelectMenuItem[]>(() => [
 ]);
 
 const isPrimaryActionDisabled = computed(
-  () => isStepLocked.value || (isStorageBootSelected.value && (isLoading.value || !canConfigure.value))
+  () => isStepLocked.value || (isStorageBootSelected.value && !canConfigure.value)
 );
-const isPrimaryActionLoading = computed(
-  () => isStepLocked.value || (isStorageBootSelected.value && isLoading.value)
-);
+const isPrimaryActionLoading = computed(() => isStepLocked.value);
 const shouldShowEligibilityDetails = computed(
-  () =>
-    !contextError.value &&
-    (systemEligibilityCodes.value.length > 0 || diskEligibilityIssues.value.length > 0)
+  () => systemEligibilityCodes.value.length > 0 || diskEligibilityIssues.value.length > 0
 );
 const eligibilityPanelTitle = computed(() =>
   canConfigure.value
@@ -361,13 +370,6 @@ const eligibilityPanelDescription = computed(() =>
       ? t('onboarding.internalBootStep.eligibility.noDevicesDescription')
       : t('onboarding.internalBootStep.eligibility.blockedDescription')
 );
-
-const loadStatusMessage = computed(() => {
-  if (contextError.value) {
-    return t('onboarding.internalBootStep.status.apiError');
-  }
-  return '';
-});
 
 const deviceSizeById = computed(() => {
   const entries = new Map<string, number>();
@@ -767,7 +769,7 @@ watch(
 watch(
   () => props.initialDraft,
   (draft) => {
-    if (!draft || isLoading.value) {
+    if (!draft || !internalBootContext.value) {
       return;
     }
 
@@ -878,377 +880,377 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         </div>
       </div>
 
-      <URadioGroup
-        v-model="bootMode"
-        :items="[
-          { label: t('onboarding.internalBootStep.options.usb'), value: 'usb' },
-          { label: t('onboarding.internalBootStep.options.storage'), value: 'storage' },
-        ]"
-        :disabled="isStepLocked"
-        variant="card"
-      />
-
-      <UAlert
-        v-if="isStorageBootSelected && canConfigure && isDedicatedMode"
-        data-testid="internal-boot-intro-panel"
-        class="my-8"
-        color="neutral"
-        variant="subtle"
-        icon="i-lucide-info"
+      <OnboardingStepQueryGate
+        :loading="isStepQueryLoading"
+        :error="stepQueryError"
+        :loading-description="t('onboarding.internalBootStep.loadingDescription')"
+        :on-retry="handleRetryContextQuery"
+        :on-close-onboarding="props.onCloseOnboarding"
       >
-        <template #description>
-          <div class="space-y-3 text-sm leading-relaxed">
-            <p class="font-semibold">
-              {{ t('onboarding.internalBootStep.warning.dedicatedModeTitle') }}
-            </p>
-            <p>{{ t('onboarding.internalBootStep.warning.dedicatedPoolDescription') }}</p>
-            <p>{{ t('onboarding.internalBootStep.warning.bootMirrorDescription') }}</p>
-            <p>{{ t('onboarding.internalBootStep.warning.dedicatedMirrorSize') }}</p>
-            <p class="font-semibold">
-              {{ t('onboarding.internalBootStep.warning.dedicatedDevicesFormatted') }}
-            </p>
-          </div>
-        </template>
-      </UAlert>
-
-      <UAlert
-        v-if="isStorageBootSelected && canConfigure && !isDedicatedMode"
-        data-testid="internal-boot-intro-panel"
-        class="my-8"
-        color="neutral"
-        variant="subtle"
-        icon="i-lucide-info"
-      >
-        <template #description>
-          <div class="space-y-3 text-sm leading-relaxed">
-            <p class="font-semibold">
-              {{ t('onboarding.internalBootStep.warning.hybridModeTitle') }}
-            </p>
-            <p>{{ t('onboarding.internalBootStep.warning.bootablePoolDescription') }}</p>
-            <p>{{ t('onboarding.internalBootStep.warning.bootablePoolVolumes') }}</p>
-            <ul class="list-disc space-y-1 pl-5">
-              <li>{{ t('onboarding.internalBootStep.warning.systemBootVolume') }}</li>
-              <li>{{ t('onboarding.internalBootStep.warning.storagePoolVolume') }}</li>
-            </ul>
-            <p class="font-semibold">
-              {{ t('onboarding.internalBootStep.warning.storagePoolNaming') }}
-            </p>
-            <p>{{ t('onboarding.internalBootStep.warning.bootMirrorDescription') }}</p>
-            <p class="font-semibold">
-              {{ t('onboarding.internalBootStep.warning.selectedDevicesFormatted') }}
-            </p>
-          </div>
-        </template>
-      </UAlert>
-
-      <div v-if="isStorageBootSelected && isLoading" class="mt-2">
-        <OnboardingLoadingState
-          compact
-          :title="t('common.loading')"
-          :description="t('onboarding.internalBootStep.loadingOptions')"
+        <URadioGroup
+          v-model="bootMode"
+          :items="[
+            { label: t('onboarding.internalBootStep.options.usb'), value: 'usb' },
+            { label: t('onboarding.internalBootStep.options.storage'), value: 'storage' },
+          ]"
+          :disabled="isStepLocked"
+          variant="card"
         />
-      </div>
 
-      <div
-        v-else-if="isStorageBootSelected && contextError"
-        role="alert"
-        class="border-muted bg-muted/40 text-foreground rounded-lg border p-4 text-sm"
-      >
-        {{ loadStatusMessage }}
-      </div>
-
-      <div v-if="isStorageBootSelected && !isLoading && !contextError" class="mt-6 flex justify-end">
-        <UButton
-          data-testid="internal-boot-refresh-button"
-          type="button"
+        <UAlert
+          v-if="isStorageBootSelected && canConfigure && isDedicatedMode"
+          data-testid="internal-boot-intro-panel"
+          class="my-8"
           color="neutral"
-          variant="ghost"
-          size="sm"
-          :disabled="isBusy || isRefreshingContext"
-          @click="handleRefreshContext"
+          variant="subtle"
+          icon="i-lucide-info"
         >
-          <ArrowPathIcon class="h-4 w-4" :class="{ 'animate-spin': isRefreshingContext }" />
-          {{ t('onboarding.internalBootStep.actions.refreshState', 'Refresh state') }}
-        </UButton>
-      </div>
+          <template #description>
+            <div class="space-y-3 text-sm leading-relaxed">
+              <p class="font-semibold">
+                {{ t('onboarding.internalBootStep.warning.dedicatedModeTitle') }}
+              </p>
+              <p>{{ t('onboarding.internalBootStep.warning.dedicatedPoolDescription') }}</p>
+              <p>{{ t('onboarding.internalBootStep.warning.bootMirrorDescription') }}</p>
+              <p>{{ t('onboarding.internalBootStep.warning.dedicatedMirrorSize') }}</p>
+              <p class="font-semibold">
+                {{ t('onboarding.internalBootStep.warning.dedicatedDevicesFormatted') }}
+              </p>
+            </div>
+          </template>
+        </UAlert>
 
-      <div v-if="isStorageBootSelected && !isLoading && !contextError && canConfigure" class="space-y-5">
-        <div class="space-y-3">
-          <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
-            {{ t('onboarding.internalBootStep.sections.poolSettings') }}
-          </h3>
-          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <label class="space-y-2">
-              <span class="text-muted text-sm font-medium">
-                {{ t('onboarding.internalBootStep.fields.poolMode') }}
-              </span>
-              <USelectMenu
-                v-model="poolMode"
-                :items="poolModeItems"
-                label-key="label"
-                value-key="value"
-                :search-input="false"
-                :disabled="isBusy"
-                class="w-full"
-                :ui="{ content: 'z-[100]' }"
-              />
-            </label>
+        <UAlert
+          v-if="isStorageBootSelected && canConfigure && !isDedicatedMode"
+          data-testid="internal-boot-intro-panel"
+          class="my-8"
+          color="neutral"
+          variant="subtle"
+          icon="i-lucide-info"
+        >
+          <template #description>
+            <div class="space-y-3 text-sm leading-relaxed">
+              <p class="font-semibold">
+                {{ t('onboarding.internalBootStep.warning.hybridModeTitle') }}
+              </p>
+              <p>{{ t('onboarding.internalBootStep.warning.bootablePoolDescription') }}</p>
+              <p>{{ t('onboarding.internalBootStep.warning.bootablePoolVolumes') }}</p>
+              <ul class="list-disc space-y-1 pl-5">
+                <li>{{ t('onboarding.internalBootStep.warning.systemBootVolume') }}</li>
+                <li>{{ t('onboarding.internalBootStep.warning.storagePoolVolume') }}</li>
+              </ul>
+              <p class="font-semibold">
+                {{ t('onboarding.internalBootStep.warning.storagePoolNaming') }}
+              </p>
+              <p>{{ t('onboarding.internalBootStep.warning.bootMirrorDescription') }}</p>
+              <p class="font-semibold">
+                {{ t('onboarding.internalBootStep.warning.selectedDevicesFormatted') }}
+              </p>
+            </div>
+          </template>
+        </UAlert>
 
-            <label v-if="!isDedicatedMode" class="space-y-2">
-              <span class="text-muted text-sm font-medium">
-                {{ t('onboarding.internalBootStep.fields.dataPoolName') }}
-              </span>
-              <UInput v-model="poolName" type="text" maxlength="40" :disabled="isBusy" class="w-full" />
-            </label>
-          </div>
+        <div v-if="isStorageBootSelected" class="mt-6 flex justify-end">
+          <UButton
+            data-testid="internal-boot-refresh-button"
+            type="button"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            :disabled="isBusy || isRefreshingContext"
+            @click="handleRefreshContext"
+          >
+            <ArrowPathIcon class="h-4 w-4" :class="{ 'animate-spin': isRefreshingContext }" />
+            {{ t('onboarding.internalBootStep.actions.refreshState', 'Refresh state') }}
+          </UButton>
         </div>
 
-        <div class="space-y-3">
-          <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
-            {{ t('onboarding.internalBootStep.sections.devices') }}
-          </h3>
-          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <label class="space-y-2">
-              <span class="text-muted text-sm font-medium">
-                {{ t('onboarding.internalBootStep.fields.slots') }}
-              </span>
+        <div v-if="isStorageBootSelected && canConfigure" class="space-y-5">
+          <div class="space-y-3">
+            <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
+              {{ t('onboarding.internalBootStep.sections.poolSettings') }}
+            </h3>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <label class="space-y-2">
+                <span class="text-muted text-sm font-medium">
+                  {{ t('onboarding.internalBootStep.fields.poolMode') }}
+                </span>
+                <USelectMenu
+                  v-model="poolMode"
+                  :items="poolModeItems"
+                  label-key="label"
+                  value-key="value"
+                  :search-input="false"
+                  :disabled="isBusy"
+                  class="w-full"
+                  :ui="{ content: 'z-[100]' }"
+                />
+              </label>
+
+              <label v-if="!isDedicatedMode" class="space-y-2">
+                <span class="text-muted text-sm font-medium">
+                  {{ t('onboarding.internalBootStep.fields.dataPoolName') }}
+                </span>
+                <UInput
+                  v-model="poolName"
+                  type="text"
+                  maxlength="40"
+                  :disabled="isBusy"
+                  class="w-full"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
+              {{ t('onboarding.internalBootStep.sections.devices') }}
+            </h3>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <label class="space-y-2">
+                <span class="text-muted text-sm font-medium">
+                  {{ t('onboarding.internalBootStep.fields.slots') }}
+                </span>
+                <USelectMenu
+                  :model-value="slotCount"
+                  :items="slotCountItems"
+                  label-key="label"
+                  value-key="value"
+                  :search-input="false"
+                  :disabled="isBusy"
+                  class="w-full"
+                  :ui="{ content: 'z-[100]' }"
+                  @update:model-value="
+                    (val: unknown) => {
+                      const n = Number(val);
+                      if (Number.isFinite(n) && n >= 1) slotCount = n;
+                    }
+                  "
+                />
+              </label>
+            </div>
+
+            <div v-for="index in slotCount" :key="index" class="space-y-2">
+              <label class="text-muted text-sm font-medium">{{
+                t('onboarding.internalBootStep.fields.deviceSlot', { index })
+              }}</label>
               <USelectMenu
-                :model-value="slotCount"
-                :items="slotCountItems"
+                v-model="selectedDevices[index - 1]"
+                :items="getDeviceSelectItems(index - 1)"
                 label-key="label"
                 value-key="value"
                 :search-input="false"
+                :placeholder="t('onboarding.internalBootStep.fields.selectDevice')"
                 :disabled="isBusy"
                 class="w-full"
                 :ui="{ content: 'z-[100]' }"
-                @update:model-value="
-                  (val: unknown) => {
-                    const n = Number(val);
-                    if (Number.isFinite(n) && n >= 1) slotCount = n;
-                  }
-                "
               />
-            </label>
+            </div>
           </div>
 
-          <div v-for="index in slotCount" :key="index" class="space-y-2">
-            <label class="text-muted text-sm font-medium">{{
-              t('onboarding.internalBootStep.fields.deviceSlot', { index })
-            }}</label>
-            <USelectMenu
-              v-model="selectedDevices[index - 1]"
-              :items="getDeviceSelectItems(index - 1)"
-              label-key="label"
-              value-key="value"
-              :search-input="false"
-              :placeholder="t('onboarding.internalBootStep.fields.selectDevice')"
+          <UAlert
+            v-if="selectedDriveWarnings.length > 0"
+            data-testid="internal-boot-drive-warning"
+            color="warning"
+            variant="outline"
+            icon="i-lucide-triangle-alert"
+          >
+            <template #description>
+              <div class="space-y-2">
+                <p class="font-semibold">
+                  {{ t('onboarding.internalBootStep.warning.driveWarningsTitle') }}
+                </p>
+                <p>{{ t('onboarding.internalBootStep.warning.driveWarningsDescription') }}</p>
+                <ul class="list-disc space-y-1 pl-5">
+                  <li v-for="option in selectedDriveWarnings" :key="option.value">
+                    {{ option.label }}
+                  </li>
+                </ul>
+              </div>
+            </template>
+          </UAlert>
+
+          <template v-if="!isDedicatedMode">
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <label class="space-y-2">
+                <span class="text-muted text-sm font-medium">
+                  {{ t('onboarding.internalBootStep.fields.bootReservedSize') }}
+                </span>
+                <USelectMenu
+                  v-model="bootSizePreset"
+                  :items="bootSizePresetItems"
+                  label-key="label"
+                  value-key="value"
+                  :search-input="false"
+                  :disabled="isBusy"
+                  class="w-full"
+                  :ui="{ content: 'z-[100]' }"
+                />
+              </label>
+
+              <label v-if="bootSizePreset === 'custom'" class="space-y-2">
+                <span class="text-muted text-sm font-medium">
+                  {{ t('onboarding.internalBootStep.fields.customSizeGb') }}
+                </span>
+                <UInput
+                  v-model="customBootSizeGb"
+                  type="number"
+                  min="4"
+                  :max="maxCustomBootSizeGb ?? undefined"
+                  :disabled="isBusy"
+                  class="w-full"
+                />
+              </label>
+            </div>
+
+            <p class="text-muted text-xs">{{ bootSizeHelpText }}</p>
+          </template>
+
+          <label class="flex items-center gap-3 text-sm">
+            <UCheckbox
+              :model-value="updateBios"
               :disabled="isBusy"
-              class="w-full"
-              :ui="{ content: 'z-[100]' }"
+              @update:model-value="handleUpdateBiosChange"
+            />
+            <span class="text-highlighted font-medium">{{
+              t('onboarding.internalBootStep.fields.updateBios')
+            }}</span>
+          </label>
+          <UAlert
+            v-if="updateBios"
+            data-testid="internal-boot-update-bios-warning"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-triangle-alert"
+          >
+            <template #description>
+              <p class="text-sm leading-relaxed">
+                {{ t('onboarding.internalBootStep.warning.updateBios') }}
+              </p>
+            </template>
+          </UAlert>
+        </div>
+
+        <div
+          v-if="isStorageBootSelected && shouldShowEligibilityDetails"
+          data-testid="internal-boot-eligibility-panel"
+          class="border-muted bg-muted/40 text-foreground mt-6 rounded-lg border text-sm"
+        >
+          <Accordion
+            :items="[{ value: 'eligibility', title: eligibilityPanelTitle }]"
+            type="single"
+            collapsible
+            class="border-none"
+            item-class="border-none"
+            trigger-class="pr-4 hover:no-underline"
+          >
+            <template #trigger="{ open }">
+              <div
+                data-testid="internal-boot-eligibility-toggle"
+                class="flex w-full items-center justify-between gap-4 p-4 text-left"
+              >
+                <div class="space-y-1">
+                  <p class="font-semibold">{{ eligibilityPanelTitle }}</p>
+                  <p v-if="eligibilityPanelDescription">{{ eligibilityPanelDescription }}</p>
+                </div>
+                <div class="flex items-center gap-2 text-sm font-medium whitespace-nowrap">
+                  <span>
+                    {{
+                      open
+                        ? t('onboarding.internalBootStep.eligibility.hideDetails')
+                        : t('onboarding.internalBootStep.eligibility.showDetails')
+                    }}
+                  </span>
+                </div>
+              </div>
+            </template>
+            <template #content>
+              <div class="border-muted space-y-4 border-t px-4 pt-4 pb-4">
+                <div v-if="systemEligibilityCodes.length > 0" class="space-y-2">
+                  <p class="font-semibold">
+                    {{ t('onboarding.internalBootStep.eligibility.systemTitle') }}
+                  </p>
+                  <ul class="list-disc space-y-2 pl-5">
+                    <li v-for="code in systemEligibilityCodes" :key="code">
+                      <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">
+                        {{ code }}
+                      </code>
+                      {{ t(SYSTEM_ELIGIBILITY_MESSAGE_KEYS[code]) }}
+                    </li>
+                  </ul>
+                </div>
+
+                <div v-if="diskEligibilityIssues.length > 0" class="space-y-2">
+                  <p class="font-semibold">
+                    {{ t('onboarding.internalBootStep.eligibility.diskTitle') }}
+                  </p>
+                  <ul class="list-disc space-y-3 pl-5">
+                    <li v-for="disk in diskEligibilityIssues" :key="disk.label">
+                      <p class="font-medium">{{ disk.label }}</p>
+                      <ul class="list-disc space-y-1 pl-5">
+                        <li v-for="code in disk.codes" :key="`${disk.label}-${code}`">
+                          <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">
+                            {{ code }}
+                          </code>
+                          {{ t(DISK_ISSUE_MESSAGE_KEYS[code]) }}
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </template>
+          </Accordion>
+        </div>
+
+        <div
+          v-if="isStorageBootSelected && formError"
+          class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/10 dark:text-red-300"
+        >
+          {{ formError }}
+        </div>
+
+        <div
+          v-if="stepError"
+          class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/10 dark:text-red-300"
+        >
+          {{ stepError }}
+        </div>
+
+        <div
+          class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
+        >
+          <button
+            v-if="showBack"
+            @click="handleBack"
+            class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
+            :disabled="isStepLocked"
+          >
+            <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+            {{ t('common.back') }}
+          </button>
+          <div v-else class="hidden w-1 sm:block" />
+
+          <div class="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row">
+            <button
+              v-if="showSkip"
+              @click="handleSkip"
+              class="text-muted hover:text-highlighted text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:mr-2"
+              :disabled="isStepLocked"
+            >
+              {{ t('common.skipForNow', 'Skip for now') }}
+            </button>
+            <BrandButton
+              :text="primaryButtonText"
+              class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
+              :disabled="isPrimaryActionDisabled"
+              :loading="isPrimaryActionLoading"
+              @click="handlePrimaryAction"
+              :icon-right="ChevronRightIcon"
             />
           </div>
         </div>
-
-        <UAlert
-          v-if="selectedDriveWarnings.length > 0"
-          data-testid="internal-boot-drive-warning"
-          color="warning"
-          variant="outline"
-          icon="i-lucide-triangle-alert"
-        >
-          <template #description>
-            <div class="space-y-2">
-              <p class="font-semibold">
-                {{ t('onboarding.internalBootStep.warning.driveWarningsTitle') }}
-              </p>
-              <p>{{ t('onboarding.internalBootStep.warning.driveWarningsDescription') }}</p>
-              <ul class="list-disc space-y-1 pl-5">
-                <li v-for="option in selectedDriveWarnings" :key="option.value">
-                  {{ option.label }}
-                </li>
-              </ul>
-            </div>
-          </template>
-        </UAlert>
-
-        <template v-if="!isDedicatedMode">
-          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <label class="space-y-2">
-              <span class="text-muted text-sm font-medium">
-                {{ t('onboarding.internalBootStep.fields.bootReservedSize') }}
-              </span>
-              <USelectMenu
-                v-model="bootSizePreset"
-                :items="bootSizePresetItems"
-                label-key="label"
-                value-key="value"
-                :search-input="false"
-                :disabled="isBusy"
-                class="w-full"
-                :ui="{ content: 'z-[100]' }"
-              />
-            </label>
-
-            <label v-if="bootSizePreset === 'custom'" class="space-y-2">
-              <span class="text-muted text-sm font-medium">
-                {{ t('onboarding.internalBootStep.fields.customSizeGb') }}
-              </span>
-              <UInput
-                v-model="customBootSizeGb"
-                type="number"
-                min="4"
-                :max="maxCustomBootSizeGb ?? undefined"
-                :disabled="isBusy"
-                class="w-full"
-              />
-            </label>
-          </div>
-
-          <p class="text-muted text-xs">{{ bootSizeHelpText }}</p>
-        </template>
-
-        <label class="flex items-center gap-3 text-sm">
-          <UCheckbox
-            :model-value="updateBios"
-            :disabled="isBusy"
-            @update:model-value="handleUpdateBiosChange"
-          />
-          <span class="text-highlighted font-medium">{{
-            t('onboarding.internalBootStep.fields.updateBios')
-          }}</span>
-        </label>
-        <UAlert
-          v-if="updateBios"
-          data-testid="internal-boot-update-bios-warning"
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-triangle-alert"
-        >
-          <template #description>
-            <p class="text-sm leading-relaxed">
-              {{ t('onboarding.internalBootStep.warning.updateBios') }}
-            </p>
-          </template>
-        </UAlert>
-      </div>
-
-      <div
-        v-if="isStorageBootSelected && !isLoading && shouldShowEligibilityDetails"
-        data-testid="internal-boot-eligibility-panel"
-        class="border-muted bg-muted/40 text-foreground mt-6 rounded-lg border text-sm"
-      >
-        <Accordion
-          :items="[{ value: 'eligibility', title: eligibilityPanelTitle }]"
-          type="single"
-          collapsible
-          class="border-none"
-          item-class="border-none"
-          trigger-class="pr-4 hover:no-underline"
-        >
-          <template #trigger="{ open }">
-            <div
-              data-testid="internal-boot-eligibility-toggle"
-              class="flex w-full items-center justify-between gap-4 p-4 text-left"
-            >
-              <div class="space-y-1">
-                <p class="font-semibold">{{ eligibilityPanelTitle }}</p>
-                <p v-if="eligibilityPanelDescription">{{ eligibilityPanelDescription }}</p>
-              </div>
-              <div class="flex items-center gap-2 text-sm font-medium whitespace-nowrap">
-                <span>
-                  {{
-                    open
-                      ? t('onboarding.internalBootStep.eligibility.hideDetails')
-                      : t('onboarding.internalBootStep.eligibility.showDetails')
-                  }}
-                </span>
-              </div>
-            </div>
-          </template>
-          <template #content>
-            <div class="border-muted space-y-4 border-t px-4 pt-4 pb-4">
-              <div v-if="systemEligibilityCodes.length > 0" class="space-y-2">
-                <p class="font-semibold">
-                  {{ t('onboarding.internalBootStep.eligibility.systemTitle') }}
-                </p>
-                <ul class="list-disc space-y-2 pl-5">
-                  <li v-for="code in systemEligibilityCodes" :key="code">
-                    <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">
-                      {{ code }}
-                    </code>
-                    {{ t(SYSTEM_ELIGIBILITY_MESSAGE_KEYS[code]) }}
-                  </li>
-                </ul>
-              </div>
-
-              <div v-if="diskEligibilityIssues.length > 0" class="space-y-2">
-                <p class="font-semibold">{{ t('onboarding.internalBootStep.eligibility.diskTitle') }}</p>
-                <ul class="list-disc space-y-3 pl-5">
-                  <li v-for="disk in diskEligibilityIssues" :key="disk.label">
-                    <p class="font-medium">{{ disk.label }}</p>
-                    <ul class="list-disc space-y-1 pl-5">
-                      <li v-for="code in disk.codes" :key="`${disk.label}-${code}`">
-                        <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">
-                          {{ code }}
-                        </code>
-                        {{ t(DISK_ISSUE_MESSAGE_KEYS[code]) }}
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </template>
-        </Accordion>
-      </div>
-
-      <div
-        v-if="isStorageBootSelected && formError"
-        class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/10 dark:text-red-300"
-      >
-        {{ formError }}
-      </div>
-
-      <div
-        v-if="stepError"
-        class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/10 dark:text-red-300"
-      >
-        {{ stepError }}
-      </div>
-
-      <div
-        class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
-      >
-        <button
-          v-if="showBack"
-          @click="handleBack"
-          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
-          :disabled="isStepLocked"
-        >
-          <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
-          {{ t('common.back') }}
-        </button>
-        <div v-else class="hidden w-1 sm:block" />
-
-        <div class="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row">
-          <button
-            v-if="showSkip"
-            @click="handleSkip"
-            class="text-muted hover:text-highlighted text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:mr-2"
-            :disabled="isStepLocked"
-          >
-            {{ t('common.skipForNow', 'Skip for now') }}
-          </button>
-          <BrandButton
-            :text="primaryButtonText"
-            class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
-            :disabled="isPrimaryActionDisabled"
-            :loading="isPrimaryActionLoading"
-            @click="handlePrimaryAction"
-            :icon-right="ChevronRightIcon"
-          />
-        </div>
-      </div>
+      </OnboardingStepQueryGate>
     </div>
   </div>
 </template>

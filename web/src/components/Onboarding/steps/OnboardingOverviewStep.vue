@@ -26,6 +26,7 @@ export interface Props {
   onBack?: () => void;
   showBack?: boolean;
   isSavingStep?: boolean;
+  saveError?: string | null;
 }
 
 const props = defineProps<Props>();
@@ -41,6 +42,7 @@ const isSkipping = ref(false);
 const partnerGraphicLoadFailed = ref(false);
 
 const isBusy = computed(() => props.isSavingStep || isSkipping.value);
+const stepError = computed(() => props.saveError ?? null);
 
 const isPartnerLogo = computed(
   () =>
@@ -302,6 +304,15 @@ const openDocs = () => {
           {{ t('onboarding.overviewStep.disclaimer') }}
         </p>
       </div> -->
+
+      <div
+        v-if="stepError"
+        class="mb-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
+      >
+        <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
+          {{ stepError }}
+        </p>
+      </div>
 
       <!-- Footer Actions -->
       <div class="border-muted flex items-center justify-between border-t pt-6">

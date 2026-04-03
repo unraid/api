@@ -286,9 +286,9 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   ];
 });
 
-const closeModal = async (reason?: 'SAVE_FAILURE') => {
+const closeModal = async () => {
   try {
-    await onboardingModalStore.closeModal(reason);
+    await onboardingModalStore.closeModal();
   } finally {
     cleanupOnboardingStorage();
     clearHistorySession();
@@ -542,19 +542,6 @@ const handleExitConfirm = async () => {
   }
 };
 
-const handleSaveFailureClose = async () => {
-  if (isClosingModal.value) {
-    return;
-  }
-
-  isClosingModal.value = true;
-  try {
-    await closeModal('SAVE_FAILURE');
-  } finally {
-    isClosingModal.value = false;
-  }
-};
-
 const handleModalVisibilityUpdate = async (value: boolean) => {
   if (!value) {
     handleExitIntent();
@@ -708,6 +695,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         onSkipSetup: handleExitIntent,
         onSkip: undefined,
         showSkip: false,
+        saveError: saveTransitionError.value,
       };
 
     case 'CONFIGURE_SETTINGS': {
@@ -717,6 +705,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         initialDraft: localDraft.value.coreSettings ?? null,
         onComplete: handleCoreSettingsComplete,
         onBack: handleCoreSettingsBack,
+        onCloseOnboarding: handleExitIntent,
         showSkip: !hardcodedStep?.required,
         saveError: saveTransitionError.value,
       };
@@ -730,6 +719,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         onComplete: handlePluginsComplete,
         onSkip: hardcodedStep?.required ? undefined : handlePluginsSkip,
         onBack: handlePluginsBack,
+        onCloseOnboarding: handleExitIntent,
         showSkip: !hardcodedStep?.required,
         isRequired: hardcodedStep?.required ?? false,
         saveError: saveTransitionError.value,
@@ -744,6 +734,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         onComplete: handleInternalBootComplete,
         onSkip: hardcodedStep?.required ? undefined : handleInternalBootSkip,
         onBack: handleInternalBootBack,
+        onCloseOnboarding: handleExitIntent,
         showSkip: !hardcodedStep?.required,
         saveError: saveTransitionError.value,
       };
@@ -763,6 +754,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         allowSkip: allowActivationSkip.value,
         showKeyfileHint: showKeyfileHint.value,
         showActivationCodeHint: hasActivationCode.value,
+        saveError: saveTransitionError.value,
       };
 
     case 'NEXT_STEPS':
@@ -781,6 +773,8 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         onInternalBootStateChange: handleInternalBootStateChange,
         onComplete: handleSummaryComplete,
         onBack: handleSummaryBack,
+        onCloseOnboarding: handleExitIntent,
+        saveError: saveTransitionError.value,
       };
 
     default:
@@ -824,25 +818,6 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
             :on-step-click="goToStep"
             class="mb-8"
           />
-
-          <div
-            v-if="saveTransitionError"
-            class="mb-6 w-full max-w-4xl rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/10 dark:text-red-300"
-          >
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p class="font-medium">
-                {{ saveTransitionError }}
-              </p>
-              <button
-                type="button"
-                class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
-                :disabled="isClosingModal"
-                @click="handleSaveFailureClose"
-              >
-                {{ t('onboarding.modal.exit.confirm') }}
-              </button>
-            </div>
-          </div>
 
           <div class="relative w-full">
             <component

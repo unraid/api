@@ -13,11 +13,16 @@ const {
   onboardingStore,
   setCoreSettingsMock,
   timeZoneOptionsResult,
+  timeZoneOptionsError,
+  refetchTimeZoneOptionsMock,
   languagesResult,
   languagesLoading,
   languagesError,
+  refetchLanguagesMock,
   coreOnResultHandlers,
   coreSettingsResult,
+  coreSettingsError,
+  refetchCoreSettingsMock,
   useQueryMock,
 } = vi.hoisted(() => ({
   setCoreSettingsMock: vi.fn(),
@@ -43,6 +48,8 @@ const {
       ],
     },
   },
+  timeZoneOptionsError: { value: null as unknown },
+  refetchTimeZoneOptionsMock: vi.fn().mockResolvedValue(undefined),
   languagesResult: {
     value: {
       customization: {
@@ -55,8 +62,11 @@ const {
   },
   languagesLoading: { value: false },
   languagesError: { value: null as unknown },
+  refetchLanguagesMock: vi.fn().mockResolvedValue(undefined),
   coreOnResultHandlers: [] as Array<(payload: unknown) => void>,
   coreSettingsResult: { value: null as unknown },
+  coreSettingsError: { value: null as unknown },
+  refetchCoreSettingsMock: vi.fn().mockResolvedValue(undefined),
   useQueryMock: vi.fn(),
 }));
 
@@ -68,6 +78,10 @@ vi.mock('@unraid/ui', () => ({
     emits: ['click'],
     template:
       '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')"><slot />{{ text }}</button>',
+  },
+  Spinner: {
+    name: 'Spinner',
+    template: '<div data-testid="loading-spinner" />',
   },
 }));
 
@@ -104,11 +118,16 @@ vi.mock('@vue/apollo-composable', async () => {
 const setupQueryMocks = () => {
   useQueryMock.mockImplementation((doc: unknown) => {
     if (doc === TIME_ZONE_OPTIONS_QUERY) {
-      return { result: timeZoneOptionsResult };
+      return {
+        result: timeZoneOptionsResult,
+        error: timeZoneOptionsError,
+        refetch: refetchTimeZoneOptionsMock,
+      };
     }
     if (doc === GET_CORE_SETTINGS_QUERY) {
       return {
         result: coreSettingsResult,
+        error: coreSettingsError,
         onResult: (cb: (payload: unknown) => void) => {
           coreOnResultHandlers.push((payload: unknown) => {
             const candidate = payload as { data?: unknown };
@@ -116,6 +135,7 @@ const setupQueryMocks = () => {
             cb(payload);
           });
         },
+        refetch: refetchCoreSettingsMock,
       };
     }
     if (doc === GET_AVAILABLE_LANGUAGES_QUERY) {
@@ -123,6 +143,7 @@ const setupQueryMocks = () => {
         result: languagesResult,
         loading: languagesLoading,
         error: languagesError,
+        refetch: refetchLanguagesMock,
       };
     }
     return { result: { value: null } };
@@ -144,6 +165,7 @@ const mountComponent = (props: Record<string, unknown> = {}) => {
           }
         : null,
       onComplete,
+      onCloseOnboarding: vi.fn(),
       showBack: true,
       ...props,
     },
@@ -199,10 +221,46 @@ describe('OnboardingCoreSettingsStep', () => {
     draftStore.coreSettingsInitialized = false;
     onboardingStore.completed.value = true;
     onboardingStore.loading.value = false;
-    coreSettingsResult.value = null;
+    coreSettingsResult.value = {
+      server: { name: 'Tower', comment: '' },
+      vars: { name: 'Tower', useSsh: false, localTld: 'local' },
+      display: { theme: 'white', locale: 'en_US' },
+      systemTime: { timeZone: 'UTC' },
+      info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
+    };
+    coreSettingsError.value = null;
+    timeZoneOptionsError.value = null;
 
     languagesLoading.value = false;
     languagesError.value = null;
+  });
+
+  it('blocks the form behind a loading gate until the required queries are ready', async () => {
+    coreSettingsResult.value = null;
+    const { wrapper } = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+    expect(wrapper.find('input').exists()).toBe(false);
+  });
+
+  it('shows retry and close actions when a required query errors', async () => {
+    const onCloseOnboarding = vi.fn();
+    coreSettingsResult.value = null;
+    coreSettingsError.value = new Error('offline');
+
+    const { wrapper } = mountComponent({ onCloseOnboarding });
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-step-query-error"]').exists()).toBe(true);
+
+    await wrapper.get('[data-testid="onboarding-step-query-retry"]').trigger('click');
+    await wrapper.get('[data-testid="onboarding-step-query-close"]').trigger('click');
+
+    expect(refetchTimeZoneOptionsMock).toHaveBeenCalledTimes(1);
+    expect(refetchCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(refetchLanguagesMock).toHaveBeenCalledTimes(1);
+    expect(onCloseOnboarding).toHaveBeenCalledTimes(1);
   });
 
   it('prefers browser timezone over API on initial setup when draft timezone is empty', async () => {

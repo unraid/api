@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
@@ -26,11 +26,13 @@ import { buildBootConfigurationSummaryViewModel } from '@/components/Onboarding/
 import OnboardingBootConfigurationSummary from '@/components/Onboarding/components/bootConfigurationSummary/OnboardingBootConfigurationSummary.vue';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
+import OnboardingStepQueryGate from '@/components/Onboarding/components/OnboardingStepQueryGate.vue';
 import {
   applyInternalBootSelection,
   getErrorMessage,
 } from '@/components/Onboarding/composables/internalBoot';
 import { buildOnboardingErrorDiagnostics } from '@/components/Onboarding/composables/onboardingErrorDiagnostics';
+import { useOnboardingStepQueryState } from '@/components/Onboarding/composables/useOnboardingStepQueryState';
 import usePluginInstaller, {
   INSTALL_OPERATION_TIMEOUT_CODE,
 } from '@/components/Onboarding/composables/usePluginInstaller';
@@ -63,8 +65,10 @@ export interface Props {
   onInternalBootStateChange?: (state: OnboardingWizardInternalBootState) => void | Promise<void>;
   onComplete: () => void | Promise<void>;
   onBack?: () => void;
+  onCloseOnboarding?: () => void | Promise<void>;
   showBack?: boolean;
   isSavingStep?: boolean;
+  saveError?: string | null;
 }
 
 const props = defineProps<Props>();
@@ -91,21 +95,28 @@ const { mutate: updateSshSettings } = useMutation(UPDATE_SSH_SETTINGS_MUTATION);
 const { installLanguage, installPlugin } = usePluginInstaller();
 
 // Fetch Current Settings (for comparison if needed)
-const { result: coreSettingsResult, error: coreSettingsError } = useQuery(
-  GET_CORE_SETTINGS_QUERY,
-  null,
-  {
-    fetchPolicy: 'cache-first',
-  }
-);
-const { result: installedPluginsResult, refetch: refetchInstalledPlugins } = useQuery(
-  INSTALLED_UNRAID_PLUGINS_QUERY,
-  null,
-  {
-    fetchPolicy: 'cache-first',
-  }
-);
-const { result: availableLanguagesResult } = useQuery(GET_AVAILABLE_LANGUAGES_QUERY, null, {
+const {
+  result: coreSettingsResult,
+  loading: coreSettingsLoading,
+  error: coreSettingsError,
+  refetch: refetchCoreSettings,
+} = useQuery(GET_CORE_SETTINGS_QUERY, null, {
+  fetchPolicy: 'cache-first',
+});
+const {
+  result: installedPluginsResult,
+  loading: installedPluginsLoading,
+  error: installedPluginsError,
+  refetch: refetchInstalledPlugins,
+} = useQuery(INSTALLED_UNRAID_PLUGINS_QUERY, null, {
+  fetchPolicy: 'cache-first',
+});
+const {
+  result: availableLanguagesResult,
+  loading: availableLanguagesLoading,
+  error: availableLanguagesError,
+  refetch: refetchAvailableLanguages,
+} = useQuery(GET_AVAILABLE_LANGUAGES_QUERY, null, {
   fetchPolicy: 'cache-first',
 });
 
@@ -202,6 +213,7 @@ const applyResultSeverity = ref<'success' | 'warning' | 'error'>('success');
 const shouldReloadAfterApplyResult = ref(false);
 const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
+const stepError = computed(() => error.value ?? props.saveError ?? null);
 
 const addLog = (
   message: string,
@@ -461,10 +473,23 @@ const selectedPluginSummaries = computed(() => {
   });
 });
 
-const isApplyDataReady = computed(() =>
-  Boolean(coreSettingsResult.value?.server && coreSettingsResult.value?.vars)
+const isApplyDataReady = computed(
+  () =>
+    Boolean(coreSettingsResult.value?.server && coreSettingsResult.value?.vars) &&
+    Array.isArray(installedPluginsResult.value?.installedUnraidPlugins) &&
+    Array.isArray(availableLanguagesResult.value?.customization?.availableLanguages)
 );
-const hasBaselineQueryError = computed(() => Boolean(coreSettingsError.value));
+const {
+  isStepQueryLoading,
+  retryQueries: handleRetryQueries,
+  stepQueryError,
+} = useOnboardingStepQueryState({
+  errors: [coreSettingsError, installedPluginsError, availableLanguagesError],
+  loadings: [coreSettingsLoading, installedPluginsLoading, availableLanguagesLoading],
+  ready: isApplyDataReady,
+  retry: () =>
+    Promise.all([refetchCoreSettings(), refetchInstalledPlugins(), refetchAvailableLanguages()]),
+});
 const bootConfigurationSummaryState = computed(() =>
   buildBootConfigurationSummaryViewModel(draftInternalBoot.value, {
     labels: {
@@ -495,34 +520,8 @@ const hasInvalidBootConfiguration = computed(
   () => bootConfigurationSummaryState.value.kind === 'invalid'
 );
 const bootConfigurationInvalidMessage = computed(() => summaryT('bootConfig.invalid'));
-const applyReadinessTimedOut = ref(false);
-const APPLY_READINESS_TIMEOUT_MS = 10000;
-let applyReadinessTimer: ReturnType<typeof setTimeout> | null = null;
-
-const canApply = computed(
-  () =>
-    !hasInvalidBootConfiguration.value &&
-    (isApplyDataReady.value || applyReadinessTimedOut.value || hasBaselineQueryError.value)
-);
-const showApplyReadinessWarning = computed(
-  () => !isApplyDataReady.value && (applyReadinessTimedOut.value || hasBaselineQueryError.value)
-);
+const canApply = computed(() => !hasInvalidBootConfiguration.value && isApplyDataReady.value);
 const isBusy = computed(() => isProcessing.value || Boolean(props.isSavingStep));
-
-onMounted(() => {
-  applyReadinessTimer = setTimeout(() => {
-    if (!isApplyDataReady.value) {
-      applyReadinessTimedOut.value = true;
-    }
-  }, APPLY_READINESS_TIMEOUT_MS);
-});
-
-onBeforeUnmount(() => {
-  if (applyReadinessTimer) {
-    clearTimeout(applyReadinessTimer);
-    applyReadinessTimer = null;
-  }
-});
 
 // Helper to determine activation label/status
 const activationStatus = computed(() => {
@@ -594,65 +593,47 @@ const handleComplete = async () => {
     applyAttempted: props.internalBootState.applyAttempted,
     applySucceeded: false,
   });
-  if (showApplyReadinessWarning.value) {
-    addLog(summaryT('logs.baselineUnavailable'), 'info');
-  }
 
   try {
     const promises = [];
-    const baselineLoaded = isApplyDataReady.value;
     const targetCoreSettings = resolveTargetCoreSettings();
     let hadNonOptimisticFailures = false;
-    let hadWarnings = !baselineLoaded;
+    let hadWarnings = false;
     let hadSshVerificationUncertainty = false;
     let hadInstallTimeout = false;
 
     // 1. Apply Core Settings
-    const currentTimezone = baselineLoaded
-      ? coreSettingsResult.value?.systemTime?.timeZone || TRUSTED_DEFAULT_PROFILE.timeZone
-      : TRUSTED_DEFAULT_PROFILE.timeZone;
-    const currentName = baselineLoaded
-      ? coreSettingsResult.value?.server?.name ||
-        coreSettingsResult.value?.vars?.name ||
-        TRUSTED_DEFAULT_PROFILE.serverName
-      : TRUSTED_DEFAULT_PROFILE.serverName;
-    const currentDescription = baselineLoaded
-      ? coreSettingsResult.value?.server?.comment || TRUSTED_DEFAULT_PROFILE.serverDescription
-      : TRUSTED_DEFAULT_PROFILE.serverDescription;
-    const currentTheme = baselineLoaded
-      ? coreSettingsResult.value?.display?.theme || TRUSTED_DEFAULT_PROFILE.theme
-      : TRUSTED_DEFAULT_PROFILE.theme;
-    const currentLocale = baselineLoaded
-      ? coreSettingsResult.value?.display?.locale || TRUSTED_DEFAULT_PROFILE.locale
-      : TRUSTED_DEFAULT_PROFILE.locale;
-    const currentSsh = baselineLoaded
-      ? Boolean(coreSettingsResult.value?.vars?.useSsh || false)
-      : TRUSTED_DEFAULT_PROFILE.useSsh;
-    const currentSysModel = baselineLoaded ? coreSettingsResult.value?.vars?.sysModel || '' : '';
-    const serverNameChanged = baselineLoaded ? targetCoreSettings.serverName !== currentName : false;
+    const currentTimezone =
+      coreSettingsResult.value?.systemTime?.timeZone || TRUSTED_DEFAULT_PROFILE.timeZone;
+    const currentName =
+      coreSettingsResult.value?.server?.name ||
+      coreSettingsResult.value?.vars?.name ||
+      TRUSTED_DEFAULT_PROFILE.serverName;
+    const currentDescription =
+      coreSettingsResult.value?.server?.comment || TRUSTED_DEFAULT_PROFILE.serverDescription;
+    const currentTheme = coreSettingsResult.value?.display?.theme || TRUSTED_DEFAULT_PROFILE.theme;
+    const currentLocale = coreSettingsResult.value?.display?.locale || TRUSTED_DEFAULT_PROFILE.locale;
+    const currentSsh = Boolean(coreSettingsResult.value?.vars?.useSsh || false);
+    const currentSysModel = coreSettingsResult.value?.vars?.sysModel || '';
+    const serverNameChanged = targetCoreSettings.serverName !== currentName;
     const shouldApplyPartnerSysModel = Boolean(
       isFreshInstall.value &&
         activationSystemModel.value &&
-        (!baselineLoaded || activationSystemModel.value !== currentSysModel)
+        activationSystemModel.value !== currentSysModel
     );
 
-    if (!baselineLoaded) {
-      hadWarnings = true;
-      addLog(summaryT('logs.baselineFallback'), 'info');
-    }
     if (shouldApplyPartnerSysModel) {
       addLog(summaryT('logs.applyingPartnerCustomizations'), 'info');
     }
 
-    const shouldApplyTimeZone = baselineLoaded ? targetCoreSettings.timeZone !== currentTimezone : true;
-    const shouldApplyServerIdentity = baselineLoaded
-      ? targetCoreSettings.serverName !== currentName ||
-        targetCoreSettings.serverDescription !== currentDescription ||
-        shouldApplyPartnerSysModel
-      : true;
-    const shouldApplyTheme = baselineLoaded ? targetCoreSettings.theme !== currentTheme : true;
-    const shouldApplyLocale = baselineLoaded ? targetCoreSettings.locale !== currentLocale : true;
-    const shouldApplySsh = baselineLoaded ? targetCoreSettings.useSsh !== currentSsh : true;
+    const shouldApplyTimeZone = targetCoreSettings.timeZone !== currentTimezone;
+    const shouldApplyServerIdentity =
+      targetCoreSettings.serverName !== currentName ||
+      targetCoreSettings.serverDescription !== currentDescription ||
+      shouldApplyPartnerSysModel;
+    const shouldApplyTheme = targetCoreSettings.theme !== currentTheme;
+    const shouldApplyLocale = targetCoreSettings.locale !== currentLocale;
+    const shouldApplySsh = targetCoreSettings.useSsh !== currentSsh;
     const shouldRetryNetworkMutations = shouldApplySsh;
     const applyServerIdentityAtEnd = async () => {
       if (!shouldApplyServerIdentity) {
@@ -1127,312 +1108,321 @@ const handleBack = () => {
         class="my-8"
       />
 
-      <!-- Summary Grid -->
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <!-- Identity Section -->
-        <div class="border-muted bg-bg/50 rounded-lg border p-5">
-          <div class="mb-4 flex items-center gap-2">
-            <CubeIcon class="text-primary h-5 w-5" />
-            <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
-              {{ t('onboarding.summaryStep.systemIdentity') }}
-            </h3>
-          </div>
-          <div class="space-y-3">
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">{{ t('onboarding.coreSettings.serverName') }}</span>
-              <span class="text-highlighted font-medium break-all sm:text-right">{{ serverName }}</span>
+      <OnboardingStepQueryGate
+        :loading="isStepQueryLoading"
+        :error="stepQueryError"
+        :loading-description="t('onboarding.summaryStep.loadingDescription')"
+        :on-retry="handleRetryQueries"
+        :on-close-onboarding="props.onCloseOnboarding"
+      >
+        <!-- Summary Grid -->
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <!-- Identity Section -->
+          <div class="border-muted bg-bg/50 rounded-lg border p-5">
+            <div class="mb-4 flex items-center gap-2">
+              <CubeIcon class="text-primary h-5 w-5" />
+              <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
+                {{ t('onboarding.summaryStep.systemIdentity') }}
+              </h3>
             </div>
-            <div v-if="summaryServerDescription" class="space-y-1">
-              <span class="text-muted">{{ t('onboarding.coreSettings.serverDescription') }}</span>
-              <div
-                class="border-muted bg-accented text-toned mt-1 min-h-10 w-full rounded-md border px-3 py-2 text-sm font-medium break-all"
-                aria-readonly="true"
-              >
-                {{ summaryServerDescription }}
+            <div class="space-y-3">
+              <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+                <span class="text-muted">{{ t('onboarding.coreSettings.serverName') }}</span>
+                <span class="text-highlighted font-medium break-all sm:text-right">{{
+                  serverName
+                }}</span>
               </div>
-            </div>
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">{{ t('onboarding.summaryStep.activationLabel') }}</span>
-              <div class="flex items-center gap-1.5 sm:justify-end">
-                <component :is="activationStatus.icon" :class="['h-4 w-4', activationStatus.color]" />
-                <span class="text-highlighted font-medium break-all">{{ activationStatus.label }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Networking & Settings Section -->
-        <div class="border-muted bg-bg/50 rounded-lg border p-5">
-          <div class="mb-4 flex items-center gap-2">
-            <GlobeAltIcon class="text-primary h-5 w-5" />
-            <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
-              {{ t('onboarding.summaryStep.configuration') }}
-            </h3>
-          </div>
-          <div class="space-y-3">
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">{{ t('onboarding.coreSettings.timezone') }}</span>
-              <div class="flex items-center gap-1.5 sm:justify-end">
-                <ClockIcon class="text-muted h-4 w-4" />
-                <span class="text-highlighted font-medium break-all">{{ currentTimeZone }}</span>
-              </div>
-            </div>
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">{{ t('onboarding.coreSettings.ssh') }}</span>
-              <div class="flex items-center gap-1.5 sm:justify-end">
-                <div :class="[sshEnabled ? 'bg-green-500' : 'bg-gray-400', 'h-2 w-2 rounded-full']" />
-                <span class="text-highlighted font-medium break-all">
-                  {{
-                    sshEnabled
-                      ? t('onboarding.summaryStep.sshActive')
-                      : t('onboarding.summaryStep.sshInactive')
-                  }}
-                </span>
-              </div>
-            </div>
-            <!-- Theme & Language -->
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">{{ t('onboarding.coreSettings.theme') }}</span>
-              <div class="flex items-center gap-1.5 sm:justify-end">
-                <SwatchIcon class="text-muted h-4 w-4" />
-                <span class="text-highlighted font-medium break-all capitalize">{{ displayTheme }}</span>
-              </div>
-            </div>
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">{{ t('onboarding.coreSettings.language') }}</span>
-              <div class="flex items-center gap-1.5 sm:justify-end">
-                <LanguageIcon class="text-muted h-4 w-4" />
-                <span class="text-highlighted font-medium break-all">{{ displayLanguage }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Plugins Summary -->
-      <div class="border-muted bg-bg/50 mt-6 rounded-lg border">
-        <Accordion
-          :items="[
-            {
-              value: 'plugins',
-              title: t('onboarding.pluginsStep.title'),
-              disabled: draftPluginsCount === 0,
-            },
-          ]"
-          type="single"
-          collapsible
-          class="border-none"
-          item-class="border-none"
-          trigger-class="pr-4 hover:no-underline [&>svg]:text-primary"
-        >
-          <template #trigger="{ open }">
-            <div
-              :class="[
-                'flex w-full items-center justify-between px-3 text-left focus:outline-none',
-                draftPluginsCount === 0 ? 'cursor-default' : 'cursor-pointer',
-              ]"
-            >
-              <div class="flex items-center gap-3">
-                <div class="bg-primary/10 rounded-lg p-2">
-                  <PuzzlePieceIcon class="text-primary h-6 w-6" />
-                </div>
-                <div>
-                  <h3 class="text-highlighted mb-0.5 text-sm font-bold uppercase">
-                    {{ t('onboarding.pluginsStep.title') }}
-                  </h3>
-                  <p class="text-muted text-xs">
-                    {{ t('onboarding.summaryStep.pluginsSelected', { count: draftPluginsCount }) }}
-                  </p>
-                </div>
-              </div>
-              <div
-                v-if="draftPluginsCount > 0"
-                class="text-primary hover:text-primary/80 flex items-center gap-2 text-sm font-medium transition-colors"
-              >
-                <span v-if="!open">{{ t('onboarding.summaryStep.viewSelected') }}</span>
-                <span v-else>{{ t('onboarding.summaryStep.hideSelected') }}</span>
-              </div>
-            </div>
-          </template>
-          <template #content>
-            <div class="px-5 pt-0 pb-5">
-              <div class="border-muted space-y-2 border-t pt-4">
-                <div v-if="draftPluginsCount === 0" class="text-muted text-sm italic">
-                  {{ t('onboarding.summaryStep.noPluginsSelected') }}
-                </div>
+              <div v-if="summaryServerDescription" class="space-y-1">
+                <span class="text-muted">{{ t('onboarding.coreSettings.serverDescription') }}</span>
                 <div
-                  v-else
-                  v-for="plugin in selectedPluginSummaries"
-                  :key="plugin.id"
-                  class="text-muted flex items-center gap-2 text-sm"
+                  class="border-muted bg-accented text-toned mt-1 min-h-10 w-full rounded-md border px-3 py-2 text-sm font-medium break-all"
+                  aria-readonly="true"
                 >
-                  <component
-                    :is="plugin.installed ? CheckCircleIcon : ClockIcon"
-                    :class="[
-                      'h-4 w-4 flex-shrink-0',
-                      plugin.installed ? 'text-green-500' : 'text-primary',
-                    ]"
-                  />
-                  <span>{{ plugin.name }}</span>
-                  <span
-                    :class="[
-                      'rounded px-1.5 py-0.5 text-xs font-medium',
-                      plugin.installed
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                        : 'bg-primary/10 text-primary',
-                    ]"
-                  >
+                  {{ summaryServerDescription }}
+                </div>
+              </div>
+              <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+                <span class="text-muted">{{ t('onboarding.summaryStep.activationLabel') }}</span>
+                <div class="flex items-center gap-1.5 sm:justify-end">
+                  <component :is="activationStatus.icon" :class="['h-4 w-4', activationStatus.color]" />
+                  <span class="text-highlighted font-medium break-all">{{
+                    activationStatus.label
+                  }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Networking & Settings Section -->
+          <div class="border-muted bg-bg/50 rounded-lg border p-5">
+            <div class="mb-4 flex items-center gap-2">
+              <GlobeAltIcon class="text-primary h-5 w-5" />
+              <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
+                {{ t('onboarding.summaryStep.configuration') }}
+              </h3>
+            </div>
+            <div class="space-y-3">
+              <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+                <span class="text-muted">{{ t('onboarding.coreSettings.timezone') }}</span>
+                <div class="flex items-center gap-1.5 sm:justify-end">
+                  <ClockIcon class="text-muted h-4 w-4" />
+                  <span class="text-highlighted font-medium break-all">{{ currentTimeZone }}</span>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+                <span class="text-muted">{{ t('onboarding.coreSettings.ssh') }}</span>
+                <div class="flex items-center gap-1.5 sm:justify-end">
+                  <div :class="[sshEnabled ? 'bg-green-500' : 'bg-gray-400', 'h-2 w-2 rounded-full']" />
+                  <span class="text-highlighted font-medium break-all">
                     {{
-                      plugin.installed
-                        ? t('onboarding.pluginsStep.alreadyInstalled')
-                        : t('onboarding.pluginsStep.willInstall')
+                      sshEnabled
+                        ? t('onboarding.summaryStep.sshActive')
+                        : t('onboarding.summaryStep.sshInactive')
                     }}
                   </span>
                 </div>
               </div>
+              <!-- Theme & Language -->
+              <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+                <span class="text-muted">{{ t('onboarding.coreSettings.theme') }}</span>
+                <div class="flex items-center gap-1.5 sm:justify-end">
+                  <SwatchIcon class="text-muted h-4 w-4" />
+                  <span class="text-highlighted font-medium break-all capitalize">{{
+                    displayTheme
+                  }}</span>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+                <span class="text-muted">{{ t('onboarding.coreSettings.language') }}</span>
+                <div class="flex items-center gap-1.5 sm:justify-end">
+                  <LanguageIcon class="text-muted h-4 w-4" />
+                  <span class="text-highlighted font-medium break-all">{{ displayLanguage }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plugins Summary -->
+        <div class="border-muted bg-bg/50 mt-6 rounded-lg border">
+          <Accordion
+            :items="[
+              {
+                value: 'plugins',
+                title: t('onboarding.pluginsStep.title'),
+                disabled: draftPluginsCount === 0,
+              },
+            ]"
+            type="single"
+            collapsible
+            class="border-none"
+            item-class="border-none"
+            trigger-class="pr-4 hover:no-underline [&>svg]:text-primary"
+          >
+            <template #trigger="{ open }">
+              <div
+                :class="[
+                  'flex w-full items-center justify-between px-3 text-left focus:outline-none',
+                  draftPluginsCount === 0 ? 'cursor-default' : 'cursor-pointer',
+                ]"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="bg-primary/10 rounded-lg p-2">
+                    <PuzzlePieceIcon class="text-primary h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 class="text-highlighted mb-0.5 text-sm font-bold uppercase">
+                      {{ t('onboarding.pluginsStep.title') }}
+                    </h3>
+                    <p class="text-muted text-xs">
+                      {{ t('onboarding.summaryStep.pluginsSelected', { count: draftPluginsCount }) }}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  v-if="draftPluginsCount > 0"
+                  class="text-primary hover:text-primary/80 flex items-center gap-2 text-sm font-medium transition-colors"
+                >
+                  <span v-if="!open">{{ t('onboarding.summaryStep.viewSelected') }}</span>
+                  <span v-else>{{ t('onboarding.summaryStep.hideSelected') }}</span>
+                </div>
+              </div>
+            </template>
+            <template #content>
+              <div class="px-5 pt-0 pb-5">
+                <div class="border-muted space-y-2 border-t pt-4">
+                  <div v-if="draftPluginsCount === 0" class="text-muted text-sm italic">
+                    {{ t('onboarding.summaryStep.noPluginsSelected') }}
+                  </div>
+                  <div
+                    v-else
+                    v-for="plugin in selectedPluginSummaries"
+                    :key="plugin.id"
+                    class="text-muted flex items-center gap-2 text-sm"
+                  >
+                    <component
+                      :is="plugin.installed ? CheckCircleIcon : ClockIcon"
+                      :class="[
+                        'h-4 w-4 flex-shrink-0',
+                        plugin.installed ? 'text-green-500' : 'text-primary',
+                      ]"
+                    />
+                    <span>{{ plugin.name }}</span>
+                    <span
+                      :class="[
+                        'rounded px-1.5 py-0.5 text-xs font-medium',
+                        plugin.installed
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                          : 'bg-primary/10 text-primary',
+                      ]"
+                    >
+                      {{
+                        plugin.installed
+                          ? t('onboarding.pluginsStep.alreadyInstalled')
+                          : t('onboarding.pluginsStep.willInstall')
+                      }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </Accordion>
+        </div>
+
+        <div v-if="bootConfigurationSummaryState.kind === 'ready'" class="mt-6">
+          <OnboardingBootConfigurationSummary :summary="bootConfigurationSummaryState.summary" />
+        </div>
+
+        <div
+          v-else-if="bootConfigurationSummaryState.kind === 'invalid'"
+          data-testid="boot-configuration-summary-invalid"
+          class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-900/10"
+        >
+          <p class="text-sm font-medium text-amber-700 dark:text-amber-300">
+            {{ bootConfigurationInvalidMessage }}
+          </p>
+        </div>
+
+        <!-- Processing / Error Status -->
+        <div v-if="showConsole" class="mt-6">
+          <OnboardingConsole :logs="logs" :title="t('onboarding.summaryStep.systemSetupLog')" />
+        </div>
+
+        <div
+          v-if="stepError"
+          class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
+        >
+          <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
+            {{ stepError }}
+          </p>
+        </div>
+
+        <UModal
+          :open="showBootDriveWarningDialog"
+          :portal="false"
+          :title="t('onboarding.summaryStep.driveWipe.title')"
+          :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-lg' }"
+          @update:open="showBootDriveWarningDialog = $event"
+        >
+          <template #body>
+            <div class="space-y-3">
+              <p class="text-muted-foreground text-sm">
+                {{ t('onboarding.summaryStep.driveWipe.selectedDrives') }}
+              </p>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="device in selectedBootDevices"
+                  :key="`dialog-${device.id}`"
+                  class="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-semibold"
+                >
+                  {{ device.label }}
+                </span>
+              </div>
+              <p class="text-muted-foreground text-sm">
+                {{ t('onboarding.summaryStep.driveWipe.confirmPrompt') }}
+              </p>
             </div>
           </template>
-        </Accordion>
-      </div>
+          <template #footer>
+            <UButton color="neutral" variant="outline" @click="handleBootDriveWarningCancel">
+              {{ t('common.cancel') }}
+            </UButton>
+            <UButton @click="handleBootDriveWarningConfirm">
+              {{ t('onboarding.summaryStep.driveWipe.continue') }}
+            </UButton>
+          </template>
+        </UModal>
 
-      <div v-if="bootConfigurationSummaryState.kind === 'ready'" class="mt-6">
-        <OnboardingBootConfigurationSummary :summary="bootConfigurationSummaryState.summary" />
-      </div>
-
-      <div
-        v-else-if="bootConfigurationSummaryState.kind === 'invalid'"
-        data-testid="boot-configuration-summary-invalid"
-        class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-900/10"
-      >
-        <p class="text-sm font-medium text-amber-700 dark:text-amber-300">
-          {{ bootConfigurationInvalidMessage }}
-        </p>
-      </div>
-
-      <!-- Processing / Error Status -->
-      <div v-if="showConsole" class="mt-6">
-        <OnboardingConsole :logs="logs" :title="t('onboarding.summaryStep.systemSetupLog')" />
-      </div>
-
-      <div
-        v-if="error"
-        class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
-      >
-        <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
-          {{ error }}
-        </p>
-      </div>
-      <div
-        v-if="showApplyReadinessWarning"
-        class="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/10"
-      >
-        <p class="text-center text-sm font-medium text-yellow-700 dark:text-yellow-300">
-          {{ t('onboarding.summaryStep.readinessWarning') }}
-        </p>
-      </div>
-
-      <UModal
-        :open="showBootDriveWarningDialog"
-        :portal="false"
-        :title="t('onboarding.summaryStep.driveWipe.title')"
-        :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-lg' }"
-        @update:open="showBootDriveWarningDialog = $event"
-      >
-        <template #body>
-          <div class="space-y-3">
-            <p class="text-muted-foreground text-sm">
-              {{ t('onboarding.summaryStep.driveWipe.selectedDrives') }}
-            </p>
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="device in selectedBootDevices"
-                :key="`dialog-${device.id}`"
-                class="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-semibold"
-              >
-                {{ device.label }}
-              </span>
+        <UModal
+          :open="showApplyResultDialog"
+          :dismissible="false"
+          :close="false"
+          :portal="false"
+          :title="applyResultTitle"
+          :description="applyResultMessage"
+          :ui="{
+            footer: 'justify-end',
+            overlay: 'z-50',
+            content: showDiagnosticLogsInResultDialog
+              ? 'z-50 w-[calc(100vw-2rem)] max-w-3xl'
+              : 'z-50 max-w-md',
+          }"
+        >
+          <template v-if="showDiagnosticLogsInResultDialog" #body>
+            <div class="space-y-3">
+              <h4 class="text-sm font-semibold tracking-wide uppercase">
+                {{ t('onboarding.summaryStep.diagnosticLogs') }}
+              </h4>
+              <OnboardingConsole
+                :logs="logs"
+                :title="t('onboarding.summaryStep.onboardingDiagnostics')"
+              />
             </div>
-            <p class="text-muted-foreground text-sm">
-              {{ t('onboarding.summaryStep.driveWipe.confirmPrompt') }}
-            </p>
-          </div>
-        </template>
-        <template #footer>
-          <UButton color="neutral" variant="outline" @click="handleBootDriveWarningCancel">
-            {{ t('common.cancel') }}
-          </UButton>
-          <UButton @click="handleBootDriveWarningConfirm">
-            {{ t('onboarding.summaryStep.driveWipe.continue') }}
-          </UButton>
-        </template>
-      </UModal>
+          </template>
+          <template #footer>
+            <UButton @click="handleApplyResultConfirm">
+              {{ t('onboarding.summaryStep.ok') }}
+            </UButton>
+          </template>
+        </UModal>
 
-      <UModal
-        :open="showApplyResultDialog"
-        :dismissible="false"
-        :close="false"
-        :portal="false"
-        :title="applyResultTitle"
-        :description="applyResultMessage"
-        :ui="{
-          footer: 'justify-end',
-          overlay: 'z-50',
-          content: showDiagnosticLogsInResultDialog
-            ? 'z-50 w-[calc(100vw-2rem)] max-w-3xl'
-            : 'z-50 max-w-md',
-        }"
-      >
-        <template v-if="showDiagnosticLogsInResultDialog" #body>
-          <div class="space-y-3">
-            <h4 class="text-sm font-semibold tracking-wide uppercase">
-              {{ t('onboarding.summaryStep.diagnosticLogs') }}
-            </h4>
-            <OnboardingConsole :logs="logs" :title="t('onboarding.summaryStep.onboardingDiagnostics')" />
-          </div>
-        </template>
-        <template #footer>
-          <UButton @click="handleApplyResultConfirm">
-            {{ t('onboarding.summaryStep.ok') }}
-          </UButton>
-        </template>
-      </UModal>
-
-      <!-- Footer -->
-      <div
-        class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
-      >
-        <button
-          v-if="showBack"
-          @click="handleBack"
-          class="text-muted hover:text-toned group flex items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
-          :disabled="isBusy"
+        <!-- Footer -->
+        <div
+          class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
         >
-          <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
-          {{ t('common.back') }}
-        </button>
-        <div v-else class="hidden w-1 sm:block" />
+          <button
+            v-if="showBack"
+            @click="handleBack"
+            class="text-muted hover:text-toned group flex items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
+            :disabled="isBusy"
+          >
+            <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+            {{ t('common.back') }}
+          </button>
+          <div v-else class="hidden w-1 sm:block" />
 
-        <BrandButton
-          :text="''"
-          :class="`w-full min-w-[200px] font-bold tracking-wide uppercase shadow-md transition-all sm:w-auto ${
-            isBusy
-              ? '!bg-gray-400 !text-white hover:!bg-gray-400'
-              : '!bg-primary hover:!bg-primary/90 !text-white hover:shadow-lg'
-          }`"
-          @click="handleApplyClick"
-          :disabled="isBusy || !canApply"
-          :icon-right="isProcessing ? undefined : ChevronRightIcon"
-        >
-          <span class="inline-flex items-center gap-2">
-            <ArrowPathIcon v-if="isProcessing" class="h-4 w-4 animate-spin" />
-            <span>{{
-              isProcessing
-                ? t('common.loading', 'Loading...')
-                : t('onboarding.summaryStep.confirmAndApply')
-            }}</span>
-          </span>
-        </BrandButton>
-      </div>
+          <BrandButton
+            :text="''"
+            :class="`w-full min-w-[200px] font-bold tracking-wide uppercase shadow-md transition-all sm:w-auto ${
+              isBusy
+                ? '!bg-gray-400 !text-white hover:!bg-gray-400'
+                : '!bg-primary hover:!bg-primary/90 !text-white hover:shadow-lg'
+            }`"
+            @click="handleApplyClick"
+            :disabled="isBusy || !canApply"
+            :icon-right="isProcessing ? undefined : ChevronRightIcon"
+          >
+            <span class="inline-flex items-center gap-2">
+              <ArrowPathIcon v-if="isProcessing" class="h-4 w-4 animate-spin" />
+              <span>{{
+                isProcessing
+                  ? t('common.loading', 'Loading...')
+                  : t('onboarding.summaryStep.confirmAndApply')
+              }}</span>
+            </span>
+          </BrandButton>
+        </div>
+      </OnboardingStepQueryGate>
     </div>
   </div>
 </template>

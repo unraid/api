@@ -73,6 +73,10 @@ vi.mock('@unraid/ui', () => ({
     props: ['items', 'type', 'collapsible', 'class'],
     template: `<div data-testid="accordion"><template v-for="item in items" :key="item.value"><slot name="trigger" :item="item" :open="false" /><slot name="content" :item="item" :open="false" /></template></div>`,
   },
+  Spinner: {
+    name: 'Spinner',
+    template: '<div data-testid="loading-spinner" />',
+  },
 }));
 
 vi.mock('@vue/apollo-composable', () => ({
@@ -126,6 +130,7 @@ const mountComponent = () =>
         selection: draftStore.internalBootSelection,
       },
       onComplete: vi.fn(),
+      onCloseOnboarding: vi.fn(),
       showBack: true,
     },
     global: {
@@ -203,6 +208,78 @@ describe('OnboardingInternalBootStep', () => {
     contextLoading.value = false;
     contextError.value = null;
     contextResult.value = null;
+  });
+
+  it('blocks the step behind a loading gate until the internal boot query is ready', async () => {
+    draftStore.bootMode = 'storage';
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(false);
+  });
+
+  it('shows retry and close actions when the internal boot query fails', async () => {
+    draftStore.bootMode = 'storage';
+    contextError.value = new Error('offline');
+    const onCloseOnboarding = vi.fn();
+
+    const wrapper = mount(OnboardingInternalBootStep, {
+      props: {
+        initialDraft: {
+          bootMode: draftStore.bootMode,
+          skipped: false,
+          selection: draftStore.internalBootSelection,
+        },
+        onComplete: vi.fn(),
+        onCloseOnboarding,
+        showBack: true,
+      },
+      global: {
+        plugins: [createTestI18n()],
+        stubs: {
+          UButton: {
+            props: ['disabled'],
+            emits: ['click'],
+            template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
+          },
+          UAlert: {
+            inheritAttrs: true,
+            props: ['title', 'description'],
+            template:
+              '<div v-bind="$attrs"><slot name="title" />{{ title }}<slot name="description" />{{ description }}<slot /></div>',
+          },
+          UCheckbox: {
+            props: ['modelValue', 'disabled'],
+            emits: ['update:modelValue'],
+            template:
+              '<input type="checkbox" :checked="modelValue" :disabled="disabled" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
+          },
+          UInput: {
+            props: ['modelValue', 'type', 'disabled', 'maxlength', 'min', 'max'],
+            emits: ['update:modelValue'],
+            template:
+              '<input :type="type || \'text\'" :disabled="disabled" :maxlength="maxlength" :min="min" :max="max" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+          },
+          USelectMenu: {
+            props: ['modelValue', 'items', 'disabled', 'placeholder'],
+            emits: ['update:modelValue'],
+            template:
+              '<select data-testid="select" :disabled="disabled" :value="modelValue ?? \'\'" @change="$emit(\'update:modelValue\', $event.target.value)"><option v-if="placeholder" value="">{{ placeholder }}</option><option v-for="item in items" :key="item.value" :value="item.value" :disabled="item.disabled">{{ item.label }}</option></select>',
+          },
+        },
+      },
+    });
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-step-query-error"]').exists()).toBe(true);
+
+    await wrapper.get('[data-testid="onboarding-step-query-retry"]').trigger('click');
+    await wrapper.get('[data-testid="onboarding-step-query-close"]').trigger('click');
+
+    expect(refetchContextMock).toHaveBeenCalledTimes(1);
+    expect(onCloseOnboarding).toHaveBeenCalledTimes(1);
   });
 
   it('renders all available server and disk eligibility codes when storage boot is blocked', async () => {
