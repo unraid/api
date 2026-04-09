@@ -33,27 +33,30 @@ describe('DiskSensorsService', () => {
     });
 
     describe('isAvailable', () => {
-        it('should return true when disks exist', async () => {
+        it('should return true without checking disks', async () => {
             vi.mocked(disksService.getDisks).mockResolvedValue([
                 { id: 'disk1', device: '/dev/sda', name: 'Test Disk' } as unknown as Disk,
             ]);
 
             const available = await service.isAvailable();
             expect(available).toBe(true);
+            expect(disksService.getDisks).not.toHaveBeenCalled();
         });
 
-        it('should return false when no disks exist', async () => {
+        it('should return true when no disks exist', async () => {
             vi.mocked(disksService.getDisks).mockResolvedValue([]);
 
             const available = await service.isAvailable();
-            expect(available).toBe(false);
+            expect(available).toBe(true);
+            expect(disksService.getDisks).not.toHaveBeenCalled();
         });
 
-        it('should return false when DisksService throws', async () => {
+        it('should return true when DisksService would throw', async () => {
             vi.mocked(disksService.getDisks).mockRejectedValue(new Error('Failed'));
 
             const available = await service.isAvailable();
-            expect(available).toBe(false);
+            expect(available).toBe(true);
+            expect(disksService.getDisks).not.toHaveBeenCalled();
         });
     });
 
