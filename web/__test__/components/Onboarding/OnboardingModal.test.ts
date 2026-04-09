@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OnboardingWizardDraft } from '~/components/Onboarding/onboardingWizardState';
 import type { StepId } from '~/components/Onboarding/stepRegistry';
 
+import { COMPLETE_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { SAVE_ONBOARDING_DRAFT_MUTATION } from '~/components/Onboarding/graphql/saveOnboardingDraft.mutation';
 import OnboardingModal from '~/components/Onboarding/OnboardingModal.vue';
 import { createTestI18n } from '../../utils/i18n';
@@ -18,8 +19,11 @@ const {
   purchaseStore,
   serverStore,
   themeStore,
+  completeOnboardingMock,
   saveOnboardingDraftMock,
   cleanupOnboardingStorageMock,
+  submitInternalBootRebootMock,
+  submitInternalBootShutdownMock,
   stepperPropsRef,
 } = vi.hoisted(() => ({
   wizardRef: {
@@ -37,7 +41,6 @@ const {
   onboardingModalStoreState: {
     isVisible: { value: true },
     sessionSource: { value: 'automatic' as 'automatic' | 'manual' },
-    closeModal: vi.fn().mockResolvedValue(true),
   },
   activationCodeDataStore: {
     activationRequired: { value: false },
@@ -47,6 +50,7 @@ const {
     isVersionDrift: { value: false },
     completedAtVersion: { value: null as string | null },
     canDisplayOnboardingModal: { value: true },
+    refetchOnboarding: vi.fn().mockResolvedValue(undefined),
   },
   purchaseStore: {
     generateUrl: vi.fn(() => 'https://example.com/activate'),
@@ -58,8 +62,11 @@ const {
   themeStore: {
     fetchTheme: vi.fn().mockResolvedValue(undefined),
   },
+  completeOnboardingMock: vi.fn().mockResolvedValue({}),
   saveOnboardingDraftMock: vi.fn(),
   cleanupOnboardingStorageMock: vi.fn(),
+  submitInternalBootRebootMock: vi.fn(),
+  submitInternalBootShutdownMock: vi.fn(),
   stepperPropsRef: { value: null as Record<string, unknown> | null },
 }));
 
@@ -217,6 +224,7 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
       template: `
         <div data-testid="next-step">
           <button data-testid="next-step-complete" @click="onComplete()">finish</button>
+          <button data-testid="next-step-reboot" @click="onComplete({ action: 'reboot' })">reboot</button>
           <button v-if="showBack" data-testid="next-step-back" @click="onBack()">back</button>
         </div>
       `,
@@ -259,12 +267,23 @@ vi.mock('~/components/Onboarding/store/onboardingStorageCleanup', () => ({
   cleanupOnboardingStorage: cleanupOnboardingStorageMock,
 }));
 
+vi.mock('~/components/Onboarding/composables/internalBoot', () => ({
+  submitInternalBootReboot: submitInternalBootRebootMock,
+  submitInternalBootShutdown: submitInternalBootShutdownMock,
+}));
+
 vi.mock('@vue/apollo-composable', async () => {
   const actual =
     await vi.importActual<typeof import('@vue/apollo-composable')>('@vue/apollo-composable');
   return {
     ...actual,
     useMutation: (document: unknown) => {
+      if (document === COMPLETE_ONBOARDING_MUTATION) {
+        return {
+          mutate: completeOnboardingMock,
+        };
+      }
+
       if (document === SAVE_ONBOARDING_DRAFT_MUTATION) {
         return {
           mutate: saveOnboardingDraftMock,
@@ -305,6 +324,7 @@ describe('OnboardingModal.vue', () => {
     onboardingModalStoreState.isVisible.value = true;
     onboardingModalStoreState.sessionSource.value = 'automatic';
     onboardingStatusStore.canDisplayOnboardingModal.value = true;
+    onboardingStatusStore.refetchOnboarding.mockResolvedValue(undefined);
     onboardingContextLoading.value = false;
     wizardRef.value = {
       currentStepId: 'OVERVIEW',
@@ -315,6 +335,7 @@ describe('OnboardingModal.vue', () => {
         applySucceeded: false,
       },
     };
+    completeOnboardingMock.mockResolvedValue({});
     saveOnboardingDraftMock.mockResolvedValue({
       data: {
         onboarding: {
@@ -322,6 +343,8 @@ describe('OnboardingModal.vue', () => {
         },
       },
     });
+    submitInternalBootRebootMock.mockReset();
+    submitInternalBootShutdownMock.mockReset();
   });
 
   it('renders the current step from bootstrap wizard state', async () => {
@@ -552,10 +575,10 @@ describe('OnboardingModal.vue', () => {
     await exitButton!.trigger('click');
     await flushPromises();
 
-    expect(onboardingModalStoreState.closeModal).toHaveBeenCalledWith();
+    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
   });
 
-  it('opens exit confirmation and closes through the backend-owned close path', async () => {
+  it('opens exit confirmation and completes onboarding before closing the UI', async () => {
     const reloadSpy = vi.spyOn(window.location, 'reload').mockImplementation(() => undefined);
     const wrapper = mountComponent();
     await flushPromises();
@@ -570,7 +593,8 @@ describe('OnboardingModal.vue', () => {
     await exitButton!.trigger('click');
     await flushPromises();
 
-    expect(onboardingModalStoreState.closeModal).toHaveBeenCalledWith();
+    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+    expect(onboardingStatusStore.refetchOnboarding).toHaveBeenCalledTimes(1);
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledTimes(1);
     expect(reloadSpy).toHaveBeenCalledTimes(1);
   });
@@ -593,7 +617,7 @@ describe('OnboardingModal.vue', () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain('Exit onboarding?');
-    expect(onboardingModalStoreState.closeModal).not.toHaveBeenCalled();
+    expect(completeOnboardingMock).not.toHaveBeenCalled();
   });
 
   it('hides exit controls and back navigation when internal boot is locked', async () => {
@@ -651,7 +675,7 @@ describe('OnboardingModal.vue', () => {
     expect(wrapper.find('[data-testid="next-step"]').exists()).toBe(true);
   });
 
-  it('closes from the final step without saving again', async () => {
+  it('completes onboarding from the final step without saving again', async () => {
     const reloadSpy = vi.spyOn(window.location, 'reload').mockImplementation(() => undefined);
     wizardRef.value = {
       currentStepId: 'NEXT_STEPS',
@@ -670,7 +694,30 @@ describe('OnboardingModal.vue', () => {
     await flushPromises();
 
     expect(saveOnboardingDraftMock).not.toHaveBeenCalled();
-    expect(onboardingModalStoreState.closeModal).toHaveBeenCalledWith();
+    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+    expect(onboardingStatusStore.refetchOnboarding).toHaveBeenCalledTimes(1);
     expect(reloadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes reboot completion through the modal-owned lifecycle', async () => {
+    wizardRef.value = {
+      currentStepId: 'NEXT_STEPS',
+      visibleStepIds: ['OVERVIEW', 'NEXT_STEPS'],
+      draft: {},
+      internalBootState: {
+        applyAttempted: false,
+        applySucceeded: false,
+      },
+    };
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="next-step-reboot"]').trigger('click');
+    await flushPromises();
+
+    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+    expect(onboardingStatusStore.refetchOnboarding).toHaveBeenCalledTimes(1);
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledTimes(1);
   });
 });

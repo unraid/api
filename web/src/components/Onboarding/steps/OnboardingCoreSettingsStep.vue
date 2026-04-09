@@ -385,7 +385,8 @@ const {
 const buildDraftSnapshot = (): OnboardingCoreSettingsDraft => ({
   serverName: serverName.value,
   serverDescription: serverDescription.value,
-  timeZone: selectedTimeZone.value,
+  timeZone:
+    selectedTimeZone.value || (props.initialDraft?.timeZone === '' ? '' : resolveInitialTimeZone()),
   theme: selectedTheme.value,
   language: selectedLanguage.value,
   useSsh: useSsh.value,

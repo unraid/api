@@ -2,7 +2,6 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { defineStore, storeToRefs } from 'pinia';
 import { useMutation } from '@vue/apollo-composable';
 
-import { CLOSE_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/closeOnboarding.mutation';
 import { OPEN_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/openOnboarding.mutation';
 import { RESUME_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/resumeOnboarding.mutation';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
@@ -22,7 +21,6 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
   const { refetchOnboarding } = onboardingStore;
   const { callbackData } = storeToRefs(useCallbackActionsStore());
   const { mutate: openOnboardingMutation } = useMutation(OPEN_ONBOARDING_MUTATION);
-  const { mutate: closeOnboardingMutation } = useMutation(CLOSE_ONBOARDING_MUTATION);
   const { mutate: resumeOnboardingMutation } = useMutation(RESUME_ONBOARDING_MUTATION);
   const sessionSource = ref<OnboardingModalSessionSource>('automatic');
 
@@ -40,19 +38,6 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
     await refetchOnboarding();
     return true;
   };
-
-  const closeModal = async () => {
-    if (!canDisplayOnboardingModal.value) {
-      return false;
-    }
-
-    await closeOnboardingMutation();
-    await refetchOnboarding();
-    sessionSource.value = 'automatic';
-    return true;
-  };
-
-  const resetToAutomaticVisibility = async () => closeModal();
 
   const resumeOnboarding = async () => {
     sessionSource.value = 'manual';
@@ -99,9 +84,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
     isVisible,
     sessionSource,
     forceOpenModal,
-    closeModal,
     resumeOnboarding,
-    resetToAutomaticVisibility,
     applyOnboardingUrlAction,
   };
 });

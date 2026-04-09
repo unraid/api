@@ -62,18 +62,6 @@ export class OnboardingMutationsResolver {
     }
 
     @ResolveField(() => Onboarding, {
-        description: 'Close the onboarding modal',
-    })
-    @UsePermissions({
-        action: AuthAction.UPDATE_ANY,
-        resource: Resource.WELCOME,
-    })
-    async closeOnboarding(): Promise<Onboarding> {
-        await this.onboardingService.closeOnboarding();
-        return this.onboardingService.getOnboardingResponse();
-    }
-
-    @ResolveField(() => Onboarding, {
         description: 'Temporarily bypass onboarding in API memory',
     })
     @UsePermissions({

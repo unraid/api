@@ -78,11 +78,6 @@ export class OnboardingMutations {
     openOnboarding!: Onboarding;
 
     @Field(() => Onboarding, {
-        description: 'Close the onboarding modal',
-    })
-    closeOnboarding!: Onboarding;
-
-    @Field(() => Onboarding, {
         description: 'Temporarily bypass onboarding in API memory',
     })
     bypassOnboarding!: Onboarding;

@@ -2,17 +2,14 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { useMutation } from '@vue/apollo-composable';
 
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import limitlessImage from '@/assets/limitless_possibilities.jpg';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import OnboardingStepBlockingState from '@/components/Onboarding/components/OnboardingStepBlockingState.vue';
-import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
 import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
-import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
 import { useThemeStore } from '@/store/theme';
 
 // Mock icons (assuming these exist or similar ones do)
@@ -23,7 +20,7 @@ const WELCOME_ICON = 'i-heroicons-server-stack';
 export interface Props {
   // Common props
   onComplete: () => void;
-  onSkipSetup?: () => void;
+  onSkipSetup?: () => Promise<void> | void;
   onBack?: () => void;
   showBack?: boolean;
   isSavingStep?: boolean;
@@ -33,16 +30,13 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 
-const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
-const { refetchOnboarding } = useOnboardingStore();
 const { partnerInfo, isFreshInstall } = storeToRefs(useActivationCodeDataStore());
 const { isUpgrade, isDowngrade, isIncomplete } = storeToRefs(useOnboardingStore());
 const { theme } = storeToRefs(useThemeStore());
 
-const isSkipping = ref(false);
 const partnerGraphicLoadFailed = ref(false);
 
-const isBusy = computed(() => props.isSavingStep || isSkipping.value);
+const isBusy = computed(() => props.isSavingStep);
 const saveTransitionError = computed(() => props.saveError ?? null);
 
 const isPartnerLogo = computed(
@@ -193,22 +187,10 @@ const handleComplete = () => {
 };
 
 const handleSkipOnboarding = async () => {
-  if (props.onSkipSetup) {
-    props.onSkipSetup();
-    return;
-  }
-
-  isSkipping.value = true;
-  cleanupOnboardingStorage();
-
   try {
-    await completeOnboarding();
-    await new Promise((r) => setTimeout(r, 500));
-    await refetchOnboarding();
-    window.location.reload();
-  } catch (e) {
-    console.error(e);
-    isSkipping.value = false;
+    await Promise.resolve(props.onSkipSetup?.());
+  } catch (error: unknown) {
+    console.error('Failed to start onboarding exit flow:', error);
   }
 };
 

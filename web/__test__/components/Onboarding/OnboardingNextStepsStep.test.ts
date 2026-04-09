@@ -3,22 +3,10 @@ import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { CLOSE_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/closeOnboarding.mutation';
-import { COMPLETE_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import OnboardingNextStepsStep from '~/components/Onboarding/steps/OnboardingNextStepsStep.vue';
 import { createTestI18n } from '../../utils/i18n';
 
-const {
-  draftStore,
-  activationCodeDataStore,
-  submitInternalBootRebootMock,
-  submitInternalBootShutdownMock,
-  cleanupOnboardingStorageMock,
-  completeOnboardingMock,
-  closeOnboardingMock,
-  refetchOnboardingMock,
-  useMutationMock,
-} = vi.hoisted(() => ({
+const { draftStore, activationCodeDataStore } = vi.hoisted(() => ({
   draftStore: {
     internalBootApplySucceeded: false,
     internalBootApplyAttempted: false,
@@ -46,13 +34,6 @@ const {
       value: null,
     },
   },
-  submitInternalBootRebootMock: vi.fn(),
-  submitInternalBootShutdownMock: vi.fn(),
-  cleanupOnboardingStorageMock: vi.fn(),
-  completeOnboardingMock: vi.fn().mockResolvedValue({}),
-  closeOnboardingMock: vi.fn().mockResolvedValue({}),
-  refetchOnboardingMock: vi.fn().mockResolvedValue({}),
-  useMutationMock: vi.fn(),
 }));
 
 const createBootDevice = (id: string, sizeBytes: number, deviceName: string) => ({
@@ -74,30 +55,6 @@ vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: () => reactive(activationCodeDataStore),
 }));
 
-vi.mock('~/components/Onboarding/store/onboardingStatus', () => ({
-  useOnboardingStore: () => ({
-    refetchOnboarding: refetchOnboardingMock,
-  }),
-}));
-
-vi.mock('~/components/Onboarding/composables/internalBoot', () => ({
-  submitInternalBootReboot: submitInternalBootRebootMock,
-  submitInternalBootShutdown: submitInternalBootShutdownMock,
-}));
-
-vi.mock('~/components/Onboarding/store/onboardingStorageCleanup', () => ({
-  cleanupOnboardingStorage: cleanupOnboardingStorageMock,
-}));
-
-vi.mock('@vue/apollo-composable', async () => {
-  const actual =
-    await vi.importActual<typeof import('@vue/apollo-composable')>('@vue/apollo-composable');
-  return {
-    ...actual,
-    useMutation: useMutationMock,
-  };
-});
-
 describe('OnboardingNextStepsStep', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -105,22 +62,13 @@ describe('OnboardingNextStepsStep', () => {
     draftStore.internalBootApplySucceeded = false;
     draftStore.internalBootApplyAttempted = false;
     draftStore.internalBootSelection = null;
-    completeOnboardingMock.mockResolvedValue({});
-    closeOnboardingMock.mockResolvedValue({});
-    refetchOnboardingMock.mockResolvedValue({});
-    useMutationMock.mockImplementation((doc: unknown) => {
-      if (doc === COMPLETE_ONBOARDING_MUTATION) {
-        return { mutate: completeOnboardingMock };
-      }
-      if (doc === CLOSE_ONBOARDING_MUTATION) {
-        return { mutate: closeOnboardingMock };
-      }
-      return { mutate: vi.fn() };
-    });
   });
 
-  const mountComponent = () => {
-    const onComplete = vi.fn();
+  const mountComponent = ({
+    onComplete = vi.fn().mockResolvedValue(undefined),
+  }: {
+    onComplete?: ReturnType<typeof vi.fn>;
+  } = {}) => {
     const wrapper = mount(OnboardingNextStepsStep, {
       props: {
         draft: {
@@ -134,7 +82,7 @@ describe('OnboardingNextStepsStep', () => {
           applyAttempted: draftStore.internalBootApplyAttempted,
           applySucceeded: draftStore.internalBootApplySucceeded,
         },
-        onComplete,
+        onComplete: onComplete as (options?: { action?: 'reboot' | 'shutdown' }) => Promise<void>,
         showBack: true,
       },
       global: {
@@ -186,14 +134,12 @@ describe('OnboardingNextStepsStep', () => {
     await button.trigger('click');
     await flushPromises();
 
-    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
-    expect(refetchOnboardingMock).toHaveBeenCalledTimes(1);
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
     expect(onComplete).toHaveBeenCalledTimes(1);
-    expect(submitInternalBootRebootMock).not.toHaveBeenCalled();
+    expect(onComplete).toHaveBeenCalledWith(undefined);
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false);
   });
 
-  it('marks onboarding complete through the same path before rebooting', async () => {
+  it('keeps the power action behind a confirmation dialog and delegates reboot to the shared completion path', async () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
@@ -210,8 +156,6 @@ describe('OnboardingNextStepsStep', () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain('Confirm Reboot');
-    expect(wrapper.text()).toContain('Please do NOT remove your Unraid flash drive');
-    expect(submitInternalBootRebootMock).not.toHaveBeenCalled();
     expect(onComplete).not.toHaveBeenCalled();
 
     const confirmButton = wrapper
@@ -221,40 +165,22 @@ describe('OnboardingNextStepsStep', () => {
     await confirmButton!.trigger('click');
     await flushPromises();
 
-    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
-    expect(refetchOnboardingMock).toHaveBeenCalledTimes(1);
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
-    expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
-    expect(onComplete).not.toHaveBeenCalled();
-  });
-
-  it('continues when the completion refresh fails after marking onboarding complete', async () => {
-    refetchOnboardingMock.mockRejectedValueOnce(new Error('refresh failed'));
-    const { wrapper, onComplete } = mountComponent();
-
-    const button = wrapper.find('[data-testid="brand-button"]');
-    await button.trigger('click');
-    await flushPromises();
-
-    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
-    expect(refetchOnboardingMock).toHaveBeenCalledTimes(1);
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
     expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledWith({ action: 'reboot' });
   });
 
   it('shows an error and stays on the page when completion fails', async () => {
-    completeOnboardingMock.mockRejectedValueOnce(new Error('offline'));
-    const { wrapper, onComplete } = mountComponent();
+    const { wrapper, onComplete } = mountComponent({
+      onComplete: vi.fn().mockRejectedValueOnce(new Error('offline')),
+    });
 
     const button = wrapper.find('[data-testid="brand-button"]');
     await button.trigger('click');
     await flushPromises();
 
     expect(wrapper.find('[role="alert"]').exists()).toBe(true);
-    expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
-    expect(refetchOnboardingMock).not.toHaveBeenCalled();
-    expect(onComplete).not.toHaveBeenCalled();
-    expect(submitInternalBootRebootMock).not.toHaveBeenCalled();
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledWith(undefined);
   });
 
   it('shows reboot button when internalBootSelection is non-null but apply did not succeed', async () => {
@@ -315,8 +241,9 @@ describe('OnboardingNextStepsStep', () => {
       poolMode: 'hybrid',
     };
     draftStore.internalBootApplySucceeded = true;
-    completeOnboardingMock.mockRejectedValueOnce(new Error('offline'));
-    const { wrapper, onComplete } = mountComponent();
+    const { wrapper, onComplete } = mountComponent({
+      onComplete: vi.fn().mockRejectedValueOnce(new Error('offline')),
+    });
 
     const button = wrapper.find('[data-testid="brand-button"]');
     await button.trigger('click');
@@ -329,11 +256,9 @@ describe('OnboardingNextStepsStep', () => {
     await confirmButton!.trigger('click');
     await flushPromises();
 
-    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
-    expect(closeOnboardingMock).toHaveBeenCalledTimes(1);
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
-    expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
-    expect(onComplete).not.toHaveBeenCalled();
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledWith({ action: 'reboot' });
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false);
   });
 
   it('shows shutdown button when internal boot is configured', () => {
@@ -384,11 +309,8 @@ describe('OnboardingNextStepsStep', () => {
     await confirmButton!.trigger('click');
     await flushPromises();
 
-    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
-    expect(submitInternalBootShutdownMock).toHaveBeenCalledTimes(1);
-    expect(submitInternalBootRebootMock).not.toHaveBeenCalled();
-    expect(onComplete).not.toHaveBeenCalled();
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledWith({ action: 'shutdown' });
   });
 
   it('proceeds to shutdown even when completeOnboarding throws', async () => {
@@ -400,8 +322,9 @@ describe('OnboardingNextStepsStep', () => {
       updateBios: false,
       poolMode: 'hybrid',
     };
-    completeOnboardingMock.mockRejectedValueOnce(new Error('offline'));
-    const { wrapper, onComplete } = mountComponent();
+    const { wrapper, onComplete } = mountComponent({
+      onComplete: vi.fn().mockRejectedValueOnce(new Error('offline')),
+    });
 
     const shutdownButton = wrapper
       .findAll('button')
@@ -415,9 +338,8 @@ describe('OnboardingNextStepsStep', () => {
     await confirmButton!.trigger('click');
     await flushPromises();
 
-    expect(closeOnboardingMock).toHaveBeenCalledTimes(1);
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
-    expect(submitInternalBootShutdownMock).toHaveBeenCalledTimes(1);
-    expect(onComplete).not.toHaveBeenCalled();
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledWith({ action: 'shutdown' });
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false);
   });
 });

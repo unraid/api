@@ -24,7 +24,6 @@ describe('OnboardingMutationsResolver', () => {
         markOnboardingCompleted: vi.fn(),
         resetOnboarding: vi.fn(),
         openOnboarding: vi.fn(),
-        closeOnboarding: vi.fn(),
         bypassOnboarding: vi.fn(),
         resumeOnboarding: vi.fn(),
         saveOnboardingDraft: vi.fn(),
@@ -35,7 +34,6 @@ describe('OnboardingMutationsResolver', () => {
         | 'markOnboardingCompleted'
         | 'resetOnboarding'
         | 'openOnboarding'
-        | 'closeOnboarding'
         | 'bypassOnboarding'
         | 'resumeOnboarding'
         | 'saveOnboardingDraft'
@@ -89,7 +87,6 @@ describe('OnboardingMutationsResolver', () => {
         onboardingService.markOnboardingCompleted.mockResolvedValue(undefined);
         onboardingService.resetOnboarding.mockResolvedValue(undefined);
         onboardingService.openOnboarding.mockResolvedValue(undefined);
-        onboardingService.closeOnboarding.mockResolvedValue(undefined);
         onboardingService.bypassOnboarding.mockResolvedValue(undefined);
         onboardingService.resumeOnboarding.mockResolvedValue(undefined);
         onboardingService.saveOnboardingDraft.mockResolvedValue(undefined);
@@ -142,18 +139,6 @@ describe('OnboardingMutationsResolver', () => {
 
         await expect(resolver.openOnboarding()).resolves.toEqual(response);
         expect(onboardingService.openOnboarding).toHaveBeenCalledTimes(1);
-        expect(onboardingService.getOnboardingResponse).toHaveBeenCalledWith();
-    });
-
-    it('delegates closeOnboarding through the onboarding service', async () => {
-        const response = {
-            ...defaultOnboardingResponse,
-            shouldOpen: false,
-        };
-        onboardingService.getOnboardingResponse.mockResolvedValue(response);
-
-        await expect(resolver.closeOnboarding()).resolves.toEqual(response);
-        expect(onboardingService.closeOnboarding).toHaveBeenCalledTimes(1);
         expect(onboardingService.getOnboardingResponse).toHaveBeenCalledWith();
     });
 

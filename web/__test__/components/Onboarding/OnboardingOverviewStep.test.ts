@@ -6,53 +6,30 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OnboardingOverviewStep from '~/components/Onboarding/steps/OnboardingOverviewStep.vue';
 import { createTestI18n } from '../../utils/i18n';
 
-const {
-  completeOnboardingMock,
-  cleanupOnboardingStorageMock,
-  refetchOnboardingMock,
-  partnerInfoRef,
-  isFreshInstallRef,
-  isUpgradeRef,
-  isDowngradeRef,
-  isIncompleteRef,
-  themeRef,
-} = vi.hoisted(() => ({
-  completeOnboardingMock: vi.fn().mockResolvedValue({}),
-  cleanupOnboardingStorageMock: vi.fn(),
-  refetchOnboardingMock: vi.fn().mockResolvedValue({}),
-  partnerInfoRef: {
-    value: {
-      partner: { name: 'Partner' },
-      branding: {
-        hasPartnerLogo: true,
-        partnerLogoLightUrl: 'data:image/png;base64,AAA=',
-        partnerLogoDarkUrl: 'data:image/png;base64,BBB=',
+const { partnerInfoRef, isFreshInstallRef, isUpgradeRef, isDowngradeRef, isIncompleteRef, themeRef } =
+  vi.hoisted(() => ({
+    partnerInfoRef: {
+      value: {
+        partner: { name: 'Partner' },
+        branding: {
+          hasPartnerLogo: true,
+          partnerLogoLightUrl: 'data:image/png;base64,AAA=',
+          partnerLogoDarkUrl: 'data:image/png;base64,BBB=',
+        },
       },
     },
-  },
-  isFreshInstallRef: { value: false },
-  isUpgradeRef: { value: false },
-  isDowngradeRef: { value: false },
-  isIncompleteRef: { value: true },
-  themeRef: { value: { name: 'azure' } },
-}));
+    isFreshInstallRef: { value: false },
+    isUpgradeRef: { value: false },
+    isDowngradeRef: { value: false },
+    isIncompleteRef: { value: true },
+    themeRef: { value: { name: 'azure' } },
+  }));
 
 vi.mock('pinia', async (importOriginal) => {
   const actual = await importOriginal<typeof import('pinia')>();
   return {
     ...actual,
     storeToRefs: (store: Record<string, unknown>) => store,
-  };
-});
-
-vi.mock('@vue/apollo-composable', async () => {
-  const actual =
-    await vi.importActual<typeof import('@vue/apollo-composable')>('@vue/apollo-composable');
-  return {
-    ...actual,
-    useMutation: () => ({
-      mutate: completeOnboardingMock,
-    }),
   };
 });
 
@@ -81,7 +58,6 @@ vi.mock('@/components/Onboarding/store/onboardingStatus', () => ({
     isUpgrade: isUpgradeRef,
     isDowngrade: isDowngradeRef,
     isIncomplete: isIncompleteRef,
-    refetchOnboarding: refetchOnboardingMock,
   }),
 }));
 
@@ -89,10 +65,6 @@ vi.mock('@/store/theme', () => ({
   useThemeStore: () => ({
     theme: themeRef,
   }),
-}));
-
-vi.mock('@/components/Onboarding/store/onboardingStorageCleanup', () => ({
-  cleanupOnboardingStorage: cleanupOnboardingStorageMock,
 }));
 
 describe('OnboardingOverviewStep', () => {
@@ -117,6 +89,7 @@ describe('OnboardingOverviewStep', () => {
     mount(OnboardingOverviewStep, {
       props: {
         onComplete: vi.fn(),
+        onSkipSetup: vi.fn(),
       },
       global: {
         plugins: [createTestI18n()],
@@ -143,20 +116,38 @@ describe('OnboardingOverviewStep', () => {
     expect(updatedImg.attributes('alt')).toBe('Limitless Possibilities');
   });
 
-  it('clears onboarding draft immediately when skipping setup', async () => {
-    const wrapper = mountComponent();
+  it('delegates skip setup through the shared exit callback', async () => {
+    const onSkipSetup = vi.fn();
+    const wrapper = mount(OnboardingOverviewStep, {
+      props: {
+        onComplete: vi.fn(),
+        onSkipSetup,
+      },
+      global: {
+        plugins: [createTestI18n()],
+      },
+    });
 
     await wrapper.find('[data-testid="skip-setup-button"]').trigger('click');
 
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
+    expect(onSkipSetup).toHaveBeenCalledTimes(1);
   });
 
-  it('still clears onboarding draft when skip completion fails', async () => {
-    completeOnboardingMock.mockRejectedValueOnce(new Error('offline'));
-    const wrapper = mountComponent();
+  it('does not crash when the shared exit callback rejects', async () => {
+    const onSkipSetup = vi.fn().mockRejectedValueOnce(new Error('offline'));
+    const wrapper = mount(OnboardingOverviewStep, {
+      props: {
+        onComplete: vi.fn(),
+        onSkipSetup,
+      },
+      global: {
+        plugins: [createTestI18n()],
+      },
+    });
 
     await wrapper.find('[data-testid="skip-setup-button"]').trigger('click');
+    await Promise.resolve();
 
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
+    expect(onSkipSetup).toHaveBeenCalledTimes(1);
   });
 });

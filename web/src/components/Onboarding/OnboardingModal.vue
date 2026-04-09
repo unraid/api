@@ -16,10 +16,12 @@ import type {
   OnboardingWizardInternalBootState,
 } from '~/components/Onboarding/onboardingWizardState';
 import type { StepId } from '~/components/Onboarding/stepRegistry.js';
+import type { OnboardingPowerAction } from '~/components/Onboarding/useOnboardingLifecycle';
 import type { Component } from 'vue';
 
 import OnboardingLoadingState from '~/components/Onboarding/components/OnboardingLoadingState.vue';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/components/Onboarding/constants';
+import { COMPLETE_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { SAVE_ONBOARDING_DRAFT_MUTATION } from '~/components/Onboarding/graphql/saveOnboardingDraft.mutation';
 import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
 import {
@@ -33,7 +35,7 @@ import { useActivationCodeDataStore } from '~/components/Onboarding/store/activa
 import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
 import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
-import { cleanupOnboardingStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
+import { useOnboardingLifecycle } from '~/components/Onboarding/useOnboardingLifecycle';
 import { OnboardingWizardStepId } from '~/composables/gql/graphql';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
@@ -58,6 +60,7 @@ const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
 const themeStore = useThemeStore();
 const { wizard, loading: onboardingContextLoading } = storeToRefs(useOnboardingContextDataStore());
+const { mutate: completeOnboardingMutation } = useMutation(COMPLETE_ONBOARDING_MUTATION);
 const { mutate: saveOnboardingDraftMutation } = useMutation(SAVE_ONBOARDING_DRAFT_MUTATION);
 
 const localDraft = ref<OnboardingWizardDraft>(createEmptyOnboardingWizardDraft());
@@ -286,16 +289,18 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   ];
 });
 
-const closeModal = async () => {
-  try {
-    await onboardingModalStore.closeModal();
-  } finally {
-    cleanupOnboardingStorage();
-    clearHistorySession();
-    hasHydratedWizardState.value = false;
-    window.location.reload();
-  }
+const finalizeModalClose = () => {
+  clearHistorySession();
+  hasHydratedWizardState.value = false;
+  window.location.reload();
 };
+
+const { dismissOnboarding, completeAndCloseOnboarding, completeOnboardingWithPowerAction } =
+  useOnboardingLifecycle({
+    completeOnboarding: () => completeOnboardingMutation(),
+    refetchOnboarding: () => Promise.resolve(onboardingStore.refetchOnboarding()),
+    finalizeUiClose: finalizeModalClose,
+  });
 
 const setActiveStepByIndex = (stepIndex: number) => {
   const stepId = availableSteps.value[stepIndex];
@@ -370,7 +375,7 @@ const transitionByOffset = async (offset: number) => {
 
   if (!nextStepId) {
     if (offset > 0) {
-      await closeModal();
+      await completeAndCloseOnboarding();
     }
     return;
   }
@@ -511,6 +516,19 @@ const handleSummaryBack = async () => {
   await transitionByOffset(-1);
 };
 
+const handleNextStepsComplete = async ({
+  action,
+}: {
+  action?: OnboardingPowerAction;
+} = {}) => {
+  if (action) {
+    await completeOnboardingWithPowerAction(action);
+    return;
+  }
+
+  await completeAndCloseOnboarding();
+};
+
 const handleInternalBootStateChange = async (state: OnboardingWizardInternalBootState) => {
   localInternalBootState.value = {
     applyAttempted: state.applyAttempted,
@@ -536,7 +554,7 @@ const handleExitConfirm = async () => {
   showExitConfirmDialog.value = false;
   isClosingModal.value = true;
   try {
-    await closeModal();
+    await dismissOnboarding();
   } finally {
     isClosingModal.value = false;
   }
@@ -589,7 +607,7 @@ const handlePopstate = async (event: PopStateEvent) => {
   showExitConfirmDialog.value = false;
   isClosingModal.value = true;
   try {
-    await closeModal();
+    await dismissOnboarding();
   } finally {
     isClosingModal.value = false;
   }
@@ -762,7 +780,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         ...baseProps,
         draft: localDraft.value,
         internalBootState: localInternalBootState.value,
-        onComplete: () => closeModal(),
+        onComplete: handleNextStepsComplete,
       };
 
     case 'SUMMARY':

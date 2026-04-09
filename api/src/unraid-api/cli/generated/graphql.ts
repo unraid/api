@@ -2021,8 +2021,6 @@ export type OnboardingMutations = {
   bypassOnboarding: Onboarding;
   /** Clear onboarding override state and reload from disk */
   clearOnboardingOverride: Onboarding;
-  /** Close the onboarding modal */
-  closeOnboarding: Onboarding;
   /** Mark onboarding as completed */
   completeOnboarding: Onboarding;
   /** Create and configure internal boot pool via emcmd operations */
