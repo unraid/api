@@ -574,88 +574,17 @@ describe('OnboardingService', () => {
     });
 
     describe('visibility actions', () => {
+        it('marks onboarding complete through the tracker', async () => {
+            await service.markOnboardingCompleted();
+
+            expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
+        });
+
         it('delegates openOnboarding to the tracker', async () => {
             await service.openOnboarding();
 
             expect(onboardingTrackerMock.setBypassActive).toHaveBeenCalledWith(false);
             expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(true);
-        });
-
-        it('clears forced-open onboarding through the tracker', async () => {
-            onboardingTrackerMock.getStateResult.mockResolvedValue({
-                kind: 'ok',
-                state: {
-                    completed: true,
-                    completedAtVersion: '7.3.0',
-                    forceOpen: true,
-                },
-            });
-
-            await service.closeOnboarding();
-
-            expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(false);
-            expect(onboardingTrackerMock.clearWizardState).toHaveBeenCalledTimes(1);
-        });
-
-        it('marks incomplete onboarding complete when closed on supported versions', async () => {
-            onboardingTrackerMock.getStateResult.mockResolvedValue({
-                kind: 'ok',
-                state: {
-                    completed: false,
-                    completedAtVersion: undefined,
-                    forceOpen: false,
-                },
-            });
-            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
-            onboardingStateMock.isFreshInstall.mockReturnValue(true);
-
-            await service.closeOnboarding();
-
-            expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
-            expect(onboardingTrackerMock.setForceOpen).not.toHaveBeenCalled();
-            expect(onboardingTrackerMock.clearWizardState).not.toHaveBeenCalled();
-        });
-
-        it('marks licensed incomplete onboarding complete when closed on supported versions', async () => {
-            onboardingTrackerMock.getStateResult.mockResolvedValue({
-                kind: 'ok',
-                state: {
-                    completed: false,
-                    completedAtVersion: undefined,
-                    forceOpen: false,
-                },
-            });
-            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
-            onboardingStateMock.getRegistrationState.mockReturnValue('PRO');
-            onboardingStateMock.isRegistered.mockReturnValue(true);
-            onboardingStateMock.hasActivationCode.mockResolvedValue(false);
-            onboardingStateMock.requiresActivationStep.mockReturnValue(false);
-            onboardingStateMock.isFreshInstall.mockReturnValue(false);
-
-            await service.closeOnboarding();
-
-            expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
-            expect(onboardingTrackerMock.setForceOpen).not.toHaveBeenCalled();
-            expect(onboardingTrackerMock.clearWizardState).not.toHaveBeenCalled();
-        });
-
-        it('closes force-opened fresh incomplete onboarding in one action', async () => {
-            onboardingTrackerMock.getStateResult.mockResolvedValue({
-                kind: 'ok',
-                state: {
-                    completed: false,
-                    completedAtVersion: undefined,
-                    forceOpen: true,
-                },
-            });
-            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
-            onboardingStateMock.isFreshInstall.mockReturnValue(true);
-
-            await service.closeOnboarding();
-
-            expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(false);
-            expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
-            expect(onboardingTrackerMock.clearWizardState).not.toHaveBeenCalled();
         });
 
         it('enables the in-memory bypass', async () => {

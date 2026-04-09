@@ -1443,9 +1443,6 @@ type OnboardingMutations {
   """Force the onboarding modal open"""
   openOnboarding: Onboarding!
 
-  """Close the onboarding modal"""
-  closeOnboarding: Onboarding!
-
   """Temporarily bypass onboarding in API memory"""
   bypassOnboarding: Onboarding!
 

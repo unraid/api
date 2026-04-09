@@ -67,7 +67,6 @@ type Documents = {
     "\n  subscription NotificationsWarningsAndAlertsSub {\n    notificationsWarningsAndAlerts {\n      ...NotificationFragment\n    }\n  }\n": typeof types.NotificationsWarningsAndAlertsSubDocument,
     "\n  query GetAvailableLanguages {\n    customization {\n      availableLanguages {\n        code\n        name\n        url\n      }\n    }\n  }\n": typeof types.GetAvailableLanguagesDocument,
     "\n  mutation BypassOnboarding {\n    onboarding {\n      bypassOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": typeof types.BypassOnboardingDocument,
-    "\n  mutation CloseOnboarding {\n    onboarding {\n      closeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": typeof types.CloseOnboardingDocument,
     "\n  mutation CompleteOnboarding {\n    onboarding {\n      completeOnboarding {\n        status\n        isPartnerBuild\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": typeof types.CompleteOnboardingDocument,
     "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n": typeof types.UpdateServerIdentityDocument,
     "\n  mutation SetLocale($locale: String!) {\n    customization {\n      setLocale(locale: $locale)\n    }\n  }\n": typeof types.SetLocaleDocument,
@@ -156,7 +155,6 @@ const documents: Documents = {
     "\n  subscription NotificationsWarningsAndAlertsSub {\n    notificationsWarningsAndAlerts {\n      ...NotificationFragment\n    }\n  }\n": types.NotificationsWarningsAndAlertsSubDocument,
     "\n  query GetAvailableLanguages {\n    customization {\n      availableLanguages {\n        code\n        name\n        url\n      }\n    }\n  }\n": types.GetAvailableLanguagesDocument,
     "\n  mutation BypassOnboarding {\n    onboarding {\n      bypassOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": types.BypassOnboardingDocument,
-    "\n  mutation CloseOnboarding {\n    onboarding {\n      closeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": types.CloseOnboardingDocument,
     "\n  mutation CompleteOnboarding {\n    onboarding {\n      completeOnboarding {\n        status\n        isPartnerBuild\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": types.CompleteOnboardingDocument,
     "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n": types.UpdateServerIdentityDocument,
     "\n  mutation SetLocale($locale: String!) {\n    customization {\n      setLocale(locale: $locale)\n    }\n  }\n": types.SetLocaleDocument,
@@ -418,10 +416,6 @@ export function graphql(source: "\n  query GetAvailableLanguages {\n    customiz
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation BypassOnboarding {\n    onboarding {\n      bypassOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation BypassOnboarding {\n    onboarding {\n      bypassOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation CloseOnboarding {\n    onboarding {\n      closeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CloseOnboarding {\n    onboarding {\n      closeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

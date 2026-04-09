@@ -502,28 +502,6 @@ export class OnboardingService implements OnModuleInit {
         await this.onboardingTracker.setForceOpen(true);
     }
 
-    public async closeOnboarding(): Promise<void> {
-        const trackerStateResult = await this.onboardingTracker.getStateResult();
-        if (trackerStateResult.kind === 'error') {
-            throw trackerStateResult.error;
-        }
-
-        const state = trackerStateResult.state;
-        const currentVersion = this.onboardingTracker.getCurrentVersion();
-        const shouldAutoOpen = this.isVersionSupported(currentVersion) && !state.completed;
-
-        if (state.forceOpen) {
-            await this.onboardingTracker.setForceOpen(false);
-        }
-
-        if (shouldAutoOpen) {
-            await this.onboardingTracker.markCompleted();
-            return;
-        }
-
-        await this.onboardingTracker.clearWizardState();
-    }
-
     public async bypassOnboarding(): Promise<void> {
         this.onboardingTracker.setBypassActive(true);
     }
