@@ -4,8 +4,6 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 import { MothershipController } from '../mothership-proxy/mothership.controller.js';
 import { DynamicRemoteAccessService } from '../remote-access/dynamic-remote-access.service.js';
-
-const DEFAULT_CONNECT_STARTUP_DELAY_MS = 0;
 const APP_READY_EVENT = 'app.ready';
 
 interface AppReadyEvent {
@@ -30,32 +28,24 @@ interface ConnectStartupLogger {
     warn: (message: string, error: unknown) => void;
 }
 
-export const scheduleConnectStartupTasks = (
+export const runConnectStartupTasks = async (
     { dynamicRemoteAccessService, mothershipController }: ConnectStartupTasksDependencies,
-    logger: ConnectStartupLogger,
-    delayMs = DEFAULT_CONNECT_STARTUP_DELAY_MS
-): void => {
+    logger: ConnectStartupLogger
+): Promise<void> => {
     if (!dynamicRemoteAccessService && !mothershipController) {
         return;
     }
 
-    logger.info(`Scheduling Connect startup tasks to run in ${delayMs}ms`);
+    logger.info('Running Connect startup tasks after app.ready');
 
-    if (dynamicRemoteAccessService) {
-        setTimeout(() => {
-            void dynamicRemoteAccessService.initRemoteAccess().catch((error: unknown) => {
+    await Promise.allSettled([
+        dynamicRemoteAccessService?.initRemoteAccess().catch((error: unknown) => {
                 logger.warn('Dynamic remote access startup failed', error);
-            });
-        }, delayMs);
-    }
-
-    if (mothershipController) {
-        setTimeout(() => {
-            void mothershipController.initOrRestart().catch((error: unknown) => {
+            }),
+        mothershipController?.initOrRestart().catch((error: unknown) => {
                 logger.warn('Mothership startup failed', error);
-            });
-        }, delayMs);
-    }
+            }),
+    ]);
 };
 
 @Injectable()
@@ -69,9 +59,9 @@ export class ConnectStartupTasksListener {
         private readonly mothershipController: ConnectStartupMothership
     ) {}
 
-    @OnEvent(APP_READY_EVENT)
-    handleAppReady(_event: AppReadyEvent): void {
-        scheduleConnectStartupTasks(
+    @OnEvent(APP_READY_EVENT, { async: true })
+    async handleAppReady(_event: AppReadyEvent): Promise<void> {
+        await runConnectStartupTasks(
             {
                 dynamicRemoteAccessService: this.dynamicRemoteAccessService,
                 mothershipController: this.mothershipController,

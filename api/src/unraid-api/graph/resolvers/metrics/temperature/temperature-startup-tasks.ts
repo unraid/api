@@ -6,10 +6,7 @@ import { APP_READY_EVENT } from '@app/unraid-api/app/app-lifecycle.events.js';
 import { apiLogger } from '@app/core/log.js';
 import { TemperatureService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.service.js';
 
-const DEFAULT_TEMPERATURE_STARTUP_DELAY_MS = 0;
-
 interface TemperatureStartupLogger {
-    info: (message: string, ...args: unknown[]) => void;
     warn: (error: unknown, message: string, ...args: unknown[]) => void;
 }
 
@@ -17,22 +14,19 @@ interface TemperatureStartupService {
     initializeProviders: () => Promise<void>;
 }
 
-export const scheduleTemperatureStartupTasks = (
+export const runTemperatureStartupTasks = async (
     temperatureService: TemperatureStartupService | null | undefined,
-    logger: TemperatureStartupLogger,
-    delayMs = DEFAULT_TEMPERATURE_STARTUP_DELAY_MS
-): void => {
+    logger: TemperatureStartupLogger
+): Promise<void> => {
     if (!temperatureService) {
         return;
     }
 
-    logger.info('Scheduling temperature startup tasks to run in %dms', delayMs);
-
-    setTimeout(() => {
-        void temperatureService.initializeProviders().catch((error: unknown) => {
-            logger.warn(error, 'Temperature provider initialization after startup failed');
-        });
-    }, delayMs);
+    try {
+        await temperatureService.initializeProviders();
+    } catch (error: unknown) {
+        logger.warn(error, 'Temperature provider initialization after startup failed');
+    }
 };
 
 @Injectable()
@@ -42,8 +36,8 @@ export class TemperatureStartupTasksListener {
         private readonly temperatureService: TemperatureStartupService
     ) {}
 
-    @OnEvent(APP_READY_EVENT)
-    handleAppReady(_event: AppReadyEvent): void {
-        scheduleTemperatureStartupTasks(this.temperatureService, apiLogger);
+    @OnEvent(APP_READY_EVENT, { async: true })
+    async handleAppReady(_event: AppReadyEvent): Promise<void> {
+        await runTemperatureStartupTasks(this.temperatureService, apiLogger);
     }
 }

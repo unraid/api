@@ -1,84 +1,58 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { AppReadyEvent } from '@app/unraid-api/app/app-lifecycle.events.js';
-import { TemperatureStartupTasksListener, scheduleTemperatureStartupTasks } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-startup-tasks.js';
+import { TemperatureStartupTasksListener, runTemperatureStartupTasks } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-startup-tasks.js';
 
-describe('scheduleTemperatureStartupTasks', () => {
-    it('schedules temperature startup work after the provided delay', async () => {
-        vi.useFakeTimers();
-
+describe('runTemperatureStartupTasks', () => {
+    it('runs temperature startup work immediately', async () => {
         const initializeProviders = vi.fn().mockResolvedValue(undefined);
         const logger = {
-            info: vi.fn(),
             warn: vi.fn(),
         };
 
-        scheduleTemperatureStartupTasks({ initializeProviders }, logger, 250);
-
-        expect(initializeProviders).not.toHaveBeenCalled();
-
-        await vi.advanceTimersByTimeAsync(250);
+        await runTemperatureStartupTasks({ initializeProviders }, logger);
 
         expect(initializeProviders).toHaveBeenCalledTimes(1);
-
-        vi.useRealTimers();
     });
 
-    it('warns when background temperature startup rejects', async () => {
-        vi.useFakeTimers();
-
+    it('warns when temperature startup rejects', async () => {
         const backgroundError = new Error('disk scan failed');
         const logger = {
-            info: vi.fn(),
             warn: vi.fn(),
         };
 
-        scheduleTemperatureStartupTasks(
+        await runTemperatureStartupTasks(
             {
                 initializeProviders: vi.fn().mockRejectedValue(backgroundError),
             },
-            logger,
-            250
+            logger
         );
-
-        await vi.advanceTimersByTimeAsync(250);
-        await vi.runAllTicks();
 
         expect(logger.warn).toHaveBeenCalledWith(
             backgroundError,
             'Temperature provider initialization after startup failed'
         );
-
-        vi.useRealTimers();
     });
 
     it('does nothing when the temperature service is unavailable', () => {
         const logger = {
-            info: vi.fn(),
             warn: vi.fn(),
         };
 
-        expect(() => scheduleTemperatureStartupTasks(undefined, logger)).not.toThrow();
-        expect(logger.info).not.toHaveBeenCalled();
+        expect(() => runTemperatureStartupTasks(undefined, logger)).not.toThrow();
     });
 });
 
 describe('TemperatureStartupTasksListener', () => {
-    it('schedules temperature startup work when the app ready event is emitted', async () => {
-        vi.useFakeTimers();
-
+    it('runs temperature startup work when the app ready event is emitted', async () => {
         const initializeProviders = vi.fn().mockResolvedValue(undefined);
         const listener = new TemperatureStartupTasksListener({ initializeProviders });
         const event: AppReadyEvent = {
             reason: 'nestjs-server-listening',
         };
 
-        listener.handleAppReady(event);
-
-        await vi.advanceTimersByTimeAsync(0);
+        await listener.handleAppReady(event);
 
         expect(initializeProviders).toHaveBeenCalledTimes(1);
-
-        vi.useRealTimers();
     });
 });
