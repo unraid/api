@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { AppReadyEvent } from '@app/unraid-api/app/app-lifecycle.events.js';
 import { DiskSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/disk_sensors.service.js';
 import { IpmiSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/ipmi_sensors.service.js';
 import { LmSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/lm_sensors.service.js';
@@ -94,6 +95,32 @@ describe('TemperatureService', () => {
             // Should not throw
             const metrics = await service.getMetrics();
             expect(metrics).toBeDefined();
+        });
+
+        it('should initialize providers when the app ready event is emitted', async () => {
+            const event: AppReadyEvent = {
+                reason: 'nestjs-server-listening',
+            };
+
+            await service.handleAppReady(event);
+
+            expect(lmSensors.isAvailable).toHaveBeenCalled();
+            expect(diskSensors.isAvailable).toHaveBeenCalled();
+        });
+
+        it('should warn when initialization fails after the app is ready', async () => {
+            const event: AppReadyEvent = {
+                reason: 'nestjs-server-listening',
+            };
+            const warnSpy = vi.spyOn(service['logger'], 'warn');
+            vi.spyOn(service, 'initializeProviders').mockRejectedValue(new Error('disk scan failed'));
+
+            await service.handleAppReady(event);
+
+            expect(warnSpy).toHaveBeenCalledWith(
+                'Temperature provider initialization after startup failed',
+                expect.any(Error)
+            );
         });
     });
 

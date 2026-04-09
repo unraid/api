@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 
+import type { AppReadyEvent } from '@app/unraid-api/app/app-lifecycle.events.js';
+import { APP_READY_EVENT } from '@app/unraid-api/app/app-lifecycle.events.js';
 import { DiskSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/disk_sensors.service.js';
 import { IpmiSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/ipmi_sensors.service.js';
 import { LmSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/lm_sensors.service.js';
@@ -56,6 +59,15 @@ export class TemperatureService {
         });
 
         return this.initializationPromise;
+    }
+
+    @OnEvent(APP_READY_EVENT, { async: true })
+    async handleAppReady(_event: AppReadyEvent): Promise<void> {
+        try {
+            await this.initializeProviders();
+        } catch (error: unknown) {
+            this.logger.warn('Temperature provider initialization after startup failed', error);
+        }
     }
 
     private async loadAvailableProviders(): Promise<void> {

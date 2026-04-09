@@ -8,7 +8,6 @@ import { IpmiSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temp
 import { LmSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/lm_sensors.service.js';
 import { TemperatureHistoryService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature_history.service.js';
 import { TemperatureConfigService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.service.js';
-import { TemperatureStartupTasksListener } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-startup-tasks.js';
 import { TemperatureService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.service.js';
 
 @Module({
@@ -24,7 +23,6 @@ import { TemperatureService } from '@app/unraid-api/graph/resolvers/metrics/temp
             inject: [ConfigService],
         },
         TemperatureService,
-        TemperatureStartupTasksListener,
         LmSensorsService,
         DiskSensorsService,
         IpmiSensorsService,
