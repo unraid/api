@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 
 import { TimeoutCheckerJob } from '../connection-status/timeout-checker.job.js';
 import { MothershipConnectionService } from './connection.service.js';
@@ -13,7 +13,7 @@ import { MothershipSubscriptionHandler } from './mothership-subscription.handler
  * - Connection service (controller for connection state & metadata)
  */
 @Injectable()
-export class MothershipController implements OnModuleDestroy, OnApplicationBootstrap {
+export class MothershipController implements OnModuleDestroy {
     private readonly logger = new Logger(MothershipController.name);
     constructor(
         private readonly clientService: MothershipGraphqlClientService,
@@ -24,10 +24,6 @@ export class MothershipController implements OnModuleDestroy, OnApplicationBoots
 
     async onModuleDestroy() {
         await this.stop();
-    }
-
-    async onApplicationBootstrap() {
-        await this.initOrRestart();
     }
 
     /**

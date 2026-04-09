@@ -80,7 +80,7 @@ describe('TemperatureService', () => {
 
     describe('initialization', () => {
         it('should initialize available providers', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             expect(lmSensors.isAvailable).toHaveBeenCalled();
             expect(diskSensors.isAvailable).toHaveBeenCalled();
@@ -89,7 +89,7 @@ describe('TemperatureService', () => {
         it('should handle provider initialization errors gracefully', async () => {
             vi.mocked(lmSensors.isAvailable!).mockRejectedValue(new Error('Failed'));
 
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             // Should not throw
             const metrics = await service.getMetrics();
@@ -99,7 +99,7 @@ describe('TemperatureService', () => {
 
     describe('getMetrics', () => {
         beforeEach(async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
         });
 
         it('should return temperature metrics', async () => {
@@ -123,7 +123,7 @@ describe('TemperatureService', () => {
                 history,
                 temperatureConfigService
             );
-            await emptyService.onModuleInit();
+            await emptyService.initializeProviders();
 
             const metrics = await emptyService.getMetrics();
             expect(metrics).toBeNull();
@@ -155,7 +155,7 @@ describe('TemperatureService', () => {
                 thresholds: { cpu_warning: 60, cpu_critical: 80 },
             });
 
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
@@ -182,7 +182,7 @@ describe('TemperatureService', () => {
                 thresholds: {},
             });
 
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
@@ -210,7 +210,7 @@ describe('TemperatureService', () => {
                 thresholds: {},
             });
 
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
@@ -239,7 +239,7 @@ describe('TemperatureService', () => {
                 thresholds: {},
             });
 
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
@@ -269,7 +269,7 @@ describe('TemperatureService', () => {
                 thresholds: { cpu_warning: 160 },
             });
 
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
@@ -294,7 +294,7 @@ describe('TemperatureService', () => {
 
     describe('buildSummary', () => {
         it('should calculate correct average', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
                     id: 'sensor1',
@@ -317,7 +317,7 @@ describe('TemperatureService', () => {
         });
 
         it('should identify hottest and coolest sensors', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
                     id: 's1',
@@ -349,7 +349,7 @@ describe('TemperatureService', () => {
     });
     describe('edge cases', () => {
         it('should handle provider read timeout gracefully', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             // Simulate a slow/hanging provider
             vi.mocked(lmSensors.read!).mockImplementation(
@@ -362,7 +362,7 @@ describe('TemperatureService', () => {
         }, 10000);
 
         it('should deduplicate sensors with same ID from different providers', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             // Both providers return a sensor with the same ID
             vi.mocked(lmSensors.read!).mockResolvedValue([
@@ -391,7 +391,7 @@ describe('TemperatureService', () => {
         });
 
         it('should handle empty sensor name', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
@@ -409,7 +409,7 @@ describe('TemperatureService', () => {
         });
 
         it('should handle negative temperature values', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
@@ -428,7 +428,7 @@ describe('TemperatureService', () => {
         });
 
         it('should handle extremely high temperature values', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
@@ -447,7 +447,7 @@ describe('TemperatureService', () => {
         });
 
         it('should handle NaN temperature values', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
@@ -465,7 +465,7 @@ describe('TemperatureService', () => {
         });
 
         it('should handle mix of valid and NaN temperature values', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockResolvedValue([
                 {
@@ -493,7 +493,7 @@ describe('TemperatureService', () => {
         });
 
         it('should handle all providers failing', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockRejectedValue(new Error('lm-sensors failed'));
             vi.mocked(diskSensors.read!).mockRejectedValue(new Error('disk sensors failed'));
@@ -504,7 +504,7 @@ describe('TemperatureService', () => {
         });
 
         it('should handle partial provider failures', async () => {
-            await service.onModuleInit();
+            await service.initializeProviders();
 
             vi.mocked(lmSensors.read!).mockRejectedValue(new Error('lm-sensors failed'));
             vi.mocked(diskSensors.read!).mockResolvedValue([

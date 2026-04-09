@@ -6,6 +6,7 @@ import { CloudService } from '../connection-status/cloud.service.js';
 import { ConnectStatusWriterService } from '../connection-status/connect-status-writer.service.js';
 import { TimeoutCheckerJob } from '../connection-status/timeout-checker.job.js';
 import { RemoteAccessModule } from '../remote-access/remote-access.module.js';
+import { ConnectStartupTasksListener } from '../startup/connect-startup-tasks.js';
 import { MothershipConnectionService } from './connection.service.js';
 import { MothershipGraphqlClientService } from './graphql.client.js';
 import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
@@ -16,6 +17,7 @@ import { MothershipHandler } from './mothership.events.js';
     imports: [RemoteAccessModule],
     providers: [
         ConnectStatusWriterService,
+        ConnectStartupTasksListener,
         MothershipConnectionService,
         MothershipGraphqlClientService,
         MothershipHandler,

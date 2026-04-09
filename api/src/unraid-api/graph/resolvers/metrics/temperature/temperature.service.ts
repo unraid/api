@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { DiskSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/disk_sensors.service.js';
 import { IpmiSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/ipmi_sensors.service.js';
@@ -21,9 +21,11 @@ import {
 
 // temperature.service.ts
 @Injectable()
-export class TemperatureService implements OnModuleInit {
+export class TemperatureService {
     private readonly logger = new Logger(TemperatureService.name);
     private availableProviders: TemperatureSensorProvider[] = [];
+    private initializationPromise: Promise<void> | null = null;
+    private initialized = false;
 
     private cache: TemperatureMetrics | null = null;
     private cacheTimestamp = 0;
@@ -40,17 +42,29 @@ export class TemperatureService implements OnModuleInit {
         private readonly configService: TemperatureConfigService
     ) {}
 
-    async onModuleInit() {
-        // Initialize all providers and check availability
-        await this.initializeProviders();
+    async initializeProviders(): Promise<void> {
+        if (this.initialized) {
+            return;
+        }
+
+        if (this.initializationPromise) {
+            return this.initializationPromise;
+        }
+
+        this.initializationPromise = this.loadAvailableProviders().finally(() => {
+            this.initializationPromise = null;
+        });
+
+        return this.initializationPromise;
     }
 
-    private async initializeProviders(): Promise<void> {
+    private async loadAvailableProviders(): Promise<void> {
         // 1. Get sensor specific configs
         const config = this.configService.getConfig(false);
         const lmSensorsConfig = config?.sensors?.lm_sensors;
         const smartctlConfig = config?.sensors?.smartctl;
         const ipmiConfig = config?.sensors?.ipmi;
+        const availableProviders: TemperatureSensorProvider[] = [];
 
         // 2. Define providers with their config checks
         // We default to TRUE if the config is missing
@@ -79,7 +93,7 @@ export class TemperatureService implements OnModuleInit {
 
             try {
                 if (await provider.service.isAvailable()) {
-                    this.availableProviders.push(provider.service);
+                    availableProviders.push(provider.service);
                     this.logger.log(`Temperature provider available: ${provider.service.id}`);
                 } else {
                     this.logger.debug(`Temperature provider not available: ${provider.service.id}`);
@@ -89,12 +103,17 @@ export class TemperatureService implements OnModuleInit {
             }
         }
 
+        this.availableProviders = availableProviders;
+        this.initialized = true;
+
         if (this.availableProviders.length === 0) {
             this.logger.warn('No temperature providers available');
         }
     }
 
     async getMetrics(): Promise<TemperatureMetrics | null> {
+        await this.initializeProviders();
+
         // Check if we can use recent history instead of re-reading sensors
         const mostRecent = this.history.getMostRecentReading();
         const canUseHistory =

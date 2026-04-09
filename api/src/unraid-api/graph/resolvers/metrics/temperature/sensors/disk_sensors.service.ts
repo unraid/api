@@ -18,13 +18,7 @@ export class DiskSensorsService implements TemperatureSensorProvider {
     constructor(private readonly disksService: DisksService) {}
 
     async isAvailable(): Promise<boolean> {
-        // Disks are always "available" since DisksService exists
-        try {
-            const disks = await this.disksService.getDisks();
-            return disks.length > 0;
-        } catch {
-            return false;
-        }
+        return true;
     }
 
     async read(): Promise<RawTemperatureSensor[]> {
