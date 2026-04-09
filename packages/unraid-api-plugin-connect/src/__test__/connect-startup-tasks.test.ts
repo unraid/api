@@ -75,13 +75,13 @@ describe('runConnectStartupTasks', () => {
         );
     });
 
-    it('does nothing when connect providers are unavailable', () => {
+    it('does nothing when connect providers are unavailable', async () => {
         const logger = {
             info: vi.fn(),
             warn: vi.fn(),
         };
 
-        expect(() => runConnectStartupTasks({}, logger)).not.toThrow();
+        await expect(runConnectStartupTasks({}, logger)).resolves.toBeUndefined();
         expect(logger.info).not.toHaveBeenCalled();
         expect(logger.warn).not.toHaveBeenCalled();
     });
