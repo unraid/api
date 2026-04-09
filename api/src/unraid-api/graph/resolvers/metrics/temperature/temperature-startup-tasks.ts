@@ -2,8 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 
 import type { AppReadyEvent } from '@app/unraid-api/app/app-lifecycle.events.js';
-import { APP_READY_EVENT } from '@app/unraid-api/app/app-lifecycle.events.js';
 import { apiLogger } from '@app/core/log.js';
+import { APP_READY_EVENT } from '@app/unraid-api/app/app-lifecycle.events.js';
 import { TemperatureService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.service.js';
 
 interface TemperatureStartupLogger {

@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { AppReadyEvent } from '@app/unraid-api/app/app-lifecycle.events.js';
-import { TemperatureStartupTasksListener, runTemperatureStartupTasks } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-startup-tasks.js';
+import {
+    runTemperatureStartupTasks,
+    TemperatureStartupTasksListener,
+} from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-startup-tasks.js';
 
 describe('runTemperatureStartupTasks', () => {
     it('runs temperature startup work immediately', async () => {
