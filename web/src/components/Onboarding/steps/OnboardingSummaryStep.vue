@@ -667,6 +667,7 @@ const handleComplete = async () => {
     const currentSsh = Boolean(coreSettingsResult.value?.vars?.useSsh || false);
     const currentSysModel = coreSettingsResult.value?.vars?.sysModel || '';
     const serverNameChanged = targetCoreSettings.serverName !== currentName;
+    const useReturnedDefaultUrlAfterRename = shouldRedirectAfterRename(location.hostname);
     const shouldApplyPartnerSysModel = Boolean(
       isFreshInstall.value &&
         activationSystemModel.value &&
@@ -1508,52 +1509,52 @@ const handleBack = () => {
           </template>
         </UModal>
 
-      <UModal
-        :open="showApplyResultDialog"
-        :dismissible="false"
-        :close="false"
-        :portal="false"
-        :title="applyResultTitle"
-        :description="applyResultMessage"
-        :ui="{
-          footer: 'justify-end',
-          overlay: 'z-50',
-          content: showDiagnosticLogsInResultDialog
-            ? 'z-50 w-[calc(100vw-2rem)] max-w-3xl'
-            : 'z-50 max-w-md',
-        }"
-      >
-        <template v-if="showDiagnosticLogsInResultDialog || applyResultFollowUpMessage" #body>
-          <div class="space-y-3">
-            <UAlert
-              v-if="applyResultFollowUpMessage"
-              color="neutral"
-              variant="subtle"
-              :description="applyResultFollowUpMessage"
-              icon="i-heroicons-information-circle"
-            />
-            <template v-if="showDiagnosticLogsInResultDialog">
-              <h4 class="text-sm font-semibold tracking-wide uppercase">
-                {{ t('onboarding.summaryStep.diagnosticLogs') }}
-              </h4>
-              <OnboardingConsole
-                :logs="logs"
-                :title="t('onboarding.summaryStep.onboardingDiagnostics')"
+        <UModal
+          :open="showApplyResultDialog"
+          :dismissible="false"
+          :close="false"
+          :portal="false"
+          :title="applyResultTitle"
+          :description="applyResultMessage"
+          :ui="{
+            footer: 'justify-end',
+            overlay: 'z-50',
+            content: showDiagnosticLogsInResultDialog
+              ? 'z-50 w-[calc(100vw-2rem)] max-w-3xl'
+              : 'z-50 max-w-md',
+          }"
+        >
+          <template v-if="showDiagnosticLogsInResultDialog || applyResultFollowUpMessage" #body>
+            <div class="space-y-3">
+              <UAlert
+                v-if="applyResultFollowUpMessage"
+                color="neutral"
+                variant="subtle"
+                :description="applyResultFollowUpMessage"
+                icon="i-heroicons-information-circle"
               />
-            </template>
-          </div>
-        </template>
-        <template #footer>
-          <UButton @click="handleApplyResultConfirm">
-            {{ t('onboarding.summaryStep.ok') }}
-          </UButton>
-        </template>
-      </UModal>
+              <template v-if="showDiagnosticLogsInResultDialog">
+                <h4 class="text-sm font-semibold tracking-wide uppercase">
+                  {{ t('onboarding.summaryStep.diagnosticLogs') }}
+                </h4>
+                <OnboardingConsole
+                  :logs="logs"
+                  :title="t('onboarding.summaryStep.onboardingDiagnostics')"
+                />
+              </template>
+            </div>
+          </template>
+          <template #footer>
+            <UButton @click="handleApplyResultConfirm">
+              {{ t('onboarding.summaryStep.ok') }}
+            </UButton>
+          </template>
+        </UModal>
 
-      <!-- Footer -->
-      <div
-        class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
-      >
+        <!-- Footer -->
+        <div
+          class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
+        >
           <button
             v-if="showBack"
             @click="handleBack"
