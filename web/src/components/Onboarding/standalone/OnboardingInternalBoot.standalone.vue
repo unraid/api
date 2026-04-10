@@ -6,6 +6,7 @@ import { XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
 import { buildBootConfigurationSummaryViewModel } from '@/components/Onboarding/components/bootConfigurationSummary/buildBootConfigurationSummaryViewModel';
 import OnboardingBootConfigurationSummary from '@/components/Onboarding/components/bootConfigurationSummary/OnboardingBootConfigurationSummary.vue';
+import InternalBootConfirmDialog from '@/components/Onboarding/components/InternalBootConfirmDialog.vue';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import {
   applyInternalBootSelection,
@@ -39,6 +40,7 @@ const currentStep = ref<StepId>('CONFIGURE_BOOT');
 const confirmationState = ref<'idle' | 'saving' | 'result'>('idle');
 const isOpen = ref(true);
 const logs = ref<LogEntry[]>([]);
+const pendingPowerAction = ref<'reboot' | 'shutdown' | null>(null);
 const resultTitle = ref('');
 const resultMessage = ref('');
 const resultSeverity = ref<'success' | 'warning' | 'error'>('success');
@@ -62,13 +64,29 @@ const standaloneSummaryInvalidMessage = computed(() => summaryT('bootConfig.inva
 
 const isLocked = computed(() => internalBootState.value.applyAttempted);
 
-const handlePowerAction = (action: 'reboot' | 'shutdown') => {
+const executePowerAction = (action: 'reboot' | 'shutdown') => {
   cleanupOnboardingStorage();
   if (action === 'shutdown') {
     submitInternalBootShutdown();
   } else {
     submitInternalBootReboot();
   }
+};
+
+const handlePowerAction = (action: 'reboot' | 'shutdown') => {
+  pendingPowerAction.value = action;
+};
+
+const handleConfirmPowerAction = () => {
+  const action = pendingPowerAction.value;
+  pendingPowerAction.value = null;
+  if (action) {
+    executePowerAction(action);
+  }
+};
+
+const handleCancelPowerAction = () => {
+  pendingPowerAction.value = null;
 };
 
 const canReturnToConfigure = () =>
@@ -618,5 +636,11 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+    <InternalBootConfirmDialog
+      :open="pendingPowerAction !== null"
+      :action="pendingPowerAction ?? 'reboot'"
+      @confirm="handleConfirmPowerAction"
+      @cancel="handleCancelPowerAction"
+    />
   </Dialog>
 </template>

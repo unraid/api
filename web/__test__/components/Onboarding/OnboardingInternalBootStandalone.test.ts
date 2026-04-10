@@ -44,6 +44,7 @@ const {
   submitInternalBootShutdownMock,
   cleanupOnboardingStorageMock,
   dialogPropsRef,
+  internalBootConfirmDialogPropsRef,
   stepPropsRef,
   stepperPropsRef,
 } = vi.hoisted(() => ({
@@ -65,6 +66,7 @@ const {
     >(),
   cleanupOnboardingStorageMock: vi.fn(),
   dialogPropsRef: { value: null as Record<string, unknown> | null },
+  internalBootConfirmDialogPropsRef: { value: null as Record<string, unknown> | null },
   stepPropsRef: { value: null as Record<string, unknown> | null },
   stepperPropsRef: { value: null as Record<string, unknown> | null },
 }));
@@ -100,6 +102,28 @@ vi.mock('@/components/Onboarding/components/OnboardingConsole.vue', () => ({
   default: {
     props: ['logs'],
     template: '<div data-testid="onboarding-console">{{ JSON.stringify(logs) }}</div>',
+  },
+}));
+
+vi.mock('@/components/Onboarding/components/InternalBootConfirmDialog.vue', () => ({
+  default: {
+    props: ['open', 'action', 'disabled'],
+    emits: ['confirm', 'cancel'],
+    setup(props: Record<string, unknown>) {
+      internalBootConfirmDialogPropsRef.value = props;
+      return { props };
+    },
+    template: `
+      <div v-if="open" data-testid="internal-boot-confirm-dialog-stub">
+        <div data-testid="internal-boot-confirm-dialog-action">{{ props.action }}</div>
+        <button data-testid="internal-boot-confirm-dialog-confirm" @click="$emit('confirm')">
+          Confirm
+        </button>
+        <button data-testid="internal-boot-confirm-dialog-cancel" @click="$emit('cancel')">
+          Cancel
+        </button>
+      </div>
+    `,
   },
 }));
 
@@ -231,6 +255,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
       selection: null,
     };
     dialogPropsRef.value = null;
+    internalBootConfirmDialogPropsRef.value = null;
     stepPropsRef.value = null;
     stepperPropsRef.value = null;
     applyInternalBootSelectionMock.mockResolvedValue({
@@ -596,7 +621,7 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
     expect(wrapper.find('[data-testid="internal-boot-standalone-shutdown"]').exists()).toBe(true);
   });
 
-  it('calls reboot and shutdown helpers from the locked result actions', async () => {
+  it('routes locked-result reboot and shutdown actions through the shared confirm dialog', async () => {
     configureDraftState.value = {
       bootMode: 'storage',
       skipped: false,
@@ -617,9 +642,24 @@ describe('OnboardingInternalBoot.standalone.vue', () => {
 
     await wrapper.get('[data-testid="internal-boot-standalone-reboot"]').trigger('click');
     await flushPromises();
+    expect(wrapper.find('[data-testid="internal-boot-confirm-dialog-stub"]').exists()).toBe(true);
+    expect(internalBootConfirmDialogPropsRef.value).toMatchObject({
+      open: true,
+      action: 'reboot',
+    });
+    expect(submitInternalBootRebootMock).not.toHaveBeenCalled();
+    await wrapper.get('[data-testid="internal-boot-confirm-dialog-confirm"]').trigger('click');
+    await flushPromises();
     expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
 
     await wrapper.get('[data-testid="internal-boot-standalone-shutdown"]').trigger('click');
+    await flushPromises();
+    expect(internalBootConfirmDialogPropsRef.value).toMatchObject({
+      open: true,
+      action: 'shutdown',
+    });
+    expect(submitInternalBootShutdownMock).not.toHaveBeenCalled();
+    await wrapper.get('[data-testid="internal-boot-confirm-dialog-confirm"]').trigger('click');
     await flushPromises();
     expect(submitInternalBootShutdownMock).toHaveBeenCalledTimes(1);
   });
