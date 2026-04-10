@@ -49,13 +49,15 @@ describe('InternalBootConfirmDialog', () => {
       },
     });
 
-    expect(wrapper.text()).toContain('Please do NOT remove your Unraid flash drive');
+    expect(wrapper.text()).toContain('To complete internal boot setup');
+    expect(wrapper.text()).toContain('please do NOT remove your Unraid flash drive');
     expect(wrapper.text()).toContain(
       "Switching to internal boot doesn't automatically move your license"
     );
     expect(wrapper.text()).toContain(
-      'If your Unraid license is still linked to your USB, it must remain connected to your server.'
+      'If your license is still linked to the USB, it must remain connected.'
     );
+    expect(wrapper.findAll('br')).toHaveLength(2);
     expect(wrapper.get('strong').text()).toBe('Want to ditch the USB entirely?');
     expect(wrapper.text()).toContain('Once switched, the USB drive will no longer be required');
     expect(wrapper.text()).toContain('Learn about TPM licensing');
