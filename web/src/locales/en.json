@@ -119,7 +119,7 @@
   "onboarding.nextSteps.confirmReboot.title": "Confirm Reboot",
   "onboarding.nextSteps.confirmReboot.description": "On some systems, you may need to manually change the BIOS boot order from the USB device to the storage drive.",
   "onboarding.nextSteps.confirmReboot.warning": "Please do NOT remove your Unraid flash drive until your server has fully restarted into Unraid.",
-  "onboarding.nextSteps.confirmReboot.licensingNote": "Switching to internal boot doesn't automatically move your license off the USB flash drive. If your license is still linked to the USB, it must remain connected.",
+  "onboarding.nextSteps.confirmReboot.licensingNote": "Switching to internal boot doesn't automatically move your license off the USB flash drive. If your Unraid license is still linked to your USB, it must remain connected to your server.",
   "onboarding.nextSteps.confirmReboot.licensingTpmLead": "Want to ditch the USB entirely?",
   "onboarding.nextSteps.confirmReboot.licensingTpmDetail": "If your system supports TPM 2.0, you can transfer your license identity to TPM. Once switched, the USB drive will no longer be required.",
   "onboarding.nextSteps.confirmReboot.licensingFaq": "Learn about TPM licensing",
