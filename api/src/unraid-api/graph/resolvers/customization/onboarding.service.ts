@@ -536,7 +536,19 @@ export class OnboardingService implements OnModuleInit {
         this.onboardingTracker.setBypassActive(false);
     }
 
-    public async saveOnboardingDraft(input: SaveOnboardingDraftInput): Promise<void> {
+    public async saveOnboardingDraft(input: SaveOnboardingDraftInput): Promise<boolean> {
+        if (input.expectedServerName) {
+            // Rename flows use this guard to avoid persisting a resume step until
+            // the live server identity has actually switched to the expected host.
+            const liveServerName = getters.emhttp().nginx?.lanName?.trim() ?? '';
+            if (liveServerName !== input.expectedServerName.trim()) {
+                this.logger.warn(
+                    `Skipping onboarding draft save because live server name '${liveServerName}' did not match expected '${input.expectedServerName}'.`
+                );
+                return false;
+            }
+        }
+
         await this.onboardingTracker.saveDraft({
             draft: input.draft,
             navigation: input.navigation
@@ -551,6 +563,7 @@ export class OnboardingService implements OnModuleInit {
                   }
                 : undefined,
         });
+        return true;
     }
 
     public isFreshInstall(): boolean {

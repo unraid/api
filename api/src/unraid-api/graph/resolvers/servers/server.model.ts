@@ -57,4 +57,7 @@ export class Server extends Node {
 
     @Field()
     remoteurl!: string;
+
+    @Field({ nullable: true, description: 'Preferred live URL from nginx.ini defaultUrl' })
+    defaultUrl?: string;
 }

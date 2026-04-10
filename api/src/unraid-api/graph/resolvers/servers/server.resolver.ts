@@ -8,11 +8,8 @@ import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
 import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
-import {
-    ProfileModel,
-    Server as ServerModel,
-    ServerStatus,
-} from '@app/unraid-api/graph/resolvers/servers/server.model.js';
+import { buildServerResponse } from '@app/unraid-api/graph/resolvers/servers/build-server-response.js';
+import { Server as ServerModel } from '@app/unraid-api/graph/resolvers/servers/server.model.js';
 import { ServerService } from '@app/unraid-api/graph/resolvers/servers/server.service.js';
 
 @Injectable()
@@ -65,35 +62,11 @@ export class ServerResolver {
     private getLocalServer(): ServerModel {
         const emhttp = getters.emhttp();
         const connectConfig = this.configService.get('connect');
-
-        const guid = emhttp.var.regGuid;
-        const name = emhttp.var.name;
-        const comment = emhttp.var.comment;
-        const wanip = '';
-        const lanip: string = emhttp.networks[0]?.ipaddr[0] || '';
-        const port = emhttp.var?.port;
-        const localurl = `http://${lanip}:${port}`;
-        const remoteurl = '';
-
-        const owner: ProfileModel = {
-            id: 'local',
-            username: connectConfig?.config?.username ?? 'root',
-            url: '',
-            avatar: '',
-        };
-
-        return {
-            id: 'local',
-            owner,
-            guid: guid || '',
+        return buildServerResponse(emhttp, {
             apikey: connectConfig?.config?.apikey ?? '',
-            name: name ?? 'Local Server',
-            comment,
-            status: ServerStatus.ONLINE,
-            wanip,
-            lanip,
-            localurl,
-            remoteurl,
-        };
+            owner: {
+                username: connectConfig?.config?.username ?? 'root',
+            },
+        });
     }
 }

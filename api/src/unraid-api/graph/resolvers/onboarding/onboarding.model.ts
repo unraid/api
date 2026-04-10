@@ -316,6 +316,11 @@ export class SaveOnboardingDraftInput {
     @IsOptional()
     draft?: OnboardingDraft;
 
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    expectedServerName?: string;
+
     @Field(() => OnboardingWizardNavigationInput, { nullable: true })
     @IsOptional()
     @ValidateNested()

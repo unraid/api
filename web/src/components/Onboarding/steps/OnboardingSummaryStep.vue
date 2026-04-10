@@ -45,6 +45,7 @@ import {
 } from '@/components/Onboarding/graphql/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
+import { UPDATE_SERVER_IDENTITY_AND_RESUME_MUTATION } from '@/components/Onboarding/graphql/updateServerIdentityAndResume.mutation';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
 import { convert } from 'convert';
 
@@ -57,7 +58,7 @@ import type {
 } from '@/components/Onboarding/onboardingWizardState';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
-import { PluginInstallStatus, ThemeName } from '~/composables/gql/graphql';
+import { OnboardingWizardStepId, PluginInstallStatus, ThemeName } from '~/composables/gql/graphql';
 
 export interface Props {
   draft: OnboardingWizardDraft;
@@ -88,6 +89,9 @@ const setInternalBootState = (state: Partial<OnboardingWizardInternalBootState>)
 // Setup Mutations
 const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
 const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTATION);
+const { mutate: updateServerIdentityAndResume } = useMutation(
+  UPDATE_SERVER_IDENTITY_AND_RESUME_MUTATION
+);
 const { mutate: setTheme } = useMutation(SET_THEME_MUTATION);
 const { mutate: setLocale } = useMutation(SET_LOCALE_MUTATION);
 const { mutate: updateSshSettings } = useMutation(UPDATE_SSH_SETTINGS_MUTATION);
@@ -210,7 +214,10 @@ const showBootDriveWarningDialog = ref(false);
 const applyResultTitle = ref('');
 const applyResultMessage = ref('');
 const applyResultSeverity = ref<'success' | 'warning' | 'error'>('success');
+const applyResultFollowUpMessage = ref<string | null>(null);
 const shouldReloadAfterApplyResult = ref(false);
+const redirectUrlAfterApplyResult = ref<string | null>(null);
+const isTransitioningAfterApplyResult = ref(false);
 const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
 const localApplyError = computed(() => error.value ?? null);
@@ -328,6 +335,46 @@ const runWithTransientNetworkRetry = async <T,>(
 
   throw lastError;
 };
+
+const normalizeLocationHostname = (hostname: string): string => {
+  if (hostname.startsWith('[') && hostname.endsWith(']')) {
+    return hostname.slice(1, -1);
+  }
+
+  return hostname;
+};
+
+const isIpv4Literal = (hostname: string): boolean => {
+  const parts = hostname.split('.');
+  if (parts.length !== 4) {
+    return false;
+  }
+
+  return parts.every((part) => /^\d+$/.test(part) && Number(part) >= 0 && Number(part) <= 255);
+};
+
+const isIpv6Literal = (hostname: string): boolean =>
+  hostname.includes(':') && /^[\da-f:.]+$/i.test(hostname);
+
+const shouldRedirectAfterRename = (hostname: string): boolean => {
+  const normalizedHostname = normalizeLocationHostname(hostname);
+  return !isIpv4Literal(normalizedHostname) && !isIpv6Literal(normalizedHostname);
+};
+
+const buildRedirectUrl = (baseUrl: string): string => {
+  const currentPath = `${location.pathname}${location.search}${location.hash}`;
+  const targetUrl = new URL(currentPath, baseUrl);
+  return targetUrl.toString();
+};
+
+const buildResumeDraftInput = (expectedServerName: string) => ({
+  draft: props.draft,
+  navigation: {
+    currentStepId: OnboardingWizardStepId.NEXT_STEPS,
+  },
+  internalBootState: props.internalBootState,
+  expectedServerName,
+});
 
 const isSshStateVerified = (
   vars: { useSsh?: boolean | null; portssh?: number | string | null } | undefined,
@@ -587,7 +634,10 @@ const handleComplete = async () => {
   isProcessing.value = true;
   error.value = null;
   logs.value = []; // Clear logs
+  applyResultFollowUpMessage.value = null;
+  isTransitioningAfterApplyResult.value = false;
   shouldReloadAfterApplyResult.value = false;
+  redirectUrlAfterApplyResult.value = null;
 
   addLog(summaryT('logs.startingConfiguration'), 'info');
   setInternalBootState({
@@ -617,6 +667,7 @@ const handleComplete = async () => {
     const currentSsh = Boolean(coreSettingsResult.value?.vars?.useSsh || false);
     const currentSysModel = coreSettingsResult.value?.vars?.sysModel || '';
     const serverNameChanged = targetCoreSettings.serverName !== currentName;
+    const useReturnedDefaultUrlAfterRename = shouldRedirectAfterRename(location.hostname);
     const shouldApplyPartnerSysModel = Boolean(
       isFreshInstall.value &&
         activationSystemModel.value &&
@@ -643,16 +694,44 @@ const handleComplete = async () => {
 
       addLog(summaryT('logs.updatingServerIdentity', { name: targetCoreSettings.serverName }), 'info');
       try {
-        await runWithTransientNetworkRetry(
-          () =>
-            updateServerIdentity({
+        const result = await runWithTransientNetworkRetry(() => {
+          if (serverNameChanged) {
+            // Write the resume step on the same request as the rename so the
+            // server-owned tracker survives cert prompts and re-login.
+            return updateServerIdentityAndResume({
               name: targetCoreSettings.serverName,
               comment: targetCoreSettings.serverDescription,
               sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
-            }),
-          shouldRetryNetworkMutations
-        );
+              input: buildResumeDraftInput(targetCoreSettings.serverName),
+            });
+          }
+
+          return updateServerIdentity({
+            name: targetCoreSettings.serverName,
+            comment: targetCoreSettings.serverDescription,
+            sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
+          });
+        }, shouldRetryNetworkMutations);
         if (serverNameChanged) {
+          const renameResult = result?.data?.updateServerIdentity;
+          const saveOnboardingDraftResult =
+            result?.data && 'onboarding' in result.data
+              ? result.data.onboarding?.saveOnboardingDraft
+              : undefined;
+
+          if (saveOnboardingDraftResult === false) {
+            hadWarnings = true;
+            addLog(summaryT('logs.serverIdentityResumePending'), 'info');
+          }
+          applyResultFollowUpMessage.value = summaryT('result.renameFollowUpMessage');
+          const redirectBaseUrl = useReturnedDefaultUrlAfterRename
+            ? renameResult?.defaultUrl
+            : location.origin;
+          if (!redirectBaseUrl) {
+            throw new Error('Server rename succeeded but no redirect target was available');
+          }
+
+          redirectUrlAfterApplyResult.value = buildRedirectUrl(redirectBaseUrl);
           shouldReloadAfterApplyResult.value = true;
         }
         addLog(summaryT('logs.serverIdentityUpdated'), 'success');
@@ -1041,15 +1120,31 @@ const handleComplete = async () => {
 
 const handleApplyResultConfirm = async () => {
   showApplyResultDialog.value = false;
-  await Promise.resolve(props.onComplete());
-
   if (!shouldReloadAfterApplyResult.value) {
+    await Promise.resolve(props.onComplete());
     return;
   }
 
+  isTransitioningAfterApplyResult.value = true;
+  const redirectUrl = redirectUrlAfterApplyResult.value;
   shouldReloadAfterApplyResult.value = false;
-  await nextTick();
-  window.location.reload();
+  redirectUrlAfterApplyResult.value = null;
+  let navigationTriggered = false;
+  try {
+    await nextTick();
+    if (redirectUrl) {
+      navigationTriggered = true;
+      location.replace(redirectUrl);
+      return;
+    }
+
+    navigationTriggered = true;
+    location.reload();
+  } finally {
+    if (!navigationTriggered) {
+      isTransitioningAfterApplyResult.value = false;
+    }
+  }
 };
 
 const handleApplyClick = async () => {
@@ -1079,9 +1174,15 @@ const handleBack = () => {
 <template>
   <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
     <OnboardingLoadingState
-      v-if="props.isSavingStep"
-      :title="t('onboarding.loading.title')"
-      :description="t('onboarding.loading.description')"
+      v-if="props.isSavingStep || isTransitioningAfterApplyResult"
+      :title="
+        isTransitioningAfterApplyResult ? summaryT('transition.title') : t('onboarding.loading.title')
+      "
+      :description="
+        isTransitioningAfterApplyResult
+          ? summaryT('transition.description')
+          : t('onboarding.loading.description')
+      "
     />
 
     <div v-else class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
@@ -1390,15 +1491,24 @@ const handleBack = () => {
               : 'z-50 max-w-md',
           }"
         >
-          <template v-if="showDiagnosticLogsInResultDialog" #body>
+          <template v-if="showDiagnosticLogsInResultDialog || applyResultFollowUpMessage" #body>
             <div class="space-y-3">
-              <h4 class="text-sm font-semibold tracking-wide uppercase">
-                {{ t('onboarding.summaryStep.diagnosticLogs') }}
-              </h4>
-              <OnboardingConsole
-                :logs="logs"
-                :title="t('onboarding.summaryStep.onboardingDiagnostics')"
+              <UAlert
+                v-if="applyResultFollowUpMessage"
+                color="neutral"
+                variant="subtle"
+                :description="applyResultFollowUpMessage"
+                icon="i-heroicons-information-circle"
               />
+              <template v-if="showDiagnosticLogsInResultDialog">
+                <h4 class="text-sm font-semibold tracking-wide uppercase">
+                  {{ t('onboarding.summaryStep.diagnosticLogs') }}
+                </h4>
+                <OnboardingConsole
+                  :logs="logs"
+                  :title="t('onboarding.summaryStep.onboardingDiagnostics')"
+                />
+              </template>
             </div>
           </template>
           <template #footer>

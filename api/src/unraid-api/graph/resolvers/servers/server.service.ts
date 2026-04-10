@@ -5,17 +5,19 @@ import { GraphQLError } from 'graphql';
 import * as ini from 'ini';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
-import { getters } from '@app/store/index.js';
+import { getters, store } from '@app/store/index.js';
+import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
+import { StateFileKey } from '@app/store/types.js';
+import { AvahiService } from '@app/unraid-api/avahi/avahi.service.js';
 import { ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
-import {
-    ProfileModel,
-    Server,
-    ServerStatus,
-} from '@app/unraid-api/graph/resolvers/servers/server.model.js';
+import { buildServerResponse } from '@app/unraid-api/graph/resolvers/servers/build-server-response.js';
+import { Server } from '@app/unraid-api/graph/resolvers/servers/server.model.js';
 
 @Injectable()
 export class ServerService {
     private readonly logger = new Logger(ServerService.name);
+
+    constructor(private readonly avahiService: AvahiService) {}
 
     private async readPersistedIdentity(): Promise<{
         name: string;
@@ -59,34 +61,62 @@ export class ServerService {
         };
     }
 
-    private buildServerResponse(
-        emhttpState: ReturnType<typeof getters.emhttp>,
-        name: string,
-        comment: string
-    ): Server {
-        const guid = emhttpState.var?.regGuid ?? '';
-        const lanip = emhttpState.networks?.[0]?.ipaddr?.[0] ?? '';
-        const port = emhttpState.var?.port ?? '';
-        const owner: ProfileModel = {
-            id: 'local',
-            username: 'root',
-            url: '',
-            avatar: '',
-        };
-
+    private getLiveIdentityState(emhttpState: ReturnType<typeof getters.emhttp>) {
         return {
-            id: 'local',
-            owner,
-            guid,
-            apikey: '',
-            name,
-            comment,
-            status: ServerStatus.ONLINE,
-            wanip: '',
-            lanip,
-            localurl: lanip ? `http://${lanip}${port ? `:${port}` : ''}` : '',
-            remoteurl: '',
+            lanName: emhttpState.nginx?.lanName ?? '',
+            lanMdns: emhttpState.nginx?.lanMdns ?? '',
+            defaultUrl: emhttpState.nginx?.defaultUrl?.trim() ?? '',
         };
+    }
+
+    private async refreshNginxStateAfterNameChange(
+        name: string,
+        persistedIdentity: Awaited<ReturnType<ServerService['readPersistedIdentity']>>
+    ): Promise<ReturnType<typeof getters.emhttp>> {
+        try {
+            await this.avahiService.restart();
+        } catch (error) {
+            this.logger.error('Failed to restart Avahi after server rename', error as Error);
+            throw new GraphQLError('Failed to update server identity', {
+                extensions: {
+                    cause:
+                        error instanceof Error && error.message
+                            ? error.message
+                            : 'Avahi restart failed after ident.cfg update',
+                    persistedIdentity,
+                },
+            });
+        }
+
+        try {
+            await store.dispatch(loadSingleStateFile(StateFileKey.nginx)).unwrap();
+        } catch (error) {
+            this.logger.error('Failed to reload nginx state after server rename', error as Error);
+            throw new GraphQLError('Failed to update server identity', {
+                extensions: {
+                    cause:
+                        error instanceof Error && error.message
+                            ? error.message
+                            : 'Failed to reload nginx.ini after Avahi restart',
+                    persistedIdentity,
+                },
+            });
+        }
+
+        const refreshedEmhttp = getters.emhttp();
+        const liveIdentity = this.getLiveIdentityState(refreshedEmhttp);
+
+        if (liveIdentity.lanName !== name || !liveIdentity.defaultUrl) {
+            throw new GraphQLError('Failed to update server identity', {
+                extensions: {
+                    cause: 'Live network identity did not converge after Avahi restart',
+                    persistedIdentity,
+                    liveIdentity,
+                },
+            });
+        }
+
+        return refreshedEmhttp;
     }
 
     /**
@@ -141,7 +171,10 @@ export class ServerService {
 
         if (name === currentName && nextComment === currentComment && nextSysModel === currentSysModel) {
             this.logger.log('Server identity unchanged; skipping emcmd update.');
-            return this.buildServerResponse(currentEmhttp, currentName, currentComment);
+            return buildServerResponse(currentEmhttp, {
+                comment: currentComment,
+                name: currentName,
+            });
         }
 
         if (name !== currentName) {
@@ -189,8 +222,15 @@ export class ServerService {
                 );
             }
 
-            const latestEmhttp = getters.emhttp();
-            return this.buildServerResponse(latestEmhttp, name, nextComment);
+            const latestEmhttp =
+                name !== currentName
+                    ? await this.refreshNginxStateAfterNameChange(name, persistedIdentity)
+                    : getters.emhttp();
+
+            return buildServerResponse(latestEmhttp, {
+                comment: nextComment,
+                name,
+            });
         } catch (error) {
             if (error instanceof GraphQLError) {
                 throw error;

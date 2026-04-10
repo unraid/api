@@ -2683,6 +2683,8 @@ export type Server = Node & {
   apikey: Scalars['String']['output'];
   /** Server description/comment */
   comment?: Maybe<Scalars['String']['output']>;
+  /** Preferred live URL from nginx.ini defaultUrl */
+  defaultUrl?: Maybe<Scalars['String']['output']>;
   guid: Scalars['String']['output'];
   id: Scalars['PrefixedID']['output'];
   lanip: Scalars['String']['output'];

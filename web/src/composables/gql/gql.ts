@@ -68,7 +68,7 @@ type Documents = {
     "\n  query GetAvailableLanguages {\n    customization {\n      availableLanguages {\n        code\n        name\n        url\n      }\n    }\n  }\n": typeof types.GetAvailableLanguagesDocument,
     "\n  mutation BypassOnboarding {\n    onboarding {\n      bypassOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": typeof types.BypassOnboardingDocument,
     "\n  mutation CompleteOnboarding {\n    onboarding {\n      completeOnboarding {\n        status\n        isPartnerBuild\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": typeof types.CompleteOnboardingDocument,
-    "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n": typeof types.UpdateServerIdentityDocument,
+    "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n  }\n": typeof types.UpdateServerIdentityDocument,
     "\n  mutation SetLocale($locale: String!) {\n    customization {\n      setLocale(locale: $locale)\n    }\n  }\n": typeof types.SetLocaleDocument,
     "\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n": typeof types.UpdateSshSettingsDocument,
     "\n  mutation CreateInternalBootPool($input: CreateInternalBootPoolInput!) {\n    onboarding {\n      createInternalBootPool(input: $input) {\n        ok\n        code\n        output\n      }\n    }\n  }\n": typeof types.CreateInternalBootPoolDocument,
@@ -85,6 +85,7 @@ type Documents = {
     "\n  mutation ResumeOnboarding {\n    onboarding {\n      resumeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": typeof types.ResumeOnboardingDocument,
     "\n  mutation SaveOnboardingDraft($input: SaveOnboardingDraftInput!) {\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n": typeof types.SaveOnboardingDraftDocument,
     "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": typeof types.TimeZoneOptionsDocument,
+    "\n  mutation UpdateServerIdentityAndResume(\n    $name: String!\n    $comment: String\n    $sysModel: String\n    $input: SaveOnboardingDraftInput!\n  ) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n": typeof types.UpdateServerIdentityAndResumeDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": typeof types.UpdateSystemTimeDocument,
     "\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n": typeof types.CreateRCloneRemoteDocument,
     "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": typeof types.DeleteRCloneRemoteDocument,
@@ -156,7 +157,7 @@ const documents: Documents = {
     "\n  query GetAvailableLanguages {\n    customization {\n      availableLanguages {\n        code\n        name\n        url\n      }\n    }\n  }\n": types.GetAvailableLanguagesDocument,
     "\n  mutation BypassOnboarding {\n    onboarding {\n      bypassOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": types.BypassOnboardingDocument,
     "\n  mutation CompleteOnboarding {\n    onboarding {\n      completeOnboarding {\n        status\n        isPartnerBuild\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": types.CompleteOnboardingDocument,
-    "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n": types.UpdateServerIdentityDocument,
+    "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n  }\n": types.UpdateServerIdentityDocument,
     "\n  mutation SetLocale($locale: String!) {\n    customization {\n      setLocale(locale: $locale)\n    }\n  }\n": types.SetLocaleDocument,
     "\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n": types.UpdateSshSettingsDocument,
     "\n  mutation CreateInternalBootPool($input: CreateInternalBootPoolInput!) {\n    onboarding {\n      createInternalBootPool(input: $input) {\n        ok\n        code\n        output\n      }\n    }\n  }\n": types.CreateInternalBootPoolDocument,
@@ -173,6 +174,7 @@ const documents: Documents = {
     "\n  mutation ResumeOnboarding {\n    onboarding {\n      resumeOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": types.ResumeOnboardingDocument,
     "\n  mutation SaveOnboardingDraft($input: SaveOnboardingDraftInput!) {\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n": types.SaveOnboardingDraftDocument,
     "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": types.TimeZoneOptionsDocument,
+    "\n  mutation UpdateServerIdentityAndResume(\n    $name: String!\n    $comment: String\n    $sysModel: String\n    $input: SaveOnboardingDraftInput!\n  ) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n": types.UpdateServerIdentityAndResumeDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": types.UpdateSystemTimeDocument,
     "\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n": types.CreateRCloneRemoteDocument,
     "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": types.DeleteRCloneRemoteDocument,
@@ -423,7 +425,7 @@ export function graphql(source: "\n  mutation CompleteOnboarding {\n    onboardi
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n"];
+export function graphql(source: "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -488,6 +490,10 @@ export function graphql(source: "\n  mutation SaveOnboardingDraft($input: SaveOn
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n"): (typeof documents)["\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateServerIdentityAndResume(\n    $name: String!\n    $comment: String\n    $sysModel: String\n    $input: SaveOnboardingDraftInput!\n  ) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateServerIdentityAndResume(\n    $name: String!\n    $comment: String\n    $sysModel: String\n    $input: SaveOnboardingDraftInput!\n  ) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n      defaultUrl\n    }\n    onboarding {\n      saveOnboardingDraft(input: $input)\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
