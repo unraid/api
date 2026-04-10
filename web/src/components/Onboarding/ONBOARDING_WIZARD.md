@@ -281,7 +281,7 @@ The API owns visibility:
 Current server-driven rules:
 
 - `CONFIGURE_BOOT` appears only when internal boot transfer is available.
-- `ACTIVATE_LICENSE` appears only when activation is still required.
+- `ACTIVATE_LICENSE` appears when activation is still required, or when `draft.activationStepIncluded` was set earlier in the same onboarding session.
 
 The visible step list is computed on read and is not persisted in the tracker.
 

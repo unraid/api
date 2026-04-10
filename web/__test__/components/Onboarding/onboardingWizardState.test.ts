@@ -14,6 +14,7 @@ describe('normalizeOnboardingWizardDraft', () => {
   it('normalizes valid fields and drops malformed nested values', () => {
     expect(
       normalizeOnboardingWizardDraft({
+        activationStepIncluded: true,
         coreSettings: {
           serverName: 'Tower',
           useSsh: 'yes',
@@ -38,6 +39,7 @@ describe('normalizeOnboardingWizardDraft', () => {
         },
       })
     ).toEqual({
+      activationStepIncluded: true,
       coreSettings: {
         serverName: 'Tower',
         serverDescription: undefined,
@@ -91,6 +93,7 @@ describe('cloneOnboardingWizardDraft', () => {
   it('preserves undefined optional arrays instead of manufacturing empty ones', () => {
     expect(
       cloneOnboardingWizardDraft({
+        activationStepIncluded: true,
         plugins: {
           selectedIds: undefined,
         },
@@ -102,6 +105,7 @@ describe('cloneOnboardingWizardDraft', () => {
         },
       })
     ).toEqual({
+      activationStepIncluded: true,
       coreSettings: undefined,
       plugins: {
         selectedIds: undefined,

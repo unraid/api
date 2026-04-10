@@ -367,7 +367,10 @@ export class OnboardingService implements OnModuleInit {
         );
     }
 
-    private getVisibleWizardStepIds(onboardingState: OnboardingState): OnboardingWizardStepId[] {
+    private getVisibleWizardStepIds(
+        onboardingState: OnboardingState,
+        draft: OnboardingDraft
+    ): OnboardingWizardStepId[] {
         const visibleStepIds: OnboardingWizardStepId[] = [
             OnboardingWizardStepId.OVERVIEW,
             OnboardingWizardStepId.CONFIGURE_SETTINGS,
@@ -379,7 +382,7 @@ export class OnboardingService implements OnModuleInit {
 
         visibleStepIds.push(OnboardingWizardStepId.ADD_PLUGINS);
 
-        if (onboardingState.activationRequired) {
+        if (onboardingState.activationRequired || draft.activationStepIncluded) {
             visibleStepIds.push(OnboardingWizardStepId.ACTIVATE_LICENSE);
         }
 
@@ -424,14 +427,13 @@ export class OnboardingService implements OnModuleInit {
 
     private buildWizardState(
         state: {
-            draft?: OnboardingDraft;
             navigation?: { currentStepId?: OnboardingStepId };
             internalBootState?: { applyAttempted?: boolean; applySucceeded?: boolean };
         },
-        onboardingState: OnboardingState
+        onboardingState: OnboardingState,
+        draft: OnboardingDraft
     ): OnboardingWizard {
-        const visibleStepIds = this.getVisibleWizardStepIds(onboardingState);
-        const draft = state.draft ?? {};
+        const visibleStepIds = this.getVisibleWizardStepIds(onboardingState, draft);
         const navigation = state.navigation ?? {};
         const internalBootState = state.internalBootState ?? {};
 
@@ -443,6 +445,29 @@ export class OnboardingService implements OnModuleInit {
                 applyAttempted: internalBootState.applyAttempted ?? false,
                 applySucceeded: internalBootState.applySucceeded ?? false,
             },
+        };
+    }
+
+    // Activation can complete outside onboarding via the Account app callback. Once activation
+    // was part of this onboarding session, keep the step visible until the draft is cleared.
+    private async getWizardDraft(
+        state: { completed?: boolean; draft?: OnboardingDraft },
+        onboardingState: OnboardingState
+    ): Promise<OnboardingDraft> {
+        const draft = state.draft ?? {};
+        if (state.completed || !onboardingState.activationRequired || draft.activationStepIncluded) {
+            return draft;
+        }
+
+        await this.onboardingTracker.saveDraft({
+            draft: {
+                activationStepIncluded: true,
+            },
+        });
+
+        return {
+            ...draft,
+            activationStepIncluded: true,
         };
     }
 
@@ -458,6 +483,7 @@ export class OnboardingService implements OnModuleInit {
         const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
         const partnerInfo = await this.getPublicPartnerInfo();
         const onboardingState = await this.getOnboardingState();
+        const wizardDraft = await this.getWizardDraft(state, onboardingState);
         const versionDirection = getOnboardingVersionDirection(state.completedAtVersion, currentVersion);
         const isForceOpen = state.forceOpen ?? false;
         const isBypassed = this.onboardingTracker.isBypassed();
@@ -485,7 +511,7 @@ export class OnboardingService implements OnModuleInit {
             activationCode,
             shouldOpen: !isBypassed && (isForceOpen || shouldAutoOpen),
             onboardingState,
-            wizard: this.buildWizardState(state, onboardingState),
+            wizard: this.buildWizardState(state, onboardingState, wizardDraft),
         };
     }
 

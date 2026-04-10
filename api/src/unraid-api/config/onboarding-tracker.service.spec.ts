@@ -382,6 +382,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
                         serverName: 'Tower',
                         timeZone: 'America/New_York',
                     },
+                    activationStepIncluded: true,
                     plugins: {
                         selectedIds: ['community.applications'],
                     },
@@ -424,6 +425,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
             completedAtVersion: undefined,
             forceOpen: true,
             draft: {
+                activationStepIncluded: true,
                 coreSettings: {
                     serverName: 'Tower',
                     timeZone: 'America/New_York',
@@ -644,6 +646,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
                 completedAtVersion: undefined,
                 forceOpen: false,
                 draft: {
+                    activationStepIncluded: true,
                     internalBoot: {
                         bootMode: 'storage',
                         skipped: false,
@@ -686,6 +689,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
             completedAtVersion: undefined,
             forceOpen: false,
             draft: {
+                activationStepIncluded: true,
                 internalBoot: {
                     bootMode: 'storage',
                     skipped: false,
