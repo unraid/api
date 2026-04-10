@@ -1491,39 +1491,6 @@ const handleBack = () => {
               : 'z-50 max-w-md',
           }"
         >
-          <template v-if="showDiagnosticLogsInResultDialog" #body>
-            <div class="space-y-3">
-              <h4 class="text-sm font-semibold tracking-wide uppercase">
-                {{ t('onboarding.summaryStep.diagnosticLogs') }}
-              </h4>
-              <OnboardingConsole
-                :logs="logs"
-                :title="t('onboarding.summaryStep.onboardingDiagnostics')"
-              />
-            </div>
-          </template>
-          <template #footer>
-            <UButton @click="handleApplyResultConfirm">
-              {{ t('onboarding.summaryStep.ok') }}
-            </UButton>
-          </template>
-        </UModal>
-
-        <UModal
-          :open="showApplyResultDialog"
-          :dismissible="false"
-          :close="false"
-          :portal="false"
-          :title="applyResultTitle"
-          :description="applyResultMessage"
-          :ui="{
-            footer: 'justify-end',
-            overlay: 'z-50',
-            content: showDiagnosticLogsInResultDialog
-              ? 'z-50 w-[calc(100vw-2rem)] max-w-3xl'
-              : 'z-50 max-w-md',
-          }"
-        >
           <template v-if="showDiagnosticLogsInResultDialog || applyResultFollowUpMessage" #body>
             <div class="space-y-3">
               <UAlert
