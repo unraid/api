@@ -39,6 +39,7 @@ export interface OnboardingInternalBootDraft {
 }
 
 export interface OnboardingWizardDraft {
+  activationStepIncluded?: boolean;
   coreSettings?: OnboardingCoreSettingsDraft;
   plugins?: OnboardingPluginsDraft;
   internalBoot?: OnboardingInternalBootDraft;
@@ -151,8 +152,10 @@ export const normalizeOnboardingWizardDraft = (value: unknown): OnboardingWizard
   }
 
   const candidate = value as Record<string, unknown>;
+  const activationStepIncluded = normalizeBoolean(candidate.activationStepIncluded);
 
   return {
+    ...(activationStepIncluded === undefined ? {} : { activationStepIncluded }),
     coreSettings:
       candidate.coreSettings && typeof candidate.coreSettings === 'object'
         ? {
@@ -191,6 +194,9 @@ export const normalizeOnboardingWizardDraft = (value: unknown): OnboardingWizard
 };
 
 export const cloneOnboardingWizardDraft = (draft: OnboardingWizardDraft): OnboardingWizardDraft => ({
+  ...(draft.activationStepIncluded === undefined
+    ? {}
+    : { activationStepIncluded: draft.activationStepIncluded }),
   coreSettings: draft.coreSettings ? { ...draft.coreSettings } : undefined,
   plugins: draft.plugins
     ? {

@@ -1871,6 +1871,99 @@ describe('OnboardingService - updateCfgFile', () => {
             });
         });
 
+        it('marks the activation step sticky when activation is required', async () => {
+            mockEmhttp.mockReturnValue({
+                var: {
+                    name: 'Tower',
+                    sysModel: 'Custom',
+                    comment: 'Default',
+                    enableBootTransfer: 'no',
+                },
+            });
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: false,
+                    draft: {
+                        plugins: {
+                            selectedIds: ['community.applications'],
+                        },
+                    },
+                    navigation: {
+                        currentStepId: 'ADD_PLUGINS',
+                    },
+                    internalBootState: {
+                        applyAttempted: false,
+                        applySucceeded: false,
+                    },
+                },
+            });
+            onboardingStateMock.getRegistrationState.mockReturnValue('ENOKEYFILE');
+            onboardingStateMock.hasActivationCode.mockResolvedValue(true);
+            onboardingStateMock.requiresActivationStep.mockReturnValue(true);
+            onboardingStateMock.isRegistered.mockReturnValue(false);
+            onboardingStateMock.isFreshInstall.mockReturnValue(true);
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            const response = await service.getOnboardingResponse();
+
+            expect(onboardingTrackerMock.saveDraft).toHaveBeenCalledWith({
+                draft: {
+                    activationStepIncluded: true,
+                },
+            });
+            expect(response.wizard.visibleStepIds).toContain(OnboardingWizardStepId.ACTIVATE_LICENSE);
+            expect(response.wizard.draft).toEqual({
+                activationStepIncluded: true,
+                plugins: {
+                    selectedIds: ['community.applications'],
+                },
+            });
+        });
+
+        it('keeps the activation step visible when the sticky draft flag is set', async () => {
+            mockEmhttp.mockReturnValue({
+                var: {
+                    name: 'Tower',
+                    sysModel: 'Custom',
+                    comment: 'Default',
+                    enableBootTransfer: 'no',
+                },
+            });
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: false,
+                    draft: {
+                        activationStepIncluded: true,
+                    },
+                    navigation: {
+                        currentStepId: 'ACTIVATE_LICENSE',
+                    },
+                    internalBootState: {
+                        applyAttempted: false,
+                        applySucceeded: false,
+                    },
+                },
+            });
+            onboardingStateMock.getRegistrationState.mockReturnValue('PRO');
+            onboardingStateMock.hasActivationCode.mockResolvedValue(false);
+            onboardingStateMock.requiresActivationStep.mockReturnValue(false);
+            onboardingStateMock.isRegistered.mockReturnValue(true);
+            onboardingStateMock.isFreshInstall.mockReturnValue(true);
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            const response = await service.getOnboardingResponse();
+
+            expect(onboardingTrackerMock.saveDraft).not.toHaveBeenCalled();
+            expect(response.wizard.visibleStepIds).toContain(OnboardingWizardStepId.ACTIVATE_LICENSE);
+            expect(response.wizard.currentStepId).toBe(OnboardingWizardStepId.ACTIVATE_LICENSE);
+        });
+
         it('persists JSON-backed wizard draft input in tracker format', async () => {
             await service.saveOnboardingDraft({
                 draft: {

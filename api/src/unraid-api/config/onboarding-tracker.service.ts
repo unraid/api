@@ -219,8 +219,13 @@ const normalizeDraft = (value: unknown): OnboardingDraft => {
     }
 
     const candidate = value as Record<string, unknown>;
+    const activationStepIncluded =
+        typeof candidate.activationStepIncluded === 'boolean'
+            ? candidate.activationStepIncluded
+            : undefined;
 
     return {
+        ...(activationStepIncluded === undefined ? {} : { activationStepIncluded }),
         coreSettings: normalizeCoreSettingsDraft(candidate.coreSettings),
         plugins: normalizePluginsDraft(candidate.plugins),
         internalBoot: normalizeInternalBootDraft(candidate.internalBoot),

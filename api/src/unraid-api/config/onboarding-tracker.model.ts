@@ -49,6 +49,7 @@ export type OnboardingInternalBootDraft = {
 };
 
 export type OnboardingDraft = {
+    activationStepIncluded?: boolean;
     coreSettings?: OnboardingCoreSettingsDraft;
     plugins?: OnboardingPluginsDraft;
     internalBoot?: OnboardingInternalBootDraft;
