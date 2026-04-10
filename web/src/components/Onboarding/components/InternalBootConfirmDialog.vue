@@ -39,7 +39,7 @@ const title = computed(() =>
     <template #body>
       <div class="space-y-4">
         <UAlert
-          color="warning"
+          color="neutral"
           variant="subtle"
           icon="i-lucide-triangle-alert"
           :description="t('onboarding.nextSteps.confirmReboot.warning')"
