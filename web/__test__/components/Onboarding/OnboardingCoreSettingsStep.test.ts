@@ -640,23 +640,15 @@ describe('OnboardingCoreSettingsStep', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('uses trusted defaults when API baseline is unavailable', async () => {
+  it('blocks submission when API baseline is unavailable', async () => {
+    coreSettingsResult.value = null;
     const { wrapper, onComplete } = mountComponent();
     await flushPromises();
 
-    const submitButton = wrapper.find('[data-testid="brand-button"]');
-    await submitButton.trigger('click');
-    await flushPromises();
-
-    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
-    const payload = setCoreSettingsMock.mock.calls[0][0];
-    expect(payload.serverName).toBe('Tower');
-    expect(payload.serverDescription).toBe('');
-    expect(payload.theme).toBe('white');
-    expect(payload.language).toBe('en_US');
-    expect(typeof payload.timeZone).toBe('string');
-    expect(payload.timeZone.length).toBeGreaterThan(0);
-    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="brand-button"]').exists()).toBe(false);
+    expect(setCoreSettingsMock).not.toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
   });
 
   it('blocks submission with invalid server name', async () => {
