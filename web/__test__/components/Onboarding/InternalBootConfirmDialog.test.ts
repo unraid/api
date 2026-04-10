@@ -53,6 +53,9 @@ describe('InternalBootConfirmDialog', () => {
     expect(wrapper.text()).toContain(
       "Switching to internal boot doesn't automatically move your license"
     );
+    expect(wrapper.text()).toContain(
+      'If your Unraid license is still linked to your USB, it must remain connected to your server.'
+    );
     expect(wrapper.get('strong').text()).toBe('Want to ditch the USB entirely?');
     expect(wrapper.text()).toContain('Once switched, the USB drive will no longer be required');
     expect(wrapper.text()).toContain('Learn about TPM licensing');

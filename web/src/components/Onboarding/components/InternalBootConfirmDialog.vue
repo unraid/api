@@ -45,7 +45,7 @@ const title = computed(() =>
           :description="t('onboarding.nextSteps.confirmReboot.warning')"
         />
 
-        <div class="text-muted space-y-2 text-sm leading-6">
+        <div class="text-muted space-y-3 text-sm leading-6">
           <p>{{ t('onboarding.nextSteps.confirmReboot.licensingNote') }}</p>
           <p>
             <strong class="text-toned font-semibold">{{
