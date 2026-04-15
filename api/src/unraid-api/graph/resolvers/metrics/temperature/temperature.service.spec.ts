@@ -97,6 +97,23 @@ describe('TemperatureService', () => {
             expect(metrics).toBeDefined();
         });
 
+        it('retries provider discovery after an empty scan with probe failures', async () => {
+            vi.mocked(lmSensors.isAvailable!)
+                .mockRejectedValueOnce(new Error('probe failed'))
+                .mockResolvedValueOnce(true);
+            vi.mocked(diskSensors.isAvailable!)
+                .mockRejectedValueOnce(new Error('probe failed'))
+                .mockResolvedValueOnce(false);
+
+            expect(await service.getMetrics()).toBeNull();
+
+            const metrics = await service.getMetrics();
+
+            expect(metrics?.sensors).toHaveLength(1);
+            expect(lmSensors.isAvailable).toHaveBeenCalledTimes(2);
+            expect(diskSensors.isAvailable).toHaveBeenCalledTimes(2);
+        });
+
         it('should initialize providers when the app ready event is emitted', async () => {
             const event: AppReadyEvent = {
                 reason: 'nestjs-server-listening',
@@ -136,6 +153,12 @@ describe('TemperatureService', () => {
             expect(metrics?.sensors).toHaveLength(1);
             expect(metrics?.sensors[0].name).toBe('CPU Package');
             expect(metrics?.sensors[0].current.value).toBe(55);
+        });
+
+        it('should return null when provider initialization throws', async () => {
+            vi.spyOn(service, 'initializeProviders').mockRejectedValue(new Error('disk scan failed'));
+
+            await expect(service.getMetrics()).resolves.toBeNull();
         });
 
         it('should return null when no providers available', async () => {

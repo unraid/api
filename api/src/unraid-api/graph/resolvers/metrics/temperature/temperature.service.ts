@@ -71,6 +71,8 @@ export class TemperatureService {
     }
 
     private async loadAvailableProviders(): Promise<void> {
+        let hadProbeFailure = false;
+
         // 1. Get sensor specific configs
         const config = this.configService.getConfig(false);
         const lmSensorsConfig = config?.sensors?.lm_sensors;
@@ -111,12 +113,13 @@ export class TemperatureService {
                     this.logger.debug(`Temperature provider not available: ${provider.service.id}`);
                 }
             } catch (err) {
+                hadProbeFailure = true;
                 this.logger.warn(`Failed to check provider ${provider.service.id}`, err);
             }
         }
 
         this.availableProviders = availableProviders;
-        this.initialized = true;
+        this.initialized = availableProviders.length > 0 || !hadProbeFailure;
 
         if (this.availableProviders.length === 0) {
             this.logger.warn('No temperature providers available');
@@ -124,25 +127,25 @@ export class TemperatureService {
     }
 
     async getMetrics(): Promise<TemperatureMetrics | null> {
-        await this.initializeProviders();
-
-        // Check if we can use recent history instead of re-reading sensors
-        const mostRecent = this.history.getMostRecentReading();
-        const canUseHistory =
-            mostRecent && Date.now() - mostRecent.timestamp.getTime() < this.CACHE_TTL_MS;
-
-        if (canUseHistory) {
-            // Build from history (fast path)
-            return this.buildMetricsFromHistory();
-        }
-
-        // Read fresh data from sensors
-        if (this.availableProviders.length === 0) {
-            this.logger.debug('Temperature metrics unavailable (no providers)');
-            return null;
-        }
-
         try {
+            await this.initializeProviders();
+
+            // Check if we can use recent history instead of re-reading sensors
+            const mostRecent = this.history.getMostRecentReading();
+            const canUseHistory =
+                mostRecent && Date.now() - mostRecent.timestamp.getTime() < this.CACHE_TTL_MS;
+
+            if (canUseHistory) {
+                // Build from history (fast path)
+                return this.buildMetricsFromHistory();
+            }
+
+            // Read fresh data from sensors
+            if (this.availableProviders.length === 0) {
+                this.logger.debug('Temperature metrics unavailable (no providers)');
+                return null;
+            }
+
             const allRawSensors: RawTemperatureSensor[] = [];
 
             for (const provider of this.availableProviders) {

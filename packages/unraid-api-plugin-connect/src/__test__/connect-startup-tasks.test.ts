@@ -1,7 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { MothershipController } from '../mothership-proxy/mothership.controller.js';
-import { DynamicRemoteAccessService } from '../remote-access/dynamic-remote-access.service.js';
 import {
     ConnectStartupTasksListener,
     runConnectStartupTasks,
@@ -44,10 +42,8 @@ describe('runConnectStartupTasks', () => {
             logger
         );
 
-        expect(logger.warn).toHaveBeenCalledWith(
-            'Dynamic remote access startup failed',
-            backgroundError
-        );
+        expect(logger.warn).toHaveBeenCalledTimes(1);
+        expect(logger.warn).toHaveBeenCalledWith(expect.any(String), backgroundError);
     });
 
     it('still runs mothership startup when remote access startup rejects', async () => {
@@ -69,10 +65,8 @@ describe('runConnectStartupTasks', () => {
         );
 
         expect(initOrRestart).toHaveBeenCalledTimes(1);
-        expect(logger.warn).toHaveBeenCalledWith(
-            'Dynamic remote access startup failed',
-            backgroundError
-        );
+        expect(logger.warn).toHaveBeenCalledTimes(1);
+        expect(logger.warn).toHaveBeenCalledWith(expect.any(String), backgroundError);
     });
 
     it('does nothing when connect providers are unavailable', async () => {

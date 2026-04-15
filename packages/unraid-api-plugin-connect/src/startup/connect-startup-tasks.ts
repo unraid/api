@@ -38,14 +38,18 @@ export const runConnectStartupTasks = async (
 
     logger.info('Running Connect startup tasks after app.ready');
 
-    await Promise.allSettled([
-        dynamicRemoteAccessService?.initRemoteAccess().catch((error: unknown) => {
-                logger.warn('Dynamic remote access startup failed', error);
-            }),
-        mothershipController?.initOrRestart().catch((error: unknown) => {
-                logger.warn('Mothership startup failed', error);
-            }),
+    const results = await Promise.allSettled([
+        dynamicRemoteAccessService?.initRemoteAccess(),
+        mothershipController?.initOrRestart(),
     ]);
+
+    if (results[0]?.status === 'rejected') {
+        logger.warn('Dynamic remote access startup failed', results[0].reason);
+    }
+
+    if (results[1]?.status === 'rejected') {
+        logger.warn('Mothership startup failed', results[1].reason);
+    }
 };
 
 @Injectable()
@@ -68,7 +72,7 @@ export class ConnectStartupTasksListener {
             },
             {
                 info: (message: string) => this.logger.log(message),
-                warn: (message: string, error: unknown) => this.logger.warn(`${message}: ${String(error)}`),
+                warn: (message: string, error: unknown) => this.logger.warn(message, error),
             }
         );
     }
