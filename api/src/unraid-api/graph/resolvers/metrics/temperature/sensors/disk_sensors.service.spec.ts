@@ -36,10 +36,15 @@ describe('DiskSensorsService', () => {
         it.each([
             [
                 'when disks exist',
-                () =>
-                    vi.mocked(disksService.getDisks).mockResolvedValue([
-                        { id: 'disk1', device: '/dev/sda', name: 'Test Disk' } as unknown as Disk,
-                    ]),
+                () => {
+                    const disk = {
+                        id: 'disk1',
+                        device: '/dev/sda',
+                        name: 'Test Disk',
+                    } as unknown as Disk;
+                    const getDisks = vi.mocked(disksService.getDisks);
+                    getDisks.mockResolvedValue([disk]);
+                },
             ],
             ['when no disks exist', () => vi.mocked(disksService.getDisks).mockResolvedValue([])],
             [

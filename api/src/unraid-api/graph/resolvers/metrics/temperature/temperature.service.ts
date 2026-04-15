@@ -119,7 +119,7 @@ export class TemperatureService {
         }
 
         this.availableProviders = availableProviders;
-        this.initialized = availableProviders.length > 0 || !hadProbeFailure;
+        this.initialized = !hadProbeFailure && availableProviders.length > 0;
 
         if (this.availableProviders.length === 0) {
             this.logger.warn('No temperature providers available');
