@@ -33,7 +33,8 @@ export class StopCommand extends CommandRunner {
                 { tag: 'PM2 Delete', stdio: 'inherit' },
                 'delete',
                 ECOSYSTEM_PATH,
-                '--no-autorestart'
+                '--no-autorestart',
+                '--mini-list'
             );
         }
     }

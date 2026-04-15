@@ -28,7 +28,7 @@ const createPm2Service = () =>
     }) as unknown as PM2Service;
 
 describe('PM2-backed CLI commands', () => {
-    it('start clears PM2 state and starts without mini-list', async () => {
+    it('start clears PM2 state and starts with mini-list output', async () => {
         const logger = createLogger();
         const pm2 = createPm2Service();
         const command = new StartCommand(logger, pm2);
@@ -47,12 +47,12 @@ describe('PM2-backed CLI commands', () => {
             { tag: 'PM2 Start', raw: true, extendEnv: true, env: { LOG_LEVEL: 'info' } },
             'start',
             ECOSYSTEM_PATH,
-            '--update-env'
+            '--update-env',
+            '--mini-list'
         );
-        expect(vi.mocked(pm2.run).mock.calls.flat()).not.toContain('--mini-list');
     });
 
-    it('restart omits mini-list from the PM2 restart call', async () => {
+    it('restart uses mini-list output for the PM2 restart call', async () => {
         const logger = createLogger();
         const pm2 = createPm2Service();
         const command = new RestartCommand(logger, pm2);
@@ -63,12 +63,12 @@ describe('PM2-backed CLI commands', () => {
             { tag: 'PM2 Restart', raw: true, extendEnv: true, env: { LOG_LEVEL: 'info' } },
             'restart',
             ECOSYSTEM_PATH,
-            '--update-env'
+            '--update-env',
+            '--mini-list'
         );
-        expect(vi.mocked(pm2.run).mock.calls.flat()).not.toContain('--mini-list');
     });
 
-    it('status omits mini-list from the PM2 status call', async () => {
+    it('status uses mini-list output for the PM2 status call', async () => {
         const pm2 = createPm2Service();
         const command = new StatusCommand(pm2);
 
@@ -77,12 +77,12 @@ describe('PM2-backed CLI commands', () => {
         expect(pm2.run).toHaveBeenCalledWith(
             { tag: 'PM2 Status', stdio: 'inherit', raw: true },
             'status',
-            'unraid-api'
+            'unraid-api',
+            '--mini-list'
         );
-        expect(vi.mocked(pm2.run).mock.calls.flat()).not.toContain('--mini-list');
     });
 
-    it('stop omits mini-list from the PM2 delete call', async () => {
+    it('stop uses mini-list output for the PM2 delete call', async () => {
         const pm2 = createPm2Service();
         const command = new StopCommand(pm2);
 
@@ -92,8 +92,8 @@ describe('PM2-backed CLI commands', () => {
             { tag: 'PM2 Delete', stdio: 'inherit' },
             'delete',
             ECOSYSTEM_PATH,
-            '--no-autorestart'
+            '--no-autorestart',
+            '--mini-list'
         );
-        expect(vi.mocked(pm2.run).mock.calls.flat()).not.toContain('--mini-list');
     });
 });

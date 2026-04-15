@@ -8,6 +8,11 @@ export class StatusCommand extends CommandRunner {
         super();
     }
     async run(): Promise<void> {
-        await this.pm2.run({ tag: 'PM2 Status', stdio: 'inherit', raw: true }, 'status', 'unraid-api');
+        await this.pm2.run(
+            { tag: 'PM2 Status', stdio: 'inherit', raw: true },
+            'status',
+            'unraid-api',
+            '--mini-list'
+        );
     }
 }
