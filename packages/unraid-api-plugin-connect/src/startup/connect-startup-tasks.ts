@@ -1,54 +1,55 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 
 import { MothershipController } from '../mothership-proxy/mothership.controller.js';
 import { DynamicRemoteAccessService } from '../remote-access/dynamic-remote-access.service.js';
+
 const APP_READY_EVENT = 'app.ready';
+const DEFAULT_CONNECT_STARTUP_DELAY_MS = 0;
 
 interface AppReadyEvent {
     reason: 'nestjs-server-listening';
 }
 
-interface ConnectStartupRemoteAccess {
-    initRemoteAccess: () => Promise<void>;
-}
-
-interface ConnectStartupMothership {
-    initOrRestart: () => Promise<void>;
-}
-
 interface ConnectStartupTasksDependencies {
-    dynamicRemoteAccessService?: ConnectStartupRemoteAccess | null;
-    mothershipController?: ConnectStartupMothership | null;
+    dynamicRemoteAccessService?: Pick<DynamicRemoteAccessService, 'initRemoteAccess'> | null;
+    mothershipController?: Pick<MothershipController, 'initOrRestart'> | null;
 }
 
 interface ConnectStartupLogger {
-    info: (message: string) => void;
+    log: (message: string) => void;
     warn: (message: string, error: unknown) => void;
 }
 
-export const runConnectStartupTasks = async (
+export const scheduleConnectStartupTasks = (
     { dynamicRemoteAccessService, mothershipController }: ConnectStartupTasksDependencies,
-    logger: ConnectStartupLogger
-): Promise<void> => {
+    logger: ConnectStartupLogger,
+    delayMs = DEFAULT_CONNECT_STARTUP_DELAY_MS
+): void => {
     if (!dynamicRemoteAccessService && !mothershipController) {
         return;
     }
 
-    logger.info('Running Connect startup tasks after app.ready');
+    logger.log(`Scheduling Connect startup tasks to run in ${delayMs}ms`);
 
-    const results = await Promise.allSettled([
-        dynamicRemoteAccessService?.initRemoteAccess(),
-        mothershipController?.initOrRestart(),
-    ]);
-
-    if (results[0]?.status === 'rejected') {
-        logger.warn('Dynamic remote access startup failed', results[0].reason);
+    if (dynamicRemoteAccessService) {
+        setTimeout(() => {
+            void Promise.resolve()
+                .then(() => dynamicRemoteAccessService.initRemoteAccess())
+                .catch((error: unknown) => {
+                    logger.warn('Dynamic remote access startup failed', error);
+                });
+        }, delayMs);
     }
 
-    if (results[1]?.status === 'rejected') {
-        logger.warn('Mothership startup failed', results[1].reason);
+    if (mothershipController) {
+        setTimeout(() => {
+            void Promise.resolve()
+                .then(() => mothershipController.initOrRestart())
+                .catch((error: unknown) => {
+                    logger.warn('Mothership startup failed', error);
+                });
+        }, delayMs);
     }
 };
 
@@ -58,22 +59,22 @@ export class ConnectStartupTasksListener {
 
     constructor(
         @Inject(DynamicRemoteAccessService)
-        private readonly dynamicRemoteAccessService: ConnectStartupRemoteAccess,
+        private readonly dynamicRemoteAccessService: Pick<
+            DynamicRemoteAccessService,
+            'initRemoteAccess'
+        >,
         @Inject(MothershipController)
-        private readonly mothershipController: ConnectStartupMothership
+        private readonly mothershipController: Pick<MothershipController, 'initOrRestart'>
     ) {}
 
-    @OnEvent(APP_READY_EVENT, { async: true })
-    async handleAppReady(_event: AppReadyEvent): Promise<void> {
-        await runConnectStartupTasks(
+    @OnEvent(APP_READY_EVENT)
+    handleAppReady(_event: AppReadyEvent): void {
+        scheduleConnectStartupTasks(
             {
                 dynamicRemoteAccessService: this.dynamicRemoteAccessService,
                 mothershipController: this.mothershipController,
             },
-            {
-                info: (message: string) => this.logger.log(message),
-                warn: (message: string, error: unknown) => this.logger.warn(message, error),
-            }
+            this.logger
         );
     }
 }

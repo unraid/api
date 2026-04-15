@@ -1,8 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
+import type { CanonicalInternalClientService } from '@unraid/shared';
+import {
+    type ApolloClient,
+    type ApolloQueryResult,
+    type NormalizedCacheObject,
+} from '@apollo/client/core/index.js';
+import { CANONICAL_INTERNAL_CLIENT_TOKEN } from '@unraid/shared';
 import { isDefined } from 'class-validator';
-import { type Subscription } from 'zen-observable-ts';
-import { CANONICAL_INTERNAL_CLIENT_TOKEN, type CanonicalInternalClientService } from '@unraid/shared';
 
 import { EVENTS_SUBSCRIPTION, RemoteGraphQL_Fragment } from '../graphql/event.js';
 import {
@@ -21,9 +26,18 @@ type SubscriptionProxy = {
     body: string;
 };
 
+type SubscriptionHandle = {
+    unsubscribe: () => void;
+};
+
 type ActiveSubscription = {
-    subscription: Subscription;
+    subscription: SubscriptionHandle;
     lastPing: number;
+};
+
+type AddedSubscription = {
+    sha256: string;
+    subscription: SubscriptionHandle;
 };
 
 @Injectable()
@@ -37,7 +51,7 @@ export class MothershipSubscriptionHandler {
 
     private readonly logger = new Logger(MothershipSubscriptionHandler.name);
     private subscriptions: Map<string, ActiveSubscription> = new Map();
-    private mothershipSubscription: Subscription | null = null;
+    private mothershipSubscription: SubscriptionHandle | null = null;
 
     removeSubscription(sha256: string) {
         this.subscriptions.get(sha256)?.subscription.unsubscribe();
@@ -86,7 +100,7 @@ export class MothershipSubscriptionHandler {
         }
     }
 
-    public async addSubscription({ sha256, body }: SubscriptionProxy) {
+    public async addSubscription({ sha256, body }: SubscriptionProxy): Promise<AddedSubscription> {
         if (this.subscriptions.has(sha256)) {
             throw new Error(`Subscription already exists for SHA256: ${sha256}`);
         }
@@ -123,7 +137,7 @@ export class MothershipSubscriptionHandler {
         };
     }
 
-    async executeQuery(sha256: string, body: string) {
+    async executeQuery(sha256: string, body: string): Promise<ApolloQueryResult<unknown>> {
         const internalClient = await this.internalClientService.getClient();
         const parsedBody = parseGraphQLQuery(body);
         const queryInput = {
@@ -146,7 +160,10 @@ export class MothershipSubscriptionHandler {
         return result;
     }
 
-    async safeExecuteQuery(sha256: string, body: string) {
+    async safeExecuteQuery(
+        sha256: string,
+        body: string
+    ): Promise<ApolloQueryResult<unknown> | undefined> {
         try {
             return await this.executeQuery(sha256, body);
         } catch (error) {
@@ -157,7 +174,9 @@ export class MothershipSubscriptionHandler {
         }
     }
 
-    async handleRemoteGraphQLEvent(event: RemoteGraphQlEventFragmentFragment) {
+    async handleRemoteGraphQLEvent(
+        event: RemoteGraphQlEventFragmentFragment
+    ): Promise<AddedSubscription | ApolloQueryResult<unknown> | void> {
         const { body, type, sha256 } = event.remoteGraphQLEventData;
         switch (type) {
             case RemoteGraphQlEventType.REMOTE_QUERY_EVENT:
@@ -176,7 +195,9 @@ export class MothershipSubscriptionHandler {
         this.mothershipSubscription = null;
     }
 
-    async subscribeToMothershipEvents(client = this.mothershipClient.getClient()) {
+    async subscribeToMothershipEvents(
+        client: ApolloClient<NormalizedCacheObject> | null = this.mothershipClient.getClient()
+    ): Promise<void> {
         if (!client) {
             this.logger.error('Mothership client unavailable. State might not be loaded.');
             return;

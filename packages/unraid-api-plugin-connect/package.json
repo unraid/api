@@ -37,6 +37,7 @@
         "@nestjs/event-emitter": "3.0.1",
         "@nestjs/graphql": "13.1.0",
         "@nestjs/schedule": "6.0.0",
+        "@nestjs/testing": "11.1.6",
         "@runonflux/nat-upnp": "1.0.2",
         "@types/ini": "4.1.1",
         "@types/ip": "1.1.3",

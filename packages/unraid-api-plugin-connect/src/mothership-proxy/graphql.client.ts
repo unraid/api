@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
+import type { FetchResult } from '@apollo/client/core/index.js';
 import {
     ApolloClient,
     ApolloLink,
@@ -15,6 +16,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { Client, createClient } from 'graphql-ws';
 import { WebSocket } from 'ws';
 
+import type { SendRemoteGraphQlResponseMutation } from '../graphql/generated/client/graphql.js';
 import { MinigraphStatus } from '../config/connect.config.js';
 import { RemoteGraphQlEventType } from '../graphql/generated/client/graphql.js';
 import { SEND_REMOTE_QUERY_RESPONSE } from '../graphql/remote-response.js';
@@ -68,7 +70,10 @@ export class MothershipGraphqlClientService implements OnModuleInit, OnModuleDes
         await this.clearInstance();
     }
 
-    async sendQueryResponse(sha256: string, body: { data?: unknown; errors?: unknown }) {
+    async sendQueryResponse(
+        sha256: string,
+        body: { data?: unknown; errors?: unknown }
+    ): Promise<FetchResult<SendRemoteGraphQlResponseMutation> | undefined> {
         try {
             const result = await this.getClient()?.mutate({
                 mutation: SEND_REMOTE_QUERY_RESPONSE,
