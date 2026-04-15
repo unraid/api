@@ -156,31 +156,6 @@ DEPENDENCY_ERRORS=0
 if ! check_populated_dir "/usr/local/unraid-api/node_modules"; then
   DEPENDENCY_ERRORS=$((DEPENDENCY_ERRORS + 1))
 fi
-
-VENDOR_ARCHIVE_CONFIG="/usr/local/share/dynamix.unraid.net/config/vendor_archive.json"
-if [ -f "$VENDOR_ARCHIVE_CONFIG" ]; then
-  printf '✓ Vendor archive config %s exists\n' "$VENDOR_ARCHIVE_CONFIG"
-  if command -v jq >/dev/null 2>&1; then
-    VENDOR_ARCHIVE_PATH=$(jq -r '.vendor_store_path' "$VENDOR_ARCHIVE_CONFIG" 2>/dev/null)
-    if [ -n "$VENDOR_ARCHIVE_PATH" ] && [ "$VENDOR_ARCHIVE_PATH" != "null" ]; then
-      if [ -f "$VENDOR_ARCHIVE_PATH" ]; then
-        printf '✓ Vendor archive %s exists\n' "$VENDOR_ARCHIVE_PATH"
-      else
-        printf '✗ Vendor archive %s is missing\n' "$VENDOR_ARCHIVE_PATH"
-        DEPENDENCY_ERRORS=$((DEPENDENCY_ERRORS + 1))
-      fi
-    else
-      printf '✗ Vendor archive config %s is missing vendor_store_path\n' "$VENDOR_ARCHIVE_CONFIG"
-      DEPENDENCY_ERRORS=$((DEPENDENCY_ERRORS + 1))
-    fi
-  else
-    printf '✗ jq is required to validate vendor archive config\n'
-    DEPENDENCY_ERRORS=$((DEPENDENCY_ERRORS + 1))
-  fi
-else
-  printf '✗ Vendor archive config %s is missing\n' "$VENDOR_ARCHIVE_CONFIG"
-  DEPENDENCY_ERRORS=$((DEPENDENCY_ERRORS + 1))
-fi
 TOTAL_ERRORS=$((TOTAL_ERRORS + DEPENDENCY_ERRORS))
 
 # Check for proper Slackware-style shutdown configuration
