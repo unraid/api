@@ -98,8 +98,8 @@ jobs:
           # Wait a bit longer for libvirtd to start
           sleep 5
 
-          # Verify libvirt is running using sudo to bypass group membership delays
-          sudo virsh list --all
+          # Print system libvirt status for diagnostics only; VM tests use qemu:///session.
+          sudo virsh list --all || true
 
       - name: Build UI Package First
         run: |
