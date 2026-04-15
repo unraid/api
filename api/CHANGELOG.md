@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.32.2](https://github.com/unraid/api/compare/v4.32.1...v4.32.2) (2026-04-15)
+
+
+### Bug Fixes
+
+* **startup:** defer connect and temperature boot tasks ([#1988](https://github.com/unraid/api/issues/1988)) ([7b08ee2](https://github.com/unraid/api/commit/7b08ee2ddf73a6d92a76a51721edf88dc2811934)), closes [#1989](https://github.com/unraid/api/issues/1989)
+
 ## [4.32.1](https://github.com/unraid/api/compare/v4.32.0...v4.32.1) (2026-04-02)
 
 
