@@ -23,6 +23,8 @@ export class StartCommand extends CommandRunner {
         await this.pm2.run({ tag: 'PM2 Update' }, 'update');
         await this.pm2.deleteDump();
         await this.pm2.run({ tag: 'PM2 Delete' }, 'delete', ECOSYSTEM_PATH);
+        await this.pm2.run({ tag: 'PM2 Kill' }, 'kill', '--no-autorestart');
+        await this.pm2.deletePm2Home();
     }
 
     async run(_: string[], options: LogLevelOptions): Promise<void> {

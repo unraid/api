@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { URL_TYPE } from '@unraid/shared/network.model.js';
@@ -15,7 +15,7 @@ import { StaticRemoteAccessService } from './static-remote-access.service.js';
 import { UpnpRemoteAccessService } from './upnp-remote-access.service.js';
 
 @Injectable()
-export class DynamicRemoteAccessService implements OnApplicationBootstrap {
+export class DynamicRemoteAccessService {
     private readonly logger = new Logger(DynamicRemoteAccessService.name);
 
     constructor(
@@ -23,10 +23,6 @@ export class DynamicRemoteAccessService implements OnApplicationBootstrap {
         private readonly staticRemoteAccessService: StaticRemoteAccessService,
         private readonly upnpRemoteAccessService: UpnpRemoteAccessService
     ) {}
-
-    async onApplicationBootstrap() {
-        await this.initRemoteAccess();
-    }
 
     /**
      * Get the current state of dynamic remote access
@@ -146,7 +142,7 @@ export class DynamicRemoteAccessService implements OnApplicationBootstrap {
         this.clearError();
     }
 
-    private async initRemoteAccess() {
+    async initRemoteAccess() {
         this.logger.verbose('Initializing Remote Access');
         const { wanaccess, upnpEnabled } = this.configService.get('connect.config', { infer: true });
         if (wanaccess && upnpEnabled) {

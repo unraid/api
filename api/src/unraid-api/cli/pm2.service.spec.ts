@@ -1,5 +1,6 @@
 import * as fs from 'node:fs/promises';
 
+import { execa } from 'execa';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LogService } from '@app/unraid-api/cli/log.service.js';
@@ -23,6 +24,7 @@ describe('PM2Service', () => {
     let pm2Service: PM2Service;
     let logService: LogService;
     const mockMkdir = vi.mocked(fs.mkdir);
+    const mockExeca = vi.mocked(execa);
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -71,6 +73,31 @@ describe('PM2Service', () => {
 
             expect(mockMkdir).toHaveBeenCalledWith('/var/log/unraid-api', { recursive: true });
             expect(mockMkdir).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('run', () => {
+        it('sets PM2 discrete mode so daemon startup does not print the PM2 banner', async () => {
+            await pm2Service.run(
+                { tag: 'PM2 Start', raw: true, env: { LOG_LEVEL: 'info', PATH: '/usr/bin:/bin' } },
+                'start',
+                '/path/to/ecosystem.config.json'
+            );
+
+            expect(mockExeca).toHaveBeenCalledWith(
+                '/path/to/pm2',
+                ['--no-color', 'start', '/path/to/ecosystem.config.json'],
+                expect.objectContaining({
+                    env: {
+                        LOG_LEVEL: 'info',
+                        PATH: '/usr/local/bin:/usr/bin:/bin',
+                        PM2_HOME: '/var/log/.pm2',
+                        PM2_DISCRETE_MODE: 'true',
+                    },
+                    extendEnv: true,
+                    shell: 'bash',
+                })
+            );
         });
     });
 });

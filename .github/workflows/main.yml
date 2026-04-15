@@ -82,14 +82,23 @@ jobs:
           sudo chown root:libvirt /var/run/libvirt
           sudo chmod 775 /var/run/libvirt
 
+          # Start libvirtd only when the package install did not already start it.
+          if sudo virsh list --all > /dev/null 2>&1; then
+            echo "libvirt is already running"
+          else
+            if ! sudo pgrep -x libvirtd > /dev/null 2>&1; then
+              sudo rm -f /var/run/libvirt/libvirtd.pid
+            fi
 
-          # Start libvirtd in the background
-          sudo /usr/sbin/libvirtd --daemon
+            sudo systemctl start libvirtd 2>/dev/null \
+              || sudo service libvirtd start 2>/dev/null \
+              || sudo /usr/sbin/libvirtd --daemon
+          fi
 
           # Wait a bit longer for libvirtd to start
           sleep 5
 
-          # Verify libvirt is running using sudo to bypass group membership delays
+          # Print system libvirt status for diagnostics only; VM tests use qemu:///session.
           sudo virsh list --all || true
 
       - name: Build UI Package First

@@ -47,14 +47,16 @@ export class PM2Service {
         execOptions.shell ??= 'bash';
 
         // Ensure /usr/local/bin is in PATH for Node.js
-        const currentPath = execOptions.env?.PATH || process.env.PATH || '/usr/bin:/bin:/usr/sbin:/sbin';
+        const currentEnv = execOptions.env ?? {};
+        const currentPath = currentEnv.PATH || process.env.PATH || '/usr/bin:/bin:/usr/sbin:/sbin';
         const needsPathUpdate = !currentPath.includes('/usr/local/bin');
         const finalPath = needsPathUpdate ? `/usr/local/bin:${currentPath}` : currentPath;
 
         // Always ensure PM2_HOME is set in the environment for every PM2 command
         execOptions.env = {
-            ...execOptions.env,
+            ...currentEnv,
             PM2_HOME,
+            PM2_DISCRETE_MODE: currentEnv.PM2_DISCRETE_MODE ?? 'true',
             ...(needsPathUpdate && { PATH: finalPath }),
         };
 

@@ -96,6 +96,19 @@ check_symlink() {
   fi
 }
 
+check_populated_dir() {
+  if [ -d "$1" ] && [ "$(ls -A "$1" 2>/dev/null)" ]; then
+    printf '✓ Directory %s exists and is populated\n' "$1"
+    return 0
+  elif [ -d "$1" ]; then
+    printf '✗ Directory %s exists but is empty\n' "$1"
+    return 1
+  else
+    printf '✗ Directory %s is missing\n' "$1"
+    return 1
+  fi
+}
+
 # Check executable files
 echo "Checking executable files..."
 EXEC_ERRORS=0
@@ -137,6 +150,13 @@ else
   CONFIG_ERRORS=$((CONFIG_ERRORS + 1))
 fi
 TOTAL_ERRORS=$((TOTAL_ERRORS + CONFIG_ERRORS))
+
+echo "Checking dependency installation..."
+DEPENDENCY_ERRORS=0
+if ! check_populated_dir "/usr/local/unraid-api/node_modules"; then
+  DEPENDENCY_ERRORS=$((DEPENDENCY_ERRORS + 1))
+fi
+TOTAL_ERRORS=$((TOTAL_ERRORS + DEPENDENCY_ERRORS))
 
 # Check for proper Slackware-style shutdown configuration
 echo "Checking shutdown configuration..."
@@ -193,6 +213,7 @@ echo "- Executable files errors: $EXEC_ERRORS"
 echo "- Directory errors: $DIR_ERRORS"
 echo "- Symlink errors: $SYMLINK_ERRORS"
 echo "- Configuration errors: $CONFIG_ERRORS"
+echo "- Dependency errors: $DEPENDENCY_ERRORS"
 echo "- Shutdown configuration errors: $SHUTDOWN_ERRORS"
 echo "- Total errors: $TOTAL_ERRORS"
 

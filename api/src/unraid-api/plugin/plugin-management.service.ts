@@ -129,8 +129,7 @@ export class PluginManagementService {
      *------------------------------------------------------------------------**/
 
     async addBundledPlugin(...plugins: string[]) {
-        const added = this.addPluginToConfig(...plugins);
-        return added;
+        return this.addPluginToConfig(...plugins);
     }
 
     /**

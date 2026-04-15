@@ -1,5 +1,8 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 
+import type { AppReadyEvent } from '@app/unraid-api/app/app-lifecycle.events.js';
+import { APP_READY_EVENT } from '@app/unraid-api/app/app-lifecycle.events.js';
 import { DiskSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/disk_sensors.service.js';
 import { IpmiSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/ipmi_sensors.service.js';
 import { LmSensorsService } from '@app/unraid-api/graph/resolvers/metrics/temperature/sensors/lm_sensors.service.js';
@@ -21,9 +24,11 @@ import {
 
 // temperature.service.ts
 @Injectable()
-export class TemperatureService implements OnModuleInit {
+export class TemperatureService {
     private readonly logger = new Logger(TemperatureService.name);
     private availableProviders: TemperatureSensorProvider[] = [];
+    private initializationPromise: Promise<void> | null = null;
+    private initialized = false;
 
     private cache: TemperatureMetrics | null = null;
     private cacheTimestamp = 0;
@@ -40,17 +45,40 @@ export class TemperatureService implements OnModuleInit {
         private readonly configService: TemperatureConfigService
     ) {}
 
-    async onModuleInit() {
-        // Initialize all providers and check availability
-        await this.initializeProviders();
+    async initializeProviders(): Promise<void> {
+        if (this.initialized) {
+            return;
+        }
+
+        if (this.initializationPromise) {
+            return this.initializationPromise;
+        }
+
+        this.initializationPromise = this.loadAvailableProviders().finally(() => {
+            this.initializationPromise = null;
+        });
+
+        return this.initializationPromise;
     }
 
-    private async initializeProviders(): Promise<void> {
+    @OnEvent(APP_READY_EVENT, { async: true })
+    async handleAppReady(_event: AppReadyEvent): Promise<void> {
+        try {
+            await this.initializeProviders();
+        } catch (error: unknown) {
+            this.logger.warn('Temperature provider initialization after startup failed', error);
+        }
+    }
+
+    private async loadAvailableProviders(): Promise<void> {
+        let hadProbeFailure = false;
+
         // 1. Get sensor specific configs
         const config = this.configService.getConfig(false);
         const lmSensorsConfig = config?.sensors?.lm_sensors;
         const smartctlConfig = config?.sensors?.smartctl;
         const ipmiConfig = config?.sensors?.ipmi;
+        const availableProviders: TemperatureSensorProvider[] = [];
 
         // 2. Define providers with their config checks
         // We default to TRUE if the config is missing
@@ -79,15 +107,19 @@ export class TemperatureService implements OnModuleInit {
 
             try {
                 if (await provider.service.isAvailable()) {
-                    this.availableProviders.push(provider.service);
+                    availableProviders.push(provider.service);
                     this.logger.log(`Temperature provider available: ${provider.service.id}`);
                 } else {
                     this.logger.debug(`Temperature provider not available: ${provider.service.id}`);
                 }
             } catch (err) {
+                hadProbeFailure = true;
                 this.logger.warn(`Failed to check provider ${provider.service.id}`, err);
             }
         }
+
+        this.availableProviders = availableProviders;
+        this.initialized = !hadProbeFailure && availableProviders.length > 0;
 
         if (this.availableProviders.length === 0) {
             this.logger.warn('No temperature providers available');
@@ -95,23 +127,25 @@ export class TemperatureService implements OnModuleInit {
     }
 
     async getMetrics(): Promise<TemperatureMetrics | null> {
-        // Check if we can use recent history instead of re-reading sensors
-        const mostRecent = this.history.getMostRecentReading();
-        const canUseHistory =
-            mostRecent && Date.now() - mostRecent.timestamp.getTime() < this.CACHE_TTL_MS;
-
-        if (canUseHistory) {
-            // Build from history (fast path)
-            return this.buildMetricsFromHistory();
-        }
-
-        // Read fresh data from sensors
-        if (this.availableProviders.length === 0) {
-            this.logger.debug('Temperature metrics unavailable (no providers)');
-            return null;
-        }
-
         try {
+            await this.initializeProviders();
+
+            // Check if we can use recent history instead of re-reading sensors
+            const mostRecent = this.history.getMostRecentReading();
+            const canUseHistory =
+                mostRecent && Date.now() - mostRecent.timestamp.getTime() < this.CACHE_TTL_MS;
+
+            if (canUseHistory) {
+                // Build from history (fast path)
+                return this.buildMetricsFromHistory();
+            }
+
+            // Read fresh data from sensors
+            if (this.availableProviders.length === 0) {
+                this.logger.debug('Temperature metrics unavailable (no providers)');
+                return null;
+            }
+
             const allRawSensors: RawTemperatureSensor[] = [];
 
             for (const provider of this.availableProviders) {
