@@ -155,7 +155,7 @@
   "onboarding.pluginsStep.plugins.fixCommonProblems.description": "Diagnosztikai eszköz a konfigurációs problémák azonosításához és megoldásához.",
   "onboarding.pluginsStep.plugins.tailscale.name": "Tailscale",
   "onboarding.pluginsStep.plugins.tailscale.description": "Konfigurációmentes VPN. Biztonságos hozzáférés a szerverhez bárhonnan.",
-  "onboarding.pluginsStep.loading.description": "Javasolt és már telepített bővítmények ellenőrzése.",
+  "onboarding.pluginsStep.loading.description": "Javasolt bővítmények telepítésének ellenőrzése.",
   "onboarding.internalBootStep.stepTitle": "Boot beállítása",
   "onboarding.internalBootStep.stepDescription": "USB vagy tároló meghajtó boot kiválasztása",
   "onboarding.internalBootStep.title": "Boot beállítása",
