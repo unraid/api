@@ -199,6 +199,14 @@ describe('OnboardingCoreSettingsStep', () => {
     languagesError.value = null;
   });
 
+  it('marks server name controls hidden', async () => {
+    const { wrapper } = mountComponent();
+    await flushPromises();
+
+    const serverNameLabel = wrapper.findAll('label').find((label) => label.text() === 'Server Name');
+    expect(serverNameLabel?.element.parentElement?.classList.contains('hidden')).toBe(true);
+  });
+
   it('prefers browser timezone over API on initial setup when draft timezone is empty', async () => {
     onboardingStore.completed.value = false;
 

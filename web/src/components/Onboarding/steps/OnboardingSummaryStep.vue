@@ -1113,7 +1113,10 @@ const handleBack = () => {
             </h3>
           </div>
           <div class="space-y-3">
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+            <div
+              class="hidden flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between"
+              aria-hidden="true"
+            >
               <span class="text-muted">{{ t('onboarding.coreSettings.serverName') }}</span>
               <span class="text-highlighted font-medium break-all sm:text-right">{{ serverName }}</span>
             </div>
