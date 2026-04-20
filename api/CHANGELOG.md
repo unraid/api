@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.32.3](https://github.com/unraid/api/compare/v4.32.2...v4.32.3) (2026-04-20)
+
+
+### Bug Fixes
+
+* add hungarian translation updates' ([a38fa34](https://github.com/unraid/api/commit/a38fa348cb88ff399e50ab3c917f0cc390361fb3))
+
 ## [4.32.2](https://github.com/unraid/api/compare/v4.32.1...v4.32.2) (2026-04-15)
 
 
