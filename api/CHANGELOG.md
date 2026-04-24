@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.33.0](https://github.com/unraid/api/compare/v4.32.3...v4.33.0) (2026-04-24)
+
+
+### Features
+
+* New Crowdin updates ([#1994](https://github.com/unraid/api/issues/1994)) ([865d9cc](https://github.com/unraid/api/commit/865d9cc469e78f20c0dd6e378c6d7d4bbe3fe434))
+
 ## [4.32.3](https://github.com/unraid/api/compare/v4.32.2...v4.32.3) (2026-04-20)
 
 
