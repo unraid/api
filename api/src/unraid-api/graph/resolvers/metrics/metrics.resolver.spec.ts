@@ -8,6 +8,8 @@ import { pubsub } from '@app/core/pubsub.js';
 import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
+import { FanControlConfigService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.service.js';
+import { FanControlService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
 import { TemperatureConfigService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.service.js';
 import {
@@ -119,6 +121,18 @@ describe('MetricsResolver', () => {
                         getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 5000 }),
                     },
                 },
+                {
+                    provide: FanControlService,
+                    useValue: {
+                        getMetrics: vi.fn().mockResolvedValue(null),
+                    },
+                },
+                {
+                    provide: FanControlConfigService,
+                    useValue: {
+                        getConfig: vi.fn().mockReturnValue({ enabled: false }),
+                    },
+                },
             ],
         }).compile();
 
@@ -217,15 +231,25 @@ describe('MetricsResolver', () => {
                 getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 5000 }),
             };
 
+            const fanControlServiceMock = {
+                getMetrics: vi.fn().mockResolvedValue(null),
+            };
+
+            const fanControlConfigServiceMock = {
+                getConfig: vi.fn().mockReturnValue({ enabled: false }),
+            };
+
             const testModule = new MetricsResolver(
                 cpuService,
                 cpuTopologyServiceMock as unknown as CpuTopologyService,
                 memoryService,
                 temperatureServiceMock as unknown as TemperatureService,
+                fanControlServiceMock as unknown as FanControlService,
                 subscriptionTracker as unknown as SubscriptionTrackerService,
                 {} as unknown as SubscriptionHelperService,
                 configServiceMock as unknown as ConfigService,
-                temperatureConfigServiceMock as unknown as TemperatureConfigService
+                temperatureConfigServiceMock as unknown as TemperatureConfigService,
+                fanControlConfigServiceMock as unknown as FanControlConfigService
             );
 
             testModule.onModuleInit();
@@ -262,10 +286,14 @@ describe('MetricsResolver', () => {
                 {} as CpuTopologyService,
                 {} as MemoryService,
                 temperatureServiceMock,
+                { getMetrics: vi.fn().mockResolvedValue(null) } as unknown as FanControlService,
                 subscriptionTracker,
                 {} as SubscriptionHelperService,
                 {} as ConfigService,
-                temperatureConfigServiceMock
+                temperatureConfigServiceMock,
+                {
+                    getConfig: vi.fn().mockReturnValue({ enabled: false }),
+                } as unknown as FanControlConfigService
             );
 
             testModule.onModuleInit();
@@ -305,10 +333,14 @@ describe('MetricsResolver', () => {
                 {} as CpuTopologyService,
                 {} as MemoryService,
                 temperatureServiceMock,
+                { getMetrics: vi.fn().mockResolvedValue(null) } as unknown as FanControlService,
                 subscriptionTracker,
                 {} as SubscriptionHelperService,
                 {} as ConfigService,
-                temperatureConfigServiceMock
+                temperatureConfigServiceMock,
+                {
+                    getConfig: vi.fn().mockReturnValue({ enabled: false }),
+                } as unknown as FanControlConfigService
             );
 
             testModule.onModuleInit();
