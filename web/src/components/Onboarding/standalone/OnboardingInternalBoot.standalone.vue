@@ -2,13 +2,11 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import {
-  ArrowPathIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  XMarkIcon,
-} from '@heroicons/vue/24/solid';
+import { XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
+import { buildBootConfigurationSummaryViewModel } from '@/components/Onboarding/components/bootConfigurationSummary/buildBootConfigurationSummaryViewModel';
+import OnboardingBootConfigurationSummary from '@/components/Onboarding/components/bootConfigurationSummary/OnboardingBootConfigurationSummary.vue';
+import InternalBootConfirmDialog from '@/components/Onboarding/components/InternalBootConfirmDialog.vue';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import {
   applyInternalBootSelection,
@@ -16,16 +14,20 @@ import {
   submitInternalBootShutdown,
 } from '@/components/Onboarding/composables/internalBoot';
 import OnboardingSteps from '@/components/Onboarding/OnboardingSteps.vue';
+import { createEmptyOnboardingWizardInternalBootState } from '@/components/Onboarding/onboardingWizardState';
 import OnboardingInternalBootStep from '@/components/Onboarding/steps/OnboardingInternalBootStep.vue';
-import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
+import { convert } from 'convert';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
-import type { InternalBootApplyResult } from '@/components/Onboarding/composables/internalBoot';
+import type {
+  InternalBootApplyResult,
+  InternalBootSelection,
+} from '@/components/Onboarding/composables/internalBoot';
+import type { OnboardingInternalBootDraft } from '@/components/Onboarding/onboardingWizardState';
 import type { StepId } from '@/components/Onboarding/stepRegistry';
 
 const { t } = useI18n();
-const draftStore = useOnboardingDraftStore();
 const INTERNAL_BOOT_HISTORY_STATE_KEY = '__unraidOnboardingInternalBoot';
 
 type InternalBootHistoryState = {
@@ -38,12 +40,19 @@ const currentStep = ref<StepId>('CONFIGURE_BOOT');
 const confirmationState = ref<'idle' | 'saving' | 'result'>('idle');
 const isOpen = ref(true);
 const logs = ref<LogEntry[]>([]);
+const pendingPowerAction = ref<'reboot' | 'shutdown' | null>(null);
 const resultTitle = ref('');
 const resultMessage = ref('');
 const resultSeverity = ref<'success' | 'warning' | 'error'>('success');
 const historySessionId = ref<string | null>(null);
 const historyPosition = ref(-1);
 const isApplyingHistoryState = ref(false);
+const internalBootDraft = ref<OnboardingInternalBootDraft>({
+  bootMode: 'usb',
+  skipped: true,
+  selection: null,
+});
+const internalBootState = ref(createEmptyOnboardingWizardInternalBootState());
 const standaloneSteps: Array<{ id: StepId; required: boolean }> = [
   { id: 'CONFIGURE_BOOT', required: true },
   { id: 'SUMMARY', required: true },
@@ -51,10 +60,11 @@ const standaloneSteps: Array<{ id: StepId; required: boolean }> = [
 
 const summaryT = (key: string, values?: Record<string, unknown>) =>
   t(`onboarding.summaryStep.${key}`, values ?? {});
+const standaloneSummaryInvalidMessage = computed(() => summaryT('bootConfig.invalidStandalone'));
 
-const isLocked = computed(() => draftStore.internalBootApplyAttempted);
+const isLocked = computed(() => internalBootState.value.applyAttempted);
 
-const handlePowerAction = (action: 'reboot' | 'shutdown') => {
+const executePowerAction = (action: 'reboot' | 'shutdown') => {
   cleanupOnboardingStorage();
   if (action === 'shutdown') {
     submitInternalBootShutdown();
@@ -63,14 +73,74 @@ const handlePowerAction = (action: 'reboot' | 'shutdown') => {
   }
 };
 
+const handlePowerAction = (action: 'reboot' | 'shutdown') => {
+  pendingPowerAction.value = action;
+};
+
+const handleConfirmPowerAction = () => {
+  const action = pendingPowerAction.value;
+  pendingPowerAction.value = null;
+  if (action) {
+    executePowerAction(action);
+  }
+};
+
+const handleCancelPowerAction = () => {
+  pendingPowerAction.value = null;
+};
+
 const canReturnToConfigure = () =>
   !isLocked.value &&
   confirmationState.value === 'result' &&
-  (resultSeverity.value !== 'success' || !draftStore.internalBootApplySucceeded);
+  (resultSeverity.value !== 'success' || !internalBootState.value.applySucceeded);
 
 const showConsole = computed(() => confirmationState.value === 'saving' || logs.value.length > 0);
-const isSaving = computed(() => confirmationState.value === 'saving');
 const canEditAgain = computed(() => currentStep.value === 'SUMMARY' && canReturnToConfigure());
+const resultAlertColor = computed(() => {
+  if (resultSeverity.value === 'success') {
+    return 'success';
+  }
+
+  if (resultSeverity.value === 'error') {
+    return 'error';
+  }
+
+  return 'warning';
+});
+const resultAlertIcon = computed(() =>
+  resultSeverity.value === 'success' ? 'i-heroicons-check-circle' : 'i-lucide-triangle-alert'
+);
+const formatDeviceSize = (sizeBytes: number) => {
+  const converted = convert(sizeBytes, 'B').to('best', 'metric');
+  const precision = converted.quantity >= 100 || converted.unit === 'B' ? 0 : 1;
+  return `${converted.quantity.toFixed(precision)} ${converted.unit}`;
+};
+const bootConfigurationSummaryState = computed(() =>
+  buildBootConfigurationSummaryViewModel(internalBootDraft.value, {
+    labels: {
+      title: summaryT('bootConfig.title'),
+      bootMethod: summaryT('bootConfig.bootMethod'),
+      bootMethodStorage: summaryT('bootConfig.bootMethodStorage'),
+      bootMethodUsb: summaryT('bootConfig.bootMethodUsb'),
+      poolMode: summaryT('bootConfig.poolMode'),
+      poolModeDedicated: summaryT('bootConfig.poolModeDedicated'),
+      poolModeHybrid: summaryT('bootConfig.poolModeHybrid'),
+      pool: summaryT('bootConfig.pool'),
+      slots: summaryT('bootConfig.slots'),
+      bootReserved: summaryT('bootConfig.bootReserved'),
+      updateBios: summaryT('bootConfig.updateBios'),
+      devices: summaryT('bootConfig.devices'),
+      yes: summaryT('yes'),
+      no: summaryT('no'),
+    },
+    formatBootSize: (bootSizeMiB) =>
+      bootSizeMiB === 0
+        ? t('onboarding.internalBootStep.bootSize.wholeDrive')
+        : t('onboarding.internalBootStep.bootSize.gbLabel', { size: Math.round(bootSizeMiB / 1024) }),
+    formatDeviceSize,
+    missingStorageSelectionBehavior: 'invalid',
+  })
+);
 const currentStepIndex = computed(() =>
   standaloneSteps.findIndex((step) => step.id === currentStep.value)
 );
@@ -145,6 +215,36 @@ const addLogs = (entries: Array<Omit<LogEntry, 'timestamp'>>) => {
   }
 };
 
+const toInternalBootSelection = (draft: OnboardingInternalBootDraft): InternalBootSelection | null => {
+  if (draft.bootMode !== 'storage' || draft.skipped === true) {
+    return null;
+  }
+
+  const selection = draft.selection;
+  if (!selection) {
+    return null;
+  }
+  if (
+    !selection.poolName ||
+    typeof selection.slotCount !== 'number' ||
+    !Array.isArray(selection.devices) ||
+    typeof selection.bootSizeMiB !== 'number' ||
+    typeof selection.updateBios !== 'boolean' ||
+    (selection.poolMode !== 'dedicated' && selection.poolMode !== 'hybrid')
+  ) {
+    return null;
+  }
+
+  return {
+    poolName: selection.poolName,
+    slotCount: selection.slotCount,
+    devices: selection.devices.map((device) => device.id),
+    bootSizeMiB: selection.bootSizeMiB,
+    updateBios: selection.updateBios,
+    poolMode: selection.poolMode,
+  };
+};
+
 const setResultFromApply = (applyResult: InternalBootApplyResult) => {
   if (applyResult.applySucceeded && !applyResult.hadWarnings) {
     resultSeverity.value = 'success';
@@ -194,15 +294,55 @@ const handleEditAgain = () => {
   resultTitle.value = '';
   resultMessage.value = '';
   confirmationState.value = 'idle';
+  internalBootState.value = createEmptyOnboardingWizardInternalBootState();
   currentStep.value = 'CONFIGURE_BOOT';
 };
 
-const handleStepComplete = async () => {
-  logs.value = [];
-  draftStore.setInternalBootApplySucceeded(false);
+const handleConfigureStepComplete = async (draft: OnboardingInternalBootDraft) => {
+  internalBootDraft.value = {
+    bootMode: draft.bootMode ?? 'usb',
+    skipped: draft.skipped ?? draft.bootMode !== 'storage',
+    selection:
+      draft.selection === undefined
+        ? null
+        : draft.selection === null
+          ? null
+          : {
+              ...draft.selection,
+              devices: draft.selection.devices
+                ? draft.selection.devices.map((device) => ({ ...device }))
+                : [],
+            },
+  };
   currentStep.value = 'SUMMARY';
+};
 
-  const selection = draftStore.internalBootSelection;
+const handleConfigureStepBack = async (draft: OnboardingInternalBootDraft) => {
+  internalBootDraft.value = {
+    bootMode: draft.bootMode ?? 'usb',
+    skipped: draft.skipped ?? draft.bootMode !== 'storage',
+    selection:
+      draft.selection === undefined
+        ? null
+        : draft.selection === null
+          ? null
+          : {
+              ...draft.selection,
+              devices: draft.selection.devices
+                ? draft.selection.devices.map((device) => ({ ...device }))
+                : [],
+            },
+  };
+};
+
+const handleSummaryContinue = async () => {
+  logs.value = [];
+  internalBootState.value = {
+    applyAttempted: internalBootState.value.applyAttempted,
+    applySucceeded: false,
+  };
+
+  const selection = toInternalBootSelection(internalBootDraft.value);
   if (!selection) {
     addLog({
       message: summaryT('logs.noChanges'),
@@ -215,7 +355,10 @@ const handleStepComplete = async () => {
     return;
   }
 
-  draftStore.setInternalBootApplyAttempted(true);
+  internalBootState.value = {
+    applyAttempted: true,
+    applySucceeded: false,
+  };
   confirmationState.value = 'saving';
   addLog({
     message: summaryT('logs.internalBootStart'),
@@ -242,7 +385,10 @@ const handleStepComplete = async () => {
     });
 
     if (applyResult.applySucceeded) {
-      draftStore.setInternalBootApplySucceeded(true);
+      internalBootState.value = {
+        applyAttempted: true,
+        applySucceeded: true,
+      };
     }
 
     addLogs(applyResult.logs);
@@ -290,6 +436,12 @@ const handlePopstate = (event: PopStateEvent) => {
   }
 
   handleClose({ fromHistory: true });
+};
+
+const handleDialogVisibilityUpdate = (value: boolean) => {
+  if (!value && !isLocked.value) {
+    handleClose();
+  }
 };
 
 watch(
@@ -351,13 +503,7 @@ onUnmounted(() => {
     :show-close-button="false"
     size="full"
     class="bg-background pb-0"
-    @update:model-value="
-      (value) => {
-        if (!value && !isLocked) {
-          handleClose();
-        }
-      }
-    "
+    @update:model-value="handleDialogVisibilityUpdate"
   >
     <div class="relative flex h-full min-h-0 w-full flex-col items-center justify-start overflow-y-auto">
       <button
@@ -377,7 +523,9 @@ onUnmounted(() => {
 
           <div v-if="currentStep === 'CONFIGURE_BOOT'" class="w-full">
             <OnboardingInternalBootStep
-              :on-complete="handleStepComplete"
+              :initial-draft="internalBootDraft"
+              :on-complete="handleConfigureStepComplete"
+              :on-back="handleConfigureStepBack"
               :show-back="false"
               :show-skip="false"
               :is-saving-step="false"
@@ -385,75 +533,77 @@ onUnmounted(() => {
           </div>
 
           <div v-else class="flex w-full max-w-5xl flex-col gap-6">
-            <div
-              v-if="isSaving"
-              data-testid="internal-boot-standalone-saving"
-              class="border-muted bg-elevated rounded-xl border p-6 shadow-sm md:p-8"
-            >
-              <div class="flex items-start gap-4">
-                <ArrowPathIcon class="text-primary mt-0.5 h-7 w-7 flex-shrink-0 animate-spin" />
-
-                <div class="min-w-0 flex-1 space-y-2">
-                  <h2 class="text-highlighted text-xl font-semibold">
-                    {{ summaryT('title') }}
-                  </h2>
-                  <p class="text-muted leading-6">
-                    {{ summaryT('description') }}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <OnboardingConsole v-if="showConsole" :logs="logs" />
-
-            <div
-              v-if="confirmationState === 'result'"
-              data-testid="internal-boot-standalone-result"
-              class="border-muted bg-elevated rounded-xl border p-6 shadow-sm md:p-8"
-              :class="{
-                'border-red-200 bg-red-50/70': resultSeverity === 'error',
-                'border-amber-200 bg-amber-50/70': resultSeverity === 'warning',
-              }"
-            >
-              <div class="flex items-start gap-4">
-                <CheckCircleIcon
-                  v-if="resultSeverity === 'success'"
-                  class="text-primary mt-0.5 h-7 w-7 flex-shrink-0"
-                />
-                <ExclamationTriangleIcon v-else class="mt-0.5 h-7 w-7 flex-shrink-0 text-amber-600" />
-
-                <div class="min-w-0 flex-1 space-y-2">
-                  <h2 class="text-highlighted text-xl font-semibold">
-                    {{ resultTitle }}
-                  </h2>
-                  <p class="text-muted leading-6">
-                    {{ resultMessage }}
-                  </p>
-                </div>
-              </div>
-
-              <div
-                v-if="
-                  isLocked && resultSeverity === 'error' && draftStore.internalBootSelection?.updateBios
-                "
-                class="mt-4"
-              >
-                <p class="text-sm text-amber-700">
-                  {{ t('onboarding.nextSteps.internalBootBiosMissed') }}
+            <div class="border-muted bg-elevated rounded-xl border p-6 shadow-sm md:p-8">
+              <div class="space-y-3">
+                <h2 class="text-highlighted text-xl font-semibold">
+                  {{ summaryT('title') }}
+                </h2>
+                <p class="text-muted leading-6">
+                  {{ summaryT('description') }}
                 </p>
               </div>
 
+              <div v-if="bootConfigurationSummaryState.kind === 'ready'" class="mt-6">
+                <OnboardingBootConfigurationSummary :summary="bootConfigurationSummaryState.summary" />
+              </div>
+
+              <div
+                v-else-if="bootConfigurationSummaryState.kind === 'invalid'"
+                data-testid="internal-boot-summary-invalid"
+                class="mt-6 rounded-lg border border-amber-200 bg-amber-50/70 p-4"
+              >
+                <p class="text-sm font-medium text-amber-700">
+                  {{ standaloneSummaryInvalidMessage }}
+                </p>
+              </div>
+
+              <UAlert
+                v-if="confirmationState === 'result'"
+                data-testid="internal-boot-standalone-result"
+                class="mt-6"
+                variant="subtle"
+                :color="resultAlertColor"
+                :icon="resultAlertIcon"
+                :title="resultTitle"
+              >
+                <template #description>
+                  <div class="space-y-3">
+                    <p class="text-sm leading-6">
+                      {{ resultMessage }}
+                    </p>
+                    <p
+                      v-if="
+                        isLocked && resultSeverity === 'error' && internalBootDraft.selection?.updateBios
+                      "
+                      class="text-sm"
+                    >
+                      {{ t('onboarding.nextSteps.internalBootBiosMissed') }}
+                    </p>
+                  </div>
+                </template>
+              </UAlert>
+
+              <OnboardingConsole v-if="showConsole" class="mt-6" :logs="logs" />
+
               <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button
-                  v-if="canEditAgain"
+                  v-if="confirmationState === 'idle' || canEditAgain"
                   type="button"
-                  data-testid="internal-boot-standalone-edit-again"
+                  :data-testid="canEditAgain ? 'internal-boot-standalone-edit-again' : undefined"
                   class="text-muted hover:text-highlighted text-sm font-medium transition-colors"
                   @click="handleEditAgain"
                 >
                   {{ t('common.back') }}
                 </button>
-                <template v-if="isLocked">
+                <button
+                  v-if="confirmationState === 'idle' && bootConfigurationSummaryState.kind !== 'invalid'"
+                  type="button"
+                  class="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
+                  @click="handleSummaryContinue"
+                >
+                  {{ t('onboarding.summaryStep.confirmAndApply') }}
+                </button>
+                <template v-if="isLocked && confirmationState === 'result'">
                   <button
                     type="button"
                     data-testid="internal-boot-standalone-shutdown"
@@ -472,7 +622,7 @@ onUnmounted(() => {
                   </button>
                 </template>
                 <button
-                  v-else
+                  v-else-if="confirmationState === 'result'"
                   type="button"
                   data-testid="internal-boot-standalone-result-close"
                   class="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-semibold text-white transition-colors"
@@ -486,5 +636,11 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+    <InternalBootConfirmDialog
+      :open="pendingPowerAction !== null"
+      :action="pendingPowerAction ?? 'reboot'"
+      @confirm="handleConfirmPowerAction"
+      @cancel="handleCancelPowerAction"
+    />
   </Dialog>
 </template>

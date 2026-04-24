@@ -9,6 +9,10 @@ import * as ini from 'ini';
 import coerce from 'semver/functions/coerce.js';
 import gte from 'semver/functions/gte.js';
 
+import type {
+    OnboardingDraft,
+    OnboardingStepId,
+} from '@app/unraid-api/config/onboarding-tracker.model.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer.js';
 import { loadDynamixConfigFromDiskSync } from '@app/store/actions/load-dynamix-config-file.js';
@@ -23,6 +27,8 @@ import {
     Onboarding,
     OnboardingState,
     OnboardingStatus,
+    OnboardingWizard,
+    OnboardingWizardStepId,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import {
@@ -31,8 +37,18 @@ import {
 } from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 import { Theme, ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import { getOnboardingVersionDirection } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-status.util.js';
+import { SaveOnboardingDraftInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 
 const MIN_ONBOARDING_VERSION = '7.3.0';
+const WIZARD_STEP_ORDER: OnboardingWizardStepId[] = [
+    OnboardingWizardStepId.OVERVIEW,
+    OnboardingWizardStepId.CONFIGURE_SETTINGS,
+    OnboardingWizardStepId.CONFIGURE_BOOT,
+    OnboardingWizardStepId.ADD_PLUGINS,
+    OnboardingWizardStepId.ACTIVATE_LICENSE,
+    OnboardingWizardStepId.SUMMARY,
+    OnboardingWizardStepId.NEXT_STEPS,
+];
 
 @Injectable()
 export class OnboardingService implements OnModuleInit {
@@ -344,6 +360,117 @@ export class OnboardingService implements OnModuleInit {
         };
     }
 
+    private shouldShowInternalBootStep(): boolean {
+        const enableBootTransfer = getters.emhttp().var?.enableBootTransfer;
+        return (
+            typeof enableBootTransfer === 'string' && enableBootTransfer.trim().toLowerCase() === 'yes'
+        );
+    }
+
+    private getVisibleWizardStepIds(
+        onboardingState: OnboardingState,
+        draft: OnboardingDraft
+    ): OnboardingWizardStepId[] {
+        const visibleStepIds: OnboardingWizardStepId[] = [
+            OnboardingWizardStepId.OVERVIEW,
+            OnboardingWizardStepId.CONFIGURE_SETTINGS,
+        ];
+
+        if (this.shouldShowInternalBootStep()) {
+            visibleStepIds.push(OnboardingWizardStepId.CONFIGURE_BOOT);
+        }
+
+        visibleStepIds.push(OnboardingWizardStepId.ADD_PLUGINS);
+
+        if (onboardingState.activationRequired || draft.activationStepIncluded) {
+            visibleStepIds.push(OnboardingWizardStepId.ACTIVATE_LICENSE);
+        }
+
+        visibleStepIds.push(OnboardingWizardStepId.SUMMARY, OnboardingWizardStepId.NEXT_STEPS);
+
+        return visibleStepIds;
+    }
+
+    private resolveCurrentStepId(
+        currentStepId: OnboardingStepId | undefined,
+        visibleStepIds: OnboardingWizardStepId[]
+    ): OnboardingWizardStepId | undefined {
+        if (currentStepId && visibleStepIds.includes(currentStepId as OnboardingWizardStepId)) {
+            return currentStepId as OnboardingWizardStepId;
+        }
+
+        if (!currentStepId) {
+            return visibleStepIds[0];
+        }
+
+        const currentOrderIndex = WIZARD_STEP_ORDER.indexOf(currentStepId as OnboardingWizardStepId);
+        if (currentOrderIndex < 0) {
+            return visibleStepIds[0];
+        }
+
+        for (let index = currentOrderIndex + 1; index < WIZARD_STEP_ORDER.length; index += 1) {
+            const nextStepId = WIZARD_STEP_ORDER[index];
+            if (nextStepId && visibleStepIds.includes(nextStepId)) {
+                return nextStepId;
+            }
+        }
+
+        for (let index = currentOrderIndex - 1; index >= 0; index -= 1) {
+            const previousStepId = WIZARD_STEP_ORDER[index];
+            if (previousStepId && visibleStepIds.includes(previousStepId)) {
+                return previousStepId;
+            }
+        }
+
+        return visibleStepIds[0];
+    }
+
+    private buildWizardState(
+        state: {
+            navigation?: { currentStepId?: OnboardingStepId };
+            internalBootState?: { applyAttempted?: boolean; applySucceeded?: boolean };
+        },
+        onboardingState: OnboardingState,
+        draft: OnboardingDraft
+    ): OnboardingWizard {
+        const visibleStepIds = this.getVisibleWizardStepIds(onboardingState, draft);
+        const navigation = state.navigation ?? {};
+        const internalBootState = state.internalBootState ?? {};
+
+        return {
+            currentStepId: this.resolveCurrentStepId(navigation.currentStepId, visibleStepIds),
+            visibleStepIds,
+            draft,
+            internalBootState: {
+                applyAttempted: internalBootState.applyAttempted ?? false,
+                applySucceeded: internalBootState.applySucceeded ?? false,
+            },
+        };
+    }
+
+    // Activation can complete outside onboarding via the Account app callback. Once activation
+    // was part of this onboarding session, keep the step visible until the draft is cleared.
+    private async getWizardDraft(
+        state: { completed?: boolean; draft?: OnboardingDraft },
+        onboardingState: OnboardingState
+    ): Promise<OnboardingDraft> {
+        const draft = state.draft ?? {};
+        if (state.completed || !onboardingState.activationRequired || draft.activationStepIncluded) {
+            return draft;
+        }
+
+        await this.onboardingTracker.saveDraft({
+            draft: {
+                activationStepIncluded: true,
+            },
+        });
+
+        return {
+            ...draft,
+            activationStepIncluded: true,
+        };
+    }
+
     public async getOnboardingResponse(options?: {
         includeActivationCode?: boolean;
     }): Promise<Onboarding> {
@@ -356,6 +483,7 @@ export class OnboardingService implements OnModuleInit {
         const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
         const partnerInfo = await this.getPublicPartnerInfo();
         const onboardingState = await this.getOnboardingState();
+        const wizardDraft = await this.getWizardDraft(state, onboardingState);
         const versionDirection = getOnboardingVersionDirection(state.completedAtVersion, currentVersion);
         const isForceOpen = state.forceOpen ?? false;
         const isBypassed = this.onboardingTracker.isBypassed();
@@ -383,6 +511,7 @@ export class OnboardingService implements OnModuleInit {
             activationCode,
             shouldOpen: !isBypassed && (isForceOpen || shouldAutoOpen),
             onboardingState,
+            wizard: this.buildWizardState(state, onboardingState, wizardDraft),
         };
     }
 
@@ -399,31 +528,29 @@ export class OnboardingService implements OnModuleInit {
         await this.onboardingTracker.setForceOpen(true);
     }
 
-    public async closeOnboarding(): Promise<void> {
-        const trackerStateResult = await this.onboardingTracker.getStateResult();
-        if (trackerStateResult.kind === 'error') {
-            throw trackerStateResult.error;
-        }
-
-        const state = trackerStateResult.state;
-        const currentVersion = this.onboardingTracker.getCurrentVersion();
-        const shouldAutoOpen = this.isVersionSupported(currentVersion) && !state.completed;
-
-        if (state.forceOpen) {
-            await this.onboardingTracker.setForceOpen(false);
-        }
-
-        if (shouldAutoOpen) {
-            await this.onboardingTracker.markCompleted();
-        }
-    }
-
     public async bypassOnboarding(): Promise<void> {
         this.onboardingTracker.setBypassActive(true);
     }
 
     public async resumeOnboarding(): Promise<void> {
         this.onboardingTracker.setBypassActive(false);
+    }
+
+    public async saveOnboardingDraft(input: SaveOnboardingDraftInput): Promise<void> {
+        await this.onboardingTracker.saveDraft({
+            draft: input.draft,
+            navigation: input.navigation
+                ? {
+                      currentStepId: input.navigation.currentStepId,
+                  }
+                : undefined,
+            internalBootState: input.internalBootState
+                ? {
+                      applyAttempted: input.internalBootState.applyAttempted,
+                      applySucceeded: input.internalBootState.applySucceeded,
+                  }
+                : undefined,
+        });
     }
 
     public isFreshInstall(): boolean {

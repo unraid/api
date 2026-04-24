@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { flushPromises, mount } from '@vue/test-utils';
 
 import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
@@ -12,7 +13,7 @@ import { createTestI18n } from '../../utils/i18n';
 type MockInternalBootSelection = {
   poolName: string;
   slotCount: number;
-  devices: string[];
+  devices: Array<{ id: string; sizeBytes: number; deviceName: string }>;
   bootSizeMiB: number;
   updateBios: boolean;
   poolMode: 'dedicated' | 'hybrid';
@@ -72,6 +73,10 @@ vi.mock('@unraid/ui', () => ({
     props: ['items', 'type', 'collapsible', 'class'],
     template: `<div data-testid="accordion"><template v-for="item in items" :key="item.value"><slot name="trigger" :item="item" :open="false" /><slot name="content" :item="item" :open="false" /></template></div>`,
   },
+  Spinner: {
+    name: 'Spinner',
+    template: '<div data-testid="loading-spinner" />',
+  },
 }));
 
 vi.mock('@vue/apollo-composable', () => ({
@@ -98,10 +103,6 @@ useMutationMock.mockImplementation((document: unknown) => {
   };
 });
 
-vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: () => draftStore,
-}));
-
 const gib = (value: number) => value * 1024 * 1024 * 1024;
 
 const buildContext = (
@@ -123,7 +124,13 @@ const buildContext = (
 const mountComponent = () =>
   mount(OnboardingInternalBootStep, {
     props: {
+      initialDraft: {
+        bootMode: draftStore.bootMode,
+        skipped: draftStore.bootMode !== 'storage',
+        selection: draftStore.internalBootSelection,
+      },
       onComplete: vi.fn(),
+      onCloseOnboarding: vi.fn(),
       showBack: true,
     },
     global: {
@@ -201,6 +208,78 @@ describe('OnboardingInternalBootStep', () => {
     contextLoading.value = false;
     contextError.value = null;
     contextResult.value = null;
+  });
+
+  it('blocks the step behind a loading gate until the internal boot query is ready', async () => {
+    draftStore.bootMode = 'storage';
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(false);
+  });
+
+  it('shows retry and close actions when the internal boot query fails', async () => {
+    draftStore.bootMode = 'storage';
+    contextError.value = new Error('offline');
+    const onCloseOnboarding = vi.fn();
+
+    const wrapper = mount(OnboardingInternalBootStep, {
+      props: {
+        initialDraft: {
+          bootMode: draftStore.bootMode,
+          skipped: false,
+          selection: draftStore.internalBootSelection,
+        },
+        onComplete: vi.fn(),
+        onCloseOnboarding,
+        showBack: true,
+      },
+      global: {
+        plugins: [createTestI18n()],
+        stubs: {
+          UButton: {
+            props: ['disabled'],
+            emits: ['click'],
+            template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
+          },
+          UAlert: {
+            inheritAttrs: true,
+            props: ['title', 'description'],
+            template:
+              '<div v-bind="$attrs"><slot name="title" />{{ title }}<slot name="description" />{{ description }}<slot /></div>',
+          },
+          UCheckbox: {
+            props: ['modelValue', 'disabled'],
+            emits: ['update:modelValue'],
+            template:
+              '<input type="checkbox" :checked="modelValue" :disabled="disabled" @change="$emit(\'update:modelValue\', $event.target.checked)" />',
+          },
+          UInput: {
+            props: ['modelValue', 'type', 'disabled', 'maxlength', 'min', 'max'],
+            emits: ['update:modelValue'],
+            template:
+              '<input :type="type || \'text\'" :disabled="disabled" :maxlength="maxlength" :min="min" :max="max" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+          },
+          USelectMenu: {
+            props: ['modelValue', 'items', 'disabled', 'placeholder'],
+            emits: ['update:modelValue'],
+            template:
+              '<select data-testid="select" :disabled="disabled" :value="modelValue ?? \'\'" @change="$emit(\'update:modelValue\', $event.target.value)"><option v-if="placeholder" value="">{{ placeholder }}</option><option v-for="item in items" :key="item.value" :value="item.value" :disabled="item.disabled">{{ item.label }}</option></select>',
+          },
+        },
+      },
+    });
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-step-query-error"]').exists()).toBe(true);
+
+    await wrapper.get('[data-testid="onboarding-step-query-retry"]').trigger('click');
+    await wrapper.get('[data-testid="onboarding-step-query-close"]').trigger('click');
+
+    expect(refetchContextMock).toHaveBeenCalledTimes(1);
+    expect(onCloseOnboarding).toHaveBeenCalledTimes(1);
   });
 
   it('renders all available server and disk eligibility codes when storage boot is blocked', async () => {
@@ -483,6 +562,28 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
   });
 
+  it('defaults storage boot to hybrid mode', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = buildContext({
+      assignableDisks: [
+        {
+          id: 'ELIGIBLE-1',
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'ELIGIBLE-1',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+      ],
+    });
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    const vm = wrapper.vm as unknown as InternalBootVm;
+    expect(vm.poolMode).toBe('hybrid');
+    expect(wrapper.get('input[type="text"]').element).toHaveProperty('value', 'cache');
+  });
+
   it('allows 6 GiB devices in dedicated mode but not hybrid mode', async () => {
     draftStore.bootMode = 'storage';
     contextResult.value = buildContext({
@@ -508,7 +609,14 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     const vm = wrapper.vm as unknown as InternalBootVm;
-    expect(vm.poolMode).toBe('dedicated');
+    expect(vm.poolMode).toBe('hybrid');
+    expect(vm.getDeviceSelectItems(0)).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-6GIB' })])
+    );
+
+    vm.poolMode = 'dedicated';
+    await nextTick();
+
     expect(vm.getDeviceSelectItems(0)).toEqual(
       expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-6GIB' })])
     );
@@ -516,7 +624,7 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     vm.poolMode = 'hybrid';
-    await flushPromises();
+    await nextTick();
 
     expect(vm.getDeviceSelectItems(0)).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ value: 'DEDICATED-6GIB' })])

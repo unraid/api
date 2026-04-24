@@ -15,7 +15,10 @@ import {
     Min,
     ValidateNested,
 } from 'class-validator';
+import { GraphQLJSON } from 'graphql-scalars';
 
+import type { OnboardingDraft } from '@app/unraid-api/config/onboarding-tracker.model.js';
+import { OnboardingWizardStepId } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
@@ -284,6 +287,46 @@ export class OnboardingOverrideInput {
     @IsOptional()
     @IsEnum(RegistrationState)
     registrationState?: RegistrationState;
+}
+
+@InputType()
+export class OnboardingWizardNavigationInput {
+    @Field(() => OnboardingWizardStepId, { nullable: true })
+    @IsOptional()
+    @IsEnum(OnboardingWizardStepId)
+    currentStepId?: OnboardingWizardStepId;
+}
+
+@InputType()
+export class OnboardingWizardInternalBootStateInput {
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    applyAttempted?: boolean;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    applySucceeded?: boolean;
+}
+
+@InputType()
+export class SaveOnboardingDraftInput {
+    @Field(() => GraphQLJSON, { nullable: true })
+    @IsOptional()
+    draft?: OnboardingDraft;
+
+    @Field(() => OnboardingWizardNavigationInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => OnboardingWizardNavigationInput)
+    navigation?: OnboardingWizardNavigationInput;
+
+    @Field(() => OnboardingWizardInternalBootStateInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => OnboardingWizardInternalBootStateInput)
+    internalBootState?: OnboardingWizardInternalBootStateInput;
 }
 
 @InputType({

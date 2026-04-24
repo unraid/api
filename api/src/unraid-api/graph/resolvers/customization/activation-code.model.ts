@@ -2,7 +2,9 @@ import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsOptional, IsString, IsUrl, ValidateNested } from 'class-validator';
+import { GraphQLJSON } from 'graphql-scalars';
 
+import type { OnboardingDraft } from '@app/unraid-api/config/onboarding-tracker.model.js';
 import { Language } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
@@ -371,6 +373,65 @@ registerEnumType(OnboardingStatus, {
     description: 'The current onboarding status based on completion state and version relationship',
 });
 
+export enum OnboardingWizardStepId {
+    OVERVIEW = 'OVERVIEW',
+    CONFIGURE_SETTINGS = 'CONFIGURE_SETTINGS',
+    CONFIGURE_BOOT = 'CONFIGURE_BOOT',
+    ADD_PLUGINS = 'ADD_PLUGINS',
+    ACTIVATE_LICENSE = 'ACTIVATE_LICENSE',
+    SUMMARY = 'SUMMARY',
+    NEXT_STEPS = 'NEXT_STEPS',
+}
+
+registerEnumType(OnboardingWizardStepId, {
+    name: 'OnboardingWizardStepId',
+    description: 'Server-provided onboarding wizard step identifiers',
+});
+
+export enum OnboardingWizardBootMode {
+    USB = 'usb',
+    STORAGE = 'storage',
+}
+
+registerEnumType(OnboardingWizardBootMode, {
+    name: 'OnboardingWizardBootMode',
+    description: 'Boot mode selected during onboarding',
+});
+
+export enum OnboardingWizardPoolMode {
+    DEDICATED = 'dedicated',
+    HYBRID = 'hybrid',
+}
+
+registerEnumType(OnboardingWizardPoolMode, {
+    name: 'OnboardingWizardPoolMode',
+    description: 'Pool mode selected for onboarding internal boot setup',
+});
+
+@ObjectType()
+export class OnboardingWizardInternalBootState {
+    @Field(() => Boolean)
+    applyAttempted!: boolean;
+
+    @Field(() => Boolean)
+    applySucceeded!: boolean;
+}
+
+@ObjectType()
+export class OnboardingWizard {
+    @Field(() => OnboardingWizardStepId, { nullable: true })
+    currentStepId?: OnboardingWizardStepId;
+
+    @Field(() => [OnboardingWizardStepId])
+    visibleStepIds!: OnboardingWizardStepId[];
+
+    @Field(() => GraphQLJSON)
+    draft!: OnboardingDraft;
+
+    @Field(() => OnboardingWizardInternalBootState)
+    internalBootState!: OnboardingWizardInternalBootState;
+}
+
 @ObjectType({
     description: 'Onboarding completion state and context',
 })
@@ -411,6 +472,11 @@ export class Onboarding {
         description: 'Runtime onboarding state values used by the onboarding flow',
     })
     onboardingState!: OnboardingState;
+
+    @Field(() => OnboardingWizard, {
+        description: 'Server-owned onboarding wizard state used by the web onboarding modal',
+    })
+    wizard!: OnboardingWizard;
 }
 
 @ObjectType()

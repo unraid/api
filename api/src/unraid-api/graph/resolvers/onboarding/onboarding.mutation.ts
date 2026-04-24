@@ -14,6 +14,7 @@ import {
     OnboardingInternalBootContext,
     OnboardingInternalBootResult,
     OnboardingOverrideInput,
+    SaveOnboardingDraftInput,
 } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 
 @Resolver(() => OnboardingMutations)
@@ -57,18 +58,6 @@ export class OnboardingMutationsResolver {
     })
     async openOnboarding(): Promise<Onboarding> {
         await this.onboardingService.openOnboarding();
-        return this.onboardingService.getOnboardingResponse();
-    }
-
-    @ResolveField(() => Onboarding, {
-        description: 'Close the onboarding modal',
-    })
-    @UsePermissions({
-        action: AuthAction.UPDATE_ANY,
-        resource: Resource.WELCOME,
-    })
-    async closeOnboarding(): Promise<Onboarding> {
-        await this.onboardingService.closeOnboarding();
         return this.onboardingService.getOnboardingResponse();
     }
 
@@ -126,6 +115,18 @@ export class OnboardingMutationsResolver {
         this.onboardingOverrides.clearState();
         this.onboardingService.clearActivationDataCache();
         return this.onboardingService.getOnboardingResponse();
+    }
+
+    @ResolveField(() => Boolean, {
+        description: 'Persist server-owned onboarding wizard draft state',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.WELCOME,
+    })
+    async saveOnboardingDraft(@Args('input') input: SaveOnboardingDraftInput): Promise<boolean> {
+        await this.onboardingService.saveOnboardingDraft(input);
+        return true;
     }
 
     @ResolveField(() => OnboardingInternalBootResult, {

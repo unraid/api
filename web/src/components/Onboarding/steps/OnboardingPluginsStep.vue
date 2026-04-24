@@ -7,21 +7,26 @@ import { ChevronLeftIcon, Squares2X2Icon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
+import OnboardingStepBlockingState from '@/components/Onboarding/components/OnboardingStepBlockingState.vue';
+import { useOnboardingStepQueryState } from '@/components/Onboarding/composables/useOnboardingStepQueryState';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
-import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
+
+import type { OnboardingPluginsDraft } from '@/components/Onboarding/onboardingWizardState';
 
 export interface Props {
-  onComplete: () => void;
-  onSkip?: () => void;
-  onBack?: () => void;
+  initialDraft?: OnboardingPluginsDraft | null;
+  onComplete: (draft: OnboardingPluginsDraft) => void | Promise<void>;
+  onSkip?: (draft: OnboardingPluginsDraft) => void | Promise<void>;
+  onBack?: (draft: OnboardingPluginsDraft) => void | Promise<void>;
+  onCloseOnboarding?: () => void | Promise<void>;
   showSkip?: boolean;
   showBack?: boolean;
   isSavingStep?: boolean;
+  saveError?: string | null;
 }
 
 const props = defineProps<Props>();
 const { t } = useI18n();
-const draftStore = useOnboardingDraftStore();
 
 const normalizePluginFileName = (value: string) => value.trim().toLowerCase();
 
@@ -68,35 +73,50 @@ const getPluginInstallDetectionFileNames = (plugin: { id: string; url: string })
 };
 
 const defaultSelectedPluginIds = new Set<string>(['community-apps']);
+const buildSelectedPluginsFromDraft = (draft?: OnboardingPluginsDraft | null) => {
+  if (!draft || draft.selectedIds === undefined) {
+    return new Set(defaultSelectedPluginIds);
+  }
 
-// Respect persisted draft selections after first interaction with this step.
-// On first visit, keep Community Apps selected and leave the rest optional.
-const initialSelection = draftStore.pluginSelectionInitialized
-  ? new Set(draftStore.selectedPlugins)
-  : defaultSelectedPluginIds;
+  return new Set(draft.selectedIds);
+};
 
-const selectedPlugins = ref<Set<string>>(initialSelection);
+const selectedPlugins = ref<Set<string>>(buildSelectedPluginsFromDraft(props.initialDraft));
 const installedPluginIds = ref<Set<string>>(new Set());
 
-const { result: installedPluginsResult, loading: installedPluginsLoading } = useQuery(
-  INSTALLED_UNRAID_PLUGINS_QUERY,
-  null,
-  {
-    fetchPolicy: 'network-only',
-  }
-);
+const {
+  result: installedPluginsResult,
+  loading: installedPluginsLoading,
+  error: installedPluginsError,
+  refetch: refetchInstalledPlugins,
+} = useQuery(INSTALLED_UNRAID_PLUGINS_QUERY, null, {
+  fetchPolicy: 'network-only',
+});
 
 const isPluginInstalled = (pluginId: string) => installedPluginIds.value.has(pluginId);
 const isPluginEnabled = (pluginId: string) =>
   installedPluginIds.value.has(pluginId) || selectedPlugins.value.has(pluginId);
-const isInstalledPluginsPending = computed(
-  () =>
-    installedPluginsLoading.value && !Array.isArray(installedPluginsResult.value?.installedUnraidPlugins)
+const hasLoadedInstalledPlugins = computed(() =>
+  Array.isArray(installedPluginsResult.value?.installedUnraidPlugins)
 );
-const isBusy = computed(() => Boolean(props.isSavingStep) || isInstalledPluginsPending.value);
+const {
+  isStepQueryLoading,
+  retryQueries: handleRetryInstalledPlugins,
+  stepQueryError,
+} = useOnboardingStepQueryState({
+  errors: [installedPluginsError],
+  loadings: [installedPluginsLoading],
+  ready: hasLoadedInstalledPlugins,
+  retry: () => refetchInstalledPlugins(),
+});
+const isBusy = computed(() => Boolean(props.isSavingStep));
+const saveTransitionError = computed(() => props.saveError ?? null);
 const persistedSelectedPlugins = computed(
   () => new Set<string>([...selectedPlugins.value, ...installedPluginIds.value])
 );
+const buildDraftSnapshot = (): OnboardingPluginsDraft => ({
+  selectedIds: Array.from(persistedSelectedPlugins.value),
+});
 
 const applyInstalledPlugins = (installedPlugins: string[] | null | undefined) => {
   if (!Array.isArray(installedPlugins)) {
@@ -130,6 +150,13 @@ watch(
   { immediate: true }
 );
 
+watch(
+  () => props.initialDraft,
+  (draft) => {
+    selectedPlugins.value = buildSelectedPluginsFromDraft(draft);
+  }
+);
+
 const togglePlugin = (pluginId: string, value: boolean) => {
   if (installedPluginIds.value.has(pluginId) || isBusy.value) {
     return;
@@ -144,22 +171,23 @@ const togglePlugin = (pluginId: string, value: boolean) => {
   selectedPlugins.value = next;
 };
 
-const handleSkip = () => {
-  draftStore.setPlugins(new Set(installedPluginIds.value));
+const handleSkip = async () => {
+  const draft: OnboardingPluginsDraft = {
+    selectedIds: Array.from(installedPluginIds.value),
+  };
   if (props.onSkip) {
-    props.onSkip();
+    await props.onSkip(draft);
   } else {
-    props.onComplete();
+    await props.onComplete(draft);
   }
 };
 
-const handleBack = () => {
-  props.onBack?.();
+const handleBack = async () => {
+  await props.onBack?.(buildDraftSnapshot());
 };
 
 const handlePrimaryAction = async () => {
-  draftStore.setPlugins(persistedSelectedPlugins.value);
-  props.onComplete();
+  await props.onComplete(buildDraftSnapshot());
 };
 
 const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
@@ -167,7 +195,13 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
 
 <template>
   <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
-    <div class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
+    <OnboardingLoadingState
+      v-if="props.isSavingStep"
+      :title="t('onboarding.loading.title')"
+      :description="t('onboarding.loading.description')"
+    />
+
+    <div v-else class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
       <!-- Header -->
       <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div class="space-y-2">
@@ -197,72 +231,95 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
         :description="t('onboarding.pluginsStep.tip')"
       />
 
-      <!-- Plugin List -->
-      <div class="mb-8">
-        <OnboardingLoadingState
-          v-if="isInstalledPluginsPending"
-          compact
-          :title="t('onboarding.loading.title')"
-          :description="t('onboarding.pluginsStep.loading.description')"
-        />
-        <div v-else class="grid gap-4">
-          <div
-            v-for="plugin in availablePlugins"
-            :key="plugin.id"
-            class="border-muted bg-bg hover:border-primary/50 flex items-center justify-between rounded-lg border p-5 transition-colors"
-          >
-            <div class="flex-1 pr-4">
-              <h3 class="text-highlighted mb-1 text-base font-bold">
-                {{ plugin.name }}
-              </h3>
-              <p class="text-muted text-sm leading-relaxed">
-                {{ plugin.description }}
-              </p>
-            </div>
+      <OnboardingStepBlockingState
+        v-if="saveTransitionError"
+        :title="saveTransitionError"
+        :description="t('onboarding.stepSaveFailure.description')"
+        :secondary-action-text="t('onboarding.modal.exit.confirm')"
+        :on-secondary-action="props.onCloseOnboarding"
+      />
 
-            <USwitch
-              :model-value="isPluginEnabled(plugin.id)"
-              @update:model-value="(val: boolean) => togglePlugin(plugin.id, val)"
-              :disabled="isBusy || isPluginInstalled(plugin.id)"
-              :aria-label="t('onboarding.pluginsStep.enablePluginAria', { name: plugin.name })"
+      <OnboardingLoadingState
+        v-else-if="isStepQueryLoading"
+        :title="t('onboarding.loading.title')"
+        :description="t('onboarding.pluginsStep.loading.description')"
+      />
+
+      <OnboardingStepBlockingState
+        v-else-if="stepQueryError"
+        root-test-id="onboarding-step-query-error"
+        :title="t('onboarding.stepQueryGate.errorTitle')"
+        :description="t('onboarding.stepQueryGate.errorDescription')"
+        :primary-action-text="t('common.retry')"
+        primary-test-id="onboarding-step-query-retry"
+        :secondary-action-text="t('onboarding.modal.exit.confirm')"
+        secondary-test-id="onboarding-step-query-close"
+        :on-primary-action="handleRetryInstalledPlugins"
+        :on-secondary-action="props.onCloseOnboarding"
+      />
+
+      <template v-else>
+        <!-- Plugin List -->
+        <div class="mb-8">
+          <div class="grid gap-4">
+            <div
+              v-for="plugin in availablePlugins"
+              :key="plugin.id"
+              class="border-muted bg-bg hover:border-primary/50 flex items-center justify-between rounded-lg border p-5 transition-colors"
+            >
+              <div class="flex-1 pr-4">
+                <h3 class="text-highlighted mb-1 text-base font-bold">
+                  {{ plugin.name }}
+                </h3>
+                <p class="text-muted text-sm leading-relaxed">
+                  {{ plugin.description }}
+                </p>
+              </div>
+
+              <USwitch
+                :model-value="isPluginEnabled(plugin.id)"
+                @update:model-value="(val: boolean) => togglePlugin(plugin.id, val)"
+                :disabled="isBusy || isPluginInstalled(plugin.id)"
+                :aria-label="t('onboarding.pluginsStep.enablePluginAria', { name: plugin.name })"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="border-muted flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
+        >
+          <button
+            v-if="showBack"
+            @click="handleBack"
+            class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
+            :disabled="isBusy"
+          >
+            <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+            {{ t('common.back') }}
+          </button>
+          <div v-else class="hidden w-1 sm:block" />
+
+          <div class="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row">
+            <button
+              v-if="showSkip"
+              @click="handleSkip"
+              class="text-muted hover:text-highlighted text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:mr-2"
+              :disabled="isBusy"
+            >
+              {{ t('common.skipForNow', 'Skip for now') }}
+            </button>
+            <BrandButton
+              :text="primaryButtonText"
+              class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
+              :disabled="isBusy"
+              :loading="isBusy"
+              @click="handlePrimaryAction"
+              :icon-right="ChevronRightIcon"
             />
           </div>
         </div>
-      </div>
-
-      <div
-        class="border-muted flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
-      >
-        <button
-          v-if="showBack"
-          @click="handleBack"
-          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
-          :disabled="isBusy"
-        >
-          <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
-          {{ t('common.back') }}
-        </button>
-        <div v-else class="hidden w-1 sm:block" />
-
-        <div class="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row">
-          <button
-            v-if="showSkip"
-            @click="handleSkip"
-            class="text-muted hover:text-highlighted text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:mr-2"
-            :disabled="isBusy"
-          >
-            {{ t('common.skipForNow', 'Skip for now') }}
-          </button>
-          <BrandButton
-            :text="primaryButtonText"
-            class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
-            :disabled="isBusy"
-            :loading="isBusy"
-            @click="handlePrimaryAction"
-            :icon-right="ChevronRightIcon"
-          />
-        </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
