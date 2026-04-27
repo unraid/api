@@ -668,7 +668,7 @@
   "notifications.sidebar.confirmDeleteAll.description": "Ezzel véglegesen törli az összes, jelenleg archivált értesítést az Unraid-kiszolgálóján. A művelet nem visszavonható.",
   "notifications.sidebar.confirmDeleteAll.title": "Összes archivált értesítés törlése",
   "notifications.sidebar.deleteAllAction": "Mind törlése",
-  "notifications.sidebar.editSettingsTooltip": "Értesítési beállítások szerkesztése",
+  "notifications.sidebar.editSettingsTooltip": "Értesítési beállítások módosítása",
   "notifications.sidebar.filters.alert": "Riasztás",
   "notifications.sidebar.filters.all": "Mind",
   "notifications.sidebar.filters.info": "Info",
