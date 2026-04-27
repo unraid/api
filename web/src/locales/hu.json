@@ -316,7 +316,7 @@
   "onboarding.summaryStep.logs.internalBootStillRunning": "Még zajlik a belső rendszerindítás beállítása...",
   "onboarding.summaryStep.logs.internalBootConfigured": "Belső rendszerindító tároló beállítva.",
   "onboarding.summaryStep.logs.internalBootReturnedError": "Hiba történt a belső rendszerindítás beállításakor: {output}",
-  "onboarding.summaryStep.logs.internalBootFailed": "A belső rendszerendítás beállítása meghiúsult",
+  "onboarding.summaryStep.logs.internalBootFailed": "A belső rendszerindítás beállítása meghiúsult",
   "onboarding.summaryStep.logs.internalBootBiosUnverified": "Nem sikerült ellenőrizni a BIOS rendszerindítási sorrendjének módosítását. Előfordulhat, hogy manuálisan kell megváltoztatnia a BIOS-beállításokat.",
   "onboarding.summaryStep.logs.updatingSshSettings": "SSH-beállítások frissítése...",
   "onboarding.summaryStep.logs.sshVerified": "SSH-beállítások ellenőrizve.",
