@@ -144,6 +144,21 @@ const mountComponent = (props: Record<string, unknown> = {}) => {
     global: {
       plugins: [createTestI18n()],
       stubs: {
+        UInput: {
+          props: ['modelValue', 'placeholder', 'disabled', 'maxlength', 'tabindex'],
+          emits: ['update:modelValue'],
+          template: `
+            <input
+              type="text"
+              :value="modelValue"
+              :placeholder="placeholder"
+              :disabled="disabled"
+              :maxlength="maxlength"
+              :tabindex="tabindex"
+              @input="$emit('update:modelValue', $event.target.value)"
+            />
+          `,
+        },
         USelectMenu: {
           props: ['modelValue', 'items', 'disabled'],
           emits: ['update:modelValue'],
@@ -197,6 +212,17 @@ describe('OnboardingCoreSettingsStep', () => {
 
     languagesLoading.value = false;
     languagesError.value = null;
+  });
+
+  it('keeps valid server name controls hidden', async () => {
+    const { wrapper } = mountComponent();
+    await flushPromises();
+
+    const serverNameLabel = wrapper.findAll('label').find((label) => label.text() === 'Server Name');
+    const serverNameControl = serverNameLabel?.element.parentElement;
+    expect(serverNameControl?.classList.contains('hidden')).toBe(true);
+    expect(serverNameControl?.getAttribute('aria-hidden')).toBe('true');
+    expect(wrapper.find('input[placeholder="Tower"]').attributes('tabindex')).toBe('-1');
   });
 
   it('prefers browser timezone over API on initial setup when draft timezone is empty', async () => {
@@ -593,7 +619,7 @@ describe('OnboardingCoreSettingsStep', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('blocks submission with invalid server name', async () => {
+  it('does not block submission with invalid hidden server name', async () => {
     const { wrapper, onComplete } = mountComponent();
     await flushPromises();
 
@@ -612,8 +638,15 @@ describe('OnboardingCoreSettingsStep', () => {
     await submitButton.trigger('click');
     await flushPromises();
 
-    expect(setCoreSettingsMock).not.toHaveBeenCalled();
-    expect(onComplete).not.toHaveBeenCalled();
+    expect(setCoreSettingsMock).toHaveBeenCalledWith({
+      serverName: 'bad name!',
+      serverDescription: '',
+      timeZone: 'UTC',
+      theme: 'white',
+      language: 'en_US',
+      useSsh: false,
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
   it('blocks submission with too-long server description', async () => {
@@ -768,7 +801,7 @@ describe('OnboardingCoreSettingsStep', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps initialized empty server name invalid even if baseline has a valid name', async () => {
+  it('uses baseline server name when initialized draft server name is empty', async () => {
     draftStore.coreSettingsInitialized = true;
     draftStore.serverName = '';
     draftStore.serverDescription = '';
@@ -795,7 +828,14 @@ describe('OnboardingCoreSettingsStep', () => {
     await submitButton.trigger('click');
     await flushPromises();
 
-    expect(setCoreSettingsMock).not.toHaveBeenCalled();
-    expect(onComplete).not.toHaveBeenCalled();
+    expect(setCoreSettingsMock).toHaveBeenCalledWith({
+      serverName: 'TowerBaseline',
+      serverDescription: '',
+      timeZone: 'UTC',
+      theme: 'white',
+      language: 'en_US',
+      useSsh: false,
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
   });
 });

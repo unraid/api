@@ -479,6 +479,13 @@ describe('OnboardingSummaryStep', () => {
     refetchInstalledPluginsMock.mockResolvedValue(undefined);
   });
 
+  it('marks the server name hidden in the summary card', () => {
+    const { wrapper } = mountComponent();
+
+    const serverNameLabel = wrapper.findAll('span').find((span) => span.text() === 'Server Name');
+    expect(serverNameLabel?.element.parentElement?.classList.contains('hidden')).toBe(true);
+  });
+
   it.each([
     {
       caseName: 'skips install when plugin is already present',
