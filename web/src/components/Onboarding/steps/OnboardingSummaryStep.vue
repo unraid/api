@@ -406,8 +406,10 @@ interface CoreSettingsSnapshot {
   useSsh: boolean;
 }
 
-const resolveTargetCoreSettings = (): CoreSettingsSnapshot => ({
-  serverName: draftStore.serverName || TRUSTED_DEFAULT_PROFILE.serverName,
+const resolveTargetCoreSettings = (
+  currentServerName = TRUSTED_DEFAULT_PROFILE.serverName
+): CoreSettingsSnapshot => ({
+  serverName: draftStore.serverName || currentServerName,
   serverDescription: draftStore.serverDescription || TRUSTED_DEFAULT_PROFILE.serverDescription,
   timeZone: draftStore.selectedTimeZone || TRUSTED_DEFAULT_PROFILE.timeZone,
   theme: normalizeThemeName(draftStore.selectedTheme || TRUSTED_DEFAULT_PROFILE.theme),
@@ -591,7 +593,6 @@ const handleComplete = async () => {
   try {
     const promises = [];
     const baselineLoaded = isApplyDataReady.value;
-    const targetCoreSettings = resolveTargetCoreSettings();
     let hadNonOptimisticFailures = false;
     let hadWarnings = !baselineLoaded;
     let hadSshVerificationUncertainty = false;
@@ -619,6 +620,8 @@ const handleComplete = async () => {
       ? Boolean(coreSettingsResult.value?.vars?.useSsh || false)
       : TRUSTED_DEFAULT_PROFILE.useSsh;
     const currentSysModel = baselineLoaded ? coreSettingsResult.value?.vars?.sysModel || '' : '';
+    const hasDraftServerName = draftStore.serverName.trim().length > 0;
+    const targetCoreSettings = resolveTargetCoreSettings(currentName);
     const serverNameChanged = baselineLoaded ? targetCoreSettings.serverName !== currentName : false;
     const shouldApplyPartnerSysModel = Boolean(
       isFreshInstall.value &&
@@ -639,7 +642,7 @@ const handleComplete = async () => {
       ? targetCoreSettings.serverName !== currentName ||
         targetCoreSettings.serverDescription !== currentDescription ||
         shouldApplyPartnerSysModel
-      : true;
+      : hasDraftServerName;
     const shouldApplyTheme = baselineLoaded ? targetCoreSettings.theme !== currentTheme : true;
     const shouldApplyLocale = baselineLoaded ? targetCoreSettings.locale !== currentLocale : true;
     const shouldApplySsh = baselineLoaded ? targetCoreSettings.useSsh !== currentSsh : true;

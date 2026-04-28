@@ -804,6 +804,22 @@ describe('OnboardingSummaryStep', () => {
     expect(updateSshSettingsMock).not.toHaveBeenCalled();
   });
 
+  it('keeps baseline server name when draft server name is empty', async () => {
+    coreSettingsResult.value = {
+      vars: { name: 'bad name!', useSsh: false, localTld: 'local' },
+      server: { name: 'bad name!', comment: '' },
+      display: { theme: 'white', locale: 'en_US' },
+      systemTime: { timeZone: 'UTC' },
+      info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
+    };
+    draftStore.serverName = '';
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(updateServerIdentityMock).not.toHaveBeenCalled();
+  });
+
   it.each([
     {
       caseName: 'server identity name only',
@@ -921,11 +937,11 @@ describe('OnboardingSummaryStep', () => {
     expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: true, port: 22 });
   });
 
-  it('applies trusted defaults when baseline query is down and draft values are empty', async () => {
+  it('skips server identity when baseline query is down and draft server name is empty', async () => {
     coreSettingsResult.value = null;
     coreSettingsError.value = new Error('Graphql is offline.');
     draftStore.serverName = '';
-    draftStore.serverDescription = '';
+    draftStore.serverDescription = 'Edge host';
     draftStore.selectedTimeZone = '';
     draftStore.selectedTheme = '';
     draftStore.selectedLanguage = '';
@@ -935,10 +951,7 @@ describe('OnboardingSummaryStep', () => {
     await clickApply(wrapper);
 
     expect(updateSystemTimeMock).toHaveBeenCalledWith({ input: { timeZone: 'UTC' } });
-    expect(updateServerIdentityMock).toHaveBeenCalledWith({
-      name: 'Tower',
-      comment: '',
-    });
+    expect(updateServerIdentityMock).not.toHaveBeenCalled();
     expect(setThemeMock).toHaveBeenCalledWith({ theme: 'white' });
     expect(setLocaleMock).toHaveBeenCalledWith({ locale: 'en_US' });
     expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: false, port: 22 });

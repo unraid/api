@@ -356,7 +356,7 @@ const languageItems = computed(() => {
 
 const isLanguageDisabled = computed(() => isLanguagesLoading.value || !!languagesQueryError.value);
 const handleSubmit = async () => {
-  if (serverNameValidation.value || serverDescriptionValidation.value) {
+  if (serverDescriptionValidation.value) {
     error.value = t('common.error');
     return;
   }
@@ -366,7 +366,7 @@ const handleSubmit = async () => {
 
   try {
     draftStore.setCoreSettings({
-      serverName: serverName.value,
+      serverName: '',
       serverDescription: serverDescription.value,
       timeZone: selectedTimeZone.value,
       theme: selectedTheme.value,
@@ -621,7 +621,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
         <BrandButton
           :text="t('onboarding.coreSettings.next')"
           class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
-          :disabled="isBusy || !!serverNameValidation || !!serverDescriptionValidation"
+          :disabled="isBusy || !!serverDescriptionValidation"
           :loading="isBusy"
           @click="handleSubmit"
           :icon-right="ChevronRightIcon"
