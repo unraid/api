@@ -391,7 +391,7 @@ describe('OnboardingCoreSettingsStep', () => {
 
     expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
     expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
-      serverName: '',
+      serverName: 'Server01',
       serverDescription: 'Primary storage node',
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
@@ -425,7 +425,7 @@ describe('OnboardingCoreSettingsStep', () => {
 
     expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
     expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
-      serverName: '',
+      serverName: 'Server01',
       serverDescription: '',
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
@@ -459,7 +459,7 @@ describe('OnboardingCoreSettingsStep', () => {
 
     expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
     expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
-      serverName: '',
+      serverName: 'TowerFromVars',
       serverDescription: 'Primary storage node',
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
@@ -494,7 +494,7 @@ describe('OnboardingCoreSettingsStep', () => {
 
     expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
     expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
-      serverName: '',
+      serverName: 'TowerFromServer',
       serverDescription: 'Comment from API',
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
@@ -528,7 +528,7 @@ describe('OnboardingCoreSettingsStep', () => {
 
     expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
     expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
-      serverName: '',
+      serverName: 'TowerFromServer',
       serverDescription: 'Partner-provided comment',
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
@@ -562,7 +562,7 @@ describe('OnboardingCoreSettingsStep', () => {
 
     expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
     expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
-      serverName: '',
+      serverName: 'TowerFromServer',
       serverDescription: 'Comment from API',
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
@@ -594,7 +594,7 @@ describe('OnboardingCoreSettingsStep', () => {
 
     expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
     expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
-      serverName: '',
+      serverName: 'TowerFromServer',
       serverDescription: 'Comment from API',
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
@@ -610,7 +610,7 @@ describe('OnboardingCoreSettingsStep', () => {
 
     expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
     const payload = setCoreSettingsMock.mock.calls[0][0];
-    expect(payload.serverName).toBe('');
+    expect(payload.serverName).toBe('Tower');
     expect(payload.serverDescription).toBe('');
     expect(payload.theme).toBe('white');
     expect(payload.language).toBe('en_US');
@@ -639,45 +639,7 @@ describe('OnboardingCoreSettingsStep', () => {
     await flushPromises();
 
     expect(setCoreSettingsMock).toHaveBeenCalledWith({
-      serverName: '',
-      serverDescription: '',
-      timeZone: 'UTC',
-      theme: 'white',
-      language: 'en_US',
-      useSsh: false,
-    });
-    expect(onComplete).toHaveBeenCalledTimes(1);
-  });
-
-  it('keeps invalid baseline server name hidden and out of draft settings', async () => {
-    const { wrapper, onComplete } = mountComponent();
-    await flushPromises();
-
-    const coreOnResult = coreOnResultHandlers[0];
-    coreOnResult({
-      data: {
-        server: { name: 'bad name!', comment: '' },
-        vars: { name: 'bad name!', useSsh: false, localTld: 'local' },
-        display: { theme: 'white', locale: 'en_US' },
-        systemTime: { timeZone: 'UTC' },
-      },
-    });
-    await flushPromises();
-
-    const serverNameInput = wrapper.find('input[placeholder="Tower"]');
-    const serverNameLabel = wrapper.findAll('label').find((label) => label.text() === 'Server Name');
-    const serverNameControl = serverNameLabel?.element.parentElement;
-
-    expect(serverNameControl?.classList.contains('hidden')).toBe(true);
-    expect(serverNameControl?.getAttribute('aria-hidden')).toBe('true');
-    expect(serverNameInput.attributes('tabindex')).toBe('-1');
-
-    const submitButton = wrapper.find('[data-testid="brand-button"]');
-    await submitButton.trigger('click');
-    await flushPromises();
-
-    expect(setCoreSettingsMock).toHaveBeenCalledWith({
-      serverName: '',
+      serverName: 'bad name!',
       serverDescription: '',
       timeZone: 'UTC',
       theme: 'white',
@@ -753,7 +715,7 @@ describe('OnboardingCoreSettingsStep', () => {
     await flushPromises();
 
     expect(setCoreSettingsMock).toHaveBeenCalledWith({
-      serverName: '',
+      serverName: 'Tower2',
       serverDescription: 'Primary host',
       timeZone: 'America/New_York',
       theme: 'black',
@@ -791,7 +753,7 @@ describe('OnboardingCoreSettingsStep', () => {
     await flushPromises();
 
     expect(setCoreSettingsMock).toHaveBeenCalledWith({
-      serverName: '',
+      serverName: 'Tower2',
       serverDescription: '',
       timeZone: 'UTC',
       theme: 'white',
@@ -829,7 +791,7 @@ describe('OnboardingCoreSettingsStep', () => {
     await flushPromises();
 
     expect(setCoreSettingsMock).toHaveBeenCalledWith({
-      serverName: '',
+      serverName: 'Tower2',
       serverDescription: '',
       timeZone: '',
       theme: '',
@@ -839,7 +801,7 @@ describe('OnboardingCoreSettingsStep', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('allows initialized empty server name when baseline has a valid name', async () => {
+  it('uses baseline server name when initialized draft server name is empty', async () => {
     draftStore.coreSettingsInitialized = true;
     draftStore.serverName = '';
     draftStore.serverDescription = '';
@@ -867,7 +829,7 @@ describe('OnboardingCoreSettingsStep', () => {
     await flushPromises();
 
     expect(setCoreSettingsMock).toHaveBeenCalledWith({
-      serverName: '',
+      serverName: 'TowerBaseline',
       serverDescription: '',
       timeZone: 'UTC',
       theme: 'white',

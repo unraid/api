@@ -355,6 +355,12 @@ const languageItems = computed(() => {
 });
 
 const isLanguageDisabled = computed(() => isLanguagesLoading.value || !!languagesQueryError.value);
+const resolveSubmittedServerName = () =>
+  serverName.value ||
+  coreSettingsResult.value?.server?.name?.trim() ||
+  coreSettingsResult.value?.vars?.name?.trim() ||
+  TRUSTED_DEFAULT_PROFILE.serverName;
+
 const handleSubmit = async () => {
   if (serverDescriptionValidation.value) {
     error.value = t('common.error');
@@ -366,7 +372,7 @@ const handleSubmit = async () => {
 
   try {
     draftStore.setCoreSettings({
-      serverName: '',
+      serverName: resolveSubmittedServerName(),
       serverDescription: serverDescription.value,
       timeZone: selectedTimeZone.value,
       theme: selectedTheme.value,
