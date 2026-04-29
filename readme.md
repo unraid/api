@@ -270,7 +270,7 @@ pnpm unraid:deploy SERVER_IP
 
 ## Usage
 
-See [How to Use the API](./api/docs/public/how-to-use-the-api.md).
+See [How to Use the API](https://github.com/unraid/docs).
 
 _For more examples, please refer to the [Documentation](https://docs.unraid.net/API/how-to-use-the-api/)_
 
