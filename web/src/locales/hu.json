@@ -653,7 +653,7 @@
   "notifications.importance.alert": "Riasztás",
   "notifications.importance.info": "Info",
   "notifications.importance.warning": "Figyelem",
-  "notifications.item.archive": "Archívum",
+  "notifications.item.archive": "Archiválás",
   "notifications.item.delete": "Törlés",
   "notifications.item.viewLink": "Megtekintés",
   "notifications.list.noNotifications": "Nincs megjeleníthető értesítés.",
