@@ -17,8 +17,15 @@ import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-trac
 import {
     ActivationCode,
     OnboardingStatus,
+    OnboardingWizardStepId,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
+
+const createBootDevice = (id: string, sizeBytes: number, deviceName: string) => ({
+    id,
+    sizeBytes,
+    deviceName,
+});
 
 vi.mock('@app/core/utils/files/file-exists.js');
 vi.mock('fs/promises', async () => {
@@ -134,6 +141,8 @@ const onboardingTrackerMock = {
             ) => Promise<{ completed: boolean; completedAtVersion?: string; forceOpen: boolean }>
         >(),
     setBypassActive: vi.fn<(active: boolean) => void>(),
+    clearWizardState: vi.fn(),
+    saveDraft: vi.fn(),
 };
 const onboardingOverridesMock = {
     getState: vi.fn(),
@@ -206,6 +215,12 @@ describe('OnboardingService', () => {
                 completed: false,
                 completedAtVersion: undefined,
                 forceOpen: false,
+                draft: {},
+                navigation: {},
+                internalBootState: {
+                    applyAttempted: false,
+                    applySucceeded: false,
+                },
             },
         });
         onboardingTrackerMock.getCurrentVersion.mockReset();
@@ -231,6 +246,18 @@ describe('OnboardingService', () => {
             forceOpen,
         }));
         onboardingTrackerMock.setBypassActive.mockReset();
+        onboardingTrackerMock.saveDraft.mockReset();
+        onboardingTrackerMock.saveDraft.mockResolvedValue({
+            completed: false,
+            completedAtVersion: undefined,
+            forceOpen: false,
+            draft: {},
+            navigation: {},
+            internalBootState: {
+                applyAttempted: false,
+                applySucceeded: false,
+            },
+        });
         onboardingOverridesMock.getState.mockReset();
         onboardingOverridesMock.getState.mockReturnValue(null);
         onboardingOverridesMock.setState.mockReset();
@@ -320,7 +347,7 @@ describe('OnboardingService', () => {
 
             await expect(
                 service.getOnboardingResponse({ includeActivationCode: true })
-            ).resolves.toEqual({
+            ).resolves.toMatchObject({
                 status: OnboardingStatus.COMPLETED,
                 isPartnerBuild: true,
                 completed: true,
@@ -333,6 +360,9 @@ describe('OnboardingService', () => {
                     isFreshInstall: false,
                     hasActivationCode: true,
                     activationRequired: false,
+                },
+                wizard: {
+                    currentStepId: OnboardingWizardStepId.OVERVIEW,
                 },
             });
         });
@@ -544,84 +574,17 @@ describe('OnboardingService', () => {
     });
 
     describe('visibility actions', () => {
+        it('marks onboarding complete through the tracker', async () => {
+            await service.markOnboardingCompleted();
+
+            expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
+        });
+
         it('delegates openOnboarding to the tracker', async () => {
             await service.openOnboarding();
 
             expect(onboardingTrackerMock.setBypassActive).toHaveBeenCalledWith(false);
             expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(true);
-        });
-
-        it('clears forced-open onboarding through the tracker', async () => {
-            onboardingTrackerMock.getStateResult.mockResolvedValue({
-                kind: 'ok',
-                state: {
-                    completed: true,
-                    completedAtVersion: '7.3.0',
-                    forceOpen: true,
-                },
-            });
-
-            await service.closeOnboarding();
-
-            expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(false);
-        });
-
-        it('marks incomplete onboarding complete when closed on supported versions', async () => {
-            onboardingTrackerMock.getStateResult.mockResolvedValue({
-                kind: 'ok',
-                state: {
-                    completed: false,
-                    completedAtVersion: undefined,
-                    forceOpen: false,
-                },
-            });
-            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
-            onboardingStateMock.isFreshInstall.mockReturnValue(true);
-
-            await service.closeOnboarding();
-
-            expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
-            expect(onboardingTrackerMock.setForceOpen).not.toHaveBeenCalled();
-        });
-
-        it('marks licensed incomplete onboarding complete when closed on supported versions', async () => {
-            onboardingTrackerMock.getStateResult.mockResolvedValue({
-                kind: 'ok',
-                state: {
-                    completed: false,
-                    completedAtVersion: undefined,
-                    forceOpen: false,
-                },
-            });
-            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
-            onboardingStateMock.getRegistrationState.mockReturnValue('PRO');
-            onboardingStateMock.isRegistered.mockReturnValue(true);
-            onboardingStateMock.hasActivationCode.mockResolvedValue(false);
-            onboardingStateMock.requiresActivationStep.mockReturnValue(false);
-            onboardingStateMock.isFreshInstall.mockReturnValue(false);
-
-            await service.closeOnboarding();
-
-            expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
-            expect(onboardingTrackerMock.setForceOpen).not.toHaveBeenCalled();
-        });
-
-        it('closes force-opened fresh incomplete onboarding in one action', async () => {
-            onboardingTrackerMock.getStateResult.mockResolvedValue({
-                kind: 'ok',
-                state: {
-                    completed: false,
-                    completedAtVersion: undefined,
-                    forceOpen: true,
-                },
-            });
-            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
-            onboardingStateMock.isFreshInstall.mockReturnValue(true);
-
-            await service.closeOnboarding();
-
-            expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(false);
-            expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
         });
 
         it('enables the in-memory bypass', async () => {
@@ -1843,6 +1806,226 @@ describe('OnboardingService - updateCfgFile', () => {
 
             setDisplay({ banner: 'image', showBannerGradient: 'no' });
             expect((await service.getTheme()).showBannerGradient).toBe(false);
+        });
+    });
+
+    describe('wizard state', () => {
+        const mockEmhttp = getters.emhttp as unknown as Mock;
+
+        it('returns live-computed visible steps and falls forward when the saved current step is hidden', async () => {
+            mockEmhttp.mockReturnValue({
+                var: {
+                    name: 'Tower',
+                    sysModel: 'Custom',
+                    comment: 'Default',
+                    enableBootTransfer: 'no',
+                },
+            });
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: false,
+                    draft: {
+                        plugins: {
+                            selectedIds: ['community.applications'],
+                        },
+                    },
+                    navigation: {
+                        currentStepId: 'CONFIGURE_BOOT',
+                    },
+                    internalBootState: {
+                        applyAttempted: true,
+                        applySucceeded: false,
+                    },
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            onboardingStateMock.getRegistrationState.mockReturnValue('PRO');
+            onboardingStateMock.isRegistered.mockReturnValue(true);
+            onboardingStateMock.isFreshInstall.mockReturnValue(true);
+            onboardingStateMock.hasActivationCode.mockResolvedValue(false);
+            onboardingStateMock.requiresActivationStep.mockReturnValue(false);
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            const response = await service.getOnboardingResponse();
+
+            expect(response.status).toBe(OnboardingStatus.INCOMPLETE);
+            expect(response.wizard.visibleStepIds).toEqual([
+                OnboardingWizardStepId.OVERVIEW,
+                OnboardingWizardStepId.CONFIGURE_SETTINGS,
+                OnboardingWizardStepId.ADD_PLUGINS,
+                OnboardingWizardStepId.SUMMARY,
+                OnboardingWizardStepId.NEXT_STEPS,
+            ]);
+            expect(response.wizard.currentStepId).toBe(OnboardingWizardStepId.ADD_PLUGINS);
+            expect(response.wizard.draft).toEqual({
+                plugins: {
+                    selectedIds: ['community.applications'],
+                },
+            });
+            expect(response.wizard.internalBootState).toEqual({
+                applyAttempted: true,
+                applySucceeded: false,
+            });
+        });
+
+        it('marks the activation step sticky when activation is required', async () => {
+            mockEmhttp.mockReturnValue({
+                var: {
+                    name: 'Tower',
+                    sysModel: 'Custom',
+                    comment: 'Default',
+                    enableBootTransfer: 'no',
+                },
+            });
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: false,
+                    draft: {
+                        plugins: {
+                            selectedIds: ['community.applications'],
+                        },
+                    },
+                    navigation: {
+                        currentStepId: 'ADD_PLUGINS',
+                    },
+                    internalBootState: {
+                        applyAttempted: false,
+                        applySucceeded: false,
+                    },
+                },
+            });
+            onboardingStateMock.getRegistrationState.mockReturnValue('ENOKEYFILE');
+            onboardingStateMock.hasActivationCode.mockResolvedValue(true);
+            onboardingStateMock.requiresActivationStep.mockReturnValue(true);
+            onboardingStateMock.isRegistered.mockReturnValue(false);
+            onboardingStateMock.isFreshInstall.mockReturnValue(true);
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            const response = await service.getOnboardingResponse();
+
+            expect(onboardingTrackerMock.saveDraft).toHaveBeenCalledWith({
+                draft: {
+                    activationStepIncluded: true,
+                },
+            });
+            expect(response.wizard.visibleStepIds).toContain(OnboardingWizardStepId.ACTIVATE_LICENSE);
+            expect(response.wizard.draft).toEqual({
+                activationStepIncluded: true,
+                plugins: {
+                    selectedIds: ['community.applications'],
+                },
+            });
+        });
+
+        it('keeps the activation step visible when the sticky draft flag is set', async () => {
+            mockEmhttp.mockReturnValue({
+                var: {
+                    name: 'Tower',
+                    sysModel: 'Custom',
+                    comment: 'Default',
+                    enableBootTransfer: 'no',
+                },
+            });
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: false,
+                    draft: {
+                        activationStepIncluded: true,
+                    },
+                    navigation: {
+                        currentStepId: 'ACTIVATE_LICENSE',
+                    },
+                    internalBootState: {
+                        applyAttempted: false,
+                        applySucceeded: false,
+                    },
+                },
+            });
+            onboardingStateMock.getRegistrationState.mockReturnValue('PRO');
+            onboardingStateMock.hasActivationCode.mockResolvedValue(false);
+            onboardingStateMock.requiresActivationStep.mockReturnValue(false);
+            onboardingStateMock.isRegistered.mockReturnValue(true);
+            onboardingStateMock.isFreshInstall.mockReturnValue(true);
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            const response = await service.getOnboardingResponse();
+
+            expect(onboardingTrackerMock.saveDraft).not.toHaveBeenCalled();
+            expect(response.wizard.visibleStepIds).toContain(OnboardingWizardStepId.ACTIVATE_LICENSE);
+            expect(response.wizard.currentStepId).toBe(OnboardingWizardStepId.ACTIVATE_LICENSE);
+        });
+
+        it('persists JSON-backed wizard draft input in tracker format', async () => {
+            await service.saveOnboardingDraft({
+                draft: {
+                    coreSettings: {
+                        serverName: 'Tower',
+                        timeZone: 'America/New_York',
+                    },
+                    internalBoot: {
+                        bootMode: 'storage',
+                        skipped: false,
+                        selection: {
+                            poolName: 'cache',
+                            slotCount: 2,
+                            devices: [
+                                createBootDevice('disk1', 500_000_000_000, 'sda'),
+                                createBootDevice('disk2', 250_000_000_000, 'sdb'),
+                            ],
+                            bootSizeMiB: 32768,
+                            updateBios: true,
+                            poolMode: 'hybrid',
+                        },
+                    },
+                },
+                navigation: {
+                    currentStepId: OnboardingWizardStepId.SUMMARY,
+                },
+                internalBootState: {
+                    applyAttempted: true,
+                    applySucceeded: true,
+                },
+            });
+
+            expect(onboardingTrackerMock.saveDraft).toHaveBeenCalledWith({
+                draft: {
+                    coreSettings: {
+                        serverName: 'Tower',
+                        timeZone: 'America/New_York',
+                    },
+                    internalBoot: {
+                        bootMode: 'storage',
+                        skipped: false,
+                        selection: {
+                            poolName: 'cache',
+                            slotCount: 2,
+                            devices: [
+                                createBootDevice('disk1', 500_000_000_000, 'sda'),
+                                createBootDevice('disk2', 250_000_000_000, 'sdb'),
+                            ],
+                            bootSizeMiB: 32768,
+                            updateBios: true,
+                            poolMode: 'hybrid',
+                        },
+                    },
+                },
+                navigation: {
+                    currentStepId: OnboardingWizardStepId.SUMMARY,
+                },
+                internalBootState: {
+                    applyAttempted: true,
+                    applySucceeded: true,
+                },
+            });
         });
     });
 });

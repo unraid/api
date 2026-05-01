@@ -14,6 +14,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const tpmLicensingFaqUrl = 'https://docs.unraid.net/unraid-os/troubleshooting/tpm-licensing-faq/';
 
 const title = computed(() =>
   props.action === 'reboot'
@@ -36,12 +37,36 @@ const title = computed(() =>
     "
   >
     <template #body>
-      <UAlert
-        color="warning"
-        variant="subtle"
-        icon="i-lucide-triangle-alert"
-        :description="t('onboarding.nextSteps.confirmReboot.warning')"
-      />
+      <div class="space-y-4">
+        <UAlert
+          color="neutral"
+          variant="subtle"
+          icon="i-lucide-triangle-alert"
+          :description="t('onboarding.nextSteps.confirmReboot.warning')"
+        />
+
+        <div class="text-muted space-y-2 text-sm leading-6">
+          <p>
+            {{ t('onboarding.nextSteps.confirmReboot.licensingNote') }}
+            <br />
+            <br />
+            <strong class="text-toned font-semibold">{{
+              t('onboarding.nextSteps.confirmReboot.licensingTpmLead')
+            }}</strong>
+            {{ t('onboarding.nextSteps.confirmReboot.licensingTpmDetail') }}
+          </p>
+          <a
+            :href="tpmLicensingFaqUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            @click.stop
+            class="text-primary hover:text-primary/80 inline-flex items-center gap-1.5 font-medium hover:underline"
+          >
+            <span>{{ t('onboarding.nextSteps.confirmReboot.licensingFaq') }}</span>
+            <UIcon name="i-heroicons-arrow-top-right-on-square" class="h-4 w-4 opacity-70" />
+          </a>
+        </div>
+      </div>
     </template>
     <template #footer>
       <UButton color="neutral" variant="outline" :disabled="disabled" @click="emit('cancel')">

@@ -169,6 +169,12 @@ describe('OnboardingTracker', () => {
                 completed: false,
                 completedAtVersion: undefined,
                 forceOpen: false,
+                draft: {},
+                navigation: {},
+                internalBootState: {
+                    applyAttempted: false,
+                    applySucceeded: false,
+                },
             },
         });
     });
@@ -196,6 +202,12 @@ describe('OnboardingTracker', () => {
                 completed: true,
                 completedAtVersion: '7.1.0',
                 forceOpen: false,
+                draft: {},
+                navigation: {},
+                internalBootState: {
+                    applyAttempted: false,
+                    applySucceeded: false,
+                },
             },
         });
     });
@@ -288,6 +300,12 @@ describe('OnboardingTracker', () => {
                 completed: true,
                 completedAtVersion: '6.12.0',
                 forceOpen: false,
+                draft: {},
+                navigation: {},
+                internalBootState: {
+                    applyAttempted: false,
+                    applySucceeded: false,
+                },
             },
         });
     });

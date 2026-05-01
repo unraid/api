@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useMutation } from '@vue/apollo-composable';
 
 import {
   BookOpenIcon,
@@ -18,18 +17,18 @@ import { BrandButton } from '@unraid/ui';
 // Use ?raw to import SVG content string
 import UnraidIconSvg from '@/assets/partners/simple-icons-unraid.svg?raw';
 import InternalBootConfirmDialog from '@/components/Onboarding/components/InternalBootConfirmDialog.vue';
-import {
-  submitInternalBootReboot,
-  submitInternalBootShutdown,
-} from '@/components/Onboarding/composables/internalBoot';
-import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
-import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
-import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
-import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
+
+import type {
+  OnboardingWizardDraft,
+  OnboardingWizardInternalBootState,
+} from '@/components/Onboarding/onboardingWizardState';
+import type { OnboardingPowerAction } from '@/components/Onboarding/useOnboardingLifecycle';
 
 export interface Props {
-  onComplete: () => void;
+  draft: OnboardingWizardDraft;
+  internalBootState: OnboardingWizardInternalBootState;
+  onComplete: (options?: { action?: OnboardingPowerAction }) => Promise<void> | void;
   onBack?: () => void;
   showBack?: boolean;
 }
@@ -37,9 +36,6 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 const store = useActivationCodeDataStore();
-const draftStore = useOnboardingDraftStore();
-const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
-const { refetchOnboarding } = useOnboardingStore();
 
 const partnerInfo = computed(() => store.partnerInfo);
 const activationCode = computed(() => store.activationCode);
@@ -58,15 +54,16 @@ const hasExtraLinks = computed(() => (partnerInfo.value?.partner?.extraLinks?.le
 // Check if we have any content to show in the "Learn about your server" section
 // Only show if there are LINKS (docs or extra links) - system specs alone isn't enough
 const hasAnyPartnerContent = computed(() => hasCoreDocsLinks.value || hasExtraLinks.value);
-const showRebootButton = computed(() => draftStore.internalBootSelection !== null);
+const internalBootSelection = computed(() => props.draft.internalBoot?.selection ?? null);
+const showRebootButton = computed(() => internalBootSelection.value !== null);
 const internalBootFailed = computed(
   () =>
-    draftStore.internalBootSelection !== null &&
-    draftStore.internalBootApplyAttempted &&
-    !draftStore.internalBootApplySucceeded
+    internalBootSelection.value !== null &&
+    props.internalBootState.applyAttempted &&
+    !props.internalBootState.applySucceeded
 );
 const biosUpdateMissed = computed(
-  () => internalBootFailed.value && (draftStore.internalBootSelection?.updateBios ?? false)
+  () => internalBootFailed.value && (internalBootSelection.value?.updateBios ?? false)
 );
 const primaryButtonText = computed(() =>
   showRebootButton.value
@@ -104,45 +101,28 @@ const handleMouseMove = (e: MouseEvent) => {
   el.style.setProperty('--y', `${y}px`);
 };
 
-const finishOnboarding = async ({ action }: { action?: 'reboot' | 'shutdown' } = {}) => {
+const finishOnboarding = async ({ action }: { action?: OnboardingPowerAction } = {}) => {
   if (isCompleting.value) {
     return;
   }
 
   isCompleting.value = true;
   completionError.value = null;
+  let keepBusy = false;
 
   try {
-    await completeOnboarding();
-
-    try {
-      await refetchOnboarding();
-    } catch (error: unknown) {
-      console.error('Failed to refresh onboarding state:', error);
-    }
+    await Promise.resolve(props.onComplete(action ? { action } : undefined));
+    keepBusy = action !== undefined;
   } catch (error: unknown) {
-    console.error('Failed to complete onboarding:', error);
+    console.error('Failed to finish onboarding:', error);
     if (!action) {
       completionError.value = t('onboarding.nextSteps.completionFailed');
+    }
+  } finally {
+    if (!keepBusy) {
       isCompleting.value = false;
-      return;
     }
   }
-
-  cleanupOnboardingStorage();
-
-  if (action === 'shutdown') {
-    submitInternalBootShutdown();
-    return;
-  }
-
-  if (action === 'reboot') {
-    submitInternalBootReboot();
-    return;
-  }
-
-  props.onComplete();
-  isCompleting.value = false;
 };
 
 const handlePrimaryAction = async () => {

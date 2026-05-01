@@ -78,11 +78,6 @@ export class OnboardingMutations {
     openOnboarding!: Onboarding;
 
     @Field(() => Onboarding, {
-        description: 'Close the onboarding modal',
-    })
-    closeOnboarding!: Onboarding;
-
-    @Field(() => Onboarding, {
         description: 'Temporarily bypass onboarding in API memory',
     })
     bypassOnboarding!: Onboarding;
@@ -101,6 +96,11 @@ export class OnboardingMutations {
         description: 'Clear onboarding override state and reload from disk',
     })
     clearOnboardingOverride!: Onboarding;
+
+    @Field(() => Boolean, {
+        description: 'Persist server-owned onboarding wizard draft state',
+    })
+    saveOnboardingDraft!: boolean;
 
     @Field(() => OnboardingInternalBootResult, {
         description: 'Create and configure internal boot pool via emcmd operations',

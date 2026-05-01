@@ -6,11 +6,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OnboardingPluginsStep from '~/components/Onboarding/steps/OnboardingPluginsStep.vue';
 import { createTestI18n } from '../../utils/i18n';
 
-const { draftStore, installedPluginsLoading, installedPluginsResult, useQueryMock } = vi.hoisted(() => ({
+const {
+  draftStore,
+  installedPluginsLoading,
+  installedPluginsResult,
+  installedPluginsError,
+  refetchInstalledPluginsMock,
+  useQueryMock,
+} = vi.hoisted(() => ({
   draftStore: {
     selectedPlugins: new Set<string>(),
-    pluginSelectionInitialized: false,
-    setPlugins: vi.fn(),
   },
   installedPluginsLoading: {
     value: false,
@@ -20,6 +25,10 @@ const { draftStore, installedPluginsLoading, installedPluginsResult, useQueryMoc
       installedUnraidPlugins: [],
     } as { installedUnraidPlugins: string[] } | null,
   },
+  installedPluginsError: {
+    value: null as unknown,
+  },
+  refetchInstalledPluginsMock: vi.fn().mockResolvedValue(undefined),
   useQueryMock: vi.fn(),
 }));
 
@@ -36,10 +45,6 @@ vi.mock('@unraid/ui', () => ({
   },
 }));
 
-vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: () => draftStore,
-}));
-
 vi.mock('@vue/apollo-composable', async () => {
   const actual =
     await vi.importActual<typeof import('@vue/apollo-composable')>('@vue/apollo-composable');
@@ -54,17 +59,19 @@ describe('OnboardingPluginsStep', () => {
     vi.clearAllMocks();
     document.body.innerHTML = '';
     draftStore.selectedPlugins = new Set();
-    draftStore.pluginSelectionInitialized = false;
     installedPluginsLoading.value = false;
     installedPluginsResult.value = {
       installedUnraidPlugins: [],
     };
+    installedPluginsError.value = null;
 
     useQueryMock.mockImplementation((query: unknown) => {
       if (query === INSTALLED_UNRAID_PLUGINS_QUERY) {
         return {
           result: installedPluginsResult,
           loading: installedPluginsLoading,
+          error: installedPluginsError,
+          refetch: refetchInstalledPluginsMock,
         };
       }
       return { result: { value: null } };
@@ -76,6 +83,13 @@ describe('OnboardingPluginsStep', () => {
       onComplete: vi.fn(),
       onBack: vi.fn(),
       onSkip: vi.fn(),
+      onCloseOnboarding: vi.fn(),
+      initialDraft:
+        draftStore.selectedPlugins.size > 0
+          ? {
+              selectedIds: Array.from(draftStore.selectedPlugins),
+            }
+          : undefined,
       showBack: true,
       showSkip: true,
       ...overrides,
@@ -132,11 +146,10 @@ describe('OnboardingPluginsStep', () => {
     expect(nextButton).toBeTruthy();
     await nextButton!.trigger('click');
 
-    expect(draftStore.setPlugins).toHaveBeenCalled();
-    const lastCallIndex = draftStore.setPlugins.mock.calls.length - 1;
-    const selected = draftStore.setPlugins.mock.calls[lastCallIndex][0] as Set<string>;
-    expect(Array.from(selected)).toEqual(['community-apps']);
     expect(props.onComplete).toHaveBeenCalledTimes(1);
+    expect(props.onComplete).toHaveBeenCalledWith({
+      selectedIds: ['community-apps'],
+    });
   });
 
   it('persists already installed plugins alongside manual selections', async () => {
@@ -161,11 +174,10 @@ describe('OnboardingPluginsStep', () => {
     expect(nextButton).toBeTruthy();
     await nextButton!.trigger('click');
 
-    expect(draftStore.setPlugins).toHaveBeenCalled();
-    const lastCallIndex = draftStore.setPlugins.mock.calls.length - 1;
-    const selected = draftStore.setPlugins.mock.calls[lastCallIndex][0] as Set<string>;
-    expect(Array.from(selected).sort()).toEqual(['community-apps', 'fix-common-problems', 'tailscale']);
     expect(props.onComplete).toHaveBeenCalledTimes(1);
+    expect(props.onComplete).toHaveBeenCalledWith({
+      selectedIds: ['community-apps', 'fix-common-problems', 'tailscale'],
+    });
   });
 
   it('disables the primary action until installed plugins finish loading', async () => {
@@ -176,16 +188,26 @@ describe('OnboardingPluginsStep', () => {
 
     await flushPromises();
 
-    const nextButton = wrapper
-      .findAll('button')
-      .find((button) => button.text().toLowerCase().includes('next'));
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+  });
 
-    expect(nextButton).toBeTruthy();
-    expect((nextButton!.element as HTMLButtonElement).disabled).toBe(true);
+  it('shows retry and close actions when the installed plugins query fails', async () => {
+    installedPluginsError.value = new Error('offline');
+    const onCloseOnboarding = vi.fn();
+
+    const { wrapper } = mountComponent({ onCloseOnboarding });
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-step-query-error"]').exists()).toBe(true);
+
+    await wrapper.get('[data-testid="onboarding-step-query-retry"]').trigger('click');
+    await wrapper.get('[data-testid="onboarding-step-query-close"]').trigger('click');
+
+    expect(refetchInstalledPluginsMock).toHaveBeenCalledTimes(1);
+    expect(onCloseOnboarding).toHaveBeenCalledTimes(1);
   });
 
   it('skip clears selection and calls onSkip', async () => {
-    draftStore.pluginSelectionInitialized = true;
     draftStore.selectedPlugins = new Set(['community-apps']);
 
     const { wrapper, props } = mountComponent();
@@ -199,15 +221,14 @@ describe('OnboardingPluginsStep', () => {
     expect(skipButton).toBeTruthy();
     await skipButton!.trigger('click');
 
-    expect(draftStore.setPlugins).toHaveBeenCalledTimes(1);
-    const selected = draftStore.setPlugins.mock.calls[0][0] as Set<string>;
-    expect(selected.size).toBe(0);
     expect(props.onSkip).toHaveBeenCalledTimes(1);
+    expect(props.onSkip).toHaveBeenCalledWith({
+      selectedIds: [],
+    });
     expect(props.onComplete).not.toHaveBeenCalled();
   });
 
   it('skip preserves detected installed plugins without keeping manual selections', async () => {
-    draftStore.pluginSelectionInitialized = true;
     draftStore.selectedPlugins = new Set(['community-apps', 'tailscale']);
     installedPluginsResult.value = {
       installedUnraidPlugins: ['fix.common.problems.plg'],
@@ -224,10 +245,26 @@ describe('OnboardingPluginsStep', () => {
     expect(skipButton).toBeTruthy();
     await skipButton!.trigger('click');
 
-    expect(draftStore.setPlugins).toHaveBeenCalledTimes(1);
-    const selected = draftStore.setPlugins.mock.calls[0][0] as Set<string>;
-    expect(Array.from(selected)).toEqual(['fix-common-problems']);
     expect(props.onSkip).toHaveBeenCalledTimes(1);
+    expect(props.onSkip).toHaveBeenCalledWith({
+      selectedIds: ['fix-common-problems'],
+    });
     expect(props.onComplete).not.toHaveBeenCalled();
+  });
+
+  it('preserves an explicit empty plugin selection instead of restoring defaults', async () => {
+    const { wrapper } = mountComponent({
+      initialDraft: {
+        selectedIds: [],
+      },
+    });
+
+    await flushPromises();
+
+    const switches = wrapper.findAll('[role="switch"]');
+    expect(switches.length).toBe(3);
+    expect(switches[0].attributes('data-state')).toBe('unchecked');
+    expect(switches[1].attributes('data-state')).toBe('unchecked');
+    expect(switches[2].attributes('data-state')).toBe('unchecked');
   });
 });

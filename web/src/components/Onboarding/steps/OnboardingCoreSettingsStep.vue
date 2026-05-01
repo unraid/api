@@ -12,25 +12,30 @@ import azureThemeImg from '@/assets/unraid-azure-theme.png';
 import blackThemeImg from '@/assets/unraid-black-theme.png';
 import grayThemeImg from '@/assets/unraid-gray-theme.png';
 import whiteThemeImg from '@/assets/unraid-white-theme.png';
+import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
+import OnboardingStepBlockingState from '@/components/Onboarding/components/OnboardingStepBlockingState.vue';
+import { useOnboardingStepQueryState } from '@/components/Onboarding/composables/useOnboardingStepQueryState';
 // --- Language Logic ---
 import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Onboarding/graphql/availableLanguages.query';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
 import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Onboarding/graphql/timeZoneOptions.query';
-// --- Submit Logic ---
-import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
 import { getTimeZones } from '@vvo/tzdb';
 
+import type { OnboardingCoreSettingsDraft } from '@/components/Onboarding/onboardingWizardState';
+
 export interface Props {
-  onComplete: () => void;
-  onBack?: () => void;
+  initialDraft?: OnboardingCoreSettingsDraft | null;
+  onComplete: (draft: OnboardingCoreSettingsDraft) => void | Promise<void>;
+  onBack?: (draft: OnboardingCoreSettingsDraft) => void | Promise<void>;
+  onCloseOnboarding?: () => void | Promise<void>;
   showBack?: boolean;
   isSavingStep?: boolean;
+  saveError?: string | null;
 }
 
 const props = defineProps<Props>();
 const { t } = useI18n();
-const draftStore = useOnboardingDraftStore();
 const { completed: onboardingCompleted, loading: onboardingLoading } = storeToRefs(useOnboardingStore());
 
 const TRUSTED_DEFAULT_PROFILE = Object.freeze({
@@ -57,26 +62,14 @@ const themeImages: Record<string, string> = {
   white: whiteThemeImg,
 };
 
-// ... inside script setup ...
-
-const hasCoreDraft = Boolean(draftStore.coreSettingsInitialized);
-
-const selectedTimeZone = ref<string>(
-  hasCoreDraft ? draftStore.selectedTimeZone : resolveInitialTimeZone()
-);
-const serverName = ref<string>(
-  hasCoreDraft ? draftStore.serverName : TRUSTED_DEFAULT_PROFILE.serverName
-);
+const selectedTimeZone = ref<string>(props.initialDraft?.timeZone ?? resolveInitialTimeZone());
+const serverName = ref<string>(props.initialDraft?.serverName ?? TRUSTED_DEFAULT_PROFILE.serverName);
 const serverDescription = ref<string>(
-  hasCoreDraft ? draftStore.serverDescription : TRUSTED_DEFAULT_PROFILE.serverDescription
+  props.initialDraft?.serverDescription ?? TRUSTED_DEFAULT_PROFILE.serverDescription
 );
-const selectedTheme = ref<string>(
-  hasCoreDraft ? draftStore.selectedTheme : TRUSTED_DEFAULT_PROFILE.theme
-);
-const selectedLanguage = ref<string>(
-  hasCoreDraft ? draftStore.selectedLanguage : TRUSTED_DEFAULT_PROFILE.locale
-);
-const useSsh = ref<boolean>(hasCoreDraft ? draftStore.useSsh : TRUSTED_DEFAULT_PROFILE.useSsh);
+const selectedTheme = ref<string>(props.initialDraft?.theme ?? TRUSTED_DEFAULT_PROFILE.theme);
+const selectedLanguage = ref<string>(props.initialDraft?.language ?? TRUSTED_DEFAULT_PROFILE.locale);
+const useSsh = ref<boolean>(props.initialDraft?.useSsh ?? TRUSTED_DEFAULT_PROFILE.useSsh);
 // ipAssignment removed
 const currentIp = ref<string>('');
 const localTld = ref<string>('local'); // Store localTld for hostname computation
@@ -90,14 +83,19 @@ const currentHostname = computed(() => {
 const isSaving = ref(false);
 const error = ref<string | null>(null);
 
-const { result: timeZoneOptionsResult } = useQuery(TIME_ZONE_OPTIONS_QUERY);
-const { result: coreSettingsResult, onResult: onCoreSettingsResult } = useQuery(
-  GET_CORE_SETTINGS_QUERY,
-  null,
-  {
-    fetchPolicy: 'network-only',
-  }
-);
+const {
+  result: timeZoneOptionsResult,
+  error: timeZoneOptionsError,
+  refetch: refetchTimeZoneOptions,
+} = useQuery(TIME_ZONE_OPTIONS_QUERY);
+const {
+  result: coreSettingsResult,
+  error: coreSettingsQueryError,
+  onResult: onCoreSettingsResult,
+  refetch: refetchCoreSettings,
+} = useQuery(GET_CORE_SETTINGS_QUERY, null, {
+  fetchPolicy: 'network-only',
+});
 
 type CoreSettingsIdentityData = {
   server?: {
@@ -118,9 +116,9 @@ type CoreSettingsIdentityData = {
 };
 
 const applyPreferredIdentity = (data?: CoreSettingsIdentityData | null) => {
-  if (draftStore.coreSettingsInitialized) {
-    serverName.value = draftStore.serverName;
-    serverDescription.value = draftStore.serverDescription;
+  if (props.initialDraft) {
+    serverName.value = props.initialDraft.serverName ?? '';
+    serverDescription.value = props.initialDraft.serverDescription ?? '';
     return;
   }
 
@@ -154,8 +152,8 @@ const applyPreferredIdentity = (data?: CoreSettingsIdentityData | null) => {
 };
 
 const applyPreferredTimeZone = (apiTimeZone?: string | null) => {
-  if (draftStore.coreSettingsInitialized) {
-    selectedTimeZone.value = draftStore.selectedTimeZone;
+  if (props.initialDraft?.timeZone) {
+    selectedTimeZone.value = props.initialDraft.timeZone;
     hasAutoSelected.value = true;
     return;
   }
@@ -166,7 +164,7 @@ const applyPreferredTimeZone = (apiTimeZone?: string | null) => {
   }
 
   const normalizedApiTimeZone = apiTimeZone?.trim();
-  const draftTimeZone = draftStore.selectedTimeZone?.trim();
+  const draftTimeZone = props.initialDraft?.timeZone?.trim();
   const isInitialSetup = onboardingCompleted.value === false;
 
   if (isInitialSetup) {
@@ -198,16 +196,13 @@ const applyPreferredTimeZone = (apiTimeZone?: string | null) => {
 };
 
 onCoreSettingsResult((res) => {
-  // If draft store has values, use them. Otherwise fall back to server data.
-  const d = draftStore; // Alias for brevity
-
-  if (d.coreSettingsInitialized) {
-    serverName.value = d.serverName;
-    serverDescription.value = d.serverDescription;
-    selectedTimeZone.value = d.selectedTimeZone;
-    useSsh.value = d.useSsh;
-    selectedTheme.value = d.selectedTheme;
-    selectedLanguage.value = d.selectedLanguage;
+  if (props.initialDraft) {
+    serverName.value = props.initialDraft.serverName ?? serverName.value;
+    serverDescription.value = props.initialDraft.serverDescription ?? serverDescription.value;
+    selectedTimeZone.value = props.initialDraft.timeZone ?? selectedTimeZone.value;
+    useSsh.value = props.initialDraft.useSsh ?? useSsh.value;
+    selectedTheme.value = props.initialDraft.theme ?? selectedTheme.value;
+    selectedLanguage.value = props.initialDraft.language ?? selectedLanguage.value;
     hasAutoSelected.value = true;
   } else {
     applyPreferredIdentity(res.data);
@@ -231,11 +226,27 @@ onCoreSettingsResult((res) => {
 });
 
 watch([onboardingLoading, onboardingCompleted], () => {
-  if (!draftStore.coreSettingsInitialized) {
+  if (!props.initialDraft) {
     applyPreferredIdentity(coreSettingsResult.value);
     applyPreferredTimeZone(coreSettingsResult.value?.systemTime?.timeZone);
   }
 });
+
+watch(
+  () => props.initialDraft,
+  (draft) => {
+    if (!draft) {
+      return;
+    }
+
+    serverName.value = draft.serverName ?? serverName.value;
+    serverDescription.value = draft.serverDescription ?? serverDescription.value;
+    selectedTimeZone.value = draft.timeZone ?? selectedTimeZone.value;
+    selectedTheme.value = draft.theme ?? selectedTheme.value;
+    selectedLanguage.value = draft.language ?? selectedLanguage.value;
+    useSsh.value = draft.useSsh ?? useSsh.value;
+  }
+);
 
 const tzdbTimeZones = getTimeZones();
 const timeZoneOptions = computed(() => timeZoneOptionsResult.value?.timeZoneOptions ?? []);
@@ -326,8 +337,9 @@ const themeItems = computed(() => [
 
 const {
   result: languagesResult,
-  loading: isLanguagesLoading,
+  loading: languagesLoading,
   error: languagesQueryError,
+  refetch: refetchLanguages,
 } = useQuery(GET_AVAILABLE_LANGUAGES_QUERY);
 
 // Define interface for the language data
@@ -354,7 +366,31 @@ const languageItems = computed(() => {
   return items;
 });
 
-const isLanguageDisabled = computed(() => isLanguagesLoading.value || !!languagesQueryError.value);
+const isLanguageDisabled = computed(() => languagesLoading.value || !!languagesQueryError.value);
+const hasLoadedStepQueries = computed(
+  () =>
+    Boolean(timeZoneOptionsResult.value) &&
+    Boolean(coreSettingsResult.value) &&
+    Boolean(languagesResult.value)
+);
+const {
+  isStepQueryLoading,
+  retryQueries: handleRetryQueries,
+  stepQueryError,
+} = useOnboardingStepQueryState({
+  errors: [timeZoneOptionsError, coreSettingsQueryError, languagesQueryError],
+  ready: hasLoadedStepQueries,
+  retry: () => Promise.all([refetchTimeZoneOptions(), refetchCoreSettings(), refetchLanguages()]),
+});
+const buildDraftSnapshot = (): OnboardingCoreSettingsDraft => ({
+  serverName: serverName.value,
+  serverDescription: serverDescription.value,
+  timeZone: selectedTimeZone.value,
+  theme: selectedTheme.value,
+  language: selectedLanguage.value,
+  useSsh: useSsh.value,
+});
+
 const handleSubmit = async () => {
   if (serverNameValidation.value || serverDescriptionValidation.value) {
     error.value = t('common.error');
@@ -365,27 +401,16 @@ const handleSubmit = async () => {
   error.value = null;
 
   try {
-    draftStore.setCoreSettings({
-      serverName: serverName.value,
-      serverDescription: serverDescription.value,
-      timeZone: selectedTimeZone.value,
-      theme: selectedTheme.value,
-      language: selectedLanguage.value,
-      useSsh: useSsh.value,
-    });
-
-    // Simulate a small delay for UX or just proceed
-    props.onComplete();
+    await props.onComplete(buildDraftSnapshot());
   } catch (err: unknown) {
-    console.warn('Failed to save draft settings:', err);
     error.value = err instanceof Error ? err.message : t('common.error');
   } finally {
     isSaving.value = false;
   }
 };
 
-const handleBack = () => {
-  props.onBack?.();
+const handleBack = async () => {
+  await props.onBack?.(buildDraftSnapshot());
 };
 
 const serverNameValidation = computed(() => {
@@ -411,11 +436,19 @@ const serverDescriptionValidation = computed(() => {
 });
 
 const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
+const localSubmitError = computed(() => error.value ?? null);
+const saveTransitionError = computed(() => props.saveError ?? null);
 </script>
 
 <template>
   <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
-    <div class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
+    <OnboardingLoadingState
+      v-if="props.isSavingStep"
+      :title="t('onboarding.loading.title')"
+      :description="t('onboarding.loading.description')"
+    />
+
+    <div v-else class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
       <!-- Header -->
       <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div class="space-y-2">
@@ -450,181 +483,208 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
         </div>
       </div>
 
-      <!-- Main Form Content -->
+      <OnboardingStepBlockingState
+        v-if="saveTransitionError"
+        :title="saveTransitionError"
+        :description="t('onboarding.stepSaveFailure.description')"
+        :secondary-action-text="t('onboarding.modal.exit.confirm')"
+        :on-secondary-action="props.onCloseOnboarding"
+      />
 
-      <!-- Top Grid: Server Identity & Region -->
-      <div class="mb-8 grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2">
-        <!-- Server Name -->
-        <div class="flex flex-col gap-2">
-          <label class="text-highlighted text-base font-bold">
-            {{ t('onboarding.coreSettings.serverName') }}
-          </label>
-          <div class="space-y-1">
-            <UInput
-              v-model="serverName"
-              :placeholder="t('onboarding.coreSettings.serverNamePlaceholder')"
-              maxlength="15"
-              :disabled="isBusy"
-              size="lg"
-              class="w-full"
-              :class="{ '!border-red-500 focus:!border-red-500': !!serverNameValidation }"
-            />
-            <p v-if="serverNameValidation" class="text-sm font-medium text-red-500">
-              {{ serverNameValidation }}
-            </p>
+      <OnboardingLoadingState
+        v-else-if="isStepQueryLoading"
+        :title="t('onboarding.loading.title')"
+        :description="t('onboarding.coreSettings.loadingDescription')"
+      />
+
+      <OnboardingStepBlockingState
+        v-else-if="stepQueryError"
+        root-test-id="onboarding-step-query-error"
+        :title="t('onboarding.stepQueryGate.errorTitle')"
+        :description="t('onboarding.stepQueryGate.errorDescription')"
+        :primary-action-text="t('common.retry')"
+        primary-test-id="onboarding-step-query-retry"
+        :secondary-action-text="t('onboarding.modal.exit.confirm')"
+        secondary-test-id="onboarding-step-query-close"
+        :on-primary-action="handleRetryQueries"
+        :on-secondary-action="props.onCloseOnboarding"
+      />
+
+      <template v-else>
+        <!-- Top Grid: Server Identity & Region -->
+        <div class="mb-8 grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2">
+          <!-- Server Name -->
+          <div class="flex flex-col gap-2">
+            <label class="text-highlighted text-base font-bold">
+              {{ t('onboarding.coreSettings.serverName') }}
+            </label>
+            <div class="space-y-1">
+              <UInput
+                v-model="serverName"
+                :placeholder="t('onboarding.coreSettings.serverNamePlaceholder')"
+                maxlength="15"
+                :disabled="isBusy"
+                size="lg"
+                class="w-full"
+                :class="{ '!border-red-500 focus:!border-red-500': !!serverNameValidation }"
+              />
+              <p v-if="serverNameValidation" class="text-sm font-medium text-red-500">
+                {{ serverNameValidation }}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <!-- Server Description -->
-        <div class="flex flex-col gap-2">
-          <label class="text-highlighted text-base font-bold">
-            {{ t('onboarding.coreSettings.serverDescription') }}
-          </label>
-          <div class="space-y-1">
-            <UInput
-              v-model="serverDescription"
-              :placeholder="t('onboarding.coreSettings.serverDescriptionPlaceholder')"
-              :disabled="isBusy"
-              size="lg"
-              class="w-full"
-              :class="{ '!border-red-500 focus:!border-red-500': !!serverDescriptionValidation }"
-            />
-            <p v-if="serverDescriptionValidation" class="text-sm font-medium text-red-500">
-              {{ serverDescriptionValidation }}
-            </p>
+          <!-- Server Description -->
+          <div class="flex flex-col gap-2">
+            <label class="text-highlighted text-base font-bold">
+              {{ t('onboarding.coreSettings.serverDescription') }}
+            </label>
+            <div class="space-y-1">
+              <UInput
+                v-model="serverDescription"
+                :placeholder="t('onboarding.coreSettings.serverDescriptionPlaceholder')"
+                :disabled="isBusy"
+                size="lg"
+                class="w-full"
+                :class="{ '!border-red-500 focus:!border-red-500': !!serverDescriptionValidation }"
+              />
+              <p v-if="serverDescriptionValidation" class="text-sm font-medium text-red-500">
+                {{ serverDescriptionValidation }}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <!-- Time Zone -->
-        <div class="flex flex-col gap-2">
-          <label class="text-highlighted text-base font-bold">
-            {{ t('onboarding.coreSettings.timezone') }}
-          </label>
-          <USelectMenu
-            v-model="selectedTimeZone"
-            :items="timeZoneItems"
-            label-key="label"
-            value-key="value"
-            :search-input="false"
-            :placeholder="t('onboarding.coreSettings.selectTimezonePlaceholder')"
-            :disabled="isBusy"
-            class="w-full"
-            :ui="{ content: 'z-[100]' }"
-          />
-        </div>
-
-        <!-- Language -->
-        <div class="flex flex-col gap-2">
-          <label class="text-highlighted text-base font-bold">
-            {{ t('onboarding.coreSettings.language') }}
-          </label>
-          <USelectMenu
-            v-model="selectedLanguage"
-            :items="languageItems"
-            label-key="label"
-            value-key="value"
-            :search-input="false"
-            :placeholder="
-              isLanguagesLoading ? t('common.loading') : t('onboarding.coreSettings.selectLanguage')
-            "
-            :disabled="isBusy || isLanguageDisabled"
-            class="w-full"
-            :ui="{ content: 'z-[100]' }"
-          />
-        </div>
-      </div>
-
-      <div class="border-muted my-8 w-full border-t" />
-
-      <!-- Bottom Section: Toggles & Theme -->
-      <div class="space-y-8">
-        <!-- SSH Access -->
-        <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div class="space-y-1">
-            <h3 class="text-highlighted text-base font-bold">
-              {{ t('onboarding.coreSettings.ssh') }}
-            </h3>
-            <p class="text-muted text-sm">
-              {{ t('onboarding.coreSettings.sshDescription') }}
-            </p>
-          </div>
-          <div class="flex items-center">
-            <USwitch :model-value="useSsh" :disabled="isBusy" @update:model-value="useSsh = $event" />
-          </div>
-        </div>
-        <!-- Border -->
-        <div class="border-muted my-8 w-full border-t" />
-
-        <!-- Theme Selection -->
-        <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div class="space-y-1">
-            <h3 class="text-highlighted text-base font-bold">
-              {{ t('onboarding.coreSettings.theme') }}
-            </h3>
-            <p class="text-muted text-sm">
-              {{ t('onboarding.coreSettings.themeDescription') }}
-            </p>
-          </div>
-          <div class="w-full md:w-64">
+          <!-- Time Zone -->
+          <div class="flex flex-col gap-2">
+            <label class="text-highlighted text-base font-bold">
+              {{ t('onboarding.coreSettings.timezone') }}
+            </label>
             <USelectMenu
-              v-model="selectedTheme"
-              :items="themeItems"
+              v-model="selectedTimeZone"
+              :items="timeZoneItems"
               label-key="label"
               value-key="value"
               :search-input="false"
+              :placeholder="t('onboarding.coreSettings.selectTimezonePlaceholder')"
               :disabled="isBusy"
+              class="w-full"
+              :ui="{ content: 'z-[100]' }"
+            />
+          </div>
+
+          <!-- Language -->
+          <div class="flex flex-col gap-2">
+            <label class="text-highlighted text-base font-bold">
+              {{ t('onboarding.coreSettings.language') }}
+            </label>
+            <USelectMenu
+              v-model="selectedLanguage"
+              :items="languageItems"
+              label-key="label"
+              value-key="value"
+              :search-input="false"
+              :placeholder="
+                languagesLoading ? t('common.loading') : t('onboarding.coreSettings.selectLanguage')
+              "
+              :disabled="isBusy || isLanguageDisabled"
               class="w-full"
               :ui="{ content: 'z-[100]' }"
             />
           </div>
         </div>
 
-        <!-- Theme Preview Image -->
+        <div class="border-muted my-8 w-full border-t" />
+
+        <!-- Bottom Section: Toggles & Theme -->
+        <div class="space-y-8">
+          <!-- SSH Access -->
+          <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div class="space-y-1">
+              <h3 class="text-highlighted text-base font-bold">
+                {{ t('onboarding.coreSettings.ssh') }}
+              </h3>
+              <p class="text-muted text-sm">
+                {{ t('onboarding.coreSettings.sshDescription') }}
+              </p>
+            </div>
+            <div class="flex items-center">
+              <USwitch :model-value="useSsh" :disabled="isBusy" @update:model-value="useSsh = $event" />
+            </div>
+          </div>
+          <!-- Border -->
+          <div class="border-muted my-8 w-full border-t" />
+
+          <!-- Theme Selection -->
+          <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div class="space-y-1">
+              <h3 class="text-highlighted text-base font-bold">
+                {{ t('onboarding.coreSettings.theme') }}
+              </h3>
+              <p class="text-muted text-sm">
+                {{ t('onboarding.coreSettings.themeDescription') }}
+              </p>
+            </div>
+            <div class="w-full md:w-64">
+              <USelectMenu
+                v-model="selectedTheme"
+                :items="themeItems"
+                label-key="label"
+                value-key="value"
+                :search-input="false"
+                :disabled="isBusy"
+                class="w-full"
+                :ui="{ content: 'z-[100]' }"
+              />
+            </div>
+          </div>
+
+          <!-- Theme Preview Image -->
+          <div
+            class="min-h-[200px] w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100 shadow-sm dark:border-gray-800 dark:bg-gray-800"
+          >
+            <img
+              :src="themeImages[selectedTheme] || themeImages['white']"
+              :alt="t('onboarding.coreSettings.themePreviewAlt', { theme: selectedTheme })"
+              class="h-auto w-full object-cover"
+            />
+          </div>
+        </div>
+
+        <!-- Error Message -->
         <div
-          class="min-h-[200px] w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100 shadow-sm dark:border-gray-800 dark:bg-gray-800"
+          v-if="localSubmitError"
+          class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
         >
-          <img
-            :src="themeImages[selectedTheme] || themeImages['white']"
-            :alt="t('onboarding.coreSettings.themePreviewAlt', { theme: selectedTheme })"
-            class="h-auto w-full object-cover"
+          <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
+            {{ localSubmitError }}
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div
+          class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
+        >
+          <button
+            v-if="showBack"
+            @click="handleBack"
+            class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
+            :disabled="isBusy"
+          >
+            <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+            {{ t('common.back') }}
+          </button>
+          <div v-else class="hidden w-1 sm:block" />
+
+          <BrandButton
+            :text="t('onboarding.coreSettings.next')"
+            class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
+            :disabled="isBusy || !!serverNameValidation || !!serverDescriptionValidation"
+            :loading="isBusy"
+            @click="handleSubmit"
+            :icon-right="ChevronRightIcon"
           />
         </div>
-      </div>
-
-      <!-- Error Message -->
-      <div
-        v-if="error"
-        class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
-      >
-        <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
-          {{ error }}
-        </p>
-      </div>
-
-      <!-- Footer -->
-      <div
-        class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
-      >
-        <button
-          v-if="showBack"
-          @click="handleBack"
-          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
-          :disabled="isBusy"
-        >
-          <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
-          {{ t('common.back') }}
-        </button>
-        <div v-else class="hidden w-1 sm:block" />
-
-        <BrandButton
-          :text="t('onboarding.coreSettings.next')"
-          class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
-          :disabled="isBusy || !!serverNameValidation || !!serverDescriptionValidation"
-          :loading="isBusy"
-          @click="handleSubmit"
-          :icon-right="ChevronRightIcon"
-        />
-      </div>
+      </template>
     </div>
   </div>
 </template>

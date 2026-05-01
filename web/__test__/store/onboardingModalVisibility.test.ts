@@ -8,7 +8,6 @@ import type { OperationVariables } from '@apollo/client/core';
 import type { UseMutationReturn } from '@vue/apollo-composable';
 import type { App } from 'vue';
 
-import { CLOSE_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/closeOnboarding.mutation';
 import { OPEN_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/openOnboarding.mutation';
 import { RESUME_ONBOARDING_MUTATION } from '~/components/Onboarding/graphql/resumeOnboarding.mutation';
 import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
@@ -36,7 +35,6 @@ describe('OnboardingModalVisibility Store', () => {
   let mountTarget: HTMLElement | null = null;
 
   const openMutationMock = vi.fn();
-  const closeMutationMock = vi.fn();
   const resumeMutationMock = vi.fn();
   const refetchOnboardingMock = vi.fn();
 
@@ -85,14 +83,6 @@ describe('OnboardingModalVisibility Store', () => {
         return createMutationReturn(
           openMutationMock.mockImplementation(async () => {
             mockShouldOpen.value = true;
-          })
-        );
-      }
-
-      if (document === CLOSE_ONBOARDING_MUTATION) {
-        return createMutationReturn(
-          closeMutationMock.mockImplementation(async () => {
-            mockShouldOpen.value = false;
           })
         );
       }
@@ -148,16 +138,6 @@ describe('OnboardingModalVisibility Store', () => {
     expect(openMutationMock).toHaveBeenCalledTimes(1);
     expect(refetchOnboardingMock).toHaveBeenCalledTimes(1);
     expect(store.isVisible).toBe(true);
-  });
-
-  it('closes onboarding through the backend mutation', async () => {
-    mockShouldOpen.value = true;
-
-    await expect(store.closeModal()).resolves.toBe(true);
-
-    expect(closeMutationMock).toHaveBeenCalledTimes(1);
-    expect(refetchOnboardingMock).toHaveBeenCalledTimes(1);
-    expect(store.isVisible).toBe(false);
   });
 
   it('does not force-open when modal display is unavailable', async () => {

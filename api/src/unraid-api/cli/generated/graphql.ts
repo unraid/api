@@ -366,6 +366,10 @@ export enum ArrayState {
 }
 
 export type ArrayStateInput = {
+  /** Optional keyfile contents used to unlock encrypted array disks when starting the array. Accepts a data URL or raw base64 payload. */
+  decryptionKeyfile?: InputMaybe<Scalars['String']['input']>;
+  /** Optional password used to unlock encrypted array disks when starting the array */
+  decryptionPassword?: InputMaybe<Scalars['String']['input']>;
   /** Array state */
   desiredState: ArrayStateInputState;
 };
@@ -1976,6 +1980,8 @@ export type Onboarding = {
   shouldOpen: Scalars['Boolean']['output'];
   /** The current onboarding status (INCOMPLETE, UPGRADE, DOWNGRADE, or COMPLETED) */
   status: OnboardingStatus;
+  /** Server-owned onboarding wizard state used by the web onboarding modal */
+  wizard: OnboardingWizard;
 };
 
 /** Current onboarding context for configuring internal boot */
@@ -1985,10 +1991,19 @@ export type OnboardingInternalBootContext = {
   assignableDisks: Array<Disk>;
   bootEligible?: Maybe<Scalars['Boolean']['output']>;
   bootedFromFlashWithInternalBootSetup: Scalars['Boolean']['output'];
+  driveWarnings: Array<OnboardingInternalBootDriveWarning>;
   enableBootTransfer?: Maybe<Scalars['String']['output']>;
   poolNames: Array<Scalars['String']['output']>;
   reservedNames: Array<Scalars['String']['output']>;
   shareNames: Array<Scalars['String']['output']>;
+};
+
+/** Warning metadata for an assignable internal boot drive */
+export type OnboardingInternalBootDriveWarning = {
+  __typename?: 'OnboardingInternalBootDriveWarning';
+  device: Scalars['String']['output'];
+  diskId: Scalars['String']['output'];
+  warnings: Array<Scalars['String']['output']>;
 };
 
 /** Result of attempting internal boot pool setup */
@@ -2006,8 +2021,6 @@ export type OnboardingMutations = {
   bypassOnboarding: Onboarding;
   /** Clear onboarding override state and reload from disk */
   clearOnboardingOverride: Onboarding;
-  /** Close the onboarding modal */
-  closeOnboarding: Onboarding;
   /** Mark onboarding as completed */
   completeOnboarding: Onboarding;
   /** Create and configure internal boot pool via emcmd operations */
@@ -2020,6 +2033,8 @@ export type OnboardingMutations = {
   resetOnboarding: Onboarding;
   /** Clear the temporary onboarding bypass */
   resumeOnboarding: Onboarding;
+  /** Persist server-owned onboarding wizard draft state */
+  saveOnboardingDraft: Scalars['Boolean']['output'];
   /** Override onboarding state for testing (in-memory only) */
   setOnboardingOverride: Onboarding;
 };
@@ -2028,6 +2043,12 @@ export type OnboardingMutations = {
 /** Onboarding related mutations */
 export type OnboardingMutationsCreateInternalBootPoolArgs = {
   input: CreateInternalBootPoolInput;
+};
+
+
+/** Onboarding related mutations */
+export type OnboardingMutationsSaveOnboardingDraftArgs = {
+  input: SaveOnboardingDraftInput;
 };
 
 
@@ -2070,6 +2091,40 @@ export enum OnboardingStatus {
   DOWNGRADE = 'DOWNGRADE',
   INCOMPLETE = 'INCOMPLETE',
   UPGRADE = 'UPGRADE'
+}
+
+export type OnboardingWizard = {
+  __typename?: 'OnboardingWizard';
+  currentStepId?: Maybe<OnboardingWizardStepId>;
+  draft: Scalars['JSON']['output'];
+  internalBootState: OnboardingWizardInternalBootState;
+  visibleStepIds: Array<OnboardingWizardStepId>;
+};
+
+export type OnboardingWizardInternalBootState = {
+  __typename?: 'OnboardingWizardInternalBootState';
+  applyAttempted: Scalars['Boolean']['output'];
+  applySucceeded: Scalars['Boolean']['output'];
+};
+
+export type OnboardingWizardInternalBootStateInput = {
+  applyAttempted?: InputMaybe<Scalars['Boolean']['input']>;
+  applySucceeded?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type OnboardingWizardNavigationInput = {
+  currentStepId?: InputMaybe<OnboardingWizardStepId>;
+};
+
+/** Server-provided onboarding wizard step identifiers */
+export enum OnboardingWizardStepId {
+  ACTIVATE_LICENSE = 'ACTIVATE_LICENSE',
+  ADD_PLUGINS = 'ADD_PLUGINS',
+  CONFIGURE_BOOT = 'CONFIGURE_BOOT',
+  CONFIGURE_SETTINGS = 'CONFIGURE_SETTINGS',
+  NEXT_STEPS = 'NEXT_STEPS',
+  OVERVIEW = 'OVERVIEW',
+  SUMMARY = 'SUMMARY'
 }
 
 export type Owner = {
@@ -2593,6 +2648,12 @@ export enum Role {
   /** Read-only access to all resources */
   VIEWER = 'VIEWER'
 }
+
+export type SaveOnboardingDraftInput = {
+  draft?: InputMaybe<Scalars['JSON']['input']>;
+  internalBootState?: InputMaybe<OnboardingWizardInternalBootStateInput>;
+  navigation?: InputMaybe<OnboardingWizardNavigationInput>;
+};
 
 export type SensorConfig = {
   __typename?: 'SensorConfig';
