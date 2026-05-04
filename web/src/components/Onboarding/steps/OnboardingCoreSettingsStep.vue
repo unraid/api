@@ -355,8 +355,14 @@ const languageItems = computed(() => {
 });
 
 const isLanguageDisabled = computed(() => isLanguagesLoading.value || !!languagesQueryError.value);
+const resolveSubmittedServerName = () =>
+  serverName.value ||
+  coreSettingsResult.value?.server?.name?.trim() ||
+  coreSettingsResult.value?.vars?.name?.trim() ||
+  TRUSTED_DEFAULT_PROFILE.serverName;
+
 const handleSubmit = async () => {
-  if (serverNameValidation.value || serverDescriptionValidation.value) {
+  if (serverDescriptionValidation.value) {
     error.value = t('common.error');
     return;
   }
@@ -366,7 +372,7 @@ const handleSubmit = async () => {
 
   try {
     draftStore.setCoreSettings({
-      serverName: serverName.value,
+      serverName: resolveSubmittedServerName(),
       serverDescription: serverDescription.value,
       timeZone: selectedTimeZone.value,
       theme: selectedTheme.value,
@@ -441,7 +447,8 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             <!-- Local Hostname Badge -->
             <div
               v-if="currentHostname"
-              class="flex items-center gap-1 rounded border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+              class="hidden items-center gap-1 rounded border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+              aria-hidden="true"
             >
               <GlobeAltIcon class="text-primary h-3 w-3" />
               {{ currentHostname }}
@@ -455,7 +462,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
       <!-- Top Grid: Server Identity & Region -->
       <div class="mb-8 grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2">
         <!-- Server Name -->
-        <div class="flex flex-col gap-2">
+        <div class="hidden flex-col gap-2" aria-hidden="true">
           <label class="text-highlighted text-base font-bold">
             {{ t('onboarding.coreSettings.serverName') }}
           </label>
@@ -468,6 +475,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
               size="lg"
               class="w-full"
               :class="{ '!border-red-500 focus:!border-red-500': !!serverNameValidation }"
+              tabindex="-1"
             />
             <p v-if="serverNameValidation" class="text-sm font-medium text-red-500">
               {{ serverNameValidation }}
@@ -619,7 +627,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
         <BrandButton
           :text="t('onboarding.coreSettings.next')"
           class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
-          :disabled="isBusy || !!serverNameValidation || !!serverDescriptionValidation"
+          :disabled="isBusy || !!serverDescriptionValidation"
           :loading="isBusy"
           @click="handleSubmit"
           :icon-right="ChevronRightIcon"

@@ -591,7 +591,6 @@ const handleComplete = async () => {
   try {
     const promises = [];
     const baselineLoaded = isApplyDataReady.value;
-    const targetCoreSettings = resolveTargetCoreSettings();
     let hadNonOptimisticFailures = false;
     let hadWarnings = !baselineLoaded;
     let hadSshVerificationUncertainty = false;
@@ -619,6 +618,7 @@ const handleComplete = async () => {
       ? Boolean(coreSettingsResult.value?.vars?.useSsh || false)
       : TRUSTED_DEFAULT_PROFILE.useSsh;
     const currentSysModel = baselineLoaded ? coreSettingsResult.value?.vars?.sysModel || '' : '';
+    const targetCoreSettings = resolveTargetCoreSettings();
     const serverNameChanged = baselineLoaded ? targetCoreSettings.serverName !== currentName : false;
     const shouldApplyPartnerSysModel = Boolean(
       isFreshInstall.value &&
@@ -1113,7 +1113,10 @@ const handleBack = () => {
             </h3>
           </div>
           <div class="space-y-3">
-            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+            <div
+              class="hidden flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between"
+              aria-hidden="true"
+            >
               <span class="text-muted">{{ t('onboarding.coreSettings.serverName') }}</span>
               <span class="text-highlighted font-medium break-all sm:text-right">{{ serverName }}</span>
             </div>
