@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.33.0](https://github.com/unraid/api/compare/v4.32.3...v4.33.0) (2026-05-04)
+
+
+### Features
+
+* Hide server name in onboarding ([#1993](https://github.com/unraid/api/issues/1993)) ([8244015](https://github.com/unraid/api/commit/8244015c4e5f8076046e65e62659c67666293635))
+* New Crowdin updates ([#1994](https://github.com/unraid/api/issues/1994)) ([865d9cc](https://github.com/unraid/api/commit/865d9cc469e78f20c0dd6e378c6d7d4bbe3fe434))
+
 ## [4.32.3](https://github.com/unraid/api/compare/v4.32.2...v4.32.3) (2026-04-20)
 
 
