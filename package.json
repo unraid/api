@@ -22,8 +22,8 @@
   },
   "pnpm": {
     "overrides": {
-      "graphql": "16.11.0",
-      "@graphql-tools/utils": "10.9.1"
+      "graphql": "16.14.0",
+      "@graphql-tools/utils": "10.11.0"
     },
     "peerDependencyRules": {
       "allowAny": [
@@ -52,13 +52,13 @@
     ]
   },
   "dependencies": {
-    "@manypkg/cli": "0.25.0",
-    "chalk": "5.6.0",
-    "diff": "8.0.2",
+    "@manypkg/cli": "0.25.1",
+    "chalk": "5.6.2",
+    "diff": "8.0.4",
     "ignore": "7.0.5"
   },
   "devDependencies": {
-    "lint-staged": "16.1.5",
+    "lint-staged": "16.4.0",
     "simple-git-hooks": "2.13.1"
   },
   "simple-git-hooks": {
@@ -75,5 +75,5 @@
       "pnpm --filter @unraid/ui lint:fix"
     ]
   },
-  "packageManager": "pnpm@10.15.0"
+  "packageManager": "pnpm@10.33.4"
 }
