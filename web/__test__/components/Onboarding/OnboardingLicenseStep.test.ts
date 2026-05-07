@@ -139,6 +139,15 @@ describe('OnboardingLicenseStep.vue', () => {
     expect(wrapper.text()).toContain('Manage License');
   });
 
+  it('renders a clear status when no licensing device is available', () => {
+    activationStoreMock.registrationState.value = 'ENOFLASH';
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.text()).toContain('No valid license device detected');
+    expect(wrapper.text()).not.toContain('Unregistered');
+  });
+
   it('opens activation link in new tab when activate button is clicked', async () => {
     const windowOpenMock = vi.fn();
     vi.stubGlobal('open', windowOpenMock);
