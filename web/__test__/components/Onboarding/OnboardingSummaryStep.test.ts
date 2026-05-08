@@ -528,7 +528,7 @@ describe('OnboardingSummaryStep', () => {
       },
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(installPluginMock).toHaveBeenCalledWith({
-          url: 'https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
+          url: 'https://ca.unraid.net/dl/https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
           name: 'Community Apps',
           forced: false,
           onEvent: expect.any(Function),
