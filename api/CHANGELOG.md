@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.34.0](https://github.com/unraid/api/compare/v4.33.0...v4.34.0) (2026-05-11)
+
+
+### Features
+
+* **onboarding:** route plugin installs through ca.unraid.net/dl proxy ([#2000](https://github.com/unraid/api/issues/2000)) ([443227d](https://github.com/unraid/api/commit/443227d6d795bad9dcbfb5b8ee00eb8ac8148d74))
+
+
+### Bug Fixes
+
+* Clarify missing license device status ([#1999](https://github.com/unraid/api/issues/1999)) ([3f2cf18](https://github.com/unraid/api/commit/3f2cf18ab42505358f975ab28eac2a63474fbcf8))
+
 ## [4.33.0](https://github.com/unraid/api/compare/v4.32.3...v4.33.0) (2026-05-04)
 
 
