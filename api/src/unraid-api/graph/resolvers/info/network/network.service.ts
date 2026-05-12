@@ -50,7 +50,7 @@ export class NetworkService {
                 ipv6Address: iface.ip6,
                 ipv6Netmask: iface.ip6subnet,
                 useDhcp6: false,
-            } as InfoNetworkInterface;
+            } satisfies InfoNetworkInterface;
         });
     }
 
@@ -97,7 +97,7 @@ export class NetworkService {
                       },
                   ]
                 : [],
-        } as InfoNetworkInterface;
+        } satisfies InfoNetworkInterface;
     }
 
     private parseVlanId(iface: string): number | undefined {
@@ -109,7 +109,10 @@ export class NetworkService {
     }
 
     private parseIpv6PrefixLength(subnet: string): number | undefined {
-        const parsed = Number(subnet);
-        return Number.isInteger(parsed) ? parsed : undefined;
+        const trimmed = subnet.trim();
+        if (!/^\d+$/.test(trimmed)) return undefined;
+
+        const parsed = Number(trimmed);
+        return Number.isInteger(parsed) && parsed >= 0 && parsed <= 128 ? parsed : undefined;
     }
 }
