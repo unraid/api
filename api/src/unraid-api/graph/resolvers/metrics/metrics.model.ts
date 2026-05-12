@@ -4,6 +4,7 @@ import { Node } from '@unraid/shared/graphql.model.js';
 
 import { CpuUtilization } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
 import { MemoryUtilization } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
+import { NetworkMetrics } from '@app/unraid-api/graph/resolvers/metrics/network/network.model.js';
 import { TemperatureMetrics } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.model.js';
 
 @ObjectType({
@@ -25,4 +26,9 @@ export class Metrics extends Node {
         description: 'Temperature metrics',
     })
     temperature?: TemperatureMetrics;
+
+    @Field(() => [NetworkMetrics], {
+        description: 'Current network metrics for all interfaces',
+    })
+    network!: NetworkMetrics[];
 }

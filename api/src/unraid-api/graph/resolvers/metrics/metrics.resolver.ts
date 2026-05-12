@@ -12,6 +12,8 @@ import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service
 import { MemoryUtilization } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { Metrics } from '@app/unraid-api/graph/resolvers/metrics/metrics.model.js';
+import { NetworkMetrics } from '@app/unraid-api/graph/resolvers/metrics/network/network.model.js';
+import { NetworkMetricsService } from '@app/unraid-api/graph/resolvers/metrics/network/network.service.js';
 import { TemperatureConfigInput } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.input.js';
 import { TemperatureConfigService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.service.js';
 import { TemperatureMetrics } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.model.js';
@@ -26,6 +28,7 @@ export class MetricsResolver implements OnModuleInit {
         private readonly cpuService: CpuService,
         private readonly cpuTopologyService: CpuTopologyService,
         private readonly memoryService: MemoryService,
+        private readonly networkMetricsService: NetworkMetricsService,
         private readonly temperatureService: TemperatureService,
         private readonly subscriptionTracker: SubscriptionTrackerService,
         private readonly subscriptionHelper: SubscriptionHelperService,
@@ -86,6 +89,15 @@ export class MetricsResolver implements OnModuleInit {
             2000
         );
 
+        this.subscriptionTracker.registerTopic(
+            PUBSUB_CHANNEL.NETWORK_UTILIZATION,
+            async () => {
+                const payload = await this.networkMetricsService.getNetworkMetrics();
+                pubsub.publish(PUBSUB_CHANNEL.NETWORK_UTILIZATION, { systemMetricsNetwork: payload });
+            },
+            2000
+        );
+
         const { enabled, polling_interval } = this.temperatureConfigService.getConfig();
 
         if (enabled) {
@@ -125,6 +137,11 @@ export class MetricsResolver implements OnModuleInit {
         return this.memoryService.generateMemoryLoad();
     }
 
+    @ResolveField(() => [NetworkMetrics])
+    public async network(): Promise<NetworkMetrics[]> {
+        return this.networkMetricsService.getNetworkMetrics();
+    }
+
     @Subscription(() => CpuUtilization, {
         name: 'systemMetricsCpu',
         resolve: (value) => value.systemMetricsCpu,
@@ -159,6 +176,18 @@ export class MetricsResolver implements OnModuleInit {
     })
     public async systemMetricsMemorySubscription() {
         return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+    }
+
+    @Subscription(() => [NetworkMetrics], {
+        name: 'systemMetricsNetwork',
+        resolve: (value) => value.systemMetricsNetwork,
+    })
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
+    public async systemMetricsNetworkSubscription() {
+        return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.NETWORK_UTILIZATION);
     }
 
     @ResolveField(() => TemperatureMetrics, { nullable: true })
