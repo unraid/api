@@ -68,12 +68,6 @@ const applyDarkClass = (isDark: boolean, darkModeRef?: { value: boolean }) => {
   }
 };
 
-const bootstrapDarkClass = (darkModeRef?: { value: boolean }) => {
-  if (isDarkModeActive()) {
-    applyDarkClass(true, darkModeRef);
-  }
-};
-
 const sanitizeTheme = (data: Partial<Theme> | null | undefined): Theme | null => {
   if (!data || typeof data !== 'object') {
     return null;
@@ -216,8 +210,7 @@ export const useThemeStore = defineStore('theme', () => {
     setTheme({ name: domThemeName });
     applyDarkClass(isDarkThemeName(domThemeName), darkMode);
   } else if (isDomAvailable()) {
-    darkMode.value = isDarkModeActive();
-    bootstrapDarkClass(darkMode);
+    applyDarkClass(isDarkModeActive(), darkMode);
   }
 
   return {

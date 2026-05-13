@@ -298,5 +298,17 @@ describe('Theme Store', () => {
       expect(document.body.classList.remove).toHaveBeenCalledWith('dark');
       expect(store.darkMode).toBe(false);
     });
+
+    it('should remove stale dark classes when only the dark mode CSS variable is light', () => {
+      document.documentElement.style.setProperty('--theme-dark-mode', '0');
+      originalDocumentElementAddClass.call(document.documentElement.classList, 'dark');
+      originalAddClassFn.call(document.body.classList, 'dark');
+
+      const store = createStore();
+
+      expect(document.documentElement.classList.remove).toHaveBeenCalledWith('dark');
+      expect(document.body.classList.remove).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(false);
+    });
   });
 });
