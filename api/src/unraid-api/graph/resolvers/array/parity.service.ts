@@ -63,15 +63,21 @@ export class ParityService {
     }): Promise<ParityCheck[]> {
         const { getters } = await import('@app/store/index.js');
         const running = getters.emhttp().var.mdResync !== 0;
+        // Match the field names the Unraid web UI submits — emhttpd
+        // identifies the action by the field NAME, not its value. Sending
+        // `cmdCheck=Resume` would fall through to the plain `cmdCheck`
+        // submit handler (start a fresh check), discarding the saved
+        // mdResyncPos so the resumed parity restarts from byte 0.
+        // See /usr/local/emhttp/plugins/dynamix/ArrayOperation.page.
         const states = {
             pause: {
-                cmdNoCheck: 'Pause',
+                cmdCheckPause: '',
             },
             resume: {
-                cmdCheck: 'Resume',
+                cmdCheckResume: '',
             },
             cancel: {
-                cmdNoCheck: 'Cancel',
+                cmdCheckCancel: '',
             },
             start: {
                 cmdCheck: 'Check',
