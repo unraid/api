@@ -80,6 +80,8 @@ export class CpuTopologyService {
                     if (/coretemp|k10temp|zenpower/i.test(label)) {
                         const files = await readdir(path);
                         const packageTemps: number[] = [];
+                        const packageTdieTemps: number[] = [];
+                        const packageTctlTemps: number[] = [];
                         const coreTemps: number[] = [];
 
                         for (const f of files) {
@@ -110,11 +112,15 @@ export class CpuTopologyService {
 
                                 if (
                                     sensorLabel.includes('package id') ||
-                                    sensorLabel.includes('tctl') ||
-                                    sensorLabel.includes('tdie') ||
                                     sensorLabel.includes('cpu temp')
                                 ) {
                                     packageTemps.push(tempC);
+                                }
+
+                                if (sensorLabel.includes('tdie')) {
+                                    packageTdieTemps.push(tempC);
+                                } else if (sensorLabel.includes('tctl')) {
+                                    packageTctlTemps.push(tempC);
                                 } else if (/^core\s+\d+$/i.test(sensorLabel)) {
                                     coreTemps.push(tempC);
                                 }
@@ -123,8 +129,12 @@ export class CpuTopologyService {
                             }
                         }
 
-                        if (packageTemps.length > 0) {
-                            temps.push(...packageTemps);
+                        if (packageTdieTemps.length > 0) {
+                            temps.push(Math.max(...packageTdieTemps));
+                        } else if (packageTctlTemps.length > 0) {
+                            temps.push(Math.max(...packageTctlTemps));
+                        } else if (packageTemps.length > 0) {
+                            temps.push(Math.max(...packageTemps));
                         } else if (coreTemps.length > 0) {
                             // Legacy CPUs may expose only per-core readings. Use the hottest core as package temp.
                             temps.push(Math.max(...coreTemps));
@@ -240,6 +250,7 @@ export class CpuTopologyService {
 
     private async getPackagePowerFromHwmon(): Promise<Record<number, Record<string, number>>> {
         const results: Record<number, Record<string, number>> = {};
+        let nextFallbackPackageIndex = 0;
 
         try {
             const hwmons = await readdir('/sys/class/hwmon');
@@ -258,6 +269,40 @@ export class CpuTopologyService {
                 }
 
                 const files = await readdir(path);
+                let packageIndex = Number.NaN;
+
+                const chipPackageMatch = chipName.match(/package[-_\s:]?(\d+)/i);
+                if (chipPackageMatch) {
+                    packageIndex = Number(chipPackageMatch[1]);
+                }
+
+                if (!Number.isFinite(packageIndex)) {
+                    for (const fileName of files) {
+                        if (!fileName.endsWith('_label')) continue;
+
+                        try {
+                            const labelValue = (await readFile(join(path, fileName), 'utf8'))
+                                .trim()
+                                .toLowerCase();
+                            const labelPackageMatch = labelValue.match(/package[-_\s:]?(\d+)/i);
+
+                            if (labelPackageMatch) {
+                                packageIndex = Number(labelPackageMatch[1]);
+                                break;
+                            }
+                        } catch {
+                            // label file is optional
+                        }
+                    }
+                }
+
+                if (!Number.isFinite(packageIndex)) {
+                    packageIndex = nextFallbackPackageIndex;
+                    nextFallbackPackageIndex += 1;
+                } else {
+                    nextFallbackPackageIndex = Math.max(nextFallbackPackageIndex, packageIndex + 1);
+                }
+
                 for (const f of files) {
                     if (!(f.startsWith('power') && f.endsWith('_input'))) continue;
 
@@ -271,8 +316,8 @@ export class CpuTopologyService {
 
                         if (!Number.isFinite(rounded)) continue;
 
-                        if (!results[0]) results[0] = {};
-                        results[0][`${chipName}:${f}`] = rounded;
+                        if (!results[packageIndex]) results[packageIndex] = {};
+                        results[packageIndex][`${chipName}:${f}`] = rounded;
                     } catch (err) {
                         this.logger.warn('Failed to read file', err);
                     }
