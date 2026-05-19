@@ -101,7 +101,9 @@ export class CpuTopologyService {
                                 let sensorLabel = '';
 
                                 try {
-                                    sensorLabel = (await readFile(labelFile, 'utf8')).trim().toLowerCase();
+                                    sensorLabel = (await readFile(labelFile, 'utf8'))
+                                        .trim()
+                                        .toLowerCase();
                                 } catch {
                                     // label file is optional
                                 }
