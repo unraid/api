@@ -32,14 +32,18 @@ jobs:
     steps:
       - name: Set PR number
         id: pr_number
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -Eeuo pipefail
           IFS=$'\n\t'
 
-          if [ "${{ github.event_name }}" = "pull_request_target" ]; then
-            PR_NUMBER="${{ github.event.pull_request.number }}"
+          if [ "$EVENT_NAME" = "pull_request_target" ]; then
+            PR_NUMBER="$PULL_REQUEST_NUMBER"
           else
-            PR_NUMBER="${{ inputs.pr_number }}"
+            PR_NUMBER="$INPUT_PR_NUMBER"
           fi
 
           if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
@@ -119,7 +123,7 @@ jobs:
                 
           # Change the plugin url to point to staging - users will switch to staging on next update
           url="https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg"
-          sed -i -E "s#(<!ENTITY plugin_url \").*?(\">)#\1${url}\2#g" "${plgfile}" || exit 1
+          sed -i -E "s#(<!ENTITY plugin_url \")[^\"]*(\">)#\1${url}\2#g" "${plgfile}" || exit 1
           
           echo "Modified plugin to redirect to: ${url}"
           echo "Version bumped from ${current_version} to ${new_version}"
@@ -190,7 +194,7 @@ jobs:
 
       - name: Comment on PR about staging redirect
         if: github.event_name == 'pull_request_target' && steps.download_pr_plugin.outputs.found == 'true'
-        uses: thollander/actions-comment-pull-request@v3
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b
         with:
           comment-tag: pr-closed-staging
           mode: recreate
