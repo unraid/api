@@ -115,7 +115,11 @@ export class CpuTopologyService {
                                     sensorLabel.includes('cpu temp')
                                 ) {
                                     packageTemps.push(tempC);
-                                } else if (!sensorLabel && /^temp1_input$/i.test(f) && /k10temp/i.test(label)) {
+                                } else if (
+                                    !sensorLabel &&
+                                    /^temp1_input$/i.test(f) &&
+                                    /k10temp/i.test(label)
+                                ) {
                                     packageTemps.push(tempC);
                                 }
 
