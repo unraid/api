@@ -6,7 +6,7 @@ name: Replace PR Plugin with Staging Redirect on Merge
 # update to the staging version on their next update check.
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - closed
   workflow_dispatch:
@@ -23,40 +23,88 @@ on:
 
 jobs:
   push-staging-redirect:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || (github.event_name == 'workflow_dispatch' && inputs.pr_merged == true)
+    if: (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true) || (github.event_name == 'workflow_dispatch' && inputs.pr_merged == true)
     runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
+      pull-requests: write
     steps:
       - name: Set PR number
         id: pr_number
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          set -Eeuo pipefail
+          IFS=$'\n\t'
+
+          if [ "$EVENT_NAME" = "pull_request_target" ]; then
+            PR_NUMBER="$PULL_REQUEST_NUMBER"
           else
-            echo "pr_number=${{ inputs.pr_number }}" >> $GITHUB_OUTPUT
+            PR_NUMBER="$INPUT_PR_NUMBER"
           fi
 
-      - name: Download artifact
-        uses: dawidd6/action-download-artifact@v11
-        with:
-          name_is_regexp: true
-          name: unraid-plugin-.*
-          path: connect-files
-          pr: ${{ steps.pr_number.outputs.pr_number }}
-          workflow: main.yml
-          workflow_conclusion: success
-          search_artifacts: true
-          if_no_artifact_found: fail
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "Error: PR number '$PR_NUMBER' is not numeric" >&2
+            exit 1
+          fi
+
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Download PR plugin from Cloudflare
+        id: download_pr_plugin
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_EC2_METADATA_DISABLED: true
+          AWS_SHARED_CREDENTIALS_FILE: /dev/null
+          AWS_CONFIG_FILE: /dev/null
+          CF_BUCKET_PREVIEW: ${{ secrets.CF_BUCKET_PREVIEW }}
+          CF_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
+          PR_NUMBER: ${{ steps.pr_number.outputs.pr_number }}
+        run: |
+          set -Eeuo pipefail
+          IFS=$'\n\t'
+
+          : "${CF_BUCKET_PREVIEW:?CF_BUCKET_PREVIEW secret is required}"
+          : "${CF_ENDPOINT:?CF_ENDPOINT secret is required}"
+          : "${PR_NUMBER:?PR_NUMBER is required}"
+
+          PR_PREFIX="unraid-api/tag/PR${PR_NUMBER}"
+          PLUGIN_KEY="${PR_PREFIX}/dynamix.unraid.net.plg"
+
+          if ! [[ "$PLUGIN_KEY" =~ ^unraid-api/tag/PR[0-9]+/dynamix\.unraid\.net\.plg$ ]]; then
+            echo "Error: Invalid plugin key '$PLUGIN_KEY'" >&2
+            exit 1
+          fi
+
+          mkdir -p pr-release
+
+          if ! aws s3api head-object \
+            --bucket "$CF_BUCKET_PREVIEW" \
+            --key "$PLUGIN_KEY" \
+            --endpoint-url "$CF_ENDPOINT" > /dev/null 2>&1; then
+            echo "No PR plugin found at s3://${CF_BUCKET_PREVIEW}/${PLUGIN_KEY}; nothing to close out."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          aws s3 cp "s3://${CF_BUCKET_PREVIEW}/${PLUGIN_KEY}" pr-release/dynamix.unraid.net.plg \
+            --endpoint-url "$CF_ENDPOINT"
+
+          echo "found=true" >> "$GITHUB_OUTPUT"
 
       - name: Update Downloaded Plugin to Redirect to Staging
+        if: steps.download_pr_plugin.outputs.found == 'true'
         run: |
           # Find the .plg file in the downloaded artifact
-          plgfile=$(find connect-files -name "*.plg" -type f | head -1)
+          plgfile="pr-release/dynamix.unraid.net.plg"
           if [ ! -f "$plgfile" ]; then
-            echo "ERROR: .plg file not found in connect-files/"
-            ls -la connect-files/
+            echo "ERROR: .plg file not found in pr-release/"
+            ls -la pr-release/
             exit 1
           fi
 
@@ -75,43 +123,69 @@ jobs:
                 
           # Change the plugin url to point to staging - users will switch to staging on next update
           url="https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg"
-          sed -i -E "s#(<!ENTITY plugin_url \").*?(\">)#\1${url}\2#g" "${plgfile}" || exit 1
+          sed -i -E "s#(<!ENTITY plugin_url \")[^\"]*(\">)#\1${url}\2#g" "${plgfile}" || exit 1
           
           echo "Modified plugin to redirect to: ${url}"
           echo "Version bumped from ${current_version} to ${new_version}"
-          
-          mkdir -p pr-release
-          mv "${plgfile}" pr-release/dynamix.unraid.net.plg
 
       - name: Clean up old PR artifacts from Cloudflare
+        if: steps.download_pr_plugin.outputs.found == 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
+          AWS_EC2_METADATA_DISABLED: true
+          AWS_SHARED_CREDENTIALS_FILE: /dev/null
+          AWS_CONFIG_FILE: /dev/null
+          CF_BUCKET_PREVIEW: ${{ secrets.CF_BUCKET_PREVIEW }}
+          CF_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
+          PR_NUMBER: ${{ steps.pr_number.outputs.pr_number }}
         run: |
+          set -Eeuo pipefail
+          IFS=$'\n\t'
+
+          : "${CF_BUCKET_PREVIEW:?CF_BUCKET_PREVIEW secret is required}"
+          : "${CF_ENDPOINT:?CF_ENDPOINT secret is required}"
+          : "${PR_NUMBER:?PR_NUMBER is required}"
+
           # Delete all existing files in the PR directory first (txz, plg, etc.)
-          aws s3 rm s3://${{ secrets.CF_BUCKET_PREVIEW }}/unraid-api/tag/PR${{ steps.pr_number.outputs.pr_number }}/ \
+          aws s3 rm "s3://${CF_BUCKET_PREVIEW}/unraid-api/tag/PR${PR_NUMBER}/" \
             --recursive \
-            --endpoint-url ${{ secrets.CF_ENDPOINT }}
+            --endpoint-url "$CF_ENDPOINT"
           
           echo "✅ Cleaned up old PR artifacts"
 
       - name: Upload PR Redirect Plugin to Cloudflare
+        if: steps.download_pr_plugin.outputs.found == 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
+          AWS_EC2_METADATA_DISABLED: true
+          AWS_SHARED_CREDENTIALS_FILE: /dev/null
+          AWS_CONFIG_FILE: /dev/null
+          CF_BUCKET_PREVIEW: ${{ secrets.CF_BUCKET_PREVIEW }}
+          CF_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
+          PR_NUMBER: ${{ steps.pr_number.outputs.pr_number }}
         run: |
+          set -Eeuo pipefail
+          IFS=$'\n\t'
+
+          : "${CF_BUCKET_PREVIEW:?CF_BUCKET_PREVIEW secret is required}"
+          : "${CF_ENDPOINT:?CF_ENDPOINT secret is required}"
+          : "${PR_NUMBER:?PR_NUMBER is required}"
+
           # Upload only the redirect plugin file
           aws s3 cp pr-release/dynamix.unraid.net.plg \
-            s3://${{ secrets.CF_BUCKET_PREVIEW }}/unraid-api/tag/PR${{ steps.pr_number.outputs.pr_number }}/dynamix.unraid.net.plg \
-            --endpoint-url ${{ secrets.CF_ENDPOINT }} \
+            "s3://${CF_BUCKET_PREVIEW}/unraid-api/tag/PR${PR_NUMBER}/dynamix.unraid.net.plg" \
+            --endpoint-url "$CF_ENDPOINT" \
             --content-encoding none \
             --acl public-read
           
           echo "✅ Uploaded redirect plugin"
 
       - name: Output redirect information
+        if: steps.download_pr_plugin.outputs.found == 'true'
         run: |
           echo "✅ PR plugin replaced with staging redirect version"
           echo "PR URL remains: https://preview.dl.unraid.net/unraid-api/tag/PR${{ steps.pr_number.outputs.pr_number }}/dynamix.unraid.net.plg"
@@ -119,8 +193,8 @@ jobs:
           echo "Users updating from this PR version will automatically switch to staging"
 
       - name: Comment on PR about staging redirect
-        if: github.event_name == 'pull_request'
-        uses: thollander/actions-comment-pull-request@v3
+        if: github.event_name == 'pull_request_target' && steps.download_pr_plugin.outputs.found == 'true'
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b
         with:
           comment-tag: pr-closed-staging
           mode: recreate
