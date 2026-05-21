@@ -270,19 +270,23 @@ export class CpuTopologyService {
                     continue;
                 }
 
-                if (!/fam15h_power|zenpower|amd_energy|rapl/i.test(chipName)) {
+                if (!/fam15h_power|zenpower|rapl/i.test(chipName)) {
                     continue;
                 }
 
                 const files = await readdir(path);
-                let packageIndex = Number.NaN;
+                let packageIndex: number | null = null;
+                let wrotePower = false;
 
                 const chipPackageMatch = chipName.match(/package[-_\s:]?(\d+)/i);
                 if (chipPackageMatch) {
-                    packageIndex = Number(chipPackageMatch[1]);
+                    const parsedPackageIndex = Number(chipPackageMatch[1]);
+                    if (Number.isFinite(parsedPackageIndex)) {
+                        packageIndex = parsedPackageIndex;
+                    }
                 }
 
-                if (!Number.isFinite(packageIndex)) {
+                if (packageIndex === null) {
                     for (const fileName of files) {
                         if (!fileName.endsWith('_label')) continue;
 
@@ -293,20 +297,16 @@ export class CpuTopologyService {
                             const labelPackageMatch = labelValue.match(/package[-_\s:]?(\d+)/i);
 
                             if (labelPackageMatch) {
-                                packageIndex = Number(labelPackageMatch[1]);
-                                break;
+                                const parsedPackageIndex = Number(labelPackageMatch[1]);
+                                if (Number.isFinite(parsedPackageIndex)) {
+                                    packageIndex = parsedPackageIndex;
+                                    break;
+                                }
                             }
                         } catch {
                             // label file is optional
                         }
                     }
-                }
-
-                if (!Number.isFinite(packageIndex)) {
-                    packageIndex = nextFallbackPackageIndex;
-                    nextFallbackPackageIndex += 1;
-                } else {
-                    nextFallbackPackageIndex = Math.max(nextFallbackPackageIndex, packageIndex + 1);
                 }
 
                 for (const f of files) {
@@ -322,11 +322,21 @@ export class CpuTopologyService {
 
                         if (!Number.isFinite(rounded)) continue;
 
+                        if (packageIndex === null) {
+                            packageIndex = nextFallbackPackageIndex;
+                            nextFallbackPackageIndex += 1;
+                        }
+
                         if (!results[packageIndex]) results[packageIndex] = {};
                         results[packageIndex][`${chipName}:${f}`] = rounded;
+                        wrotePower = true;
                     } catch (err) {
                         this.logger.warn('Failed to read file', err);
                     }
+                }
+
+                if (wrotePower && packageIndex !== null) {
+                    nextFallbackPackageIndex = Math.max(nextFallbackPackageIndex, packageIndex + 1);
                 }
             }
         } catch {
