@@ -157,7 +157,7 @@ jobs:
           fi
 
       - name: Upload all coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/coverage-final.json,../web/coverage/coverage-final.json,../unraid-ui/coverage/coverage-final.json,../packages/unraid-api-plugin-connect/coverage/coverage-final.json,../packages/unraid-shared/coverage/coverage-final.json
