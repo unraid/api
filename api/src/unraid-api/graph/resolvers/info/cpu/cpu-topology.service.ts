@@ -317,7 +317,7 @@ export class CpuTopologyService {
                         const parsed = Number(raw.trim());
                         if (!Number.isFinite(parsed) || parsed < 0) continue;
 
-                        const watts = parsed > 1000 ? parsed / 1_000_000 : parsed;
+                        const watts = parsed / 1_000_000;
                         const rounded = Math.round(watts * 100) / 100;
 
                         if (!Number.isFinite(rounded)) continue;
