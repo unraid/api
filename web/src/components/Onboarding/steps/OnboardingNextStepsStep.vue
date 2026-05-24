@@ -354,7 +354,8 @@ const handleCancelPowerAction = () => {
                 <div class="flex flex-col gap-0.5">
                   <span
                     v-if="activationCode?.system?.serverName"
-                    class="text-highlighted text-lg font-bold"
+                    class="text-highlighted hidden text-lg font-bold"
+                    aria-hidden="true"
                     >{{ activationCode.system.serverName }}</span
                   >
                   <span v-if="activationCode?.system?.model" class="text-muted font-medium">{{

@@ -1,0 +1,194 @@
+name: Upload PR Plugin to Cloudflare
+
+on:
+  workflow_run:
+    workflows: ["CI - Main (API)"]
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-plugin-upload-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+jobs:
+  upload-pr-plugin:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      SHELLOPTS: errexit:pipefail
+
+    steps:
+      - name: Resolve workflow run context
+        id: context
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        with:
+          script: |
+            const workflowRun = context.payload.workflow_run;
+            const runId = workflowRun.id;
+            let prNumber = workflowRun.pull_requests?.[0]?.number;
+
+            if (!prNumber) {
+              const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: workflowRun.head_sha,
+              });
+              prNumber = prs.data[0]?.number;
+            }
+
+            if (!prNumber) {
+              core.setFailed(`Unable to resolve a pull request for workflow run ${runId}`);
+              return;
+            }
+
+            core.setOutput('run_id', runId);
+            core.setOutput('pr_number', prNumber);
+
+      - name: Prepare artifact directory
+        run: |
+          set -Eeuo pipefail
+          IFS=$'\n\t'
+          mkdir -p "${{ runner.temp }}/pr-plugin"
+
+      - name: Download plugin artifact
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        env:
+          RUN_ID: ${{ steps.context.outputs.run_id }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const runId = Number(process.env.RUN_ID);
+
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
+
+            const artifact = artifacts.data.artifacts.find((candidate) =>
+              candidate.name.startsWith(`unraid-plugin-${runId}-`)
+            );
+
+            if (!artifact) {
+              core.setFailed(`No unraid-plugin artifact found for workflow run ${runId}`);
+              return;
+            }
+
+            const download = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: artifact.id,
+              archive_format: 'zip',
+            });
+
+            const zipPath = path.join(process.env.RUNNER_TEMP, 'pr-plugin', 'artifact.zip');
+            fs.writeFileSync(zipPath, Buffer.from(download.data));
+            core.info(`Downloaded ${artifact.name}`);
+
+      - name: Extract and validate plugin files
+        id: files
+        run: |
+          set -Eeuo pipefail
+          IFS=$'\n\t'
+
+          ZIP_PATH="${{ runner.temp }}/pr-plugin/artifact.zip"
+          UNPACKED_DIR="${{ runner.temp }}/pr-plugin/unpacked"
+          DEPLOY_DIR="${{ runner.temp }}/pr-plugin/deploy"
+          mkdir -p "$UNPACKED_DIR" "$DEPLOY_DIR"
+
+          unzip -l "$ZIP_PATH" | awk '
+            NR <= 3 || /^-/ || /^Archive:/ {next}
+            /files$/ {exit}
+            {
+              filename = $NF
+              if (filename ~ /^\// || filename ~ /\.\.\//) {
+                print "Invalid artifact path: " filename > "/dev/stderr"
+                exit 1
+              }
+            }
+          '
+
+          unzip -o "$ZIP_PATH" -d "$UNPACKED_DIR"
+
+          while IFS= read -r file; do
+            filename=$(basename "$file")
+            case "$filename" in
+              *.plg|*.txz) ;;
+              *)
+                echo "Unexpected artifact file: $file"
+                exit 1
+                ;;
+            esac
+
+            if [ -e "$DEPLOY_DIR/$filename" ]; then
+              echo "Duplicate artifact filename: $filename"
+              exit 1
+            fi
+
+            cp "$file" "$DEPLOY_DIR/$filename"
+          done < <(find "$UNPACKED_DIR" -type f)
+
+          PLG_COUNT=$(find "$DEPLOY_DIR" -maxdepth 1 -name "*.plg" -type f | wc -l | tr -d ' ')
+          TXZ_COUNT=$(find "$DEPLOY_DIR" -maxdepth 1 -name "*.txz" -type f | wc -l | tr -d ' ')
+
+          if [ "$PLG_COUNT" -ne 1 ]; then
+            echo "Expected exactly one .plg file, found $PLG_COUNT"
+            exit 1
+          fi
+
+          if [ "$TXZ_COUNT" -lt 1 ]; then
+            echo "Expected at least one .txz file, found $TXZ_COUNT"
+            exit 1
+          fi
+
+          echo "deploy_dir=$DEPLOY_DIR" >> "$GITHUB_OUTPUT"
+          ls -la "$DEPLOY_DIR"
+
+      - name: Upload plugin to Cloudflare
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_EC2_METADATA_DISABLED: true
+          AWS_SHARED_CREDENTIALS_FILE: /dev/null
+          AWS_CONFIG_FILE: /dev/null
+          CF_BUCKET_PREVIEW: ${{ secrets.CF_BUCKET_PREVIEW }}
+          CF_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
+          DEPLOY_DIR: ${{ steps.files.outputs.deploy_dir }}
+          PR_NUMBER: ${{ steps.context.outputs.pr_number }}
+        run: |
+          set -Eeuo pipefail
+          IFS=$'\n\t'
+
+          : "${CF_BUCKET_PREVIEW:?CF_BUCKET_PREVIEW secret is required}"
+          : "${CF_ENDPOINT:?CF_ENDPOINT secret is required}"
+          : "${DEPLOY_DIR:?DEPLOY_DIR is required}"
+          : "${PR_NUMBER:?PR_NUMBER is required}"
+
+          aws s3 sync "$DEPLOY_DIR/" "s3://${CF_BUCKET_PREVIEW}/unraid-api/tag/PR${PR_NUMBER}" \
+            --endpoint-url "$CF_ENDPOINT" \
+            --checksum-algorithm CRC32 \
+            --no-guess-mime-type \
+            --content-encoding none \
+            --acl public-read
+
+      - name: Comment URL
+        uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405
+        with:
+          number: ${{ steps.context.outputs.pr_number }}
+          header: prlink
+          message: |
+            This plugin has been deployed to Cloudflare R2 and is available for testing.
+            Download it at this URL:
+            ```
+            https://preview.dl.unraid.net/unraid-api/tag/PR${{ steps.context.outputs.pr_number }}/dynamix.unraid.net.plg
+            ```

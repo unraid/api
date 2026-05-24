@@ -221,6 +221,17 @@ describe('Registration.standalone.vue', () => {
     expect(wrapper.find('[data-testid="manage-license-button"]').exists()).toBe(false);
   });
 
+  it('renders licensing-device copy when no valid licensing device is available', async () => {
+    serverStore.state = 'ENOFLASH';
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('h3').text()).toContain('No valid license device detected');
+    expect(wrapper.find('.prose').text()).toContain(
+      'No valid TPM or USB flash device was detected for licensing.'
+    );
+  });
+
   it('does not show a connect sign-in action on the registration page', async () => {
     serverStore.state = 'ENOKEYFILE';
     serverStore.registered = false;

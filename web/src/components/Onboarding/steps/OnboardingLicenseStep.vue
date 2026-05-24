@@ -35,21 +35,43 @@ const { activationCode, registrationState, hasActivationCode } = storeToRefs(
   useActivationCodeDataStore()
 );
 
-// Valid license states where the server is considered "Registered/Licensed"
-const VALID_LICENSE_STATES = ['TRIAL', 'BASIC', 'STARTER', 'PLUS', 'PRO', 'UNLEASHED', 'LIFETIME'];
+const VALID_LICENSE_STATES: ReadonlySet<string> = new Set([
+  'TRIAL',
+  'BASIC',
+  'STARTER',
+  'PLUS',
+  'PRO',
+  'UNLEASHED',
+  'LIFETIME',
+]);
+const NO_LICENSE_DEVICE_STATES: ReadonlySet<string> = new Set([
+  'ENOFLASH',
+  'ENOFLASH1',
+  'ENOFLASH2',
+  'ENOFLASH3',
+  'ENOFLASH4',
+  'ENOFLASH5',
+  'ENOFLASH6',
+  'ENOFLASH7',
+]);
 const lt = (key: string, fallback: string) => (te(key) ? t(key) : fallback);
 
 const effectiveState = computed(() => registrationState.value || state.value);
 
 const hasValidLicense = computed(() => {
-  return effectiveState.value && VALID_LICENSE_STATES.includes(effectiveState.value);
+  return Boolean(effectiveState.value && VALID_LICENSE_STATES.has(effectiveState.value));
+});
+const hasNoLicenseDevice = computed(() => {
+  return Boolean(effectiveState.value && NO_LICENSE_DEVICE_STATES.has(effectiveState.value));
 });
 
 // Computeds
 const statusText = computed(() =>
-  hasValidLicense.value
-    ? lt('onboarding.licenseStep.status.registered', 'Registered')
-    : lt('onboarding.licenseStep.status.unregistered', 'Unregistered')
+  hasNoLicenseDevice.value
+    ? lt('onboarding.licenseStep.status.noLicenseDevice', 'No valid license device detected')
+    : hasValidLicense.value
+      ? lt('onboarding.licenseStep.status.registered', 'Registered')
+      : lt('onboarding.licenseStep.status.unregistered', 'Unregistered')
 );
 const statusBoxTextClass = computed(() => (hasValidLicense.value ? 'text-green-500' : 'text-red-500'));
 

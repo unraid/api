@@ -1,5 +1,32 @@
 # Changelog
 
+## [4.34.0](https://github.com/unraid/api/compare/v4.33.0...v4.34.0) (2026-05-11)
+
+
+### Features
+
+* **onboarding:** route plugin installs through ca.unraid.net/dl proxy ([#2000](https://github.com/unraid/api/issues/2000)) ([443227d](https://github.com/unraid/api/commit/443227d6d795bad9dcbfb5b8ee00eb8ac8148d74))
+
+
+### Bug Fixes
+
+* Clarify missing license device status ([#1999](https://github.com/unraid/api/issues/1999)) ([3f2cf18](https://github.com/unraid/api/commit/3f2cf18ab42505358f975ab28eac2a63474fbcf8))
+
+## [4.33.0](https://github.com/unraid/api/compare/v4.32.3...v4.33.0) (2026-05-04)
+
+
+### Features
+
+* Hide server name in onboarding ([#1993](https://github.com/unraid/api/issues/1993)) ([8244015](https://github.com/unraid/api/commit/8244015c4e5f8076046e65e62659c67666293635))
+* New Crowdin updates ([#1994](https://github.com/unraid/api/issues/1994)) ([865d9cc](https://github.com/unraid/api/commit/865d9cc469e78f20c0dd6e378c6d7d4bbe3fe434))
+
+## [4.32.3](https://github.com/unraid/api/compare/v4.32.2...v4.32.3) (2026-04-20)
+
+
+### Bug Fixes
+
+* add hungarian translation updates' ([a38fa34](https://github.com/unraid/api/commit/a38fa348cb88ff399e50ab3c917f0cc390361fb3))
+
 ## [4.32.2](https://github.com/unraid/api/compare/v4.32.1...v4.32.2) (2026-04-15)
 
 

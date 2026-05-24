@@ -37,19 +37,19 @@ const availablePlugins = computed(
         id: 'community-apps',
         name: t('onboarding.pluginsStep.plugins.communityApps.name'),
         description: t('onboarding.pluginsStep.plugins.communityApps.description'),
-        url: 'https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
+        url: 'https://ca.unraid.net/dl/https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
       },
       {
         id: 'fix-common-problems',
         name: t('onboarding.pluginsStep.plugins.fixCommonProblems.name'),
         description: t('onboarding.pluginsStep.plugins.fixCommonProblems.description'),
-        url: 'https://raw.githubusercontent.com/unraid/fix.common.problems/master/plugins/fix.common.problems.plg',
+        url: 'https://ca.unraid.net/dl/https://raw.githubusercontent.com/unraid/fix.common.problems/master/plugins/fix.common.problems.plg',
       },
       {
         id: 'tailscale',
         name: t('onboarding.pluginsStep.plugins.tailscale.name'),
         description: t('onboarding.pluginsStep.plugins.tailscale.description'),
-        url: 'https://raw.githubusercontent.com/unraid/unraid-tailscale/main/plugin/tailscale.plg',
+        url: 'https://ca.unraid.net/dl/https://raw.githubusercontent.com/unraid/unraid-tailscale/main/plugin/tailscale.plg',
       },
     ] as const
 );
