@@ -17,8 +17,6 @@ import {
 export enum FanControlMode {
     MANUAL = 'MANUAL',
     AUTOMATIC = 'AUTOMATIC',
-    FIXED = 'FIXED',
-    OFF = 'OFF',
 }
 
 registerEnumType(FanControlMode, {
@@ -100,22 +98,6 @@ export class FanProfile {
     @ValidateNested({ each: true })
     @Type(() => FanCurvePoint)
     curvePoints!: FanCurvePoint[];
-
-    @Field(() => String, {
-        nullable: true,
-        description: 'Temperature sensor ID to use for this profile',
-    })
-    @IsOptional()
-    @IsString()
-    temperatureSensorId?: string;
-
-    @Field(() => Float, { description: 'Minimum fan speed percentage', defaultValue: 20 })
-    @IsNumber()
-    minSpeed!: number;
-
-    @Field(() => Float, { description: 'Maximum fan speed percentage', defaultValue: 100 })
-    @IsNumber()
-    maxSpeed!: number;
 }
 
 @ObjectType({ implements: () => Node })
@@ -237,24 +219,4 @@ export class CreateFanProfileInput {
     @ArrayMinSize(1)
     @Type(() => FanCurvePointInput)
     curvePoints!: FanCurvePointInput[];
-
-    @Field(() => String, {
-        nullable: true,
-        description: 'Temperature sensor ID to use for this profile',
-    })
-    @IsOptional()
-    @IsString()
-    temperatureSensorId?: string;
-
-    @Field(() => Float, { description: 'Minimum fan speed percentage', defaultValue: 20 })
-    @IsNumber()
-    @Min(0)
-    @Max(100)
-    minSpeed!: number;
-
-    @Field(() => Float, { description: 'Maximum fan speed percentage', defaultValue: 100 })
-    @IsNumber()
-    @Min(0)
-    @Max(100)
-    maxSpeed!: number;
 }

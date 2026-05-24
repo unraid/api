@@ -2,8 +2,10 @@ import { Field, Float, InputType, Int, ObjectType } from '@nestjs/graphql';
 
 import { plainToInstance, Type } from 'class-transformer';
 import {
+    ArrayMinSize,
     IsBoolean,
     IsInt,
+    IsNotEmpty,
     IsNumber,
     IsOptional,
     IsString,
@@ -71,34 +73,23 @@ export class FanProfileConfig {
     @ValidateNested({ each: true })
     @Type(() => FanCurvePointConfig)
     curve!: FanCurvePointConfig[];
-
-    @Field(() => Float, { nullable: true, description: 'Minimum fan speed percentage' })
-    @IsNumber()
-    @IsOptional()
-    @Min(0)
-    @Max(100)
-    minSpeed?: number;
-
-    @Field(() => Float, { nullable: true, description: 'Maximum fan speed percentage' })
-    @IsNumber()
-    @IsOptional()
-    @Min(0)
-    @Max(100)
-    maxSpeed?: number;
 }
 
 @ObjectType()
 export class FanZoneConfig {
     @Field(() => [String])
     @IsString({ each: true })
+    @ArrayMinSize(1)
     fans!: string[];
 
     @Field(() => String)
     @IsString()
+    @IsNotEmpty()
     sensor!: string;
 
     @Field(() => String)
     @IsString()
+    @IsNotEmpty()
     profile!: string;
 }
 
@@ -231,14 +222,17 @@ export class FanControlSafetyInput {
 export class FanZoneConfigInput {
     @Field(() => [String], { description: 'Fan IDs in this zone' })
     @IsString({ each: true })
+    @ArrayMinSize(1)
     fans!: string[];
 
     @Field(() => String, { description: 'Temperature sensor ID' })
     @IsString()
+    @IsNotEmpty()
     sensor!: string;
 
     @Field(() => String, { description: 'Profile name to use' })
     @IsString()
+    @IsNotEmpty()
     profile!: string;
 }
 

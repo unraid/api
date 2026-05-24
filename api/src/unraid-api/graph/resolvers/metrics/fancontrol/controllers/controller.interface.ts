@@ -31,19 +31,9 @@ export interface FanControllerProvider {
 }
 
 export function pwmEnableToControlMode(enable: number): FanControlMode {
-    switch (enable) {
-        case 0:
-            return FanControlMode.OFF;
-        case 1:
-            return FanControlMode.MANUAL;
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-            return FanControlMode.AUTOMATIC;
-        default:
-            return FanControlMode.AUTOMATIC;
-    }
+    // pwm*_enable: 1 = manual PWM. Everything else (0 = no control/full speed,
+    // 2-5 = hardware automatic) is reported as automatic.
+    return enable === 1 ? FanControlMode.MANUAL : FanControlMode.AUTOMATIC;
 }
 
 export function pwmModeToConnectorType(mode: number): FanConnectorType {

@@ -106,9 +106,7 @@ export class FanCurveService implements OnModuleDestroy {
         const config = this.configService.getConfig();
         const interval = config.polling_interval ?? 2000;
 
-        if (config.profiles) {
-            this.profiles = { ...DEFAULT_PROFILES, ...config.profiles };
-        }
+        this.profiles = { ...DEFAULT_PROFILES, ...(config.profiles ?? {}) };
 
         await this.applyCurves();
 

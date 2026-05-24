@@ -73,9 +73,9 @@ describe('FanSafetyService', () => {
     });
 
     describe('validateModeTransition', () => {
-        it('should prevent transition to OFF', () => {
-            const result = service.validateModeTransition(FanControlMode.OFF);
-            expect(result).toBe(false);
+        it('should allow transition to AUTOMATIC', () => {
+            const result = service.validateModeTransition(FanControlMode.AUTOMATIC);
+            expect(result).toBe(true);
         });
 
         it('should allow transition to MANUAL', () => {
@@ -116,6 +116,30 @@ describe('FanSafetyService', () => {
             await service.captureState('nct6793:fan1', '/sys/class/hwmon/hwmon4', 1);
             await service.restoreAllFans();
             expect(hwmon.restoreAutomatic).toHaveBeenCalled();
+        });
+
+        it('should restore a manually-set fan to manual mode with its original duty', async () => {
+            vi.mocked(hwmon.readAll!).mockResolvedValueOnce([
+                {
+                    id: 'nct6793:fan1',
+                    name: 'nct6793 Fan 1',
+                    rpm: 800,
+                    pwmValue: 120,
+                    pwmEnable: 1,
+                    pwmMode: 1,
+                    hasPwmControl: true,
+                    devicePath: '/sys/class/hwmon/hwmon4',
+                    fanNumber: 1,
+                    pwmNumber: 1,
+                } as RawFanReading,
+            ]);
+
+            await service.captureState('nct6793:fan1', '/sys/class/hwmon/hwmon4', 1);
+            await service.restoreAllFans();
+
+            expect(hwmon.setMode).toHaveBeenCalledWith('/sys/class/hwmon/hwmon4', 1, 1);
+            expect(hwmon.setPwm).toHaveBeenCalledWith('/sys/class/hwmon/hwmon4', 1, 120);
+            expect(hwmon.restoreAutomatic).not.toHaveBeenCalled();
         });
 
         it('should clear emergency mode after restore', async () => {

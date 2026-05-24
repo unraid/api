@@ -7,7 +7,6 @@ import {
     RawFanReading,
 } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/controller.interface.js';
 import { HwmonService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/hwmon.service.js';
-import { IpmiFanService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/ipmi_fan.service.js';
 import { FanCurveService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fan-curve.service.js';
 import { FanControlConfigService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.service.js';
 import {
@@ -19,7 +18,6 @@ import { FanControlService } from '@app/unraid-api/graph/resolvers/metrics/fanco
 describe('FanControlService', () => {
     let service: FanControlService;
     let hwmon: Partial<FanControllerProvider>;
-    let ipmi: Partial<FanControllerProvider>;
     let configService: FanControlConfigService;
     let fanCurveService: Partial<FanCurveService>;
 
@@ -72,15 +70,6 @@ describe('FanControlService', () => {
             restoreAutomatic: vi.fn().mockResolvedValue(undefined),
         };
 
-        ipmi = {
-            id: 'IpmiFanService',
-            isAvailable: vi.fn().mockResolvedValue(false),
-            readAll: vi.fn().mockResolvedValue([]),
-            setPwm: vi.fn().mockResolvedValue(undefined),
-            setMode: vi.fn().mockResolvedValue(undefined),
-            restoreAutomatic: vi.fn().mockResolvedValue(undefined),
-        };
-
         configService = Object.create(FanControlConfigService.prototype);
         configService.getConfig = vi.fn().mockReturnValue({
             enabled: true,
@@ -125,7 +114,6 @@ describe('FanControlService', () => {
 
         service = new FanControlService(
             hwmon as unknown as HwmonService,
-            ipmi as unknown as IpmiFanService,
             configService,
             fanCurveService as unknown as FanCurveService
         );
@@ -135,12 +123,10 @@ describe('FanControlService', () => {
         it('should detect available providers', async () => {
             await service.onModuleInit();
             expect(hwmon.isAvailable).toHaveBeenCalled();
-            expect(ipmi.isAvailable).toHaveBeenCalled();
         });
 
         it('should handle unavailable providers gracefully', async () => {
             vi.mocked(hwmon.isAvailable!).mockResolvedValue(false);
-            vi.mocked(ipmi.isAvailable!).mockResolvedValue(false);
 
             await service.onModuleInit();
 
@@ -258,8 +244,8 @@ describe('FanControlService', () => {
 });
 
 describe('pwmEnableToControlMode', () => {
-    it('should map enable=0 to OFF', () => {
-        expect(pwmEnableToControlMode(0)).toBe(FanControlMode.OFF);
+    it('should map enable=0 (no control) to AUTOMATIC', () => {
+        expect(pwmEnableToControlMode(0)).toBe(FanControlMode.AUTOMATIC);
     });
 
     it('should map enable=1 to MANUAL', () => {

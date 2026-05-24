@@ -129,13 +129,15 @@ export class FanSafetyService implements OnModuleDestroy {
         for (const [fanId, state] of this.originalStates.entries()) {
             try {
                 if (state.pwmEnable === 1) {
+                    await this.hwmonService.setMode(state.devicePath, state.pwmNumber, 1);
                     await this.hwmonService.setPwm(state.devicePath, state.pwmNumber, state.pwmValue);
+                } else {
+                    await this.hwmonService.restoreAutomatic(
+                        state.devicePath,
+                        state.pwmNumber,
+                        state.pwmEnable
+                    );
                 }
-                await this.hwmonService.restoreAutomatic(
-                    state.devicePath,
-                    state.pwmNumber,
-                    state.pwmEnable
-                );
                 this.logger.log(
                     `Restored fan ${fanId} to enable=${state.pwmEnable}, pwm=${state.pwmValue}`
                 );
@@ -174,13 +176,7 @@ export class FanSafetyService implements OnModuleDestroy {
         return this.isEmergencyMode;
     }
 
-    validateModeTransition(targetMode: FanControlMode): boolean {
-        if (this.isEmergencyMode) {
-            return false;
-        }
-        if (targetMode === FanControlMode.OFF) {
-            return false;
-        }
-        return true;
+    validateModeTransition(_targetMode: FanControlMode): boolean {
+        return !this.isEmergencyMode;
     }
 }

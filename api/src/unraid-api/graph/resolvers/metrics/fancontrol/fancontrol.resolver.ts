@@ -61,6 +61,8 @@ export class FanControlResolver {
             throw new Error(`Fan ${input.fanId} does not support PWM control`);
         }
 
+        this.assertNotUnderCurveControl(fan.id);
+
         await this.safetyService.captureState(fan.id, fan.devicePath, fan.pwmNumber);
 
         const isCpuFan = fan.fanNumber === 1 || fan.name.toLowerCase().includes('cpu');
@@ -109,6 +111,8 @@ export class FanControlResolver {
         if (!fan.hasPwmControl) {
             throw new Error(`Fan ${input.fanId} does not support PWM control`);
         }
+
+        this.assertNotUnderCurveControl(fan.id);
 
         const currentMode = pwmEnableToControlMode(fan.pwmEnable);
         if (!this.safetyService.validateModeTransition(input.mode)) {
@@ -201,9 +205,19 @@ export class FanControlResolver {
         const zones = config.zones ?? [];
         const existingZoneIdx = zones.findIndex((z) => z.fans.includes(input.fanId));
         if (existingZoneIdx >= 0) {
-            zones[existingZoneIdx].profile = input.profileName;
-            if (input.temperatureSensorId) {
-                zones[existingZoneIdx].sensor = input.temperatureSensorId;
+            const existingZone = zones[existingZoneIdx];
+            if (existingZone.fans.length === 1) {
+                existingZone.profile = input.profileName;
+                if (input.temperatureSensorId) {
+                    existingZone.sensor = input.temperatureSensorId;
+                }
+            } else {
+                existingZone.fans = existingZone.fans.filter((id) => id !== input.fanId);
+                zones.push({
+                    fans: [input.fanId],
+                    sensor: input.temperatureSensorId ?? existingZone.sensor,
+                    profile: input.profileName,
+                });
             }
         } else {
             if (!input.temperatureSensorId) {
@@ -256,8 +270,6 @@ export class FanControlResolver {
         profiles[input.name] = {
             description: input.description,
             curve: input.curvePoints.map((p) => ({ temp: p.temperature, speed: p.speed })),
-            minSpeed: input.minSpeed,
-            maxSpeed: input.maxSpeed,
         };
 
         const updated: FanControlConfig = { ...config, profiles };
@@ -268,19 +280,18 @@ export class FanControlResolver {
     }
 
     private modeToEnable(mode: FanControlMode): number {
-        switch (mode) {
-            case FanControlMode.MANUAL:
-                return 1;
-            case FanControlMode.AUTOMATIC:
-                return 2;
-            case FanControlMode.FIXED:
-                throw new Error(
-                    'FIXED mode cannot be set directly — hardware maps it identically to MANUAL. Use MANUAL instead.'
-                );
-            case FanControlMode.OFF:
-                return 0;
-            default:
-                return 2;
+        return mode === FanControlMode.MANUAL ? 1 : 2;
+    }
+
+    private assertNotUnderCurveControl(fanId: string): void {
+        if (!this.fanCurveService.isRunning()) {
+            return;
+        }
+        const zones = this.configService.getConfig().zones ?? [];
+        if (zones.some((zone) => zone.fans.includes(fanId))) {
+            throw new Error(
+                `Fan ${fanId} is under automatic curve control. Remove it from its zone before applying a manual override.`
+            );
         }
     }
 }

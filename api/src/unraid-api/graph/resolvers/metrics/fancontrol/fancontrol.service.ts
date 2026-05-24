@@ -6,7 +6,6 @@ import {
     pwmModeToConnectorType,
 } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/controller.interface.js';
 import { HwmonService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/hwmon.service.js';
-import { IpmiFanService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/ipmi_fan.service.js';
 import { FanCurveService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fan-curve.service.js';
 import { FanControlConfigService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.service.js';
 import {
@@ -29,13 +28,12 @@ export class FanControlService implements OnModuleInit {
 
     constructor(
         private readonly hwmonService: HwmonService,
-        private readonly ipmiFanService: IpmiFanService,
         private readonly configService: FanControlConfigService,
         private readonly fanCurveService: FanCurveService
     ) {}
 
     async onModuleInit(): Promise<void> {
-        this.providers = [this.hwmonService, this.ipmiFanService];
+        this.providers = [this.hwmonService];
 
         for (const provider of this.providers) {
             const available = await provider.isAvailable();
@@ -136,8 +134,6 @@ export class FanControlService implements OnModuleInit {
                     temperature: point.temp ?? 0,
                     speed: point.speed ?? 0,
                 })),
-                minSpeed: 20,
-                maxSpeed: 100,
             })
         );
     }
