@@ -13,7 +13,7 @@ type PacketCounters = {
 @Injectable()
 export class NetworkMetricsService {
     async getNetworkMetrics(): Promise<NetworkMetrics[]> {
-        const [stats, interfaces] = await Promise.all([networkStats(), networkInterfaces()]);
+        const [stats, interfaces] = await Promise.all([networkStats('*'), networkInterfaces()]);
         const speedByInterface = new Map(
             interfaces.map((networkInterface) => [networkInterface.iface, networkInterface.speed])
         );

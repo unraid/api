@@ -67,6 +67,7 @@ describe('NetworkMetricsService', () => {
             }),
         ]);
         expect(result[0].lastUpdated).toBeInstanceOf(Date);
+        expect(networkStats).toHaveBeenCalledWith('*');
     });
 
     it('falls back to zero packet counters and undefined utilization when speed is missing', async () => {
@@ -102,5 +103,6 @@ describe('NetworkMetricsService', () => {
                 utilizationPercent: undefined,
             })
         );
+        expect(networkStats).toHaveBeenCalledWith('*');
     });
 });
