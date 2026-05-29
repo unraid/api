@@ -7,6 +7,7 @@ import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
+import { NetworkMetricsService } from '@app/unraid-api/graph/resolvers/metrics/network/network.service.js';
 import { TemperatureConfigService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.service.js';
 import {
     SensorType,
@@ -105,6 +106,12 @@ describe('Temperature GraphQL Integration', () => {
                     provide: MemoryService,
                     useValue: {
                         getUtilization: vi.fn().mockResolvedValue({}),
+                    },
+                },
+                {
+                    provide: NetworkMetricsService,
+                    useValue: {
+                        getNetworkMetrics: vi.fn().mockResolvedValue([]),
                     },
                 },
                 {

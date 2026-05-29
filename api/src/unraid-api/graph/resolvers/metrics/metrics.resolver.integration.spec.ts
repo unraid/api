@@ -11,6 +11,8 @@ import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service
 import { MemoryUtilization } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
+import { NetworkMetrics } from '@app/unraid-api/graph/resolvers/metrics/network/network.model.js';
+import { NetworkMetricsService } from '@app/unraid-api/graph/resolvers/metrics/network/network.service.js';
 import { TemperatureConfigService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.service.js';
 import { TemperatureService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.service.js';
 import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
@@ -29,6 +31,7 @@ describe('MetricsResolver Integration Tests', () => {
                 CpuService,
                 CpuTopologyService,
                 MemoryService,
+                NetworkMetricsService,
                 {
                     provide: TemperatureService,
                     useValue: {
@@ -114,6 +117,42 @@ describe('MetricsResolver Integration Tests', () => {
             expect(result.percentTotal).toBeGreaterThanOrEqual(0);
             expect(result.percentTotal).toBeLessThanOrEqual(100);
         });
+
+        it('should return network metrics', async () => {
+            const networkService = module.get<NetworkMetricsService>(NetworkMetricsService);
+
+            vi.spyOn(networkService, 'getNetworkMetrics').mockResolvedValue([
+                {
+                    id: 'metrics/network/eth0',
+                    name: 'eth0',
+                    operstate: 'up',
+                    bytesReceived: 1024,
+                    bytesSent: 2048,
+                    packetsReceived: 10,
+                    packetsSent: 20,
+                    receiveErrors: 0,
+                    transmitErrors: 0,
+                    receiveDropped: 0,
+                    transmitDropped: 0,
+                    rxSec: 100,
+                    txSec: 200,
+                    utilizationPercent: 0.0024,
+                    lastUpdated: new Date('2026-01-01T00:00:00.000Z'),
+                },
+            ] satisfies NetworkMetrics[]);
+
+            const result = await metricsResolver.network();
+
+            expect(result).toHaveLength(1);
+            expect(result[0]).toEqual(
+                expect.objectContaining({
+                    id: 'metrics/network/eth0',
+                    name: 'eth0',
+                    rxSec: 100,
+                    txSec: 200,
+                })
+            );
+        });
     });
 
     describe('Polling Mechanism', () => {
@@ -174,6 +213,53 @@ describe('MetricsResolver Integration Tests', () => {
 
             // Should only execute once despite potential concurrent attempts
             expect(executionCount).toBeLessThanOrEqual(2); // Allow for initial execution
+        });
+
+        it('should publish network metrics to pubsub', async () => {
+            const publishSpy = vi.spyOn(pubsub, 'publish');
+            const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
+            const networkService = module.get<NetworkMetricsService>(NetworkMetricsService);
+
+            vi.spyOn(networkService, 'getNetworkMetrics').mockResolvedValue([
+                {
+                    id: 'metrics/network/eth0',
+                    name: 'eth0',
+                    operstate: 'up',
+                    bytesReceived: 1024,
+                    bytesSent: 2048,
+                    packetsReceived: 10,
+                    packetsSent: 20,
+                    receiveErrors: 0,
+                    transmitErrors: 0,
+                    receiveDropped: 0,
+                    transmitDropped: 0,
+                    rxSec: 100,
+                    txSec: 200,
+                    utilizationPercent: 0.0024,
+                    lastUpdated: new Date('2026-01-01T00:00:00.000Z'),
+                },
+            ] satisfies NetworkMetrics[]);
+
+            trackerService.subscribe(PUBSUB_CHANNEL.NETWORK_UTILIZATION);
+
+            await new Promise((resolve) => setTimeout(resolve, 2300));
+
+            expect(publishSpy).toHaveBeenCalledWith(
+                PUBSUB_CHANNEL.NETWORK_UTILIZATION,
+                expect.objectContaining({
+                    systemMetricsNetwork: expect.arrayContaining([
+                        expect.objectContaining({
+                            id: 'metrics/network/eth0',
+                            name: 'eth0',
+                            rxSec: 100,
+                            txSec: 200,
+                        }),
+                    ]),
+                })
+            );
+
+            trackerService.unsubscribe(PUBSUB_CHANNEL.NETWORK_UTILIZATION);
+            publishSpy.mockRestore();
         });
 
         it('should publish CPU metrics to pubsub', async () => {
@@ -307,6 +393,7 @@ describe('MetricsResolver Integration Tests', () => {
             // Start polling
             trackerService.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
             trackerService.subscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+            trackerService.subscribe(PUBSUB_CHANNEL.NETWORK_UTILIZATION);
 
             // Wait a bit for subscriptions to be fully set up
             await new Promise((resolve) => setTimeout(resolve, 100));
@@ -316,6 +403,9 @@ describe('MetricsResolver Integration Tests', () => {
             expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.MEMORY_UTILIZATION)).toBe(
                 true
             );
+            expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.NETWORK_UTILIZATION)).toBe(
+                true
+            );
 
             // Clean up the module
             await module.close();
@@ -323,6 +413,9 @@ describe('MetricsResolver Integration Tests', () => {
             // Subscriptions should be cleaned up
             expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(false);
             expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.MEMORY_UTILIZATION)).toBe(
+                false
+            );
+            expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.NETWORK_UTILIZATION)).toBe(
                 false
             );
         });

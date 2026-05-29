@@ -11,8 +11,20 @@ import { NetworkService } from '@app/unraid-api/graph/resolvers/info/network/net
 export class InfoNetworkResolver {
     constructor(private readonly networkService: NetworkService) {}
 
-    @ResolveField(() => [InfoNetworkInterface], { description: 'Network interfaces' })
+    @Query(() => [InfoNetworkInterface], { description: 'Network interfaces' })
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     async networkInterfaces(): Promise<InfoNetworkInterface[]> {
+        return this.networkService.getNetworkInterfaces();
+    }
+
+    @ResolveField(() => [InfoNetworkInterface], {
+        name: 'networkInterfaces',
+        description: 'Network interfaces',
+    })
+    async infoNetworkInterfaces(): Promise<InfoNetworkInterface[]> {
         return this.networkService.getNetworkInterfaces();
     }
 
