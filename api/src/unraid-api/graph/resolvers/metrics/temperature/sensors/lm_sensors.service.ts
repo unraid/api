@@ -15,6 +15,15 @@ import {
 
 const LmSensorsSchema = z.record(z.string(), z.record(z.string(), z.unknown()));
 
+// lm-sensors exposes voltages (inN_input), fans (fanN_input), power, etc. alongside
+// temperatures (tempN_input). Only temperature channels belong in this provider.
+const TEMP_INPUT_KEY = /^temp\d+_input$/;
+
+// Physically implausible readings (e.g. nct6xxx TSI channels reporting ~3.9M °C, or
+// disconnected thermistors) are dropped so they can't be selected as fan-curve inputs.
+const MIN_VALID_TEMP_C = -40;
+const MAX_VALID_TEMP_C = 200;
+
 @Injectable()
 export class LmSensorsService implements TemperatureSensorProvider {
     readonly id = 'LinuxMonitorSensorService';
@@ -53,7 +62,14 @@ export class LmSensorsService implements TemperatureSensorProvider {
                 if (label === 'Adapter' || typeof values !== 'object' || values === null) continue;
 
                 for (const [key, value] of Object.entries(values as Record<string, unknown>)) {
-                    if (!key.endsWith('_input') || typeof value !== 'number') continue;
+                    if (!TEMP_INPUT_KEY.test(key) || typeof value !== 'number') continue;
+
+                    if (value < MIN_VALID_TEMP_C || value > MAX_VALID_TEMP_C) {
+                        this.logger.debug(
+                            `Skipping out-of-range temperature ${chipName} ${label}: ${value}°C`
+                        );
+                        continue;
+                    }
 
                     const name = `${chipName} ${label}`;
 
