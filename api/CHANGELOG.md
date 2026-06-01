@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.35.0](https://github.com/unraid/api/compare/v4.34.0...v4.35.0) (2026-05-29)
+
+
+### Features
+
+* Add read-only network metrics API ([#2003](https://github.com/unraid/api/issues/2003)) ([a1d1eea](https://github.com/unraid/api/commit/a1d1eea56861f7c441d3ae1c844146dce407467b))
+
+
+### Bug Fixes
+
+* **cpu:** add legacy telemetry fallbacks ([#2011](https://github.com/unraid/api/issues/2011)) ([97f5425](https://github.com/unraid/api/commit/97f54251f5d59c2265554e0859aa3d2046f53039))
+* forked plugin publish workflow ([#2014](https://github.com/unraid/api/issues/2014)) ([eb60d4d](https://github.com/unraid/api/commit/eb60d4d1535a322f14b7ad28c5c2cdb75a3ab819))
+* **parity:** resume continues from saved position instead of restarting ([#2009](https://github.com/unraid/api/issues/2009)) ([329f66f](https://github.com/unraid/api/commit/329f66f7c14a9b6ccf2bd6b46eaa38e526118038))
+
 ## [4.34.0](https://github.com/unraid/api/compare/v4.33.0...v4.34.0) (2026-05-11)
 
 
