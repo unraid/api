@@ -305,7 +305,7 @@ export class DockerService {
 
         let containers: DockerContainer[];
         let updatedContainer: DockerContainer | undefined;
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 20; i++) {
             await sleep(500);
             containers = await this.getContainers();
             updatedContainer = containers.find((c) => c.id === id);
@@ -319,6 +319,8 @@ export class DockerService {
 
         if (!updatedContainer) {
             throw new Error(`Container ${id} not found after restarting`);
+        } else if (updatedContainer.state !== ContainerState.RUNNING) {
+            this.logger.warn(`Container ${id} did not reach RUNNING state after restart command.`);
         }
         const appInfo = await this.getAppInfo();
         await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
