@@ -173,6 +173,8 @@ describe('DockerService', () => {
     let service: DockerService;
 
     beforeEach(async () => {
+        (pubsub.publish as ReturnType<typeof vi.fn>).mockClear();
+
         // Reset mocks before each test
         mockListContainers.mockReset();
         mockListNetworks.mockReset();
