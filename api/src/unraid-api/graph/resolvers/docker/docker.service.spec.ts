@@ -38,6 +38,7 @@ const { mockDockerInstance, mockListContainers, mockGetContainer, mockListNetwor
             stop: vi.fn(),
             pause: vi.fn(),
             unpause: vi.fn(),
+            restart: vi.fn(),
             inspect: vi.fn(),
         };
 

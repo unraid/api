@@ -299,6 +299,32 @@ export class DockerService {
         return updatedContainer;
     }
 
+    public async restart(id: string): Promise<DockerContainer> {
+        const container = this.client.getContainer(id);
+        await container.restart({ t: 10 });
+
+        let containers: DockerContainer[];
+        let updatedContainer: DockerContainer | undefined;
+        for (let i = 0; i < 5; i++) {
+            await sleep(500);
+            containers = await this.getContainers();
+            updatedContainer = containers.find((c) => c.id === id);
+            this.logger.debug(
+                `Container ${id} state after restart attempt ${i + 1}: ${updatedContainer?.state}`
+            );
+            if (updatedContainer?.state === ContainerState.RUNNING) {
+                break;
+            }
+        }
+
+        if (!updatedContainer) {
+            throw new Error(`Container ${id} not found after restarting`);
+        }
+        const appInfo = await this.getAppInfo();
+        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
+        return updatedContainer;
+    }
+
     public async unpause(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.unpause();
