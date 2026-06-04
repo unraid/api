@@ -176,6 +176,7 @@ describe('DockerService', () => {
         mockContainer.stop.mockReset();
         mockContainer.pause.mockReset();
         mockContainer.unpause.mockReset();
+        mockContainer.restart.mockReset();
         mockContainer.inspect.mockReset();
 
         statMock.mockReset();
