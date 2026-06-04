@@ -199,14 +199,7 @@ export class DockerService {
     public async start(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.start();
-        const containers = await this.getContainers();
-        const updatedContainer = containers.find((c) => c.id === id);
-        if (!updatedContainer) {
-            throw new Error(`Container ${id} not found after starting`);
-        }
-        const appInfo = await this.getAppInfo();
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
-        return updatedContainer;
+        return this.finalizeMutation(id, 'starting');
     }
 
     public async removeContainer(id: string, options?: { withImage?: boolean }): Promise<boolean> {
@@ -248,108 +241,95 @@ export class DockerService {
     public async stop(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.stop({ t: 10 });
-
-        let containers = await this.getContainers();
-        let updatedContainer: DockerContainer | undefined;
-        for (let i = 0; i < 5; i++) {
-            await sleep(500);
-            containers = await this.getContainers();
-            updatedContainer = containers.find((c) => c.id === id);
-            this.logger.debug(
-                `Container ${id} state after stop attempt ${i + 1}: ${updatedContainer?.state}`
-            );
-            if (updatedContainer?.state === ContainerState.EXITED) {
-                break;
-            }
-        }
-
-        if (!updatedContainer) {
-            throw new Error(`Container ${id} not found after stopping`);
-        } else if (updatedContainer.state !== ContainerState.EXITED) {
+        const finalState = await this.waitForContainerState(
+            container,
+            id,
+            ContainerState.EXITED,
+            'stop',
+            5
+        );
+        if (finalState && finalState !== ContainerState.EXITED) {
             this.logger.warn(`Container ${id} did not reach EXITED state after stop command.`);
         }
-        const appInfo = await this.getAppInfo();
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
-        return updatedContainer;
+        return this.finalizeMutation(id, 'stopping');
     }
 
     public async pause(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.pause();
-
-        let containers: DockerContainer[];
-        let updatedContainer: DockerContainer | undefined;
-        for (let i = 0; i < 5; i++) {
-            await sleep(500);
-            containers = await this.getContainers();
-            updatedContainer = containers.find((c) => c.id === id);
-            this.logger.debug(
-                `Container ${id} state after pause attempt ${i + 1}: ${updatedContainer?.state}`
-            );
-            if (updatedContainer?.state === ContainerState.PAUSED) {
-                break;
-            }
-        }
-
-        if (!updatedContainer) {
-            throw new Error(`Container ${id} not found after pausing`);
-        }
-        const appInfo = await this.getAppInfo();
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
-        return updatedContainer;
+        await this.waitForContainerState(container, id, ContainerState.PAUSED, 'pause', 5);
+        return this.finalizeMutation(id, 'pausing');
     }
 
     public async restart(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.restart({ t: 10 });
-
-        let containers: DockerContainer[];
-        let updatedContainer: DockerContainer | undefined;
-        for (let i = 0; i < 20; i++) {
-            await sleep(500);
-            containers = await this.getContainers();
-            updatedContainer = containers.find((c) => c.id === id);
-            this.logger.debug(
-                `Container ${id} state after restart attempt ${i + 1}: ${updatedContainer?.state}`
-            );
-            if (updatedContainer?.state === ContainerState.RUNNING) {
-                break;
-            }
-        }
-
-        if (!updatedContainer) {
-            throw new Error(`Container ${id} not found after restarting`);
-        } else if (updatedContainer.state !== ContainerState.RUNNING) {
+        const finalState = await this.waitForContainerState(
+            container,
+            id,
+            ContainerState.RUNNING,
+            'restart',
+            20
+        );
+        if (finalState && finalState !== ContainerState.RUNNING) {
             this.logger.warn(`Container ${id} did not reach RUNNING state after restart command.`);
         }
-        const appInfo = await this.getAppInfo();
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
-        return updatedContainer;
+        return this.finalizeMutation(id, 'restarting');
     }
 
     public async unpause(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.unpause();
+        await this.waitForContainerState(container, id, ContainerState.RUNNING, 'unpause', 5);
+        return this.finalizeMutation(id, 'unpausing');
+    }
 
-        let containers: DockerContainer[];
-        let updatedContainer: DockerContainer | undefined;
-        for (let i = 0; i < 5; i++) {
+    /** Polls a container via `inspect()` until it reaches `targetState` or `attempts` polls have been made */
+    private async waitForContainerState(
+        container: Docker.Container,
+        id: string,
+        targetState: ContainerState,
+        operationName: string,
+        attempts: number
+    ): Promise<ContainerState | undefined> {
+        let lastState: ContainerState | undefined;
+        for (let i = 0; i < attempts; i++) {
             await sleep(500);
-            containers = await this.getContainers();
-            updatedContainer = containers.find((c) => c.id === id);
+            try {
+                const info = await container.inspect();
+                const statusStr = info.State?.Status ?? '';
+                lastState =
+                    ContainerState[statusStr.toUpperCase() as keyof typeof ContainerState] ??
+                    ContainerState.EXITED;
+            } catch (error) {
+                this.logger.debug(
+                    `Inspect failed during ${operationName} attempt ${i + 1} for ${id}: ${this.getDockerErrorMessage(error)}`
+                );
+            }
             this.logger.debug(
-                `Container ${id} state after unpause attempt ${i + 1}: ${updatedContainer?.state}`
+                `Container ${id} state after ${operationName} attempt ${i + 1}: ${lastState}`
             );
-            if (updatedContainer?.state === ContainerState.RUNNING) {
-                break;
+            if (lastState === targetState) {
+                return lastState;
             }
         }
+        return lastState;
+    }
 
+    private async finalizeMutation(id: string, operationName: string): Promise<DockerContainer> {
+        const containers = await this.getContainers();
+        const updatedContainer = containers.find((c) => c.id === id);
         if (!updatedContainer) {
-            throw new Error(`Container ${id} not found after unpausing`);
+            throw new Error(`Container ${id} not found after ${operationName}`);
         }
-        const appInfo = await this.getAppInfo();
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
+        await pubsub.publish(PUBSUB_CHANNEL.INFO, {
+            info: {
+                apps: {
+                    installed: containers.length,
+                    running: containers.filter((c) => c.state === ContainerState.RUNNING).length,
+                },
+            },
+        });
         return updatedContainer;
     }
 
