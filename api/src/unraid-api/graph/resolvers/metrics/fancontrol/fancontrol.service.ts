@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 
 import {
     FanControllerProvider,
+    isCpuFan,
     pwmEnableToControlMode,
     pwmModeToConnectorType,
 } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/controller.interface.js';
@@ -162,7 +163,7 @@ export class FanControlService implements OnModuleInit {
 
     private inferFanType(name: string, fanNumber: number): FanType {
         const lower = name.toLowerCase();
-        if (lower.includes('cpu') || fanNumber === 1) {
+        if (isCpuFan(name, fanNumber)) {
             return FanType.CPU;
         }
         if (lower.includes('gpu')) {

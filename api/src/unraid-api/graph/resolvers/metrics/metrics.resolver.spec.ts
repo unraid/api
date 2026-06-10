@@ -9,6 +9,7 @@ import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { FanControlConfigService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.service.js';
+import { FanControlMetrics } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol.model.js';
 import { FanControlService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
 import { NetworkMetricsService } from '@app/unraid-api/graph/resolvers/metrics/network/network.service.js';
@@ -421,6 +422,114 @@ describe('MetricsResolver', () => {
 
             expect(pubsub.publish).toHaveBeenCalledWith('TEMPERATURE_METRICS', {
                 systemMetricsTemperature: payload,
+            });
+        });
+
+        const createFanTestResolver = (options: {
+            fanControlService: Partial<FanControlService>;
+            fanConfig: { enabled: boolean; polling_interval?: number };
+            subscriptionTracker: SubscriptionTrackerService;
+        }) =>
+            new MetricsResolver(
+                {} as CpuService,
+                {} as CpuTopologyService,
+                {} as MemoryService,
+                {} as NetworkMetricsService,
+                {} as TemperatureService,
+                options.fanControlService as FanControlService,
+                options.subscriptionTracker,
+                {} as SubscriptionHelperService,
+                {} as ConfigService,
+                {
+                    getConfig: vi.fn().mockReturnValue({ enabled: false }),
+                } as unknown as TemperatureConfigService,
+                {
+                    getConfig: vi.fn().mockReturnValue(options.fanConfig),
+                } as unknown as FanControlConfigService
+            );
+
+        it('should register fan metrics topic with configured polling interval when enabled', () => {
+            const registerTopicMock = vi.fn();
+            const testModule = createFanTestResolver({
+                fanControlService: { getMetrics: vi.fn().mockResolvedValue(null) },
+                fanConfig: { enabled: true, polling_interval: 3000 },
+                subscriptionTracker: {
+                    registerTopic: registerTopicMock,
+                } as unknown as SubscriptionTrackerService,
+            });
+
+            testModule.onModuleInit();
+
+            expect(registerTopicMock).toHaveBeenCalledWith('FAN_METRICS', expect.any(Function), 3000);
+        });
+
+        it('should not register fan metrics topic when fan control is disabled', () => {
+            const registerTopicMock = vi.fn();
+            const testModule = createFanTestResolver({
+                fanControlService: { getMetrics: vi.fn().mockResolvedValue(null) },
+                fanConfig: { enabled: false },
+                subscriptionTracker: {
+                    registerTopic: registerTopicMock,
+                } as unknown as SubscriptionTrackerService,
+            });
+
+            testModule.onModuleInit();
+
+            expect(registerTopicMock).not.toHaveBeenCalledWith(
+                'FAN_METRICS',
+                expect.any(Function),
+                expect.anything()
+            );
+        });
+
+        it('should skip publishing fan metrics when payload is null', async () => {
+            const registerTopicMock = vi.fn();
+            const testModule = createFanTestResolver({
+                fanControlService: { getMetrics: vi.fn().mockResolvedValue(null) },
+                fanConfig: { enabled: true },
+                subscriptionTracker: {
+                    registerTopic: registerTopicMock,
+                } as unknown as SubscriptionTrackerService,
+            });
+
+            testModule.onModuleInit();
+
+            const call = registerTopicMock.mock.calls.find((c) => c[0] === 'FAN_METRICS');
+            expect(call).toBeDefined();
+            await call![1]();
+
+            expect(pubsub.publish).not.toHaveBeenCalledWith('FAN_METRICS', expect.anything());
+        });
+
+        it('should publish fan metrics when payload is present', async () => {
+            const registerTopicMock = vi.fn();
+            const payload = {
+                id: 'fanControl',
+                fans: [],
+                profiles: [],
+                summary: {
+                    totalFans: 0,
+                    controllableFans: 0,
+                    averageSpeed: 0,
+                    averageRpm: 0,
+                },
+            } as FanControlMetrics;
+            const testModule = createFanTestResolver({
+                fanControlService: { getMetrics: vi.fn().mockResolvedValue(payload) },
+                fanConfig: { enabled: true },
+                subscriptionTracker: {
+                    registerTopic: registerTopicMock,
+                } as unknown as SubscriptionTrackerService,
+            });
+
+            testModule.onModuleInit();
+
+            const call = registerTopicMock.mock.calls.find((c) => c[0] === 'FAN_METRICS');
+            expect(call).toBeDefined();
+            await call![1]();
+
+            expect(pubsub.publish).toHaveBeenCalledWith('FAN_METRICS', {
+                systemMetricsFanControl: payload,
             });
         });
     });

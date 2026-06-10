@@ -57,13 +57,24 @@ export class FanSafetyService implements OnModuleDestroy {
         }
     }
 
+    getOriginalEnable(fanId: string): number | undefined {
+        return this.originalStates.get(fanId)?.pwmEnable;
+    }
+
     private static readonly MAX_PLAUSIBLE_TEMP_C = 150;
 
     async checkTemperatureSafety(sensors: TemperatureSensor[]): Promise<boolean> {
         const config = this.configService.getConfig();
         const maxTemp = config.safety?.max_temp_before_full ?? 85;
+        const ignoredSensors = new Set(config.safety?.ignored_sensors ?? []);
 
         for (const sensor of sensors) {
+            if (ignoredSensors.has(sensor.id) || ignoredSensors.has(sensor.name)) {
+                this.logger.debug(
+                    `Skipping ignored sensor "${sensor.name}" (${sensor.current.value}°C) in temperature safety check`
+                );
+                continue;
+            }
             if (sensor.current.value > FanSafetyService.MAX_PLAUSIBLE_TEMP_C) {
                 continue;
             }

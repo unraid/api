@@ -35,6 +35,7 @@ export class FanControlConfigService extends ConfigFilePersister<FanControlConfi
                 cpu_min_speed_percent: 30,
                 max_temp_before_full: 85,
                 fan_failure_threshold: 0,
+                ignored_sensors: [],
             },
             zones: [],
             profiles: {},

@@ -194,6 +194,8 @@ export class FanControlMetrics extends Node {
 export class FanCurvePointInput {
     @Field(() => Float, { description: 'Temperature in Celsius' })
     @IsNumber()
+    @Min(-50)
+    @Max(150)
     temperature!: number;
 
     @Field(() => Float, { description: 'Fan speed percentage (0-100)' })

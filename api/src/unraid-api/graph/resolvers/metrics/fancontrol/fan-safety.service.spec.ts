@@ -109,6 +109,12 @@ describe('FanSafetyService', () => {
             await service.captureState('nct6793:fan1', '/sys/class/hwmon/hwmon4', 1);
             expect(hwmon.readAll).toHaveBeenCalledTimes(1);
         });
+
+        it('should expose the captured original enable value', async () => {
+            expect(service.getOriginalEnable('nct6793:fan1')).toBeUndefined();
+            await service.captureState('nct6793:fan1', '/sys/class/hwmon/hwmon4', 1);
+            expect(service.getOriginalEnable('nct6793:fan1')).toBe(5);
+        });
     });
 
     describe('restoreAllFans', () => {
@@ -183,6 +189,57 @@ describe('FanSafetyService', () => {
             const result = await service.checkTemperatureSafety(sensors);
             expect(result).toBe(false);
             expect(service.isInEmergencyMode()).toBe(false);
+        });
+
+        it('should skip sensors listed in ignored_sensors by id', async () => {
+            configService.getConfig = vi.fn().mockReturnValue({
+                safety: {
+                    max_temp_before_full: 85,
+                    ignored_sensors: ['nct6793-isa-0290:SYSTIN:temp1_input'],
+                },
+            });
+            const sensors = [
+                {
+                    id: 'nct6793-isa-0290:SYSTIN:temp1_input',
+                    name: 'nct6793-isa-0290 SYSTIN',
+                    current: { value: 118 },
+                },
+                { id: 'cpu', name: 'CPU', current: { value: 60 } },
+            ] as TemperatureSensor[];
+
+            const result = await service.checkTemperatureSafety(sensors);
+            expect(result).toBe(false);
+            expect(service.isInEmergencyMode()).toBe(false);
+        });
+
+        it('should skip sensors listed in ignored_sensors by name', async () => {
+            configService.getConfig = vi.fn().mockReturnValue({
+                safety: { max_temp_before_full: 85, ignored_sensors: ['nct6793-isa-0290 SYSTIN'] },
+            });
+            const sensors = [
+                {
+                    id: 'nct6793-isa-0290:SYSTIN:temp1_input',
+                    name: 'nct6793-isa-0290 SYSTIN',
+                    current: { value: 118 },
+                },
+            ] as TemperatureSensor[];
+
+            const result = await service.checkTemperatureSafety(sensors);
+            expect(result).toBe(false);
+        });
+
+        it('should still trigger emergency for non-ignored sensors when others are ignored', async () => {
+            configService.getConfig = vi.fn().mockReturnValue({
+                safety: { max_temp_before_full: 85, ignored_sensors: ['bogus'] },
+            });
+            const sensors = [
+                { id: 'bogus', name: 'Bogus Sensor', current: { value: 118 } },
+                { id: 'cpu', name: 'CPU', current: { value: 90 } },
+            ] as TemperatureSensor[];
+
+            const result = await service.checkTemperatureSafety(sensors);
+            expect(result).toBe(true);
+            expect(service.isInEmergencyMode()).toBe(true);
         });
     });
 

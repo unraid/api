@@ -47,12 +47,23 @@ export class FanControlSafetyConfig {
     @IsOptional()
     @Min(0)
     fan_failure_threshold?: number;
+
+    @Field(() => [String], {
+        nullable: true,
+        description:
+            'Sensor IDs or names excluded from the critical-temperature check (e.g. known-faulty channels reporting bogus values)',
+    })
+    @IsString({ each: true })
+    @IsOptional()
+    ignored_sensors?: string[];
 }
 
 @ObjectType()
 export class FanCurvePointConfig {
     @Field(() => Float)
     @IsNumber()
+    @Min(-50)
+    @Max(150)
     temp!: number;
 
     @Field(() => Float)
@@ -216,6 +227,15 @@ export class FanControlSafetyInput {
     @IsOptional()
     @Min(0)
     fan_failure_threshold?: number;
+
+    @Field(() => [String], {
+        nullable: true,
+        description:
+            'Sensor IDs or names excluded from the critical-temperature check (e.g. known-faulty channels reporting bogus values)',
+    })
+    @IsString({ each: true })
+    @IsOptional()
+    ignored_sensors?: string[];
 }
 
 @InputType()

@@ -1,5 +1,6 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 
+import { isCpuFan } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/controller.interface.js';
 import { HwmonService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/hwmon.service.js';
 import { FanSafetyService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fan-safety.service.js';
 import {
@@ -44,7 +45,7 @@ const DEFAULT_PROFILES: Record<string, FanProfileConfig> = {
 };
 
 @Injectable()
-export class FanCurveService implements OnModuleDestroy {
+export class FanCurveService implements OnApplicationBootstrap, OnModuleDestroy {
     private readonly logger = new Logger(FanCurveService.name);
     private curveInterval: ReturnType<typeof setInterval> | null = null;
     private activeZones: FanZoneConfig[] = [];
@@ -57,6 +58,18 @@ export class FanCurveService implements OnModuleDestroy {
         private readonly safetyService: FanSafetyService,
         private readonly configService: FanControlConfigService
     ) {}
+
+    async onApplicationBootstrap(): Promise<void> {
+        const config = this.configService.getConfig();
+        if (config.control_enabled && config.zones?.length) {
+            try {
+                await this.start(config.zones);
+                this.logger.log('Fan curve engine resumed from persisted config');
+            } catch (err) {
+                this.logger.error(`Failed to resume fan curve engine from persisted config: ${err}`);
+            }
+        }
+    }
 
     async onModuleDestroy(): Promise<void> {
         await this.stop();
@@ -190,8 +203,7 @@ export class FanCurveService implements OnModuleDestroy {
 
                         await this.safetyService.captureState(fanId, fan.devicePath, fan.pwmNumber, fan);
 
-                        const isCpuFan = fan.fanNumber === 1 || fan.name.toLowerCase().includes('cpu');
-                        const safePwm = isCpuFan
+                        const safePwm = isCpuFan(fan.name, fan.fanNumber)
                             ? this.safetyService.validateCpuFanPwm(targetPwm)
                             : this.safetyService.validatePwmValue(targetPwm);
 

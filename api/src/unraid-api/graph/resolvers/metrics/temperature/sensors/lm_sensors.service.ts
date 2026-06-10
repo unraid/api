@@ -66,7 +66,7 @@ export class LmSensorsService implements TemperatureSensorProvider {
 
                     if (value < MIN_VALID_TEMP_C || value > MAX_VALID_TEMP_C) {
                         this.logger.debug(
-                            `Skipping out-of-range temperature ${chipName} ${label}: ${value}°C`
+                            `Skipping out-of-range temperature ${chipName} ${label}: ${value}°C (valid: ${MIN_VALID_TEMP_C}–${MAX_VALID_TEMP_C}°C)`
                         );
                         continue;
                     }

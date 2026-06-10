@@ -4,7 +4,10 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
-import { pwmEnableToControlMode } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/controller.interface.js';
+import {
+    isCpuFan,
+    pwmEnableToControlMode,
+} from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/controller.interface.js';
 import { HwmonService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/controllers/hwmon.service.js';
 import { FanCurveService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fan-curve.service.js';
 import { FanSafetyService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fan-safety.service.js';
@@ -65,13 +68,13 @@ export class FanControlResolver {
 
         await this.safetyService.captureState(fan.id, fan.devicePath, fan.pwmNumber);
 
-        const isCpuFan = fan.fanNumber === 1 || fan.name.toLowerCase().includes('cpu');
-        if (isCpuFan) {
+        const cpuFan = isCpuFan(fan.name, fan.fanNumber);
+        if (cpuFan) {
             this.logger.debug(
                 `Fan ${input.fanId} identified as CPU fan via heuristic (fanNumber=${fan.fanNumber}, name=${fan.name})`
             );
         }
-        const safePwm = isCpuFan
+        const safePwm = cpuFan
             ? this.safetyService.validateCpuFanPwm(input.pwmValue)
             : this.safetyService.validatePwmValue(input.pwmValue);
 
@@ -121,7 +124,10 @@ export class FanControlResolver {
 
         await this.safetyService.captureState(fan.id, fan.devicePath, fan.pwmNumber);
 
-        const enableValue = this.modeToEnable(input.mode);
+        const enableValue =
+            input.mode === FanControlMode.MANUAL
+                ? 1
+                : this.resolveAutomaticEnable(fan.id, fan.pwmEnable);
         await this.hwmonService.setMode(fan.devicePath, fan.pwmNumber, enableValue);
         this.logger.log(`Set fan ${input.fanId} mode to ${input.mode} (enable=${enableValue})`);
 
@@ -279,8 +285,17 @@ export class FanControlResolver {
         return true;
     }
 
-    private modeToEnable(mode: FanControlMode): number {
-        return mode === FanControlMode.MANUAL ? 1 : 2;
+    private resolveAutomaticEnable(fanId: string, currentEnable: number): number {
+        // Prefer the hardware mode captured before this API took manual control
+        // (e.g. 5 = smart fan IV) over the generic thermal-cruise fallback.
+        const originalEnable = this.safetyService.getOriginalEnable(fanId);
+        if (originalEnable !== undefined && originalEnable >= 2) {
+            return originalEnable;
+        }
+        if (currentEnable >= 2) {
+            return currentEnable;
+        }
+        return 2;
     }
 
     private assertNotUnderCurveControl(fanId: string): void {

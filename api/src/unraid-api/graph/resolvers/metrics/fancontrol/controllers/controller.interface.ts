@@ -36,6 +36,10 @@ export function pwmEnableToControlMode(enable: number): FanControlMode {
     return enable === 1 ? FanControlMode.MANUAL : FanControlMode.AUTOMATIC;
 }
 
+export function isCpuFan(name: string, fanNumber: number): boolean {
+    return fanNumber === 1 || name.toLowerCase().includes('cpu');
+}
+
 export function pwmModeToConnectorType(mode: number): FanConnectorType {
     switch (mode) {
         case 0:

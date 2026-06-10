@@ -97,7 +97,8 @@ export class HwmonService implements FanControllerProvider {
         pwmNumber: number,
         originalEnable: number
     ): Promise<void> {
-        const restoreValue = originalEnable >= 2 ? originalEnable : 2;
+        // 0 = no control/full speed; preserve it instead of forcing thermal cruise
+        const restoreValue = originalEnable === 0 ? 0 : originalEnable >= 2 ? originalEnable : 2;
         await this.writeSysfs(devicePath, `pwm${pwmNumber}_enable`, restoreValue.toString());
     }
 
@@ -142,10 +143,9 @@ export class HwmonService implements FanControllerProvider {
                     // Device doesn't have the necessary files — skip
                 }
             }
-
-            this.initialized = true;
         } catch (err) {
             this.logger.warn(`Failed to scan hwmon devices: ${err}`);
+            throw err;
         }
     }
 
