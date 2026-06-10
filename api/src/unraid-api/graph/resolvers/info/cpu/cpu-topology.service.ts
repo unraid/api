@@ -79,28 +79,71 @@ export class CpuTopologyService {
                     const label = (await readFile(join(path, 'name'), 'utf8')).trim();
                     if (/coretemp|k10temp|zenpower/i.test(label)) {
                         const files = await readdir(path);
+                        const packageTemps: number[] = [];
+                        const packageTdieTemps: number[] = [];
+                        const packageTctlTemps: number[] = [];
+                        const coreTemps: number[] = [];
+
                         for (const f of files) {
-                            if (f.startsWith('temp') && f.endsWith('_label')) {
-                                const lbl = (await readFile(join(path, f), 'utf8')).trim().toLowerCase();
-                                if (
-                                    lbl.includes('package id') ||
-                                    lbl.includes('tctl') ||
-                                    lbl.includes('tdie')
-                                ) {
-                                    const inputFile = join(path, f.replace('_label', '_input'));
-                                    try {
-                                        const raw = await readFile(inputFile, 'utf8');
-                                        const parsed = parseInt(raw.trim(), 10);
-                                        if (Number.isFinite(parsed)) {
-                                            temps.push(parsed / 1000);
-                                        } else {
-                                            this.logger.warn(`Invalid temperature value: ${raw.trim()}`);
-                                        }
-                                    } catch (err) {
-                                        this.logger.warn('Failed to read file', err);
-                                    }
+                            if (!(f.startsWith('temp') && f.endsWith('_input'))) continue;
+
+                            const inputFile = join(path, f);
+                            const labelFile = join(path, f.replace('_input', '_label'));
+
+                            try {
+                                const raw = await readFile(inputFile, 'utf8');
+                                const parsed = parseInt(raw.trim(), 10);
+
+                                if (!Number.isFinite(parsed)) {
+                                    this.logger.warn(`Invalid temperature value: ${raw.trim()}`);
+                                    continue;
                                 }
+
+                                const tempC = parsed / 1000;
+                                let sensorLabel = '';
+
+                                try {
+                                    sensorLabel = (await readFile(labelFile, 'utf8'))
+                                        .trim()
+                                        .toLowerCase();
+                                } catch {
+                                    // label file is optional
+                                }
+
+                                if (
+                                    sensorLabel.includes('package id') ||
+                                    sensorLabel.includes('cpu temp')
+                                ) {
+                                    packageTemps.push(tempC);
+                                } else if (
+                                    !sensorLabel &&
+                                    /^temp1_input$/i.test(f) &&
+                                    /k10temp/i.test(label)
+                                ) {
+                                    packageTemps.push(tempC);
+                                }
+
+                                if (sensorLabel.includes('tdie')) {
+                                    packageTdieTemps.push(tempC);
+                                } else if (sensorLabel.includes('tctl')) {
+                                    packageTctlTemps.push(tempC);
+                                } else if (/^core\s+\d+$/i.test(sensorLabel)) {
+                                    coreTemps.push(tempC);
+                                }
+                            } catch (err) {
+                                this.logger.warn('Failed to read file', err);
                             }
+                        }
+
+                        if (packageTdieTemps.length > 0) {
+                            temps.push(Math.max(...packageTdieTemps));
+                        } else if (packageTctlTemps.length > 0) {
+                            temps.push(Math.max(...packageTctlTemps));
+                        } else if (packageTemps.length > 0) {
+                            temps.push(Math.max(...packageTemps));
+                        } else if (coreTemps.length > 0) {
+                            // Legacy CPUs may expose only per-core readings. Use the hottest core as package temp.
+                            temps.push(Math.max(...coreTemps));
                         }
                     }
                 } catch (err) {
@@ -127,10 +170,10 @@ export class CpuTopologyService {
                 }
             }
         } catch {
-            return {};
+            return this.getPackagePowerFromHwmon();
         }
 
-        if (!raplPaths.length) return {};
+        if (!raplPaths.length) return this.getPackagePowerFromHwmon();
 
         const readEnergy = async (p: string): Promise<number | null> => {
             try {
@@ -197,6 +240,107 @@ export class CpuTopologyService {
 
             if (!results[pkgId]) results[pkgId] = {};
             results[pkgId][label] = powerW;
+        }
+
+        for (const domains of Object.values(results)) {
+            const total = Object.values(domains).reduce((a, b) => a + b, 0);
+            domains['total'] = Math.round(total * 100) / 100;
+        }
+
+        if (!Object.keys(results).length) {
+            return this.getPackagePowerFromHwmon();
+        }
+
+        return results;
+    }
+
+    private async getPackagePowerFromHwmon(): Promise<Record<number, Record<string, number>>> {
+        const results: Record<number, Record<string, number>> = {};
+        let nextFallbackPackageIndex = 0;
+
+        try {
+            const hwmons = await readdir('/sys/class/hwmon');
+            for (const hwmon of hwmons) {
+                const path = join('/sys/class/hwmon', hwmon);
+                let chipName = '';
+
+                try {
+                    chipName = (await readFile(join(path, 'name'), 'utf8')).trim();
+                } catch {
+                    continue;
+                }
+
+                if (!/fam15h_power|zenpower|rapl/i.test(chipName)) {
+                    continue;
+                }
+
+                const files = await readdir(path);
+                let packageIndex: number | null = null;
+                let wrotePower = false;
+
+                const chipPackageMatch = chipName.match(/package[-_\s:]?(\d+)/i);
+                if (chipPackageMatch) {
+                    const parsedPackageIndex = Number(chipPackageMatch[1]);
+                    if (Number.isFinite(parsedPackageIndex)) {
+                        packageIndex = parsedPackageIndex;
+                    }
+                }
+
+                if (packageIndex === null) {
+                    for (const fileName of files) {
+                        if (!fileName.endsWith('_label')) continue;
+
+                        try {
+                            const labelValue = (await readFile(join(path, fileName), 'utf8'))
+                                .trim()
+                                .toLowerCase();
+                            const labelPackageMatch = labelValue.match(/package[-_\s:]?(\d+)/i);
+
+                            if (labelPackageMatch) {
+                                const parsedPackageIndex = Number(labelPackageMatch[1]);
+                                if (Number.isFinite(parsedPackageIndex)) {
+                                    packageIndex = parsedPackageIndex;
+                                    break;
+                                }
+                            }
+                        } catch {
+                            // label file is optional
+                        }
+                    }
+                }
+
+                for (const f of files) {
+                    if (!(f.startsWith('power') && f.endsWith('_input'))) continue;
+
+                    try {
+                        const raw = await readFile(join(path, f), 'utf8');
+                        const parsed = Number(raw.trim());
+                        if (!Number.isFinite(parsed) || parsed < 0) continue;
+
+                        const watts = parsed / 1_000_000;
+                        const rounded = Math.round(watts * 100) / 100;
+
+                        if (!Number.isFinite(rounded)) continue;
+
+                        if (packageIndex === null) {
+                            packageIndex = nextFallbackPackageIndex;
+                            nextFallbackPackageIndex += 1;
+                        }
+
+                        if (!results[packageIndex]) results[packageIndex] = {};
+                        results[packageIndex][`${chipName}:${f}`] = rounded;
+                        wrotePower = true;
+                    } catch (err) {
+                        this.logger.warn('Failed to read file', err);
+                    }
+                }
+
+                if (wrotePower && packageIndex !== null) {
+                    nextFallbackPackageIndex = Math.max(nextFallbackPackageIndex, packageIndex + 1);
+                }
+            }
+        } catch {
+            return {};
         }
 
         for (const domains of Object.values(results)) {

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 
 import { networkInterfaces } from 'systeminformation';
 
-import { getters } from '@app/store/index.js';
 import { InfoNetworkInterface } from '@app/unraid-api/graph/resolvers/info/network/network.model.js';
 
 @Injectable()
@@ -18,6 +17,30 @@ export class NetworkService {
                 name: iface.iface,
                 description: iface.ifaceName, // Label
                 macAddress: iface.mac,
+                mtu: iface.mtu ?? undefined,
+                speed: iface.speed ?? undefined,
+                duplex: iface.duplex,
+                internal: iface.internal,
+                virtual: iface.virtual,
+                operstate: iface.operstate,
+                type: iface.type,
+                vlanId: this.parseVlanId(iface.iface),
+                ipv4Addresses: iface.ip4
+                    ? [
+                          {
+                              address: iface.ip4,
+                              netmask: iface.ip4subnet,
+                          },
+                      ]
+                    : [],
+                ipv6Addresses: iface.ip6
+                    ? [
+                          {
+                              address: iface.ip6,
+                              prefixLength: this.parseIpv6PrefixLength(iface.ip6subnet),
+                          },
+                      ]
+                    : [],
                 status: iface.operstate,
                 protocol: iface.ip4 ? (iface.ip6 ? 'ipv4+ipv6' : 'ipv4') : iface.ip6 ? 'ipv6' : 'none',
                 ipAddress: iface.ip4,
@@ -27,7 +50,7 @@ export class NetworkService {
                 ipv6Address: iface.ip6,
                 ipv6Netmask: iface.ip6subnet,
                 useDhcp6: false,
-            } as InfoNetworkInterface;
+            } satisfies InfoNetworkInterface;
         });
     }
 
@@ -58,6 +81,38 @@ export class NetworkService {
             netmask: primary.ip4subnet,
             useDhcp: primary.dhcp,
             ipv6Address: primary.ip6,
-        } as InfoNetworkInterface;
+            ipv4Addresses: primary.ip4
+                ? [
+                      {
+                          address: primary.ip4,
+                          netmask: primary.ip4subnet,
+                      },
+                  ]
+                : [],
+            ipv6Addresses: primary.ip6
+                ? [
+                      {
+                          address: primary.ip6,
+                          prefixLength: this.parseIpv6PrefixLength(primary.ip6subnet),
+                      },
+                  ]
+                : [],
+        } satisfies InfoNetworkInterface;
+    }
+
+    private parseVlanId(iface: string): number | undefined {
+        const match = iface.match(/\.(\d+)$/);
+        if (!match) return undefined;
+
+        const vlanId = Number(match[1]);
+        return Number.isInteger(vlanId) ? vlanId : undefined;
+    }
+
+    private parseIpv6PrefixLength(subnet: string): number | undefined {
+        const trimmed = subnet.trim();
+        if (!/^\d+$/.test(trimmed)) return undefined;
+
+        const parsed = Number(trimmed);
+        return Number.isInteger(parsed) && parsed >= 0 && parsed <= 128 ? parsed : undefined;
     }
 }

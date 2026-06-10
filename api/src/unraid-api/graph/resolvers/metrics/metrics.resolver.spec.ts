@@ -11,6 +11,7 @@ import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memor
 import { FanControlConfigService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.service.js';
 import { FanControlService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
+import { NetworkMetricsService } from '@app/unraid-api/graph/resolvers/metrics/network/network.service.js';
 import { TemperatureConfigService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.service.js';
 import {
     TemperatureMetrics,
@@ -35,6 +36,7 @@ describe('MetricsResolver', () => {
     let resolver: MetricsResolver;
     let cpuService: CpuService;
     let memoryService: MemoryService;
+    let networkMetricsService: NetworkMetricsService;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -92,6 +94,30 @@ describe('MetricsResolver', () => {
                     },
                 },
                 {
+                    provide: NetworkMetricsService,
+                    useValue: {
+                        getNetworkMetrics: vi.fn().mockResolvedValue([
+                            {
+                                id: 'metrics/network/eth0',
+                                name: 'eth0',
+                                operstate: 'up',
+                                bytesReceived: 1024,
+                                bytesSent: 2048,
+                                packetsReceived: 10,
+                                packetsSent: 20,
+                                receiveErrors: 0,
+                                transmitErrors: 0,
+                                receiveDropped: 0,
+                                transmitDropped: 0,
+                                rxSec: 100,
+                                txSec: 200,
+                                utilizationPercent: 0.0024,
+                                lastUpdated: new Date('2026-01-01T00:00:00.000Z'),
+                            },
+                        ]),
+                    },
+                },
+                {
                     provide: SubscriptionTrackerService,
                     useValue: {
                         registerTopic: vi.fn(),
@@ -139,6 +165,7 @@ describe('MetricsResolver', () => {
         resolver = module.get<MetricsResolver>(MetricsResolver);
         cpuService = module.get<CpuService>(CpuService);
         memoryService = module.get<MemoryService>(MemoryService);
+        networkMetricsService = module.get<NetworkMetricsService>(NetworkMetricsService);
     });
 
     describe('metrics', () => {
@@ -208,6 +235,33 @@ describe('MetricsResolver', () => {
         });
     });
 
+    describe('network', () => {
+        it('should return network metrics data', async () => {
+            const result = await resolver.network();
+
+            expect(networkMetricsService.getNetworkMetrics).toHaveBeenCalled();
+            expect(result).toEqual([
+                expect.objectContaining({
+                    id: 'metrics/network/eth0',
+                    name: 'eth0',
+                    bytesReceived: 1024,
+                    bytesSent: 2048,
+                    rxSec: 100,
+                    txSec: 200,
+                    utilizationPercent: 0.0024,
+                }),
+            ]);
+        });
+
+        it('should handle network service errors gracefully', async () => {
+            vi.mocked(networkMetricsService.getNetworkMetrics).mockRejectedValueOnce(
+                new Error('Network error')
+            );
+
+            await expect(resolver.network()).rejects.toThrow('Network error');
+        });
+    });
+
     describe('onModuleInit', () => {
         it('should register CPU and memory polling topics', () => {
             const subscriptionTracker = {
@@ -222,6 +276,10 @@ describe('MetricsResolver', () => {
             const temperatureServiceMock = {
                 getMetrics: vi.fn().mockResolvedValue(null),
             } satisfies Pick<TemperatureService, 'getMetrics'>;
+
+            const networkMetricsServiceMock = {
+                getNetworkMetrics: vi.fn().mockResolvedValue([]),
+            } satisfies Pick<NetworkMetricsService, 'getNetworkMetrics'>;
 
             const configServiceMock = {
                 get: vi.fn((key: string, defaultValue?: unknown) => defaultValue),
@@ -243,6 +301,7 @@ describe('MetricsResolver', () => {
                 cpuService,
                 cpuTopologyServiceMock as unknown as CpuTopologyService,
                 memoryService,
+                networkMetricsServiceMock as unknown as NetworkMetricsService,
                 temperatureServiceMock as unknown as TemperatureService,
                 fanControlServiceMock as unknown as FanControlService,
                 subscriptionTracker as unknown as SubscriptionTrackerService,
@@ -254,7 +313,7 @@ describe('MetricsResolver', () => {
 
             testModule.onModuleInit();
 
-            expect(subscriptionTracker.registerTopic).toHaveBeenCalledTimes(4);
+            expect(subscriptionTracker.registerTopic).toHaveBeenCalledTimes(5);
             expect(subscriptionTracker.registerTopic).toHaveBeenCalledWith(
                 'CPU_UTILIZATION',
                 expect.any(Function),
@@ -262,6 +321,11 @@ describe('MetricsResolver', () => {
             );
             expect(subscriptionTracker.registerTopic).toHaveBeenCalledWith(
                 'MEMORY_UTILIZATION',
+                expect.any(Function),
+                2000
+            );
+            expect(subscriptionTracker.registerTopic).toHaveBeenCalledWith(
+                'NETWORK_UTILIZATION',
                 expect.any(Function),
                 2000
             );
@@ -285,6 +349,7 @@ describe('MetricsResolver', () => {
                 {} as CpuService,
                 {} as CpuTopologyService,
                 {} as MemoryService,
+                {} as NetworkMetricsService,
                 temperatureServiceMock,
                 { getMetrics: vi.fn().mockResolvedValue(null) } as unknown as FanControlService,
                 subscriptionTracker,
@@ -332,6 +397,7 @@ describe('MetricsResolver', () => {
                 {} as CpuService,
                 {} as CpuTopologyService,
                 {} as MemoryService,
+                {} as NetworkMetricsService,
                 temperatureServiceMock,
                 { getMetrics: vi.fn().mockResolvedValue(null) } as unknown as FanControlService,
                 subscriptionTracker,

@@ -1841,6 +1841,24 @@ type InfoMemory implements Node {
   layout: [MemoryLayout!]!
 }
 
+"""IPv4 address assigned to a network interface"""
+type InfoNetworkIpv4Address {
+  """IPv4 address"""
+  address: String!
+
+  """IPv4 netmask"""
+  netmask: String!
+}
+
+"""IPv6 address assigned to a network interface"""
+type InfoNetworkIpv6Address {
+  """IPv6 address"""
+  address: String!
+
+  """IPv6 prefix length"""
+  prefixLength: Int
+}
+
 type InfoNetworkInterface implements Node {
   id: PrefixedID!
 
@@ -1852,6 +1870,36 @@ type InfoNetworkInterface implements Node {
 
   """MAC Address"""
   macAddress: String
+
+  """Maximum transmission unit"""
+  mtu: Int
+
+  """Link speed in Mbps"""
+  speed: Int
+
+  """Link duplex mode"""
+  duplex: String
+
+  """Whether this is an internal interface"""
+  internal: Boolean
+
+  """Whether this is a virtual interface"""
+  virtual: Boolean
+
+  """Operational state"""
+  operstate: String
+
+  """Interface type"""
+  type: String
+
+  """VLAN identifier parsed from the interface name"""
+  vlanId: Int
+
+  """IPv4 addresses assigned to this interface"""
+  ipv4Addresses: [InfoNetworkIpv4Address!]!
+
+  """IPv6 addresses assigned to this interface"""
+  ipv6Addresses: [InfoNetworkIpv6Address!]!
 
   """Connection status"""
   status: String
@@ -2566,6 +2614,52 @@ type TemperatureMetrics implements Node {
   summary: TemperatureSummary!
 }
 
+type NetworkMetrics implements Node {
+  id: PrefixedID!
+
+  """Interface identifier"""
+  name: String!
+
+  """Operational state"""
+  operstate: String
+
+  """Total received bytes"""
+  bytesReceived: BigInt!
+
+  """Total transmitted bytes"""
+  bytesSent: BigInt!
+
+  """Total received packets"""
+  packetsReceived: BigInt!
+
+  """Total transmitted packets"""
+  packetsSent: BigInt!
+
+  """Receive errors"""
+  receiveErrors: BigInt!
+
+  """Transmit errors"""
+  transmitErrors: BigInt!
+
+  """Dropped receive packets"""
+  receiveDropped: BigInt!
+
+  """Dropped transmit packets"""
+  transmitDropped: BigInt!
+
+  """Receive throughput in bytes per second"""
+  rxSec: Float!
+
+  """Transmit throughput in bytes per second"""
+  txSec: Float!
+
+  """Estimated link utilization percentage"""
+  utilizationPercent: Float
+
+  """Metric collection timestamp"""
+  lastUpdated: DateTime!
+}
+
 """System metrics including CPU and memory utilization"""
 type Metrics implements Node {
   id: PrefixedID!
@@ -2578,6 +2672,9 @@ type Metrics implements Node {
 
   """Temperature metrics"""
   temperature: TemperatureMetrics
+
+  """Current network metrics for all interfaces"""
+  network: [NetworkMetrics!]!
 }
 
 type SensorConfig {
@@ -3242,6 +3339,9 @@ type Query {
 
   """Validate an OIDC session token (internal use for CLI validation)"""
   validateOidcSession(token: String!): OidcSessionValidation!
+
+  """Network interfaces"""
+  networkInterfaces: [InfoNetworkInterface!]!
   metrics: Metrics!
 
   """Retrieve current system time configuration"""
@@ -3606,6 +3706,7 @@ type Subscription {
   systemMetricsCpu: CpuUtilization!
   systemMetricsCpuTelemetry: CpuPackages!
   systemMetricsMemory: MemoryUtilization!
+  systemMetricsNetwork: [NetworkMetrics!]!
   systemMetricsTemperature: TemperatureMetrics
   upsUpdates: UPSDevice!
   pluginInstallUpdates(operationId: ID!): PluginInstallEvent!
