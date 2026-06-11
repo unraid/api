@@ -302,7 +302,7 @@
   "onboarding.summaryStep.logs.languageMetadataUnavailable": "A(z) {locale} nyelvi csomag metaadatai nem elérhetők. Nyelv módosításának kihagyása.",
   "onboarding.summaryStep.logs.installingLanguagePack": "A(z) {name} nyelvi csomag telepítése...",
   "onboarding.summaryStep.logs.languageInstallDidNotSucceed": "A(z) {name} nyelvi csomag telepítése nem sikerült. A jelenlegi nyelv megmarad.",
-  "onboarding.summaryStep.logs.languagePackInstalled": "Nyelvi csomag telepítve {name}.",
+  "onboarding.summaryStep.logs.languagePackInstalled": "{name} nyelvi csomag telepítve.",
   "onboarding.summaryStep.logs.languageInstallFailedKeepLocale": "A(z) {name} nyelvi csomag telepítése meghiúsult. A jelenlegi nyelv megmarad.",
   "onboarding.summaryStep.logs.refreshPluginsFailedContinue": "Nem frissíthető a telepített bővítmények listája. Folytatás a jelenlegi bővítményekkel.",
   "onboarding.summaryStep.logs.installingPlugins": "{count} bővítmény telepítése...",
