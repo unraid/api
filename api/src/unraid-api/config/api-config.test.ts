@@ -3,14 +3,21 @@ import { readFile } from 'fs/promises';
 import path from 'path';
 
 import type { ApiConfig } from '@unraid/shared/services/api-config.js';
-import { writeFile as atomicWriteFile } from 'atomically';
+import { fileExists as sharedFileExists } from '@unraid/shared/util/file.js';
+import { readFile as atomicReadFile, writeFile as atomicWriteFile } from 'atomically';
 import { Subject } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
+import { API_VERSION, environment, PATHS_CONFIG_MODULES } from '@app/environment.js';
 import { ApiConfigPersistence, loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
 import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
 import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
+
+const connectPluginCleanupMocks = vi.hoisted(() => ({
+    isConnectPluginInstalled: vi.fn(),
+}));
+
+vi.mock('@app/connect-plugin-cleanup.js', () => connectPluginCleanupMocks);
 
 vi.mock('@app/core/utils/files/file-exists.js', () => ({
     fileExists: vi.fn(),
@@ -39,10 +46,13 @@ vi.mock('@app/store/index.js', () => ({
 }));
 
 vi.mock('atomically', () => ({
+    readFile: vi.fn(),
     writeFile: vi.fn(),
 }));
 
 const mockReadFile = vi.mocked(readFile);
+const mockSharedFileExists = vi.mocked(sharedFileExists);
+const mockAtomicReadFile = vi.mocked(atomicReadFile);
 const mockAtomicWriteFile = vi.mocked(atomicWriteFile);
 
 const createOnboardingTracker = (configService: ConfigService) => {
@@ -296,6 +306,10 @@ describe('OnboardingTracker', () => {
 describe('loadApiConfig', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        environment.IS_MAIN_PROCESS = false;
+        mockSharedFileExists.mockResolvedValue(false);
+        mockAtomicReadFile.mockRejectedValue(new Error('Not found'));
+        connectPluginCleanupMocks.isConnectPluginInstalled.mockReturnValue(false);
     });
 
     it('should return default config with current API_VERSION', async () => {
@@ -319,6 +333,64 @@ describe('loadApiConfig', () => {
             sandbox: false,
             ssoSubIds: [],
             plugins: [],
+        });
+    });
+
+    it('does not clean stale Connect plugin entries outside the main API process', async () => {
+        mockSharedFileExists.mockResolvedValue(true);
+        mockAtomicReadFile.mockResolvedValue(
+            Buffer.from(
+                JSON.stringify({
+                    version: API_VERSION,
+                    extraOrigins: [],
+                    sandbox: true,
+                    ssoSubIds: [],
+                    plugins: ['unraid-api-plugin-connect'],
+                })
+            )
+        );
+
+        const result = await loadApiConfig();
+
+        expect(connectPluginCleanupMocks.isConnectPluginInstalled).not.toHaveBeenCalled();
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+        expect(result).toEqual({
+            version: API_VERSION,
+            extraOrigins: [],
+            sandbox: true,
+            ssoSubIds: [],
+            plugins: ['unraid-api-plugin-connect'],
+        });
+    });
+
+    it('cleans stale Connect plugin entries in the main API process', async () => {
+        environment.IS_MAIN_PROCESS = true;
+        mockSharedFileExists.mockResolvedValue(true);
+        mockAtomicReadFile.mockResolvedValue(
+            Buffer.from(
+                JSON.stringify({
+                    version: API_VERSION,
+                    extraOrigins: [],
+                    sandbox: true,
+                    ssoSubIds: [],
+                    plugins: ['unraid-api-plugin-connect', 'other-plugin'],
+                })
+            )
+        );
+
+        const result = await loadApiConfig();
+
+        expect(connectPluginCleanupMocks.isConnectPluginInstalled).toHaveBeenCalledOnce();
+        expect(mockAtomicWriteFile).toHaveBeenCalledWith(
+            path.join(PATHS_CONFIG_MODULES, 'api.json'),
+            expect.not.stringContaining('unraid-api-plugin-connect')
+        );
+        expect(result).toEqual({
+            version: API_VERSION,
+            extraOrigins: [],
+            sandbox: true,
+            ssoSubIds: [],
+            plugins: ['other-plugin'],
         });
     });
 });
