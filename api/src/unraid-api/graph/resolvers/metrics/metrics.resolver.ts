@@ -11,6 +11,9 @@ import { CpuPackages, CpuUtilization } from '@app/unraid-api/graph/resolvers/inf
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { MemoryUtilization } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
+import { FanControlConfigService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol-config.service.js';
+import { FanControlMetrics } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol.model.js';
+import { FanControlService } from '@app/unraid-api/graph/resolvers/metrics/fancontrol/fancontrol.service.js';
 import { Metrics } from '@app/unraid-api/graph/resolvers/metrics/metrics.model.js';
 import { NetworkMetrics } from '@app/unraid-api/graph/resolvers/metrics/network/network.model.js';
 import { NetworkMetricsService } from '@app/unraid-api/graph/resolvers/metrics/network/network.service.js';
@@ -30,10 +33,12 @@ export class MetricsResolver implements OnModuleInit {
         private readonly memoryService: MemoryService,
         private readonly networkMetricsService: NetworkMetricsService,
         private readonly temperatureService: TemperatureService,
+        private readonly fanControlService: FanControlService,
         private readonly subscriptionTracker: SubscriptionTrackerService,
         private readonly subscriptionHelper: SubscriptionHelperService,
         private readonly configService: ConfigService,
-        private readonly temperatureConfigService: TemperatureConfigService
+        private readonly temperatureConfigService: TemperatureConfigService,
+        private readonly fanControlConfigService: FanControlConfigService
     ) {}
 
     onModuleInit() {
@@ -112,6 +117,22 @@ export class MetricsResolver implements OnModuleInit {
                     }
                 },
                 polling_interval
+            );
+        }
+
+        const fanConfig = this.fanControlConfigService.getConfig();
+        if (fanConfig.enabled) {
+            this.subscriptionTracker.registerTopic(
+                PUBSUB_CHANNEL.FAN_METRICS,
+                async () => {
+                    const payload = await this.fanControlService.getMetrics();
+                    if (payload) {
+                        pubsub.publish(PUBSUB_CHANNEL.FAN_METRICS, {
+                            systemMetricsFanControl: payload,
+                        });
+                    }
+                },
+                fanConfig.polling_interval ?? 2000
             );
         }
     }
@@ -194,6 +215,12 @@ export class MetricsResolver implements OnModuleInit {
     public async temperature(): Promise<TemperatureMetrics | null> {
         return this.temperatureService.getMetrics();
     }
+
+    @ResolveField(() => FanControlMetrics, { nullable: true })
+    public async fanControl(): Promise<FanControlMetrics | null> {
+        return this.fanControlService.getMetrics();
+    }
+
     @Subscription(() => TemperatureMetrics, {
         name: 'systemMetricsTemperature',
         resolve: (value) => value.systemMetricsTemperature,
@@ -205,6 +232,19 @@ export class MetricsResolver implements OnModuleInit {
     })
     public async systemMetricsTemperatureSubscription() {
         return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.TEMPERATURE_METRICS);
+    }
+
+    @Subscription(() => FanControlMetrics, {
+        name: 'systemMetricsFanControl',
+        resolve: (value) => value.systemMetricsFanControl,
+        nullable: true,
+    })
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
+    public async systemMetricsFanControlSubscription() {
+        return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.FAN_METRICS);
     }
 
     @Mutation(() => Boolean)
