@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.35.1](https://github.com/unraid/api/compare/v4.35.0...v4.35.1) (2026-06-14)
+
+
+### Bug Fixes
+
+* **api:** keep plugin config loads side-effect free ([#2025](https://github.com/unraid/api/issues/2025)) ([3c84326](https://github.com/unraid/api/commit/3c84326a95eb870975e02993085659b31a7bfe0e))
+* **plugin:** preserve Connect during install start ([#2027](https://github.com/unraid/api/issues/2027)) ([6f94aa1](https://github.com/unraid/api/commit/6f94aa19fca8d1a60624b06ec9d8c1f486d953f4))
+
 ## [4.35.0](https://github.com/unraid/api/compare/v4.34.0...v4.35.0) (2026-05-29)
 
 
