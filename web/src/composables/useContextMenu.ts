@@ -1,9 +1,11 @@
 import { nextTick, ref } from 'vue';
 
+import type { DropdownMenuItem } from '@nuxt/ui/components/DropdownMenu.vue';
+
 export interface ContextMenuOptions<T = unknown> {
   x: number;
   y: number;
-  items: unknown[][]; // DropdownMenuItems
+  items: DropdownMenuItem[][];
   rowId: string | null;
   meta?: T;
 }
@@ -11,7 +13,7 @@ export interface ContextMenuOptions<T = unknown> {
 export function useContextMenu<T = unknown>() {
   const isOpen = ref(false);
   const position = ref({ x: 0, y: 0 });
-  const items = ref<unknown[][]>([]);
+  const items = ref<DropdownMenuItem[][]>([]);
   const targetRowId = ref<string | null>(null);
   const targetMeta = ref<T | undefined>(undefined);
 

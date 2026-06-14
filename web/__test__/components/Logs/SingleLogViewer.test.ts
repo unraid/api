@@ -3,7 +3,7 @@ import { useQuery } from '@vue/apollo-composable';
 import { flushPromises, mount } from '@vue/test-utils';
 
 import { AnsiUp } from 'ansi_up';
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from 'dompurify';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import SingleLogViewer from '~/components/Logs/SingleLogViewer.vue';
