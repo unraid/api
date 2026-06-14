@@ -36,6 +36,15 @@ export class DockerMutationsResolver {
     public async stop(@Args('id', { type: () => PrefixedID }) id: string) {
         return this.dockerService.stop(id);
     }
+    @ResolveField(() => DockerContainer, { description: 'Restart a container' })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DOCKER,
+    })
+    public async restart(@Args('id', { type: () => PrefixedID }) id: string) {
+        return this.dockerService.restart(id);
+    }
+
     @ResolveField(() => DockerContainer, { description: 'Pause (Suspend) a container' })
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
