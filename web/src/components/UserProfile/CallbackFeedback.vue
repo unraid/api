@@ -327,7 +327,7 @@ const showPostInstallKeyError = computed(() =>
         />
       </div>
 
-      <template v-if="updateOsStatus === 'confirming' && !stateDataError">
+      <template v-if="updateOsStatus === 'confirming' && !showPostInstallKeyError">
         <div class="my-4 flex flex-col gap-y-2">
           <div class="flex flex-col gap-y-1">
             <p class="text-center text-lg">
@@ -383,7 +383,7 @@ const showPostInstallKeyError = computed(() =>
           </template>
         </template>
 
-        <template v-if="updateOsStatus === 'confirming' && !stateDataError">
+        <template v-if="updateOsStatus === 'confirming' && !showPostInstallKeyError">
           <BrandButton
             variant="underline"
             :icon="XMarkIcon"
