@@ -165,6 +165,12 @@ const updateOsButton = computed((): UserProfileLink[] => {
     return btns;
   }
 
+  // Update entitlement has lapsed: the renewal/eligibility link stands in for
+  // the update button (a pending reboot above still applies an installed update).
+  if (regUpdatesExpired.value) {
+    return btns;
+  }
+
   if (osUpdateAvailable.value) {
     btns.push(updateOsResponseModalOpenButton.value);
   } else {
@@ -186,8 +192,8 @@ const links = computed((): UserProfileLink[] => {
         ]
       : []),
 
-    // OS update/reboot availability is independent of registration/key state,
-    // so surface the update button even when the server has a state error.
+    // Surface the update button regardless of registration/key state errors;
+    // updateOsButton itself omits it when update entitlement has expired.
     ...updateOsButton.value,
 
     // connect plugin links
