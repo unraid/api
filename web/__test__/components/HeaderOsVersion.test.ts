@@ -144,6 +144,18 @@ describe('HeaderOsVersion', () => {
     expect(findUpdateStatusComponent()).toBeNull();
   });
 
+  it('renders the pending-reboot badge even when stateDataError is present', async () => {
+    // EGUID (registration/key mismatch) produces a state error, but a pending
+    // reboot applies an already-installed update and must still be surfaced.
+    serverStore.state = 'EGUID';
+    serverStore.rebootType = 'update';
+
+    await nextTick();
+
+    expect(wrapper.find('[title="Reboot Required for Update"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Reboot Required for Update');
+  });
+
   it('removes logo class from logo wrapper on mount', async () => {
     // Create a mock logo element
     const logoElement = document.createElement('div');

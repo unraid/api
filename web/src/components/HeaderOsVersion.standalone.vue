@@ -120,11 +120,8 @@ const handleUpdateStatusClick = () => {
 };
 
 const updateOsStatus = computed(() => {
-  if (stateDataError.value) {
-    // only allowed to update when server is does not have a state error
-    return null;
-  }
-
+  // A pending reboot applies an already-installed update/downgrade — surface it
+  // regardless of registration/key state, which does not gate applying it.
   if (rebootTypeText.value) {
     return {
       badge: {
@@ -134,6 +131,11 @@ const updateOsStatus = computed(() => {
       href: rebootType.value === 'downgrade' ? WEBGUI_TOOLS_DOWNGRADE : WEBGUI_TOOLS_UPDATE,
       text: t(rebootTypeText.value),
     };
+  }
+
+  if (stateDataError.value) {
+    // only allowed to update when server is does not have a state error
+    return null;
   }
 
   if (availableWithRenewal.value || available.value) {

@@ -186,8 +186,9 @@ const links = computed((): UserProfileLink[] => {
         ]
       : []),
 
-    // ensure we only show the update button when we don't have an error
-    ...(!stateDataError.value ? [...updateOsButton.value] : []),
+    // OS update/reboot availability is independent of registration/key state,
+    // so surface the update button even when the server has a state error.
+    ...updateOsButton.value,
 
     // connect plugin links
     ...(registered.value && connectPluginInstalled.value

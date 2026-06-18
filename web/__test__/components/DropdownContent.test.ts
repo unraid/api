@@ -129,6 +129,23 @@ describe('DropdownContent', () => {
     updateOsStoreRefs.availableWithRenewal!.value = null;
   });
 
+  it('shows the OS update button even when the server has a state error', () => {
+    // e.g. EGUID key/GUID mismatch: updating is still allowed.
+    serverStoreRefs.stateDataError!.value = { message: 'Registration key mismatch' };
+
+    const wrapper = shallowMount(DropdownContent, {
+      global: {
+        plugins: [createTestI18n()],
+      },
+    });
+
+    const items = wrapper
+      .findAllComponents({ name: 'DropdownItem' })
+      .map((itemWrapper) => itemWrapper.props('item') as UserProfileLink);
+
+    expect(items.some((item) => item?.text === 'Check for Update')).toBe(true);
+  });
+
   it('does not show manage-license helper text when sign-in is the only action', () => {
     const wrapper = shallowMount(DropdownContent, {
       global: {
