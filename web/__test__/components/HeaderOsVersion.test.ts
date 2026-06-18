@@ -77,11 +77,6 @@ describe('HeaderOsVersion', () => {
   let serverStore: ReturnType<typeof useServerStore>;
   let errorsStore: ReturnType<typeof useErrorsStore>;
 
-  const findUpdateStatusComponent = () => {
-    const statusElement = wrapper.find('a.group:not([title*="release notes"]), button.group');
-    return statusElement.exists() ? statusElement : null;
-  };
-
   beforeEach(() => {
     testingPinia = createTestingPinia({ createSpy: vi.fn });
     setActivePinia(testingPinia);
@@ -124,7 +119,9 @@ describe('HeaderOsVersion', () => {
     expect(hasUpdateButton).toBe(false);
   });
 
-  it('does not render update status when stateDataError is present', async () => {
+  it('still renders the update-available badge when the server has a state error', async () => {
+    // A registration/key error (here surfaced as a serverState error) must not
+    // hide an available OS update — update eligibility is independent of it.
     const mockError: CustomApiError = {
       message: 'State data fetch failed',
       heading: 'Fetch Error',
@@ -141,7 +138,7 @@ describe('HeaderOsVersion', () => {
 
     await nextTick();
 
-    expect(findUpdateStatusComponent()).toBeNull();
+    expect(wrapper.find('[title="Unraid OS 6.13.0 Update Available"]').exists()).toBe(true);
   });
 
   it('renders the pending-reboot badge even when stateDataError is present', async () => {

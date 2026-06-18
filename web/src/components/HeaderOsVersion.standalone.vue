@@ -26,9 +26,9 @@ import { getReleaseNotesUrl, WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from 
 import ChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
 import { INFO_VERSIONS_QUERY } from '~/components/UserProfile/versions.query';
 import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
+import { useOsUpdateStatus } from '~/composables/useOsUpdateStatus';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
-import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 const { t } = useI18n();
 const { copyWithNotification } = useClipboardWithToast();
@@ -44,11 +44,10 @@ onMounted(() => {
 // Initialize all stores - they're needed for the UI
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
-const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { osVersion, rebootType, stateDataError } = storeToRefs(serverStore);
-const { available, availableWithRenewal } = storeToRefs(updateOsStore);
-const { rebootTypeText } = storeToRefs(updateOsActionsStore);
+const { osVersion } = storeToRefs(serverStore);
+const { available, availableWithRenewal, updateAvailable, rebootType, rebootTypeText } =
+  useOsUpdateStatus();
 
 // Use lazy query and only load when dropdown is opened
 const { load: loadVersions, result: versionsResult } = useLazyQuery(INFO_VERSIONS_QUERY);
@@ -133,12 +132,7 @@ const updateOsStatus = computed(() => {
     };
   }
 
-  if (stateDataError.value) {
-    // only allowed to update when server is does not have a state error
-    return null;
-  }
-
-  if (availableWithRenewal.value || available.value) {
+  if (updateAvailable.value) {
     return {
       badge: {
         color: 'orange',
