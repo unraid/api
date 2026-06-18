@@ -366,6 +366,10 @@ export enum ArrayState {
 }
 
 export type ArrayStateInput = {
+  /** Optional keyfile contents used to unlock encrypted array disks when starting the array. Accepts a data URL or raw base64 payload. */
+  decryptionKeyfile?: InputMaybe<Scalars['String']['input']>;
+  /** Optional password used to unlock encrypted array disks when starting the array */
+  decryptionPassword?: InputMaybe<Scalars['String']['input']>;
   /** Array state */
   desiredState: ArrayStateInputState;
 };
@@ -948,6 +952,8 @@ export type DockerMutations = {
   pause: DockerContainer;
   /** Remove a container */
   removeContainer: Scalars['Boolean']['output'];
+  /** Restart a container */
+  restart: DockerContainer;
   /** Start a container */
   start: DockerContainer;
   /** Stop a container */
@@ -973,6 +979,11 @@ export type DockerMutationsPauseArgs = {
 export type DockerMutationsRemoveContainerArgs = {
   id: Scalars['PrefixedID']['input'];
   withImage?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type DockerMutationsRestartArgs = {
+  id: Scalars['PrefixedID']['input'];
 };
 
 
