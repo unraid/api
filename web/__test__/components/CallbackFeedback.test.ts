@@ -363,6 +363,26 @@ describe('CallbackFeedback.vue', () => {
       expect(wrapper.text()).not.toContain('Confirm and start update');
       expect(wrapper.text()).toContain('Post Install License Key Error');
     });
+
+    it('suppresses the update confirmation while key-install reconciliation is still pending', () => {
+      updateOsStatus.value = 'confirming';
+      callbackUpdateRelease.value = { name: 'Unraid 7.3.1' };
+      osVersion.value = '7.3.0';
+      // Combined key-install + update flow, but the delayed refreshServerState
+      // reconciliation has not finished yet, so the pre-refresh error persists.
+      callbackStatus.value = 'success';
+      keyActionType.value = 'purchase';
+      keyInstallStatus.value = 'success';
+      keyType.value = 'Pro';
+      stateDataError.value = true;
+      refreshServerStateStatus.value = 'refreshing';
+      callbackCallsCompleted.value = false;
+
+      const wrapper = mountComponent();
+
+      expect(wrapper.text()).not.toContain('New Version: Unraid 7.3.1');
+      expect(wrapper.text()).not.toContain('Confirm and start update');
+    });
   });
 
   it('reloads the page when the modal is dismissed after a callback action', async () => {
