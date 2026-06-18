@@ -11,7 +11,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { TestingPinia } from '@pinia/testing';
 import type { VueWrapper } from '@vue/test-utils';
-import type { Error as CustomApiError } from '~/store/errors';
 import type { ServerUpdateOsResponse } from '~/types/server';
 
 import HeaderOsVersion from '~/components/HeaderOsVersion.standalone.vue';
@@ -120,15 +119,9 @@ describe('HeaderOsVersion', () => {
   });
 
   it('still renders the update-available badge when the server has a state error', async () => {
-    // A registration/key error (here surfaced as a serverState error) must not
+    // A registration/key error (EGUID GUID mismatch → stateDataError) must not
     // hide an available OS update — update eligibility is independent of it.
-    const mockError: CustomApiError = {
-      message: 'State data fetch failed',
-      heading: 'Fetch Error',
-      level: 'error',
-      type: 'serverState',
-    };
-    errorsStore.errors = [mockError];
+    serverStore.state = 'EGUID';
     serverStore.updateOsResponse = {
       version: '6.13.0',
       isNewer: true,
@@ -138,6 +131,7 @@ describe('HeaderOsVersion', () => {
 
     await nextTick();
 
+    expect(serverStore.stateDataError).toBeDefined();
     expect(wrapper.find('[title="Unraid OS 6.13.0 Update Available"]').exists()).toBe(true);
   });
 

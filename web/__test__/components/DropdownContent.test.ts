@@ -108,6 +108,7 @@ describe('DropdownContent', () => {
   };
 
   beforeEach(() => {
+    vi.clearAllMocks();
     setActivePinia(createPinia());
 
     serverStoreRefs.keyActions!.value = [];
