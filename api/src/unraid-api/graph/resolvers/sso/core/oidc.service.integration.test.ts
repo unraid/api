@@ -17,7 +17,10 @@ import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-pr
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-session.service.js';
 import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state.service.js';
 
-describe('OidcService Integration Tests - Enhanced Logging', () => {
+// These integration tests make real outbound network calls (discovery, SSL/DNS
+// probes), which can exceed the 5s default under slow CI networking. Give the
+// whole suite generous headroom.
+describe('OidcService Integration Tests - Enhanced Logging', { timeout: 20000 }, () => {
     let service: OidcService;
     let configPersistence: OidcConfigPersistence;
     let loggerSpy: any;
@@ -487,6 +490,6 @@ describe('OidcService Integration Tests - Enhanced Logging', () => {
             expect(result.details).toHaveProperty('type');
             // Should be one of the known transport failure types
             expect(['SSL_ERROR', 'FETCH_ERROR', 'DNS_ERROR']).toContain((result.details as any).type);
-        }, 20000);
+        });
     });
 });
