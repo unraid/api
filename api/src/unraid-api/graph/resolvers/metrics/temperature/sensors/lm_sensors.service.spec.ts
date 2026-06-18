@@ -245,6 +245,66 @@ describe('LmSensorsService', () => {
         });
     });
 
+    describe('channel filtering', () => {
+        it('should exclude voltage (inN_input) and fan (fanN_input) channels', async () => {
+            const mockOutput = {
+                'nct6793-isa-0290': {
+                    Adapter: 'ISA adapter',
+                    in0: { in0_input: 0.36 },
+                    fan1: { fan1_input: 969 },
+                    CPUTIN: { temp2_input: 33.0 },
+                },
+            };
+
+            // @ts-expect-error -- mocking partial execa result
+            vi.mocked(execa).mockResolvedValue({ stdout: JSON.stringify(mockOutput) });
+
+            const sensors = await service.read();
+
+            expect(sensors).toHaveLength(1);
+            expect(sensors[0].id).toBe('nct6793-isa-0290:CPUTIN:temp2_input');
+            expect(sensors[0].value).toBe(33.0);
+        });
+
+        it('should drop physically implausible temperature readings', async () => {
+            const mockOutput = {
+                'nct6793-isa-0290': {
+                    Adapter: 'ISA adapter',
+                    TSI2_TEMP: { temp15_input: 3892313.99 },
+                    AUXTIN1: { temp4_input: -273.15 },
+                    CPUTIN: { temp2_input: 33.0 },
+                },
+            };
+
+            // @ts-expect-error -- mocking partial execa result
+            vi.mocked(execa).mockResolvedValue({ stdout: JSON.stringify(mockOutput) });
+
+            const sensors = await service.read();
+
+            expect(sensors).toHaveLength(1);
+            expect(sensors[0].id).toBe('nct6793-isa-0290:CPUTIN:temp2_input');
+        });
+
+        it('should keep boundary values and exclude readings just outside the range', async () => {
+            const mockOutput = {
+                'chip-isa-0000': {
+                    Adapter: 'ISA adapter',
+                    AtMin: { temp1_input: -40.0 },
+                    AtMax: { temp2_input: 200.0 },
+                    BelowMin: { temp3_input: -40.01 },
+                    AboveMax: { temp4_input: 200.01 },
+                },
+            };
+
+            // @ts-expect-error -- mocking partial execa result
+            vi.mocked(execa).mockResolvedValue({ stdout: JSON.stringify(mockOutput) });
+
+            const sensors = await service.read();
+
+            expect(sensors.map((s) => s.value).sort((a, b) => a - b)).toEqual([-40.0, 200.0]);
+        });
+    });
+
     describe('inferType', () => {
         it('should return CPU_PACKAGE for package sensors', async () => {
             const mockOutput = {
