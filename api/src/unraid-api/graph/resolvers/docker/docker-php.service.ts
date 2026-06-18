@@ -15,16 +15,20 @@ type StatusItem = { name: string; updateStatus: 0 | 1 | 2 | 3 };
 /**
  * These types reflect the structure of the /var/lib/docker/unraid-update-status.json file,
  * which is not controlled by the Unraid API.
+ *
+ * The webgui (DockerClient.php) writes `local`/`remote` as null when a digest can't be
+ * resolved and `status` as the literal string 'undef' when the comparison is unknown
+ * (common for stopped or locally-built containers). The schema must tolerate those shapes,
+ * otherwise a single such entry would fail validation for the entire file.
  */
 const CachedStatusEntrySchema = z.object({
-    /** sha256 digest - "sha256:..." */
-    local: z.string(),
-    /** sha256 digest - "sha256:..." */
-    remote: z.string(),
-    /** whether update is available (true), not available (false), or unknown (null) */
-    status: z.enum(['true', 'false']).nullable(),
+    /** sha256 digest - "sha256:...", or null when unresolved */
+    local: z.string().nullable().optional(),
+    /** sha256 digest - "sha256:...", or null when unresolved */
+    remote: z.string().nullable().optional(),
+    /** 'true'/'false' when known, 'undef' or null when unknown */
+    status: z.string().nullable().optional(),
 });
-const CachedStatusSchema = z.record(z.string(), CachedStatusEntrySchema);
 export type CachedStatusEntry = z.infer<typeof CachedStatusEntrySchema>;
 
 @Injectable()
@@ -43,11 +47,22 @@ export class DockerPhpService {
     ): Promise<Record<string, CachedStatusEntry>> {
         try {
             const cache = await readFile(cacheFile, 'utf8');
-            const cacheData = JSON.parse(cache);
-            const { success, data } = CachedStatusSchema.safeParse(cacheData);
-            if (success) return data;
-            this.logger.warn(cacheData, 'Invalid cached update status');
-            return {};
+            const cacheData: unknown = JSON.parse(cache);
+            if (cacheData === null || typeof cacheData !== 'object') {
+                this.logger.warn(cacheData, 'Invalid cached update status');
+                return {};
+            }
+            // Parse per-entry so one malformed container doesn't discard the whole file.
+            const result: Record<string, CachedStatusEntry> = {};
+            for (const [image, entry] of Object.entries(cacheData)) {
+                const { success, data } = CachedStatusEntrySchema.safeParse(entry);
+                if (success) {
+                    result[image] = data;
+                } else {
+                    this.logger.warn(entry, `Skipping invalid cached update status for ${image}`);
+                }
+            }
+            return result;
         } catch (error) {
             this.logger.warn(error, 'Failed to read cached update status');
             return {};
