@@ -366,6 +366,10 @@ export enum ArrayState {
 }
 
 export type ArrayStateInput = {
+  /** Optional keyfile contents used to unlock encrypted array disks when starting the array. Accepts a data URL or raw base64 payload. */
+  decryptionKeyfile?: InputMaybe<Scalars['String']['input']>;
+  /** Optional password used to unlock encrypted array disks when starting the array */
+  decryptionPassword?: InputMaybe<Scalars['String']['input']>;
   /** Array state */
   desiredState: ArrayStateInputState;
 };
@@ -948,6 +952,8 @@ export type DockerMutations = {
   pause: DockerContainer;
   /** Remove a container */
   removeContainer: Scalars['Boolean']['output'];
+  /** Restart a container */
+  restart: DockerContainer;
   /** Start a container */
   start: DockerContainer;
   /** Stop a container */
@@ -973,6 +979,11 @@ export type DockerMutationsPauseArgs = {
 export type DockerMutationsRemoveContainerArgs = {
   id: Scalars['PrefixedID']['input'];
   withImage?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type DockerMutationsRestartArgs = {
+  id: Scalars['PrefixedID']['input'];
 };
 
 
@@ -1311,31 +1322,69 @@ export type InfoNetworkInterface = Node & {
   __typename?: 'InfoNetworkInterface';
   /** Interface description/label */
   description?: Maybe<Scalars['String']['output']>;
+  /** Link duplex mode */
+  duplex?: Maybe<Scalars['String']['output']>;
   /** IPv4 Gateway */
   gateway?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
+  /** Whether this is an internal interface */
+  internal?: Maybe<Scalars['Boolean']['output']>;
   /** IPv4 Address */
   ipAddress?: Maybe<Scalars['String']['output']>;
+  /** IPv4 addresses assigned to this interface */
+  ipv4Addresses: Array<InfoNetworkIpv4Address>;
   /** IPv6 Address */
   ipv6Address?: Maybe<Scalars['String']['output']>;
+  /** IPv6 addresses assigned to this interface */
+  ipv6Addresses: Array<InfoNetworkIpv6Address>;
   /** IPv6 Gateway */
   ipv6Gateway?: Maybe<Scalars['String']['output']>;
   /** IPv6 Netmask */
   ipv6Netmask?: Maybe<Scalars['String']['output']>;
   /** MAC Address */
   macAddress?: Maybe<Scalars['String']['output']>;
+  /** Maximum transmission unit */
+  mtu?: Maybe<Scalars['Int']['output']>;
   /** Interface name (e.g. eth0) */
   name: Scalars['String']['output'];
   /** IPv4 Netmask */
   netmask?: Maybe<Scalars['String']['output']>;
+  /** Operational state */
+  operstate?: Maybe<Scalars['String']['output']>;
   /** IPv4 Protocol mode */
   protocol?: Maybe<Scalars['String']['output']>;
+  /** Link speed in Mbps */
+  speed?: Maybe<Scalars['Int']['output']>;
   /** Connection status */
   status?: Maybe<Scalars['String']['output']>;
+  /** Interface type */
+  type?: Maybe<Scalars['String']['output']>;
   /** Using DHCP for IPv4 */
   useDhcp?: Maybe<Scalars['Boolean']['output']>;
   /** Using DHCP for IPv6 */
   useDhcp6?: Maybe<Scalars['Boolean']['output']>;
+  /** Whether this is a virtual interface */
+  virtual?: Maybe<Scalars['Boolean']['output']>;
+  /** VLAN identifier parsed from the interface name */
+  vlanId?: Maybe<Scalars['Int']['output']>;
+};
+
+/** IPv4 address assigned to a network interface */
+export type InfoNetworkIpv4Address = {
+  __typename?: 'InfoNetworkIpv4Address';
+  /** IPv4 address */
+  address: Scalars['String']['output'];
+  /** IPv4 netmask */
+  netmask: Scalars['String']['output'];
+};
+
+/** IPv6 address assigned to a network interface */
+export type InfoNetworkIpv6Address = {
+  __typename?: 'InfoNetworkIpv6Address';
+  /** IPv6 address */
+  address: Scalars['String']['output'];
+  /** IPv6 prefix length */
+  prefixLength?: Maybe<Scalars['Int']['output']>;
 };
 
 export type InfoOs = Node & {
@@ -1576,6 +1625,8 @@ export type Metrics = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Current memory utilization metrics */
   memory?: Maybe<MemoryUtilization>;
+  /** Current network metrics for all interfaces */
+  network: Array<NetworkMetrics>;
   /** Temperature metrics */
   temperature?: Maybe<TemperatureMetrics>;
 };
@@ -1827,6 +1878,39 @@ export type Network = Node & {
   id: Scalars['PrefixedID']['output'];
 };
 
+export type NetworkMetrics = Node & {
+  __typename?: 'NetworkMetrics';
+  /** Total received bytes */
+  bytesReceived: Scalars['BigInt']['output'];
+  /** Total transmitted bytes */
+  bytesSent: Scalars['BigInt']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Metric collection timestamp */
+  lastUpdated: Scalars['DateTime']['output'];
+  /** Interface identifier */
+  name: Scalars['String']['output'];
+  /** Operational state */
+  operstate?: Maybe<Scalars['String']['output']>;
+  /** Total received packets */
+  packetsReceived: Scalars['BigInt']['output'];
+  /** Total transmitted packets */
+  packetsSent: Scalars['BigInt']['output'];
+  /** Dropped receive packets */
+  receiveDropped: Scalars['BigInt']['output'];
+  /** Receive errors */
+  receiveErrors: Scalars['BigInt']['output'];
+  /** Receive throughput in bytes per second */
+  rxSec: Scalars['Float']['output'];
+  /** Dropped transmit packets */
+  transmitDropped: Scalars['BigInt']['output'];
+  /** Transmit errors */
+  transmitErrors: Scalars['BigInt']['output'];
+  /** Transmit throughput in bytes per second */
+  txSec: Scalars['Float']['output'];
+  /** Estimated link utilization percentage */
+  utilizationPercent?: Maybe<Scalars['Float']['output']>;
+};
+
 export type Node = {
   id: Scalars['PrefixedID']['output'];
 };
@@ -1985,10 +2069,19 @@ export type OnboardingInternalBootContext = {
   assignableDisks: Array<Disk>;
   bootEligible?: Maybe<Scalars['Boolean']['output']>;
   bootedFromFlashWithInternalBootSetup: Scalars['Boolean']['output'];
+  driveWarnings: Array<OnboardingInternalBootDriveWarning>;
   enableBootTransfer?: Maybe<Scalars['String']['output']>;
   poolNames: Array<Scalars['String']['output']>;
   reservedNames: Array<Scalars['String']['output']>;
   shareNames: Array<Scalars['String']['output']>;
+};
+
+/** Warning metadata for an assignable internal boot drive */
+export type OnboardingInternalBootDriveWarning = {
+  __typename?: 'OnboardingInternalBootDriveWarning';
+  device: Scalars['String']['output'];
+  diskId: Scalars['String']['output'];
+  warnings: Array<Scalars['String']['output']>;
 };
 
 /** Result of attempting internal boot pool setup */
@@ -2318,6 +2411,8 @@ export type Query = {
   me: UserAccount;
   metrics: Metrics;
   network: Network;
+  /** Network interfaces */
+  networkInterfaces: Array<InfoNetworkInterface>;
   /** Get all notifications */
   notifications: Notifications;
   /** Get the full OIDC configuration (admin only) */
@@ -2727,6 +2822,7 @@ export type Subscription = {
   systemMetricsCpu: CpuUtilization;
   systemMetricsCpuTelemetry: CpuPackages;
   systemMetricsMemory: MemoryUtilization;
+  systemMetricsNetwork: Array<NetworkMetrics>;
   systemMetricsTemperature?: Maybe<TemperatureMetrics>;
   upsUpdates: UpsDevice;
 };

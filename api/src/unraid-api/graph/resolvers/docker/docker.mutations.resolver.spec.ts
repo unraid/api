@@ -20,6 +20,7 @@ describe('DockerMutationsResolver', () => {
                     useValue: {
                         start: vi.fn(),
                         stop: vi.fn(),
+                        restart: vi.fn(),
                     },
                 },
             ],
@@ -52,6 +53,27 @@ describe('DockerMutationsResolver', () => {
         const result = await resolver.start('1');
         expect(result).toEqual(mockContainer);
         expect(dockerService.start).toHaveBeenCalledWith('1');
+    });
+
+    it('should restart', async () => {
+        const mockContainer: DockerContainer = {
+            id: '1',
+            autoStart: false,
+            command: 'test',
+            created: 1234567890,
+            image: 'test-image',
+            imageId: 'test-image-id',
+            ports: [],
+            state: ContainerState.RUNNING,
+            status: 'Up 2 seconds',
+            names: ['test-container'],
+            isOrphaned: false,
+        };
+        vi.mocked(dockerService.restart).mockResolvedValue(mockContainer);
+
+        const result = await resolver.restart('1');
+        expect(result).toEqual(mockContainer);
+        expect(dockerService.restart).toHaveBeenCalledWith('1');
     });
 
     it('should stop', async () => {
