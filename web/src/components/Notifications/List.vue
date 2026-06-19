@@ -130,16 +130,7 @@ const noNotificationsMessage = computed(() => {
     v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
     class="flex min-h-0 flex-1 flex-col overflow-y-scroll px-3"
   >
-    <TransitionGroup
-      name="notification-list"
-      tag="div"
-      class="flex flex-col"
-      enter-active-class="transition-all duration-300 ease-out"
-      leave-active-class="transition-all duration-300 ease-in absolute right-0 left-0"
-      enter-from-class="opacity-0 -translate-x-4"
-      leave-to-class="opacity-0 translate-x-4"
-      move-class="transition-transform duration-300"
-    >
+    <TransitionGroup name="notification-list" tag="div" class="relative flex flex-col">
       <NotificationsItem
         v-for="notification in displayNotifications"
         :key="notification.id"
@@ -161,3 +152,40 @@ const noNotificationsMessage = computed(() => {
     </div>
   </LoadingError>
 </template>
+
+<style scoped>
+/* Smooth list transitions: new items ease in, dismissed cards slide out to the
+   right while the remaining cards glide up to close the gap (FLIP via move). */
+.notification-list-move,
+.notification-list-enter-active,
+.notification-list-leave-active {
+  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+
+.notification-list-enter-from {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.notification-list-leave-to {
+  opacity: 0;
+  transform: translateX(2.5rem) scale(0.98);
+}
+
+/* Take the leaving card out of flow (keeping its width + vertical spot) so the
+   others animate up instead of jumping. */
+.notification-list-leave-active {
+  position: absolute;
+  width: 100%;
+  z-index: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-list-move,
+  .notification-list-enter-active,
+  .notification-list-leave-active {
+    transition: none;
+  }
+}
+</style>
