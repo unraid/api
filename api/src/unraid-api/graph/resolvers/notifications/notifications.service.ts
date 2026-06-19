@@ -978,7 +978,9 @@ export class NotificationsService {
             title,
             description,
             importance: this.fileImportanceToGqlImportance(importance),
-            persistent: persistent === 'true',
+            // The ini parser may coerce `persistent="true"` to a boolean, so normalize
+            // via String() rather than a strict string compare.
+            persistent: String(persistent) === 'true',
             timestamp: this.parseNotificationDateToIsoDate(timestamp)?.toISOString(),
             formattedTimestamp: this.formatTimestamp(timestamp),
         };
