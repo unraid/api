@@ -114,6 +114,53 @@ const importanceLabel = computed(() => {
   }
 });
 
+// Dismiss/leave animation: the card slides out to the right while collapsing its
+// own vertical space (height + margins + padding + borders), so the cards below
+// flow up as a single continuous motion instead of jumping after the fact.
+const prefersReducedMotion =
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+function onLeave(el: Element, done: () => void) {
+  const node = el as HTMLElement;
+  if (prefersReducedMotion) {
+    done();
+    return;
+  }
+  const cs = getComputedStyle(node);
+  node.style.overflow = 'hidden';
+  node.style.boxSizing = 'border-box';
+  const animation = node.animate(
+    [
+      {
+        opacity: 1,
+        transform: 'translateX(0)',
+        height: `${node.offsetHeight}px`,
+        marginTop: cs.marginTop,
+        marginBottom: cs.marginBottom,
+        paddingTop: cs.paddingTop,
+        paddingBottom: cs.paddingBottom,
+        borderTopWidth: cs.borderTopWidth,
+        borderBottomWidth: cs.borderBottomWidth,
+      },
+      { opacity: 0, transform: 'translateX(2rem)', offset: 0.55 },
+      {
+        opacity: 0,
+        transform: 'translateX(2rem)',
+        height: '0px',
+        marginTop: '0px',
+        marginBottom: '0px',
+        paddingTop: '0px',
+        paddingBottom: '0px',
+        borderTopWidth: '0px',
+        borderBottomWidth: '0px',
+      },
+    ],
+    { duration: 340, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }
+  );
+  animation.onfinish = done;
+  animation.oncancel = done;
+}
+
 const noNotificationsMessage = computed(() => {
   if (!props.importance) {
     return t('notifications.list.noNotifications');
@@ -130,7 +177,7 @@ const noNotificationsMessage = computed(() => {
     v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
     class="flex min-h-0 flex-1 flex-col overflow-y-scroll px-4"
   >
-    <TransitionGroup name="notification-list" tag="div" class="relative flex flex-col">
+    <TransitionGroup name="notification-list" tag="div" class="flex flex-col" @leave="onLeave">
       <NotificationsItem
         v-for="notification in displayNotifications"
         :key="notification.id"
@@ -154,13 +201,14 @@ const noNotificationsMessage = computed(() => {
 </template>
 
 <style scoped>
-/* Smooth list transitions: new items ease in, dismissed cards slide out to the
-   right while the remaining cards glide up to close the gap (FLIP via move). */
+/* New items ease in; reorders (e.g. a pinned item moving to the top) glide via
+   FLIP. The dismiss/leave animation is handled in JS (onLeave) so the card can
+   slide out AND collapse its own space in one continuous motion. */
 .notification-list-move,
-.notification-list-enter-active,
-.notification-list-leave-active {
-  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform, opacity;
+.notification-list-enter-active {
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .notification-list-enter-from {
@@ -168,23 +216,9 @@ const noNotificationsMessage = computed(() => {
   transform: translateY(-6px);
 }
 
-.notification-list-leave-to {
-  opacity: 0;
-  transform: translateX(2.5rem) scale(0.98);
-}
-
-/* Take the leaving card out of flow (keeping its width + vertical spot) so the
-   others animate up instead of jumping. */
-.notification-list-leave-active {
-  position: absolute;
-  width: 100%;
-  z-index: 0;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .notification-list-move,
-  .notification-list-enter-active,
-  .notification-list-leave-active {
+  .notification-list-enter-active {
     transition: none;
   }
 }
