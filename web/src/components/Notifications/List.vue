@@ -58,6 +58,14 @@ const notifications = computed(() => {
   return list.filter((n) => n.type === props.type);
 });
 
+// Persistent (condition-style) notifications stick to the top of the list.
+// Display-only sort (stable, so within each group the API's latest-first order
+// is preserved); the seen-tracking watcher below intentionally uses the
+// unsorted `notifications` so it still keys off the genuinely latest item.
+const displayNotifications = computed(() =>
+  [...notifications.value].sort((a, b) => Number(b.persistent ?? false) - Number(a.persistent ?? false))
+);
+
 const { t } = useI18n();
 
 // saves timestamp of latest visible notification to local storage
@@ -133,7 +141,7 @@ const noNotificationsMessage = computed(() => {
       move-class="transition-transform duration-300"
     >
       <NotificationsItem
-        v-for="notification in notifications"
+        v-for="notification in displayNotifications"
         :key="notification.id"
         v-bind="notification"
       />
