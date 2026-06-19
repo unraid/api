@@ -19,7 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@unraid/ui';
-import { Settings } from 'lucide-vue-next';
+import { Archive, Settings, Trash2 } from 'lucide-vue-next';
 
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {
@@ -201,22 +201,24 @@ const prepareToViewNotifications = () => {
             <TabsContent value="unread" class="flex-col items-end">
               <Button
                 :disabled="loadingArchiveAll"
-                variant="link"
+                variant="ghost"
                 size="sm"
-                class="text-foreground hover:text-destructive transition-none"
+                class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
                 @click="confirmAndArchiveAll"
               >
+                <Archive class="h-4 w-4" />
                 {{ t('notifications.sidebar.archiveAllAction') }}
               </Button>
             </TabsContent>
             <TabsContent value="archived" class="flex-col items-end">
               <Button
                 :disabled="loadingDeleteAll"
-                variant="link"
+                variant="ghost"
                 size="sm"
-                class="text-foreground hover:text-destructive transition-none"
+                class="text-muted-foreground hover:text-destructive inline-flex items-center gap-1.5"
                 @click="confirmAndDeleteArchives"
               >
+                <Trash2 class="h-4 w-4" />
                 {{ t('notifications.sidebar.deleteAllAction') }}
               </Button>
             </TabsContent>
