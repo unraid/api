@@ -168,6 +168,9 @@ const reformattedTimestamp = computed<string>(() => {
       </a>
       <Button
         v-if="type === NotificationType.UNREAD && !persistent"
+        variant="ghost"
+        size="sm"
+        class="text-secondary-foreground"
         :disabled="archive.loading"
         @click="() => archive.mutate({ id: props.id })"
       >
@@ -187,6 +190,9 @@ const reformattedTimestamp = computed<string>(() => {
       </Button>
       <Button
         v-if="type === NotificationType.ARCHIVE"
+        variant="ghost"
+        size="sm"
+        class="text-secondary-foreground"
         :disabled="deleteNotification.loading"
         @click="() => deleteNotification.mutate({ id: props.id, type: props.type })"
       >
