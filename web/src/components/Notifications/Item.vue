@@ -110,11 +110,11 @@ const reformattedTimestamp = computed<string>(() => {
 
 <template>
   <div
-    class="group/item relative flex flex-col gap-1.5 py-3 text-sm"
+    class="group/item relative my-1.5 flex flex-col gap-1.5 rounded-md border px-3 py-2.5 text-sm transition-colors"
     :class="
       persistent
-        ? 'my-1 rounded-md border border-l-4 border-orange-300/70 border-l-orange-500 bg-orange-50/70 py-2.5 pr-3 pl-3 dark:border-orange-500/30 dark:border-l-orange-500 dark:bg-orange-500/10'
-        : ''
+        ? 'border-l-4 border-orange-300/70 border-l-orange-500 bg-orange-50/70 dark:border-orange-500/30 dark:border-l-orange-500 dark:bg-orange-500/10'
+        : 'border-border/60 bg-muted/20 hover:bg-muted/40'
     "
   >
     <header class="flex flex-row items-baseline justify-between gap-2">

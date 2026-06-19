@@ -476,14 +476,18 @@ export class NotificationsService {
      * @returns The updated notification overview.
      */
     public async clearNotificationsByKey(key: string): Promise<NotificationOverview> {
-        const unread = await this.getNotifications({
-            type: NotificationType.UNREAD,
-            offset: 0,
-            limit: Number.MAX_SAFE_INTEGER,
-        });
-        const matches = unread.filter((notification) => notification.key === key);
-        for (const notification of matches) {
-            await this.deleteNotification({ id: notification.id, type: NotificationType.UNREAD });
+        // Sweep both states: a keyed condition may have been dismissed (archived) by
+        // the user, so clearing/resolving it - or re-raising it idempotently - should
+        // not leave stale copies behind in either unread or archive.
+        for (const type of [NotificationType.UNREAD, NotificationType.ARCHIVE]) {
+            const list = await this.getNotifications({
+                type,
+                offset: 0,
+                limit: Number.MAX_SAFE_INTEGER,
+            });
+            for (const notification of list.filter((n) => n.key === key)) {
+                await this.deleteNotification({ id: notification.id, type });
+            }
         }
         return this.getOverview();
     }

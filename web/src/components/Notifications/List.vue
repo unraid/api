@@ -133,7 +133,7 @@ const noNotificationsMessage = computed(() => {
     <TransitionGroup
       name="notification-list"
       tag="div"
-      class="divide-y"
+      class="flex flex-col"
       enter-active-class="transition-all duration-300 ease-out"
       leave-active-class="transition-all duration-300 ease-in absolute right-0 left-0"
       enter-from-class="opacity-0 -translate-x-4"
