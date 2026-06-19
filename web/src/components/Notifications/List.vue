@@ -128,7 +128,7 @@ const noNotificationsMessage = computed(() => {
   <div
     v-if="notifications?.length > 0"
     v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
-    class="flex min-h-0 flex-1 flex-col overflow-y-scroll px-3"
+    class="flex min-h-0 flex-1 flex-col overflow-y-scroll px-4"
   >
     <TransitionGroup name="notification-list" tag="div" class="relative flex flex-col">
       <NotificationsItem

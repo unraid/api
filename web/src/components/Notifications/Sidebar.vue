@@ -154,26 +154,47 @@ const prepareToViewNotifications = () => {
       class="flex h-screen max-h-screen min-h-screen w-full max-w-screen flex-col gap-5 px-0 pb-0 sm:max-w-[540px]"
     >
       <div class="relative flex h-full w-full flex-col">
-        <SheetHeader class="ml-1 items-baseline gap-1 px-3 pb-2">
-          <SheetTitle class="text-2xl">{{ t('notifications.sidebar.title') }}</SheetTitle>
+        <SheetHeader class="gap-1 px-4 pt-1 pb-3">
+          <SheetTitle class="text-xl font-semibold tracking-tight">{{
+            t('notifications.sidebar.title')
+          }}</SheetTitle>
         </SheetHeader>
         <Tabs
           default-value="unread"
           class="flex min-h-0 flex-1 flex-col"
           :aria-label="t('notifications.sidebar.statusTabsAria')"
         >
-          <div class="flex flex-row flex-wrap items-center justify-between gap-3 px-3">
-            <TabsList class="flex" :aria-label="t('notifications.sidebar.statusTabsListAria')">
+          <div class="flex flex-row flex-wrap items-center justify-between gap-3 px-4">
+            <TabsList
+              class="bg-muted/50 flex gap-0.5 rounded-lg p-0.5"
+              :aria-label="t('notifications.sidebar.statusTabsListAria')"
+            >
               <TabsTrigger value="unread" as-child>
-                <Button variant="ghost" size="sm" class="inline-flex items-center gap-1 px-3 py-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium data-[state=active]:shadow-sm"
+                >
                   <span>{{ t('notifications.sidebar.unreadTab') }}</span>
-                  <span v-if="overview" class="font-normal">({{ overview.unread.total }})</span>
+                  <span
+                    v-if="overview"
+                    class="bg-muted-foreground/15 rounded-full px-1.5 py-0.5 text-xs font-medium tabular-nums"
+                    >{{ overview.unread.total }}</span
+                  >
                 </Button>
               </TabsTrigger>
               <TabsTrigger value="archived" as-child>
-                <Button variant="ghost" size="sm" class="inline-flex items-center gap-1 px-3 py-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium data-[state=active]:shadow-sm"
+                >
                   <span>{{ t('notifications.sidebar.archivedTab') }}</span>
-                  <span v-if="overview" class="font-normal">({{ readArchivedCount }})</span>
+                  <span
+                    v-if="overview"
+                    class="bg-muted-foreground/15 rounded-full px-1.5 py-0.5 text-xs font-medium tabular-nums"
+                    >{{ readArchivedCount }}</span
+                  >
                 </Button>
               </TabsTrigger>
             </TabsList>
@@ -201,7 +222,7 @@ const prepareToViewNotifications = () => {
             </TabsContent>
           </div>
 
-          <div class="mt-3 flex items-start justify-between gap-3 px-3">
+          <div class="border-border/60 mt-3 flex items-start justify-between gap-3 border-b px-4 pb-3">
             <div class="flex min-w-0 flex-1 flex-col gap-2">
               <div
                 class="border-border/60 bg-muted/60 flex flex-wrap items-center gap-1 rounded-xl border p-1"
