@@ -8,6 +8,7 @@ export const NOTIFICATION_FRAGMENT = graphql(/* GraphQL */ `
     description
     importance
     link
+    persistent
     type
     timestamp
     formattedTimestamp

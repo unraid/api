@@ -124,6 +124,17 @@ export class NotificationsResolver {
         return overview;
     }
 
+    @Mutation(() => NotificationOverview, {
+        description:
+            'Clears all unread notifications that share a stable producer key. Used to resolve condition-style (persistent) notifications when their condition no longer holds.',
+    })
+    public clearNotificationByKey(
+        @Args('key', { type: () => String })
+        key: string
+    ): Promise<NotificationOverview> {
+        return this.notificationsService.clearNotificationsByKey(key);
+    }
+
     @Mutation(() => Notification, { description: 'Marks a notification as unread.' })
     public unreadNotification(
         @Args('id', { type: () => PrefixedID })

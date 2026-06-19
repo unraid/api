@@ -300,6 +300,12 @@ export class NotificationsService {
      *------------------------------------------------------------------------**/
 
     public async createNotification(data: NotificationData): Promise<Notification> {
+        // Condition-style notifications are keyed and idempotent: raising one with an
+        // existing key replaces the prior instance (latest wins) instead of stacking dupes.
+        if (data.key) {
+            await this.clearNotificationsByKey(data.key);
+        }
+
         const id: string = await this.makeNotificationId(data.title);
         const fileData = this.makeNotificationFileData(data);
 
@@ -332,7 +338,7 @@ export class NotificationsService {
      * @returns A 2-element tuple containing the legacy notifier command and arguments.
      */
     public getLegacyScriptArgs(notification: NotificationIni): [string, string[]] {
-        const { event, subject, description, link, importance } = notification;
+        const { event, subject, description, link, importance, key, persistent } = notification;
         const args = [
             ['-i', importance],
             ['-e', event],
@@ -341,6 +347,12 @@ export class NotificationsService {
         ];
         if (link) {
             args.push(['-l', link]);
+        }
+        if (key) {
+            args.push(['-k', key]);
+        }
+        if (persistent === 'true') {
+            args.push(['-p']);
         }
         return ['/usr/local/emhttp/webGui/scripts/notify', args.flat()];
     }
@@ -370,7 +382,7 @@ export class NotificationsService {
 
     /** transforms gql compliant NotificationData to .notify compliant data*/
     private makeNotificationFileData(notification: NotificationData): NotificationIni {
-        const { title, subject, description, link, importance } = notification;
+        const { title, subject, description, link, importance, key, persistent } = notification;
 
         const data: NotificationIni = {
             timestamp: unraidTimestamp().toString(),
@@ -382,10 +394,16 @@ export class NotificationsService {
 
         // HACK - the ini encoder stringifies all fields defined on the object, even if they're undefined.
         // this results in a field like "link=undefined" in the resulting ini string.
-        // So, we only add a link if it's defined
+        // So, we only add optional fields if they're defined/truthy.
 
         if (link) {
             data.link = link;
+        }
+        if (key) {
+            data.key = key;
+        }
+        if (persistent) {
+            data.persistent = 'true';
         }
         return data;
     }
@@ -444,6 +462,29 @@ export class NotificationsService {
     public async deleteAllNotifications() {
         await this.deleteNotifications(NotificationType.ARCHIVE);
         await this.deleteNotifications(NotificationType.UNREAD);
+        return this.getOverview();
+    }
+
+    /**
+     * Clears all unread notifications that share a stable producer `key`.
+     *
+     * This is how condition-style (typically persistent) notifications are resolved: a
+     * producer raises one with a key (e.g. "reboot-required") and clears it with the same
+     * key once the condition no longer holds. Also used to make keyed creates idempotent.
+     *
+     * @param key The stable producer key to clear.
+     * @returns The updated notification overview.
+     */
+    public async clearNotificationsByKey(key: string): Promise<NotificationOverview> {
+        const unread = await this.getNotifications({
+            type: NotificationType.UNREAD,
+            offset: 0,
+            limit: Number.MAX_SAFE_INTEGER,
+        });
+        const matches = unread.filter((notification) => notification.key === key);
+        for (const notification of matches) {
+            await this.deleteNotification({ id: notification.id, type: NotificationType.UNREAD });
+        }
         return this.getOverview();
     }
 
@@ -538,6 +579,16 @@ export class NotificationsService {
          *------------------------**/
         const snapshot = this.getOverview();
         const notification = await this.loadNotificationFile(unreadPath, NotificationType.UNREAD);
+
+        // Persistent notifications represent an ongoing condition and are not user-dismissible;
+        // they clear automatically when the condition resolves (see clearNotificationsByKey).
+        if (notification.persistent) {
+            throw new AppError(
+                'Cannot archive a persistent notification; it clears automatically when its condition resolves.',
+                409
+            );
+        }
+
         const moveToArchive = this.moveNotification({
             from: NotificationType.UNREAD,
             to: NotificationType.ARCHIVE,
@@ -589,7 +640,9 @@ export class NotificationsService {
 
         const overviewSnapshot = this.getOverview();
         const unreads = await this.listFilesInFolder(UNREAD);
-        const [notifications] = await this.loadNotificationsFromPaths(unreads, { importance });
+        const [loaded] = await this.loadNotificationsFromPaths(unreads, { importance });
+        // Never bulk-archive persistent notifications — they clear on resolution, not by the user.
+        const notifications = loaded.filter((notification) => !notification.persistent);
         const archive = this.moveNotification({
             from: NotificationType.UNREAD,
             to: NotificationType.ARCHIVE,
@@ -883,6 +936,7 @@ export class NotificationsService {
                 subject: nameMask,
                 description: `This notification is invalid and cannot be displayed! For details, see the logs and the notification file at ${path}`,
                 importance: NotificationImportance.WARNING,
+                persistent: false,
                 timestamp: dateMask.toISOString(),
                 formattedTimestamp: this.formatDatetime(dateMask),
             };
@@ -908,7 +962,14 @@ export class NotificationsService {
         details: Pick<Notification, 'id' | 'type'>,
         fileData: NotificationIni
     ): Notification {
-        const { importance, timestamp, event: title, description = '', ...passthroughData } = fileData;
+        const {
+            importance,
+            timestamp,
+            event: title,
+            description = '',
+            persistent,
+            ...passthroughData
+        } = fileData;
         const { type, id } = details;
         return {
             ...passthroughData,
@@ -917,6 +978,7 @@ export class NotificationsService {
             title,
             description,
             importance: this.fileImportanceToGqlImportance(importance),
+            persistent: persistent === 'true',
             timestamp: this.parseNotificationDateToIsoDate(timestamp)?.toISOString(),
             formattedTimestamp: this.formatTimestamp(timestamp),
         };

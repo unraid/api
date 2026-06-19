@@ -134,7 +134,7 @@ const reformattedTimestamp = computed<string>(() => {
         <span class="text-sm">{{ t('notifications.item.viewLink') }}</span>
       </a>
       <Button
-        v-if="type === NotificationType.UNREAD"
+        v-if="type === NotificationType.UNREAD && !persistent"
         :disabled="archive.loading"
         @click="() => archive.mutate({ id: props.id })"
       >

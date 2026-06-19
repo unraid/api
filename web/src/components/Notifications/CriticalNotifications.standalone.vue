@@ -256,6 +256,7 @@ onNotificationAdded(({ data }) => {
             View Details
           </a>
           <button
+            v-if="!notification.persistent"
             type="button"
             class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
             :disabled="dismissing.has(notification.id)"
@@ -263,6 +264,13 @@ onNotificationAdded(({ data }) => {
           >
             {{ dismissing.has(notification.id) ? 'Dismissing…' : 'Dismiss' }}
           </button>
+          <span
+            v-else
+            class="inline-flex items-center gap-1 text-xs font-medium text-gray-500"
+            title="This alert clears automatically when its condition is resolved."
+          >
+            Clears automatically when resolved
+          </span>
         </div>
       </li>
     </ul>

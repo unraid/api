@@ -2149,6 +2149,14 @@ type Notification implements Node {
   description: String!
   importance: NotificationImportance!
   link: String
+
+  """Stable key for condition-style notifications (idempotent raise / clear-by-key)."""
+  key: String
+
+  """
+  Whether this notification persists until its condition is resolved. Persistent notifications are not user-archivable.
+  """
+  persistent: Boolean!
   type: NotificationType!
 
   """ISO Timestamp for when the notification occurred"""
@@ -3401,6 +3409,11 @@ type Mutation {
   notifyIfUnique(input: NotificationData!): Notification
   archiveAll(importance: NotificationImportance): NotificationOverview!
 
+  """
+  Clears all unread notifications that share a stable producer key. Used to resolve condition-style (persistent) notifications when their condition no longer holds.
+  """
+  clearNotificationByKey(key: String!): NotificationOverview!
+
   """Marks a notification as unread."""
   unreadNotification(id: PrefixedID!): Notification!
   unarchiveNotifications(ids: [PrefixedID!]!): NotificationOverview!
@@ -3468,6 +3481,16 @@ input NotificationData {
   description: String!
   importance: NotificationImportance!
   link: String
+
+  """
+  Stable key for a condition-style notification. Raising again with the same key replaces the existing one; clear it with clearNotificationByKey when the condition resolves.
+  """
+  key: String
+
+  """
+  Persistent notifications cannot be archived by the user; they stay until cleared programmatically (typically via their key) when the underlying condition resolves.
+  """
+  persistent: Boolean = false
 }
 
 input UpdateSshInput {

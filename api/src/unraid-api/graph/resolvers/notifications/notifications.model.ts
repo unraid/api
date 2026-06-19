@@ -1,7 +1,7 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Node } from '@unraid/shared/graphql.model.js';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export enum NotificationType {
     UNREAD = 'UNREAD',
@@ -74,6 +74,25 @@ export class NotificationData {
     @IsString()
     @IsOptional()
     link?: string;
+
+    @Field({
+        nullable: true,
+        description:
+            'Stable key for a condition-style notification. Raising again with the same key replaces the existing one; clear it with clearNotificationByKey when the condition resolves.',
+    })
+    @IsString()
+    @IsOptional()
+    key?: string;
+
+    @Field({
+        nullable: true,
+        defaultValue: false,
+        description:
+            'Persistent notifications cannot be archived by the user; they stay until cleared programmatically (typically via their key) when the underlying condition resolves.',
+    })
+    @IsBoolean()
+    @IsOptional()
+    persistent?: boolean;
 }
 
 @ObjectType('NotificationCounts')
@@ -136,6 +155,21 @@ export class Notification extends Node {
     @IsString()
     @IsOptional()
     link?: string;
+
+    @Field({
+        nullable: true,
+        description: 'Stable key for condition-style notifications (idempotent raise / clear-by-key).',
+    })
+    @IsString()
+    @IsOptional()
+    key?: string;
+
+    @Field({
+        description:
+            'Whether this notification persists until its condition is resolved. Persistent notifications are not user-archivable.',
+    })
+    @IsBoolean()
+    persistent!: boolean;
 
     @Field(() => NotificationType)
     @IsEnum(NotificationType)
