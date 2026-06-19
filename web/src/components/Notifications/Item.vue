@@ -11,6 +11,7 @@ import {
   LinkIcon,
   ShieldExclamationIcon,
   TrashIcon,
+  XMarkIcon,
 } from '@heroicons/vue/24/solid';
 import { Button } from '@unraid/ui';
 import { Markdown } from '@/helpers/markdown';
@@ -23,10 +24,12 @@ import {
   deleteNotification as deleteMutation,
 } from '~/components/Notifications/graphql/notification.query';
 import { NotificationType } from '~/composables/gql/graphql';
+import { useConfirm } from '~/composables/useConfirm';
 
 const props = defineProps<NotificationFragmentFragment>();
 
 const { t } = useI18n();
+const { confirm } = useConfirm();
 
 const descriptionMarkup = computedAsync(async () => {
   try {
@@ -69,6 +72,21 @@ const deleteNotification = reactive(
     variables: { id: props.id, type: props.type },
   })
 );
+
+// Persistent notifications are pinned and not dismissed casually. Dismissing is
+// allowed but gated behind a warning: it only hides the reminder (acknowledge),
+// it does not resolve the underlying condition, which may re-pin if raised again.
+const dismissPersistent = async () => {
+  const confirmed = await confirm({
+    title: t('notifications.item.confirmDismiss.title'),
+    description: t('notifications.item.confirmDismiss.description'),
+    confirmText: t('notifications.item.confirmDismiss.confirmText'),
+    confirmVariant: 'primary',
+  });
+  if (confirmed) {
+    await archive.mutate({ id: props.id });
+  }
+};
 
 const mutationError = computed(() => {
   return archive.error?.message ?? deleteNotification.error?.message;
@@ -155,6 +173,17 @@ const reformattedTimestamp = computed<string>(() => {
       >
         <ArchiveBoxIcon class="mr-2 size-4" />
         <span class="text-sm">{{ t('notifications.item.archive') }}</span>
+      </Button>
+      <Button
+        v-if="type === NotificationType.UNREAD && persistent"
+        variant="ghost"
+        size="sm"
+        class="text-secondary-foreground"
+        :disabled="archive.loading"
+        @click="dismissPersistent"
+      >
+        <XMarkIcon class="mr-2 size-4" />
+        <span class="text-sm">{{ t('notifications.item.dismiss') }}</span>
       </Button>
       <Button
         v-if="type === NotificationType.ARCHIVE"

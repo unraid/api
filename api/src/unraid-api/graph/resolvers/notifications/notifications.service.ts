@@ -580,15 +580,11 @@ export class NotificationsService {
         const snapshot = this.getOverview();
         const notification = await this.loadNotificationFile(unreadPath, NotificationType.UNREAD);
 
-        // Persistent notifications represent an ongoing condition and are not user-dismissible;
-        // they clear automatically when the condition resolves (see clearNotificationsByKey).
-        if (notification.persistent) {
-            throw new AppError(
-                'Cannot archive a persistent notification; it clears automatically when its condition resolves.',
-                409
-            );
-        }
-
+        // Persistent notifications represent an ongoing condition. They are not
+        // dismissed casually (the UI gates this behind a warning, and bulk archiveAll
+        // skips them), but an explicit, confirmed single dismiss is allowed: it
+        // acknowledges/hides the reminder. The condition itself is unaffected, so it
+        // re-pins if the producer raises it again (idempotent key).
         const moveToArchive = this.moveNotification({
             from: NotificationType.UNREAD,
             to: NotificationType.ARCHIVE,
