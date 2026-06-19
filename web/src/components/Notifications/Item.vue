@@ -91,10 +91,17 @@ const reformattedTimestamp = computed<string>(() => {
 </script>
 
 <template>
-  <div class="group/item relative flex flex-col gap-2 py-3 text-base">
-    <header class="flex -translate-y-1 flex-row items-baseline justify-between gap-2">
+  <div
+    class="group/item relative flex flex-col gap-1.5 py-3 text-sm"
+    :class="
+      persistent
+        ? 'my-1 rounded-md border border-l-4 border-orange-300/70 border-l-orange-500 bg-orange-50/70 py-2.5 pr-3 pl-3 dark:border-orange-500/30 dark:border-l-orange-500 dark:bg-orange-500/10'
+        : ''
+    "
+  >
+    <header class="flex flex-row items-baseline justify-between gap-2">
       <h3
-        class="m-0 flex flex-row items-baseline gap-2 overflow-x-hidden text-base font-semibold normal-case"
+        class="m-0 flex flex-row items-baseline gap-2 overflow-x-hidden text-sm font-semibold normal-case"
       >
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
         <component
@@ -107,19 +114,27 @@ const reformattedTimestamp = computed<string>(() => {
       </h3>
 
       <div
-        class="mt-1 flex shrink-0 flex-row items-baseline justify-end gap-2"
+        class="flex shrink-0 flex-row items-baseline justify-end gap-2"
         :title="formattedTimestamp ?? reformattedTimestamp"
       >
-        <p class="text-secondary-foreground text-sm">{{ reformattedTimestamp }}</p>
+        <span
+          v-if="persistent"
+          class="inline-flex items-center gap-1 self-center rounded-full border border-orange-300 bg-orange-100 px-2 py-0.5 text-[1rem] font-semibold tracking-wide text-orange-700 uppercase dark:border-orange-500/40 dark:bg-orange-500/20 dark:text-orange-200"
+        >
+          {{ t('notifications.item.pinned') }}
+        </span>
+        <p class="text-secondary-foreground text-xs whitespace-nowrap">{{ reformattedTimestamp }}</p>
       </div>
     </header>
 
-    <h4 class="m-0 font-normal">
+    <h4 class="m-0 text-sm font-normal">
       {{ subject }}
     </h4>
 
-    <div class="flex flex-row items-center justify-between gap-2">
-      <div class="" v-html="descriptionMarkup" />
+    <div
+      class="text-secondary-foreground flex flex-row items-center justify-between gap-2 text-sm leading-snug"
+    >
+      <div v-html="descriptionMarkup" />
     </div>
 
     <p v-if="mutationError" class="text-red-600">{{ t('common.error') }}: {{ mutationError }}</p>

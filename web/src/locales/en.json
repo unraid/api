@@ -656,6 +656,7 @@
   "notifications.importance.warning": "Warning",
   "notifications.item.archive": "Archive",
   "notifications.item.delete": "Delete",
+  "notifications.item.pinned": "Pinned",
   "notifications.item.viewLink": "View",
   "notifications.list.noNotifications": "No notifications to see here!",
   "notifications.list.noNotificationsWithImportance": "No {importance} notifications to see here!",
