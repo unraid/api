@@ -19,7 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@unraid/ui';
-import { Archive, Pin, Settings, Trash2 } from 'lucide-vue-next';
+import { Archive, Settings, Trash2 } from 'lucide-vue-next';
 
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {
@@ -257,7 +257,7 @@ const prepareToViewNotifications = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  class="h-8 gap-1.5 rounded-lg border border-transparent px-3 text-xs font-medium transition-colors"
+                  class="h-8 rounded-lg border border-transparent px-3 text-xs font-medium transition-colors"
                   :class="
                     showPinned
                       ? 'border-border bg-background text-foreground'
@@ -267,7 +267,6 @@ const prepareToViewNotifications = () => {
                   :title="t('notifications.sidebar.filters.pinnedTooltip')"
                   @click="showPinned = !showPinned"
                 >
-                  <Pin class="size-3.5" />
                   {{ t('notifications.sidebar.filters.pinned') }}
                 </Button>
               </div>
