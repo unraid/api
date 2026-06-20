@@ -159,9 +159,21 @@ const prepareToViewNotifications = () => {
     >
       <div class="relative flex h-full w-full flex-col">
         <SheetHeader class="gap-1 px-4 pt-1 pb-3">
-          <SheetTitle class="text-xl font-semibold tracking-tight">{{
-            t('notifications.sidebar.title')
-          }}</SheetTitle>
+          <div class="flex items-center justify-between gap-2 pr-8">
+            <SheetTitle class="text-xl font-semibold tracking-tight">{{
+              t('notifications.sidebar.title')
+            }}</SheetTitle>
+            <a href="/Settings/Notifications" :title="t('notifications.sidebar.editSettingsTooltip')">
+              <Button
+                variant="ghost"
+                size="sm"
+                class="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
+              >
+                <Settings class="h-4 w-4" />
+                <span class="sr-only">{{ t('notifications.sidebar.editSettingsTooltip') }}</span>
+              </Button>
+            </a>
+          </div>
         </SheetHeader>
         <Tabs
           v-model="activeTab"
@@ -207,12 +219,11 @@ const prepareToViewNotifications = () => {
                 :disabled="loadingArchiveAll"
                 variant="ghost"
                 size="sm"
-                class="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
-                :title="t('notifications.sidebar.archiveAllAction')"
+                class="text-muted-foreground hover:text-foreground inline-flex h-8 items-center gap-1.5 px-2 text-xs font-medium"
                 @click="confirmAndArchiveAll"
               >
                 <Archive class="h-4 w-4" />
-                <span class="sr-only">{{ t('notifications.sidebar.archiveAllAction') }}</span>
+                {{ t('notifications.sidebar.archiveAllAction') }}
               </Button>
             </TabsContent>
             <TabsContent value="archived" class="flex-col items-end">
@@ -220,12 +231,11 @@ const prepareToViewNotifications = () => {
                 :disabled="loadingDeleteAll"
                 variant="ghost"
                 size="sm"
-                class="text-muted-foreground hover:text-destructive h-8 w-8 p-0"
-                :title="t('notifications.sidebar.deleteAllAction')"
+                class="text-muted-foreground hover:text-destructive inline-flex h-8 items-center gap-1.5 px-2 text-xs font-medium"
                 @click="confirmAndDeleteArchives"
               >
                 <Trash2 class="h-4 w-4" />
-                <span class="sr-only">{{ t('notifications.sidebar.deleteAllAction') }}</span>
+                {{ t('notifications.sidebar.deleteAllAction') }}
               </Button>
             </TabsContent>
           </div>
@@ -288,16 +298,6 @@ const prepareToViewNotifications = () => {
             />
           </TabsContent>
         </Tabs>
-
-        <div class="border-border/60 border-t px-4 py-2.5">
-          <a
-            href="/Settings/Notifications"
-            class="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-medium"
-          >
-            <Settings class="h-4 w-4" />
-            {{ t('notifications.sidebar.editSettingsTooltip') }}
-          </a>
-        </div>
       </div>
     </SheetContent>
   </Sheet>
