@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
+import { useSessionStorage } from '@vueuse/core';
 
 import {
   Button,
@@ -44,15 +45,17 @@ const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAl
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
 const { mutate: recalculateOverview } = useMutation(resetOverview);
 const { confirm } = useConfirm();
-const importance = ref<Importance | undefined>(undefined);
+// Filter selections persist for the browser session so navigating between webgui
+// pages (each a full reload) keeps the chosen filters in place. '' = All Types.
+const importance = useSessionStorage<Importance | ''>('unraid.notifications.importance', '');
 // Persistent ("Active") notifications are shown by default; this toggle lets the
 // user filter them out of the list when they want to focus on transient items.
-const showPersistent = ref(true);
+const showPersistent = useSessionStorage('unraid.notifications.showPersistent', true);
 
 const { t } = useI18n();
 
-const filterOptions = computed<Array<{ label: string; value?: Importance }>>(() => [
-  { label: t('notifications.sidebar.filters.all') },
+const filterOptions = computed<Array<{ label: string; value: Importance | '' }>>(() => [
+  { label: t('notifications.sidebar.filters.all'), value: '' },
   { label: t('notifications.sidebar.filters.alert'), value: Importance.ALERT },
   { label: t('notifications.sidebar.filters.info'), value: Importance.INFO },
   { label: t('notifications.sidebar.filters.warning'), value: Importance.WARNING },
@@ -235,7 +238,7 @@ const prepareToViewNotifications = () => {
               >
                 <Button
                   v-for="option in filterOptions"
-                  :key="option.value ?? 'all'"
+                  :key="option.value || 'all'"
                   variant="ghost"
                   size="sm"
                   class="h-8 rounded-lg border border-transparent px-3 text-xs font-medium transition-colors"
@@ -291,7 +294,7 @@ const prepareToViewNotifications = () => {
 
           <TabsContent value="unread" class="min-h-0 flex-1 flex-col">
             <NotificationsList
-              :importance="importance"
+              :importance="importance || undefined"
               :show-persistent="showPersistent"
               :type="NotificationType.UNREAD"
             />
@@ -299,7 +302,7 @@ const prepareToViewNotifications = () => {
 
           <TabsContent value="archived" class="min-h-0 flex-1 flex-col">
             <NotificationsList
-              :importance="importance"
+              :importance="importance || undefined"
               :show-persistent="showPersistent"
               :type="NotificationType.ARCHIVE"
             />
