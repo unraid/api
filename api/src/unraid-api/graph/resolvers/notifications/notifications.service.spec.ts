@@ -107,8 +107,10 @@ describe.sequential('NotificationsService', () => {
             subject = 'Test Subject',
             description = 'Test Description',
             importance = NotificationImportance.INFO,
+            persistent,
+            key,
         } = data;
-        return service.createNotification({ title, subject, description, importance });
+        return service.createNotification({ title, subject, description, importance, persistent, key });
     }
 
     async function findById(id: string, type: NotificationType = NotificationType.UNREAD) {
@@ -508,6 +510,30 @@ describe.sequential('NotificationsService', () => {
         ({ overview } = await service.recalculateOverview());
         expect.soft(overview.unread.total).toEqual(6);
         expect.soft(overview.archive.total).toEqual(3);
+    });
+
+    it('archiveAll never archives persistent notifications', async () => {
+        const expectIn = makeExpectIn(expect);
+        await Promise.all([
+            createNotification({ importance: NotificationImportance.WARNING }),
+            createNotification({ importance: NotificationImportance.INFO }),
+            createNotification({
+                importance: NotificationImportance.WARNING,
+                persistent: true,
+                key: 'persistent-condition',
+            }),
+        ]);
+
+        await expectIn({ type: NotificationType.UNREAD }, 3);
+
+        // Unfiltered "Archive all" must leave the persistent notification pinned.
+        await service.archiveAll();
+        await expectIn({ type: NotificationType.UNREAD }, 1);
+        await expectIn({ type: NotificationType.ARCHIVE }, 2);
+
+        // The per-importance variant must also skip it, even when its importance matches.
+        await service.archiveAll(NotificationImportance.WARNING);
+        await expectIn({ type: NotificationType.UNREAD }, 1);
     });
 });
 

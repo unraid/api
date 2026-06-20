@@ -633,15 +633,14 @@ export class NotificationsService {
     public async archiveAll(importance?: NotificationImportance) {
         const { UNREAD } = this.paths();
 
-        if (!importance) {
-            await readdir(UNREAD).then((ids) => this.archiveIds(ids));
-            return { overview: NotificationsService.overview };
-        }
-
         const overviewSnapshot = this.getOverview();
         const unreads = await this.listFilesInFolder(UNREAD);
-        const [loaded] = await this.loadNotificationsFromPaths(unreads, { importance });
-        // Never bulk-archive persistent notifications — they clear on resolution, not by the user.
+        const [loaded] = await this.loadNotificationsFromPaths(
+            unreads,
+            importance ? { importance } : {}
+        );
+        // Never bulk-archive persistent notifications — they clear on resolution, not by the
+        // user. This applies to both the unfiltered "Archive all" and the per-importance variant.
         const notifications = loaded.filter((notification) => !notification.persistent);
         const archive = this.moveNotification({
             from: NotificationType.UNREAD,
