@@ -51,6 +51,8 @@ const importance = useSessionStorage<Importance | ''>('unraid.notifications.impo
 // Persistent ("Active") notifications are shown by default; this toggle lets the
 // user filter them out of the list when they want to focus on transient items.
 const showPersistent = useSessionStorage('unraid.notifications.showPersistent', true);
+// The Unread/Archived status tab also sticks for the session.
+const activeTab = useSessionStorage('unraid.notifications.tab', 'unread');
 
 const { t } = useI18n();
 
@@ -166,7 +168,7 @@ const prepareToViewNotifications = () => {
           }}</SheetTitle>
         </SheetHeader>
         <Tabs
-          default-value="unread"
+          v-model="activeTab"
           class="flex min-h-0 flex-1 flex-col"
           :aria-label="t('notifications.sidebar.statusTabsAria')"
         >
