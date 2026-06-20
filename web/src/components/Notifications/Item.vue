@@ -123,7 +123,9 @@ const reformattedTimestamp = computed<string>(() => {
         >
           {{ t('notifications.item.active') }}
         </span>
-        <p class="text-secondary-foreground text-xs whitespace-nowrap">{{ reformattedTimestamp }}</p>
+        <p class="text-secondary-foreground text-xs whitespace-nowrap">
+          {{ reformattedTimestamp || formattedTimestamp }}
+        </p>
       </div>
     </header>
 

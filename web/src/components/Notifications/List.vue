@@ -126,11 +126,11 @@ const prefersReducedMotion =
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 function onLeave(el: Element, done: () => void) {
-  const node = el as HTMLElement;
-  if (prefersReducedMotion) {
+  if (prefersReducedMotion || !(el instanceof HTMLElement)) {
     done();
     return;
   }
+  const node = el;
   const cs = getComputedStyle(node);
   node.style.overflow = 'hidden';
   node.style.boxSizing = 'border-box';
