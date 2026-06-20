@@ -127,11 +127,12 @@ const reformattedTimestamp = computed<string>(() => {
       </div>
     </header>
 
-    <h4 class="m-0 text-sm font-normal">
+    <h4 v-if="subject" class="m-0 text-sm font-normal">
       {{ subject }}
     </h4>
 
     <div
+      v-if="description"
       class="text-secondary-foreground flex flex-row items-center justify-between gap-2 text-sm leading-snug"
     >
       <div v-html="descriptionMarkup" />
