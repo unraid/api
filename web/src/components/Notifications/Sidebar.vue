@@ -19,7 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@unraid/ui';
-import { Archive, Settings, Trash2 } from 'lucide-vue-next';
+import { Archive, Pin, Settings, Trash2 } from 'lucide-vue-next';
 
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {
@@ -45,6 +45,9 @@ const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(delete
 const { mutate: recalculateOverview } = useMutation(resetOverview);
 const { confirm } = useConfirm();
 const importance = ref<Importance | undefined>(undefined);
+// Pinned (persistent) notifications are shown by default; this toggle lets the
+// user filter them out of the list when they want to focus on transient items.
+const showPinned = ref(true);
 
 const { t } = useI18n();
 
@@ -225,7 +228,7 @@ const prepareToViewNotifications = () => {
           </div>
 
           <div class="border-border/60 mt-3 flex items-start justify-between gap-3 border-b px-4 pb-3">
-            <div class="flex min-w-0 flex-1 flex-col gap-2">
+            <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
               <div
                 class="border-border/60 bg-muted/60 flex flex-wrap items-center gap-1 rounded-xl border p-1"
                 role="group"
@@ -247,6 +250,22 @@ const prepareToViewNotifications = () => {
                   {{ option.label }}
                 </Button>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                class="h-8 shrink-0 gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors"
+                :class="
+                  showPinned
+                    ? 'border-orange-300 bg-orange-100 text-orange-700 dark:border-orange-500/40 dark:bg-orange-500/20 dark:text-orange-200'
+                    : 'border-border/60 text-muted-foreground hover:border-border/60 hover:bg-muted/40 hover:text-foreground'
+                "
+                :aria-pressed="showPinned"
+                :title="t('notifications.sidebar.filters.pinnedTooltip')"
+                @click="showPinned = !showPinned"
+              >
+                <Pin class="size-3.5" />
+                {{ t('notifications.sidebar.filters.pinned') }}
+              </Button>
             </div>
             <div class="shrink-0">
               <TooltipProvider>
@@ -267,11 +286,19 @@ const prepareToViewNotifications = () => {
           </div>
 
           <TabsContent value="unread" class="min-h-0 flex-1 flex-col">
-            <NotificationsList :importance="importance" :type="NotificationType.UNREAD" />
+            <NotificationsList
+              :importance="importance"
+              :show-pinned="showPinned"
+              :type="NotificationType.UNREAD"
+            />
           </TabsContent>
 
           <TabsContent value="archived" class="min-h-0 flex-1 flex-col">
-            <NotificationsList :importance="importance" :type="NotificationType.ARCHIVE" />
+            <NotificationsList
+              :importance="importance"
+              :show-pinned="showPinned"
+              :type="NotificationType.ARCHIVE"
+            />
           </TabsContent>
         </Tabs>
       </div>

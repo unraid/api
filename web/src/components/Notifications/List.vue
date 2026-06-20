@@ -26,10 +26,12 @@ const props = withDefaults(
     type: NotificationType;
     pageSize?: number;
     importance?: Importance;
+    showPinned?: boolean;
   }>(),
   {
     pageSize: 15,
     importance: undefined,
+    showPinned: true,
   }
 );
 
@@ -62,8 +64,11 @@ const notifications = computed(() => {
 // Display-only sort (stable, so within each group the API's latest-first order
 // is preserved); the seen-tracking watcher below intentionally uses the
 // unsorted `notifications` so it still keys off the genuinely latest item.
+// The "Pinned" filter can hide persistent items entirely.
 const displayNotifications = computed(() =>
-  [...notifications.value].sort((a, b) => Number(b.persistent ?? false) - Number(a.persistent ?? false))
+  [...notifications.value]
+    .filter((n) => props.showPinned || !n.persistent)
+    .sort((a, b) => Number(b.persistent ?? false) - Number(a.persistent ?? false))
 );
 
 const { t } = useI18n();
@@ -173,7 +178,7 @@ const noNotificationsMessage = computed(() => {
 
 <template>
   <div
-    v-if="notifications?.length > 0"
+    v-if="displayNotifications.length > 0"
     v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
     class="flex min-h-0 flex-1 flex-col overflow-y-scroll px-4"
   >
@@ -193,7 +198,7 @@ const noNotificationsMessage = computed(() => {
   </div>
 
   <LoadingError v-else :loading="loading" :error="offlineError ?? error" @retry="refetch">
-    <div v-if="notifications?.length === 0" class="contents">
+    <div v-if="displayNotifications.length === 0" class="contents">
       <CheckIcon class="h-10 translate-y-3 text-green-600" />
       {{ noNotificationsMessage }}
     </div>
