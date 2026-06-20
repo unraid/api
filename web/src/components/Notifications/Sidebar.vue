@@ -24,6 +24,7 @@ import {
   deleteArchivedNotifications,
   NOTIFICATION_FRAGMENT,
   notificationsOverview,
+  reconcileBannerNotifications,
   resetOverview,
 } from '~/components/Notifications/graphql/notification.query';
 import {
@@ -40,6 +41,7 @@ import { useConfirm } from '~/composables/useConfirm';
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
 const { mutate: recalculateOverview } = useMutation(resetOverview);
+const { mutate: reconcileBanners } = useMutation(reconcileBannerNotifications);
 const { confirm } = useConfirm();
 // Filter selections persist for the browser session so navigating between webgui
 // pages (each a full reload) keeps the chosen filters in place. '' = All Types.
@@ -141,7 +143,17 @@ const readArchivedCount = computed(() => {
 });
 
 const prepareToViewNotifications = () => {
-  void recalculateOverview();
+  // Legacy webgui banners (CA, boot checks, ...) re-stamp themselves with the
+  // page's current generation on load; ask the backend to clear any that the
+  // producer stopped rendering before we recompute counts.
+  const bannerGen = (globalThis as { bannerGen?: string }).bannerGen;
+  if (bannerGen) {
+    void reconcileBanners({ currentGeneration: bannerGen }).finally(() => {
+      void recalculateOverview();
+    });
+  } else {
+    void recalculateOverview();
+  }
 };
 </script>
 

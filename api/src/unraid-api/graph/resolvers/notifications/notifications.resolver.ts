@@ -135,6 +135,17 @@ export class NotificationsResolver {
         return this.notificationsService.clearNotificationsByKey(key);
     }
 
+    @Mutation(() => NotificationOverview, {
+        description:
+            'Reconciles JS-sourced banner notifications: clears any unread "banner-" keyed notification not stamped with the supplied current page-load generation (i.e. a banner the producer stopped rendering).',
+    })
+    public reconcileBannerNotifications(
+        @Args('currentGeneration', { type: () => String })
+        currentGeneration: string
+    ): Promise<NotificationOverview> {
+        return this.notificationsService.reconcileBannerNotifications(currentGeneration);
+    }
+
     @Mutation(() => Notification, { description: 'Marks a notification as unread.' })
     public unreadNotification(
         @Args('id', { type: () => PrefixedID })

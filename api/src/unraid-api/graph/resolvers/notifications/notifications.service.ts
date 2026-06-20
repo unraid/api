@@ -492,6 +492,46 @@ export class NotificationsService {
         return this.getOverview();
     }
 
+    /**
+     * Reconciles JS-sourced banner notifications (keys prefixed `banner-`).
+     *
+     * Legacy webgui banners (CA's "Action Centre Enabled", boot checks, ...) have no
+     * explicit clear: they re-render on every page load while active and simply stop
+     * when resolved. The page stamps each banner -> bell notification with the current
+     * page-load generation; this clears any unread `banner-` notification NOT stamped
+     * with the supplied (current) generation, i.e. one whose producer stopped rendering
+     * it. Non-banner keys (PR plugins, reboot-required, ...) own their own lifecycle and
+     * are left untouched.
+     *
+     * Called by the notification drawer when it loads, so the served list and overview
+     * are authoritative without relying on a page-side timer.
+     *
+     * @param currentGeneration The page's current banner generation stamp.
+     * @returns The updated notification overview.
+     */
+    public async reconcileBannerNotifications(currentGeneration: string): Promise<NotificationOverview> {
+        const { UNREAD } = this.paths();
+        const files = await this.listFilesInFolder(UNREAD);
+        for (const path of files) {
+            let ini: NotificationIni;
+            try {
+                ini = parseConfig<NotificationIni>({
+                    file: decode(await readFile(path, 'utf-8')),
+                    type: 'ini',
+                });
+            } catch {
+                continue; // skip unreadable/corrupt files; they surface elsewhere
+            }
+            if (!(ini.key ?? '').startsWith('banner-')) continue;
+            if (String(ini.gen ?? '') === currentGeneration) continue;
+            await this.deleteNotification({
+                id: this.getIdFromPath(path),
+                type: NotificationType.UNREAD,
+            });
+        }
+        return this.getOverview();
+    }
+
     /**------------------------------------------------------------------------
      *                           CRUD: Updating Notifications
      *------------------------------------------------------------------------**/

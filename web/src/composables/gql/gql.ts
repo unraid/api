@@ -62,6 +62,7 @@ type Documents = {
     "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n      }\n    }\n  }\n": typeof types.OverviewDocument,
     "\n  mutation RecomputeOverview {\n    recalculateOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": typeof types.RecomputeOverviewDocument,
     "\n  mutation NotifyIfUnique($input: NotificationData!) {\n    notifyIfUnique(input: $input) {\n      ...NotificationFragment\n    }\n  }\n": typeof types.NotifyIfUniqueDocument,
+    "\n  mutation ReconcileBannerNotifications($currentGeneration: String!) {\n    reconcileBannerNotifications(currentGeneration: $currentGeneration) {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": typeof types.ReconcileBannerNotificationsDocument,
     "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n": typeof types.NotificationAddedSubDocument,
     "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": typeof types.NotificationOverviewSubDocument,
     "\n  subscription NotificationsWarningsAndAlertsSub {\n    notificationsWarningsAndAlerts {\n      ...NotificationFragment\n    }\n  }\n": typeof types.NotificationsWarningsAndAlertsSubDocument,
@@ -150,6 +151,7 @@ const documents: Documents = {
     "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n      }\n    }\n  }\n": types.OverviewDocument,
     "\n  mutation RecomputeOverview {\n    recalculateOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": types.RecomputeOverviewDocument,
     "\n  mutation NotifyIfUnique($input: NotificationData!) {\n    notifyIfUnique(input: $input) {\n      ...NotificationFragment\n    }\n  }\n": types.NotifyIfUniqueDocument,
+    "\n  mutation ReconcileBannerNotifications($currentGeneration: String!) {\n    reconcileBannerNotifications(currentGeneration: $currentGeneration) {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": types.ReconcileBannerNotificationsDocument,
     "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n": types.NotificationAddedSubDocument,
     "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": types.NotificationOverviewSubDocument,
     "\n  subscription NotificationsWarningsAndAlertsSub {\n    notificationsWarningsAndAlerts {\n      ...NotificationFragment\n    }\n  }\n": types.NotificationsWarningsAndAlertsSubDocument,
@@ -396,6 +398,10 @@ export function graphql(source: "\n  mutation RecomputeOverview {\n    recalcula
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation NotifyIfUnique($input: NotificationData!) {\n    notifyIfUnique(input: $input) {\n      ...NotificationFragment\n    }\n  }\n"): (typeof documents)["\n  mutation NotifyIfUnique($input: NotificationData!) {\n    notifyIfUnique(input: $input) {\n      ...NotificationFragment\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ReconcileBannerNotifications($currentGeneration: String!) {\n    reconcileBannerNotifications(currentGeneration: $currentGeneration) {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation ReconcileBannerNotifications($currentGeneration: String!) {\n    reconcileBannerNotifications(currentGeneration: $currentGeneration) {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

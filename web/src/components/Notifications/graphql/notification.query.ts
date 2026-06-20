@@ -133,3 +133,21 @@ export const notifyIfUnique = graphql(/* GraphQL */ `
     }
   }
 `);
+
+/**
+ * Clears JS-sourced banner notifications that the page stopped rendering, by
+ * comparing each "banner-" notification's stored generation to the current
+ * page-load generation. Called when the drawer loads.
+ */
+export const reconcileBannerNotifications = graphql(/* GraphQL */ `
+  mutation ReconcileBannerNotifications($currentGeneration: String!) {
+    reconcileBannerNotifications(currentGeneration: $currentGeneration) {
+      archive {
+        ...NotificationCountFragment
+      }
+      unread {
+        ...NotificationCountFragment
+      }
+    }
+  }
+`);

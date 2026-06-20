@@ -10,7 +10,7 @@ import type { TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { existsSync } from 'fs';
-import { mkdir } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
 
 import { execa } from 'execa';
 import { emptyDir } from 'fs-extra';
@@ -537,6 +537,43 @@ describe.sequential('NotificationsService', () => {
         // The per-importance variant must also skip it, even when its importance matches.
         await service.archiveAll(NotificationImportance.WARNING);
         await expectIn({ type: NotificationType.UNREAD }, 1);
+    });
+
+    it('reconcileBannerNotifications clears only stale banner-* notifications', async () => {
+        // The `gen` stamp is written by the legacy notify script (not the API), so
+        // write the .notify files directly to exercise the reconcile read path.
+        const writeNotify = (id: string, key: string, gen: string) =>
+            writeFile(
+                `${testPaths.UNREAD}/${id}.notify`,
+                [
+                    'timestamp=1700000000',
+                    'event="Test"',
+                    'subject="Test"',
+                    'description="Test"',
+                    'importance="warning"',
+                    `key="${key}"`,
+                    'persistent="true"',
+                    `gen="${gen}"`,
+                ].join('\n') + '\n'
+            );
+
+        // Two banners stamped with an old generation, one re-raised with the current
+        // generation, plus a non-banner keyed (lifecycle-managed) notification.
+        await writeNotify('banner_aaa', 'banner-aaa', '100');
+        await writeNotify('banner_bbb', 'banner-bbb', '100');
+        await writeNotify('banner_ccc', 'banner-ccc', '200');
+        await writeNotify('webgui_pr_1', 'webgui-pr-1', '100');
+
+        await service.reconcileBannerNotifications('200');
+
+        // Stale banners cleared; current-gen banner and non-banner key survive.
+        const remaining = await service.getNotifications({
+            type: NotificationType.UNREAD,
+            offset: 0,
+            limit: 50,
+        });
+        const keys = remaining.map((n) => n.key).sort();
+        expect(keys).toEqual(['banner-ccc', 'webgui-pr-1']);
     });
 
     it('deleteNotifications (Delete all) never deletes persistent notifications', async () => {
