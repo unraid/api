@@ -26,12 +26,12 @@ const props = withDefaults(
     type: NotificationType;
     pageSize?: number;
     importance?: Importance;
-    showPinned?: boolean;
+    showPersistent?: boolean;
   }>(),
   {
     pageSize: 15,
     importance: undefined,
-    showPinned: true,
+    showPersistent: true,
   }
 );
 
@@ -64,10 +64,10 @@ const notifications = computed(() => {
 // Display-only sort (stable, so within each group the API's latest-first order
 // is preserved); the seen-tracking watcher below intentionally uses the
 // unsorted `notifications` so it still keys off the genuinely latest item.
-// The "Pinned" filter can hide persistent items entirely.
+// The "Active" filter can hide persistent items entirely.
 const displayNotifications = computed(() =>
   [...notifications.value]
-    .filter((n) => props.showPinned || !n.persistent)
+    .filter((n) => props.showPersistent || !n.persistent)
     .sort((a, b) => Number(b.persistent ?? false) - Number(a.persistent ?? false))
 );
 
@@ -206,7 +206,7 @@ const noNotificationsMessage = computed(() => {
 </template>
 
 <style scoped>
-/* New items ease in; reorders (e.g. a pinned item moving to the top) glide via
+/* New items ease in; reorders (e.g. a persistent item moving to the top) glide via
    FLIP. The dismiss/leave animation is handled in JS (onLeave) so the card can
    slide out AND collapse its own space in one continuous motion. */
 .notification-list-move,

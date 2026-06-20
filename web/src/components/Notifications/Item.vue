@@ -121,7 +121,7 @@ const reformattedTimestamp = computed<string>(() => {
           v-if="persistent"
           class="inline-flex items-center gap-1 self-center rounded-full border border-orange-300 bg-orange-100 px-2 py-0.5 text-[1rem] font-semibold tracking-wide text-orange-700 uppercase dark:border-orange-500/40 dark:bg-orange-500/20 dark:text-orange-200"
         >
-          {{ t('notifications.item.pinned') }}
+          {{ t('notifications.item.active') }}
         </span>
         <p class="text-secondary-foreground text-xs whitespace-nowrap">{{ reformattedTimestamp }}</p>
       </div>

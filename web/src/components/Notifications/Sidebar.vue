@@ -45,9 +45,9 @@ const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(delete
 const { mutate: recalculateOverview } = useMutation(resetOverview);
 const { confirm } = useConfirm();
 const importance = ref<Importance | undefined>(undefined);
-// Pinned (persistent) notifications are shown by default; this toggle lets the
+// Persistent ("Active") notifications are shown by default; this toggle lets the
 // user filter them out of the list when they want to focus on transient items.
-const showPinned = ref(true);
+const showPersistent = ref(true);
 
 const { t } = useI18n();
 
@@ -259,15 +259,15 @@ const prepareToViewNotifications = () => {
                   size="sm"
                   class="h-8 rounded-lg border border-transparent px-3 text-xs font-medium transition-colors"
                   :class="
-                    showPinned
+                    showPersistent
                       ? 'border-border bg-background text-foreground'
                       : 'text-muted-foreground hover:border-border/60 hover:bg-muted/40 hover:text-foreground'
                   "
-                  :aria-pressed="showPinned"
-                  :title="t('notifications.sidebar.filters.pinnedTooltip')"
-                  @click="showPinned = !showPinned"
+                  :aria-pressed="showPersistent"
+                  :title="t('notifications.sidebar.filters.activeTooltip')"
+                  @click="showPersistent = !showPersistent"
                 >
-                  {{ t('notifications.sidebar.filters.pinned') }}
+                  {{ t('notifications.sidebar.filters.active') }}
                 </Button>
               </div>
             </div>
@@ -292,7 +292,7 @@ const prepareToViewNotifications = () => {
           <TabsContent value="unread" class="min-h-0 flex-1 flex-col">
             <NotificationsList
               :importance="importance"
-              :show-pinned="showPinned"
+              :show-persistent="showPersistent"
               :type="NotificationType.UNREAD"
             />
           </TabsContent>
@@ -300,7 +300,7 @@ const prepareToViewNotifications = () => {
           <TabsContent value="archived" class="min-h-0 flex-1 flex-col">
             <NotificationsList
               :importance="importance"
-              :show-pinned="showPinned"
+              :show-persistent="showPersistent"
               :type="NotificationType.ARCHIVE"
             />
           </TabsContent>
