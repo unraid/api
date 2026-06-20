@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 import { useSessionStorage } from '@vueuse/core';
@@ -142,19 +142,29 @@ const readArchivedCount = computed(() => {
   return Math.max(0, archive.total - unread.total);
 });
 
-const prepareToViewNotifications = () => {
-  // Legacy webgui banners (CA, boot checks, ...) re-stamp themselves with the
-  // page's current generation on load; ask the backend to clear any that the
-  // producer stopped rendering before we recompute counts.
+// Legacy webgui banners (CA, boot checks, ...) re-stamp themselves with the page's
+// current generation on load; ask the backend to clear any the producer stopped
+// rendering. Deletes flow back to the badge via the overview subscription.
+const reconcileStaleBanners = () => {
   const bannerGen = (globalThis as { bannerGen?: string }).bannerGen;
-  if (bannerGen) {
-    void reconcileBanners({ currentGeneration: bannerGen }).finally(() => {
-      void recalculateOverview();
-    });
-  } else {
-    void recalculateOverview();
-  }
+  if (bannerGen) return reconcileBanners({ currentGeneration: bannerGen });
+  return Promise.resolve();
 };
+
+const prepareToViewNotifications = () => {
+  void reconcileStaleBanners().finally(() => {
+    void recalculateOverview();
+  });
+};
+
+// Self-correct the badge on every page load (not just when the bell is opened):
+// reconcile once the page has settled so banners raised on DOM-ready / via ajax
+// (e.g. the boot-corrupt check) have re-stamped before we clear stale ones.
+onMounted(() => {
+  const run = () => setTimeout(() => void reconcileStaleBanners(), 2500);
+  if (document.readyState === 'complete') run();
+  else window.addEventListener('load', run, { once: true });
+});
 </script>
 
 <template>

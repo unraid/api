@@ -60,9 +60,11 @@ export class NotificationData {
     @IsNotEmpty()
     subject!: string;
 
+    // Description is optional in practice (e.g. condition/banner notifications carry
+    // their meaning in the title + Active badge). Allow empty so they aren't masked
+    // as invalid; the UI hides the line when empty.
     @Field()
     @IsString()
-    @IsNotEmpty()
     description!: string;
 
     @Field(() => NotificationImportance)
@@ -141,9 +143,11 @@ export class Notification extends Node {
     @IsNotEmpty()
     subject!: string;
 
+    // Description is optional in practice (e.g. condition/banner notifications carry
+    // their meaning in the title + Active badge). Allow empty so they aren't masked
+    // as invalid; the UI hides the line when empty.
     @Field()
     @IsString()
-    @IsNotEmpty()
     description!: string;
 
     @Field(() => NotificationImportance)
