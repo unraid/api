@@ -674,7 +674,7 @@
   "notifications.sidebar.filters.active": "Active",
   "notifications.sidebar.filters.activeTooltip": "Show active notifications",
   "notifications.sidebar.filters.alert": "Alert",
-  "notifications.sidebar.filters.all": "All Types",
+  "notifications.sidebar.filters.all": "All",
   "notifications.sidebar.filters.info": "Info",
   "notifications.sidebar.filters.warning": "Warning",
   "notifications.sidebar.openButtonSr": "Open notifications",

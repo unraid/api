@@ -15,10 +15,6 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
 } from '@unraid/ui';
 import { Archive, Settings, Trash2 } from 'lucide-vue-next';
 
@@ -211,11 +207,12 @@ const prepareToViewNotifications = () => {
                 :disabled="loadingArchiveAll"
                 variant="ghost"
                 size="sm"
-                class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+                class="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
+                :title="t('notifications.sidebar.archiveAllAction')"
                 @click="confirmAndArchiveAll"
               >
                 <Archive class="h-4 w-4" />
-                {{ t('notifications.sidebar.archiveAllAction') }}
+                <span class="sr-only">{{ t('notifications.sidebar.archiveAllAction') }}</span>
               </Button>
             </TabsContent>
             <TabsContent value="archived" class="flex-col items-end">
@@ -223,19 +220,20 @@ const prepareToViewNotifications = () => {
                 :disabled="loadingDeleteAll"
                 variant="ghost"
                 size="sm"
-                class="text-muted-foreground hover:text-destructive inline-flex items-center gap-1.5"
+                class="text-muted-foreground hover:text-destructive h-8 w-8 p-0"
+                :title="t('notifications.sidebar.deleteAllAction')"
                 @click="confirmAndDeleteArchives"
               >
                 <Trash2 class="h-4 w-4" />
-                {{ t('notifications.sidebar.deleteAllAction') }}
+                <span class="sr-only">{{ t('notifications.sidebar.deleteAllAction') }}</span>
               </Button>
             </TabsContent>
           </div>
 
-          <div class="border-border/60 mt-3 flex items-start justify-between gap-3 border-b px-4 pb-3">
-            <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          <div class="border-border/60 mt-3 border-b px-4 pb-3">
+            <div class="overflow-x-auto">
               <div
-                class="border-border/60 bg-muted/60 flex flex-wrap items-center gap-1 rounded-xl border p-1"
+                class="border-border/60 bg-muted/60 inline-flex items-center gap-1 rounded-xl border p-1"
                 role="group"
               >
                 <Button
@@ -254,11 +252,7 @@ const prepareToViewNotifications = () => {
                 >
                   {{ option.label }}
                 </Button>
-              </div>
-              <div
-                class="border-border/60 bg-muted/60 flex flex-wrap items-center gap-1 rounded-xl border p-1"
-                role="group"
-              >
+                <span class="bg-border/70 mx-0.5 h-5 w-px shrink-0" aria-hidden="true" />
                 <Button
                   variant="ghost"
                   size="sm"
@@ -275,22 +269,6 @@ const prepareToViewNotifications = () => {
                   {{ t('notifications.sidebar.filters.active') }}
                 </Button>
               </div>
-            </div>
-            <div class="shrink-0">
-              <TooltipProvider>
-                <Tooltip :delay-duration="0">
-                  <TooltipTrigger as-child>
-                    <a href="/Settings/Notifications">
-                      <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
-                        <Settings class="h-4 w-4" />
-                      </Button>
-                    </a>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{{ t('notifications.sidebar.editSettingsTooltip') }}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
           </div>
 
@@ -310,6 +288,16 @@ const prepareToViewNotifications = () => {
             />
           </TabsContent>
         </Tabs>
+
+        <div class="border-border/60 border-t px-4 py-2.5">
+          <a
+            href="/Settings/Notifications"
+            class="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-medium"
+          >
+            <Settings class="h-4 w-4" />
+            {{ t('notifications.sidebar.editSettingsTooltip') }}
+          </a>
+        </div>
       </div>
     </SheetContent>
   </Sheet>
