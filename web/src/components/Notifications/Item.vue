@@ -11,10 +11,10 @@ import {
   LinkIcon,
   ShieldExclamationIcon,
   TrashIcon,
-  XMarkIcon,
 } from '@heroicons/vue/24/solid';
 import { Button } from '@unraid/ui';
 import { Markdown } from '@/helpers/markdown';
+import { Pin } from 'lucide-vue-next';
 
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
 import type { Component } from 'vue';
@@ -73,14 +73,14 @@ const deleteNotification = reactive(
   })
 );
 
-// Persistent notifications are pinned and not dismissed casually. Dismissing is
+// Persistent notifications are pinned and not archived casually. Archiving is
 // allowed but gated behind a warning: it only hides the reminder (acknowledge),
 // it does not resolve the underlying condition, which may re-pin if raised again.
-const dismissPersistent = async () => {
+const archivePersistent = async () => {
   const confirmed = await confirm({
-    title: t('notifications.item.confirmDismiss.title'),
-    description: t('notifications.item.confirmDismiss.description'),
-    confirmText: t('notifications.item.confirmDismiss.confirmText'),
+    title: t('notifications.item.confirmArchive.title'),
+    description: t('notifications.item.confirmArchive.description'),
+    confirmText: t('notifications.item.confirmArchive.confirmText'),
     confirmVariant: 'primary',
   });
   if (confirmed) {
@@ -113,7 +113,7 @@ const reformattedTimestamp = computed<string>(() => {
     class="group/item relative my-1.5 flex flex-col gap-1.5 rounded-md border px-3 py-2.5 text-sm transition-colors"
     :class="
       persistent
-        ? 'border-l-4 border-orange-300/70 border-l-orange-500 bg-orange-50/70 dark:border-orange-500/30 dark:border-l-orange-500 dark:bg-orange-500/10'
+        ? 'border-border border-l-muted-foreground/40 bg-muted/40 border-l-2 shadow-sm'
         : 'border-border/60 bg-muted/20 hover:bg-muted/40'
     "
   >
@@ -137,8 +137,9 @@ const reformattedTimestamp = computed<string>(() => {
       >
         <span
           v-if="persistent"
-          class="inline-flex items-center gap-1 self-center rounded-full border border-orange-300 bg-orange-100 px-2 py-0.5 text-[1rem] font-semibold tracking-wide text-orange-700 uppercase dark:border-orange-500/40 dark:bg-orange-500/20 dark:text-orange-200"
+          class="border-border bg-muted text-muted-foreground inline-flex items-center gap-1 self-center rounded-full border px-2 py-0.5 text-[0.625rem] font-medium tracking-wide uppercase"
         >
+          <Pin class="size-3" />
           {{ t('notifications.item.pinned') }}
         </span>
         <p class="text-secondary-foreground text-xs whitespace-nowrap">{{ reformattedTimestamp }}</p>
@@ -183,10 +184,10 @@ const reformattedTimestamp = computed<string>(() => {
         size="sm"
         class="text-secondary-foreground"
         :disabled="archive.loading"
-        @click="dismissPersistent"
+        @click="archivePersistent"
       >
-        <XMarkIcon class="mr-2 size-4" />
-        <span class="text-sm">{{ t('notifications.item.dismiss') }}</span>
+        <ArchiveBoxIcon class="mr-2 size-4" />
+        <span class="text-sm">{{ t('notifications.item.archive') }}</span>
       </Button>
       <Button
         v-if="type === NotificationType.ARCHIVE"
