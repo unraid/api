@@ -7,7 +7,6 @@ import type { Stats } from 'fs';
 import { FSWatcher, watch } from 'chokidar';
 import { ValidationError } from 'class-validator';
 import { execa } from 'execa';
-import { emptyDir } from 'fs-extra';
 import { decode } from 'html-entities';
 import { encode as encodeIni } from 'ini';
 import { v7 as uuidv7 } from 'uuid';
@@ -439,14 +438,15 @@ export class NotificationsService {
      * @remarks Ensures the notifications directory exists before emptying it
      */
     public async deleteNotifications(type: NotificationType) {
-        await emptyDir(this.paths()[type]);
-        NotificationsService.overview[type.toLowerCase()] = {
-            alert: 0,
-            info: 0,
-            warning: 0,
-            total: 0,
-        };
-        await this.publishOverview();
+        const dir = this.paths()[type];
+        const ids = await this.listFilesInFolder(dir);
+        const [notifications] = await this.loadNotificationsFromPaths(ids, { type });
+        // Never bulk-delete persistent notifications — they track an ongoing condition
+        // and clear when it resolves, not via "Delete all". Leave them in place and
+        // recompute stats from whatever remains.
+        const deletable = notifications.filter((notification) => !notification.persistent);
+        await batchProcess(deletable, (notification) => unlink(join(dir, notification.id)));
+        await this.recalculateOverview();
         if (type === NotificationType.UNREAD) {
             void this.publishWarningsAndAlerts();
         }

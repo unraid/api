@@ -13,6 +13,7 @@ import { existsSync } from 'fs';
 import { mkdir } from 'fs/promises';
 
 import { execa } from 'execa';
+import { emptyDir } from 'fs-extra';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { NotificationIni } from '@app/core/types/states/notification.js';
@@ -88,13 +89,15 @@ describe.sequential('NotificationsService', () => {
         await disableNotificationsWatcher();
         vi.spyOn(service, 'paths').mockImplementation(() => testPaths);
 
-        await service.deleteAllNotifications();
+        // Hard-wipe the test dirs directly: deleteAllNotifications intentionally
+        // preserves persistent notifications, which would otherwise leak between tests.
+        await Promise.all([emptyDir(testPaths.UNREAD), emptyDir(testPaths.ARCHIVE)]);
     });
 
     // make sure each test is isolated (as much as possible)
     afterEach(async () => {
         Reflect.set(NotificationsService, 'overview', zeroOverview());
-        await service.deleteAllNotifications();
+        await Promise.all([emptyDir(testPaths.UNREAD), emptyDir(testPaths.ARCHIVE)]);
     });
 
     /**------------------------------------------------------------------------
@@ -534,6 +537,29 @@ describe.sequential('NotificationsService', () => {
         // The per-importance variant must also skip it, even when its importance matches.
         await service.archiveAll(NotificationImportance.WARNING);
         await expectIn({ type: NotificationType.UNREAD }, 1);
+    });
+
+    it('deleteNotifications (Delete all) never deletes persistent notifications', async () => {
+        const expectIn = makeExpectIn(expect);
+
+        // Persistent notifications can reach the archive via an explicit, confirmed
+        // single archive. "Delete all" in that tab must leave them in place.
+        const persistent = await createNotification({
+            importance: NotificationImportance.WARNING,
+            persistent: true,
+            key: 'persistent-condition',
+        });
+        await createNotification({ importance: NotificationImportance.INFO });
+        await service.archiveNotification({ id: persistent.id });
+        await service.archiveAll();
+
+        await expectIn({ type: NotificationType.ARCHIVE }, 2);
+
+        await service.deleteNotifications(NotificationType.ARCHIVE);
+        await expectIn({ type: NotificationType.ARCHIVE }, 1);
+
+        const { overview } = await service.recalculateOverview();
+        expect.soft(overview.archive.total).toEqual(1);
     });
 });
 
