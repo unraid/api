@@ -23,12 +23,10 @@ import {
   deleteNotification as deleteMutation,
 } from '~/components/Notifications/graphql/notification.query';
 import { NotificationType } from '~/composables/gql/graphql';
-import { useConfirm } from '~/composables/useConfirm';
 
 const props = defineProps<NotificationFragmentFragment>();
 
 const { t } = useI18n();
-const { confirm } = useConfirm();
 
 const descriptionMarkup = computedAsync(async () => {
   try {
@@ -71,21 +69,6 @@ const deleteNotification = reactive(
     variables: { id: props.id, type: props.type },
   })
 );
-
-// Persistent notifications are pinned and not archived casually. Archiving is
-// allowed but gated behind a warning: it only hides the reminder (acknowledge),
-// it does not resolve the underlying condition, which may re-pin if raised again.
-const archivePersistent = async () => {
-  const confirmed = await confirm({
-    title: t('notifications.item.confirmArchive.title'),
-    description: t('notifications.item.confirmArchive.description'),
-    confirmText: t('notifications.item.confirmArchive.confirmText'),
-    confirmVariant: 'primary',
-  });
-  if (confirmed) {
-    await archive.mutate({ id: props.id });
-  }
-};
 
 const mutationError = computed(() => {
   return archive.error?.message ?? deleteNotification.error?.message;
@@ -172,17 +155,6 @@ const reformattedTimestamp = computed<string>(() => {
         class="text-secondary-foreground"
         :disabled="archive.loading"
         @click="() => archive.mutate({ id: props.id })"
-      >
-        <ArchiveBoxIcon class="mr-2 size-4" />
-        <span class="text-sm">{{ t('notifications.item.archive') }}</span>
-      </Button>
-      <Button
-        v-if="type === NotificationType.UNREAD && persistent"
-        variant="ghost"
-        size="sm"
-        class="text-secondary-foreground"
-        :disabled="archive.loading"
-        @click="archivePersistent"
       >
         <ArchiveBoxIcon class="mr-2 size-4" />
         <span class="text-sm">{{ t('notifications.item.archive') }}</span>
