@@ -159,7 +159,7 @@ const prepareToViewNotifications = () => {
     >
       <div class="relative flex h-full w-full flex-col">
         <SheetHeader class="gap-1 px-4 pt-1 pb-3">
-          <div class="flex items-center justify-between gap-2 pr-8">
+          <div class="flex items-center gap-1.5">
             <SheetTitle class="text-xl font-semibold tracking-tight">{{
               t('notifications.sidebar.title')
             }}</SheetTitle>
@@ -167,7 +167,7 @@ const prepareToViewNotifications = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                class="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
+                class="text-muted-foreground hover:text-foreground size-7 p-0"
               >
                 <Settings class="h-4 w-4" />
                 <span class="sr-only">{{ t('notifications.sidebar.editSettingsTooltip') }}</span>
