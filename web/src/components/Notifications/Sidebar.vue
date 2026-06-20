@@ -250,22 +250,27 @@ const prepareToViewNotifications = () => {
                   {{ option.label }}
                 </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                class="h-8 shrink-0 gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors"
-                :class="
-                  showPinned
-                    ? 'border-orange-300 bg-orange-100 text-orange-700 dark:border-orange-500/40 dark:bg-orange-500/20 dark:text-orange-200'
-                    : 'border-border/60 text-muted-foreground hover:border-border/60 hover:bg-muted/40 hover:text-foreground'
-                "
-                :aria-pressed="showPinned"
-                :title="t('notifications.sidebar.filters.pinnedTooltip')"
-                @click="showPinned = !showPinned"
+              <div
+                class="border-border/60 bg-muted/60 flex flex-wrap items-center gap-1 rounded-xl border p-1"
+                role="group"
               >
-                <Pin class="size-3.5" />
-                {{ t('notifications.sidebar.filters.pinned') }}
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="h-8 gap-1.5 rounded-lg border border-transparent px-3 text-xs font-medium transition-colors"
+                  :class="
+                    showPinned
+                      ? 'border-border bg-background text-foreground'
+                      : 'text-muted-foreground hover:border-border/60 hover:bg-muted/40 hover:text-foreground'
+                  "
+                  :aria-pressed="showPinned"
+                  :title="t('notifications.sidebar.filters.pinnedTooltip')"
+                  @click="showPinned = !showPinned"
+                >
+                  <Pin class="size-3.5" />
+                  {{ t('notifications.sidebar.filters.pinned') }}
+                </Button>
+              </div>
             </div>
             <div class="shrink-0">
               <TooltipProvider>
