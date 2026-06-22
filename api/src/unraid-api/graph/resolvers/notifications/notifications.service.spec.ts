@@ -65,6 +65,7 @@ describe.sequential('NotificationsService', () => {
         basePath,
         UNREAD: `${basePath}/unread`,
         ARCHIVE: `${basePath}/archive`,
+        active: `${basePath}/active`,
     };
 
     /**------------------------------------------------------------------------
@@ -91,13 +92,21 @@ describe.sequential('NotificationsService', () => {
 
         // Hard-wipe the test dirs directly: deleteAllNotifications intentionally
         // preserves persistent notifications, which would otherwise leak between tests.
-        await Promise.all([emptyDir(testPaths.UNREAD), emptyDir(testPaths.ARCHIVE)]);
+        await Promise.all([
+            emptyDir(testPaths.UNREAD),
+            emptyDir(testPaths.ARCHIVE),
+            emptyDir(testPaths.active),
+        ]);
     });
 
     // make sure each test is isolated (as much as possible)
     afterEach(async () => {
         Reflect.set(NotificationsService, 'overview', zeroOverview());
-        await Promise.all([emptyDir(testPaths.UNREAD), emptyDir(testPaths.ARCHIVE)]);
+        await Promise.all([
+            emptyDir(testPaths.UNREAD),
+            emptyDir(testPaths.ARCHIVE),
+            emptyDir(testPaths.active),
+        ]);
     });
 
     /**------------------------------------------------------------------------
@@ -540,11 +549,12 @@ describe.sequential('NotificationsService', () => {
     });
 
     it('reconcileBannerNotifications clears only stale banner-* notifications', async () => {
-        // The `gen` stamp is written by the legacy notify script (not the API), so
-        // write the .notify files directly to exercise the reconcile read path.
+        // Persistent (banner/keyed) notifications live in the 'active' store; the `gen`
+        // stamp is written by the legacy notify script, so write files directly there to
+        // exercise the reconcile read path.
         const writeNotify = (id: string, key: string, gen: string) =>
             writeFile(
-                `${testPaths.UNREAD}/${id}.notify`,
+                `${testPaths.active}/${id}.notify`,
                 [
                     'timestamp=1700000000',
                     'event="Test"',
@@ -598,27 +608,38 @@ describe.sequential('NotificationsService', () => {
         expect(firstPage[0].key).toBe('webgui-pr-1');
     });
 
-    it('deleteNotifications (Delete all) never deletes persistent notifications', async () => {
+    it('Delete all / Archive all never touch persistent notifications', async () => {
         const expectIn = makeExpectIn(expect);
 
-        // Persistent notifications can reach the archive via an explicit, confirmed
-        // single archive. "Delete all" in that tab must leave them in place.
-        const persistent = await createNotification({
-            importance: NotificationImportance.WARNING,
-            persistent: true,
-            key: 'persistent-condition',
-        });
+        // Persistent notifications live in the 'active' store, so bulk archive/delete over
+        // unread/archive structurally cannot reach them.
+        await writeFile(
+            `${testPaths.active}/persistent-condition.notify`,
+            [
+                'timestamp=1700000000',
+                'event="Active"',
+                'subject="System notice"',
+                'importance="warning"',
+                'key="persistent-condition"',
+                'persistent="true"',
+            ].join('\n') + '\n'
+        );
         await createNotification({ importance: NotificationImportance.INFO });
-        await service.archiveNotification({ id: persistent.id });
+        await createNotification({ importance: NotificationImportance.INFO });
+
+        // Archive all (unread -> archive), then Delete all archived.
         await service.archiveAll();
-
-        await expectIn({ type: NotificationType.ARCHIVE }, 2);
-
         await service.deleteNotifications(NotificationType.ARCHIVE);
-        await expectIn({ type: NotificationType.ARCHIVE }, 1);
+        await service.deleteNotifications(NotificationType.UNREAD);
 
-        const { overview } = await service.recalculateOverview();
-        expect.soft(overview.archive.total).toEqual(1);
+        // The persistent one survives and is still served as UNREAD (from active/).
+        const unread = await service.getNotifications({
+            type: NotificationType.UNREAD,
+            offset: 0,
+            limit: 50,
+        });
+        expect(unread.map((n) => n.key)).toEqual(['persistent-condition']);
+        await expectIn({ type: NotificationType.UNREAD }, 1);
     });
 });
 
