@@ -46,10 +46,7 @@ const { confirm } = useConfirm();
 // Filter selections persist for the browser session so navigating between webgui
 // pages (each a full reload) keeps the chosen filters in place. '' = All Types.
 const importance = useSessionStorage<Importance | ''>('unraid.notifications.importance', '');
-// Persistent ("Active") notifications are shown by default; this toggle lets the
-// user filter them out of the list when they want to focus on transient items.
-const showPersistent = useSessionStorage('unraid.notifications.showPersistent', true);
-// The Unread/Archived status tab also sticks for the session.
+// The selected status tab (active / unread / archived) also sticks for the session.
 const activeTab = useSessionStorage('unraid.notifications.tab', 'unread');
 
 const { t } = useI18n();
@@ -207,6 +204,20 @@ onMounted(() => {
               class="bg-muted/50 flex gap-0.5 rounded-lg p-0.5"
               :aria-label="t('notifications.sidebar.statusTabsListAria')"
             >
+              <TabsTrigger value="active" as-child>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium data-[state=active]:shadow-sm"
+                >
+                  <span>{{ t('notifications.sidebar.activeTab') }}</span>
+                  <span
+                    v-if="overview && overview.active.total > 0"
+                    class="rounded-full border border-orange-300 bg-orange-100 px-1.5 py-0.5 text-xs font-medium text-orange-700 tabular-nums dark:border-orange-500/40 dark:bg-orange-500/20 dark:text-orange-200"
+                    >{{ overview.active.total }}</span
+                  >
+                </Button>
+              </TabsTrigger>
               <TabsTrigger value="unread" as-child>
                 <Button
                   variant="ghost"
@@ -284,40 +295,20 @@ onMounted(() => {
                 >
                   {{ option.label }}
                 </Button>
-                <span class="bg-border/70 mx-0.5 h-5 w-px shrink-0" aria-hidden="true" />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  class="h-8 rounded-lg border border-transparent px-3 text-xs font-medium transition-colors"
-                  :class="
-                    showPersistent
-                      ? 'border-border bg-background text-foreground'
-                      : 'text-muted-foreground hover:border-border/60 hover:bg-muted/40 hover:text-foreground'
-                  "
-                  :aria-pressed="showPersistent"
-                  :title="t('notifications.sidebar.filters.activeTooltip')"
-                  @click="showPersistent = !showPersistent"
-                >
-                  {{ t('notifications.sidebar.filters.active') }}
-                </Button>
               </div>
             </div>
           </div>
 
+          <TabsContent value="active" class="min-h-0 flex-1 flex-col">
+            <NotificationsList :importance="importance || undefined" :type="NotificationType.ACTIVE" />
+          </TabsContent>
+
           <TabsContent value="unread" class="min-h-0 flex-1 flex-col">
-            <NotificationsList
-              :importance="importance || undefined"
-              :show-persistent="showPersistent"
-              :type="NotificationType.UNREAD"
-            />
+            <NotificationsList :importance="importance || undefined" :type="NotificationType.UNREAD" />
           </TabsContent>
 
           <TabsContent value="archived" class="min-h-0 flex-1 flex-col">
-            <NotificationsList
-              :importance="importance || undefined"
-              :show-persistent="showPersistent"
-              :type="NotificationType.ARCHIVE"
-            />
+            <NotificationsList :importance="importance || undefined" :type="NotificationType.ARCHIVE" />
           </TabsContent>
         </Tabs>
       </div>

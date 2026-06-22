@@ -26,12 +26,10 @@ const props = withDefaults(
     type: NotificationType;
     pageSize?: number;
     importance?: Importance;
-    showPersistent?: boolean;
   }>(),
   {
     pageSize: 15,
     importance: undefined,
-    showPersistent: true,
   }
 );
 
@@ -60,16 +58,9 @@ const notifications = computed(() => {
   return list.filter((n) => n.type === props.type);
 });
 
-// Persistent (condition-style) notifications stick to the top of the list.
-// Display-only sort (stable, so within each group the API's latest-first order
-// is preserved); the seen-tracking watcher below intentionally uses the
-// unsorted `notifications` so it still keys off the genuinely latest item.
-// The "Active" filter can hide persistent items entirely.
-const displayNotifications = computed(() =>
-  [...notifications.value]
-    .filter((n) => props.showPersistent || !n.persistent)
-    .sort((a, b) => Number(b.persistent ?? false) - Number(a.persistent ?? false))
-);
+// Each tab reads a single store (active / unread / archive), so the list is already
+// homogeneous and in the API's latest-first order — no client-side filtering or sort.
+const displayNotifications = computed(() => notifications.value);
 
 const { t } = useI18n();
 

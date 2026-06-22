@@ -45,6 +45,12 @@ const zeroOverview = (): NotificationOverview => ({
         warning: 0,
         total: 0,
     },
+    active: {
+        alert: 0,
+        info: 0,
+        warning: 0,
+        total: 0,
+    },
 });
 
 async function disableNotificationsWatcher() {
@@ -65,6 +71,7 @@ describe.sequential('NotificationsService', () => {
         basePath,
         UNREAD: `${basePath}/unread`,
         ARCHIVE: `${basePath}/archive`,
+        ACTIVE: `${basePath}/active`,
         active: `${basePath}/active`,
     };
 
@@ -536,16 +543,19 @@ describe.sequential('NotificationsService', () => {
             }),
         ]);
 
-        await expectIn({ type: NotificationType.UNREAD }, 3);
+        // 2 transient land in UNREAD; the persistent one lands in ACTIVE.
+        await expectIn({ type: NotificationType.UNREAD }, 2);
+        await expectIn({ type: NotificationType.ACTIVE }, 1);
 
-        // Unfiltered "Archive all" must leave the persistent notification pinned.
+        // Unfiltered "Archive all" archives the transient unread and leaves ACTIVE alone.
         await service.archiveAll();
-        await expectIn({ type: NotificationType.UNREAD }, 1);
+        await expectIn({ type: NotificationType.UNREAD }, 0);
         await expectIn({ type: NotificationType.ARCHIVE }, 2);
+        await expectIn({ type: NotificationType.ACTIVE }, 1);
 
-        // The per-importance variant must also skip it, even when its importance matches.
+        // The per-importance variant also never touches ACTIVE.
         await service.archiveAll(NotificationImportance.WARNING);
-        await expectIn({ type: NotificationType.UNREAD }, 1);
+        await expectIn({ type: NotificationType.ACTIVE }, 1);
     });
 
     it('reconcileBannerNotifications clears only stale banner-* notifications', async () => {
@@ -576,9 +586,9 @@ describe.sequential('NotificationsService', () => {
 
         await service.reconcileBannerNotifications('200');
 
-        // Stale banners cleared; current-gen banner and non-banner key survive.
+        // Stale banners cleared; current-gen banner and non-banner key survive (in ACTIVE).
         const remaining = await service.getNotifications({
-            type: NotificationType.UNREAD,
+            type: NotificationType.ACTIVE,
             offset: 0,
             limit: 50,
         });
@@ -586,26 +596,31 @@ describe.sequential('NotificationsService', () => {
         expect(keys).toEqual(['banner-ccc', 'webgui-pr-1']);
     });
 
-    it('getNotifications hoists persistent notifications into the first page', async () => {
-        // Persistent created first (oldest), then many newer transient notifications.
-        // Without server-side hoisting the persistent one sorts last (latest-first) and
-        // falls off the first page; pinned conditions must stay on page 1.
+    it('serves persistent under ACTIVE and transient under UNREAD', async () => {
         await createNotification({
             key: 'webgui-pr-1',
             persistent: true,
             importance: NotificationImportance.WARNING,
         });
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 3; i++) {
             await createNotification({ importance: NotificationImportance.INFO });
         }
 
-        const firstPage = await service.getNotifications({
+        const active = await service.getNotifications({
+            type: NotificationType.ACTIVE,
+            offset: 0,
+            limit: 50,
+        });
+        const unread = await service.getNotifications({
             type: NotificationType.UNREAD,
             offset: 0,
-            limit: 3,
+            limit: 50,
         });
-        expect(firstPage[0].persistent).toBe(true);
-        expect(firstPage[0].key).toBe('webgui-pr-1');
+
+        expect(active.map((n) => n.key)).toEqual(['webgui-pr-1']);
+        expect(active.every((n) => n.persistent)).toBe(true);
+        expect(unread).toHaveLength(3);
+        expect(unread.some((n) => n.persistent)).toBe(false);
     });
 
     it('Delete all / Archive all never touch persistent notifications', async () => {
@@ -632,14 +647,14 @@ describe.sequential('NotificationsService', () => {
         await service.deleteNotifications(NotificationType.ARCHIVE);
         await service.deleteNotifications(NotificationType.UNREAD);
 
-        // The persistent one survives and is still served as UNREAD (from active/).
-        const unread = await service.getNotifications({
-            type: NotificationType.UNREAD,
+        // The persistent one survives and is still served under ACTIVE (from active/).
+        const persistent = await service.getNotifications({
+            type: NotificationType.ACTIVE,
             offset: 0,
             limit: 50,
         });
-        expect(unread.map((n) => n.key)).toEqual(['persistent-condition']);
-        await expectIn({ type: NotificationType.UNREAD }, 1);
+        expect(persistent.map((n) => n.key)).toEqual(['persistent-condition']);
+        await expectIn({ type: NotificationType.ACTIVE }, 1);
     });
 });
 

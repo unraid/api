@@ -107,6 +107,12 @@ export const notificationsOverview = graphql(/* GraphQL */ `
         archive {
           total
         }
+        active {
+          info
+          warning
+          alert
+          total
+        }
       }
     }
   }

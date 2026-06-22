@@ -2138,6 +2138,9 @@ type NotificationCounts {
 type NotificationOverview {
   unread: NotificationCounts!
   archive: NotificationCounts!
+
+  """Counts for persistent ("Active") condition-style notifications."""
+  active: NotificationCounts!
 }
 
 type Notification implements Node {
@@ -2173,6 +2176,7 @@ enum NotificationImportance {
 enum NotificationType {
   UNREAD
   ARCHIVE
+  ACTIVE
 }
 
 type Notifications implements Node {

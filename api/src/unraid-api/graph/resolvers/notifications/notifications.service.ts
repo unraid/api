@@ -57,6 +57,12 @@ export class NotificationsService {
             warning: 0,
             total: 0,
         },
+        active: {
+            alert: 0,
+            info: 0,
+            warning: 0,
+            total: 0,
+        },
     };
 
     constructor(private readonly configService: ConfigService) {
@@ -85,14 +91,15 @@ export class NotificationsService {
         }
 
         const makePath = (type: NotificationType) => join(basePath, type.toLowerCase());
+        const active = makePath(NotificationType.ACTIVE);
         return {
             basePath,
             // Persistent (condition-style) notifications are stored separately so they
-            // can be read cheaply and are never touched by bulk archive/delete. They are
-            // still UNREAD-state for display purposes.
-            active: join(basePath, 'active'),
+            // can be read cheaply and are never touched by bulk archive/delete.
+            active,
             [NotificationType.UNREAD]: makePath(NotificationType.UNREAD),
             [NotificationType.ARCHIVE]: makePath(NotificationType.ARCHIVE),
+            [NotificationType.ACTIVE]: active,
         };
     }
 
@@ -183,11 +190,11 @@ export class NotificationsService {
 
     private async processNotificationAdd(path: string) {
         // The path looks like /{notification base path}/{store}/{notification id}.
-        // 'active' holds persistent notifications, which are UNREAD-state for display.
-        const type =
-            path.includes('/unread/') || path.includes('/active/')
-                ? NotificationType.UNREAD
-                : NotificationType.ARCHIVE;
+        const type = path.includes('/active/')
+            ? NotificationType.ACTIVE
+            : path.includes('/unread/')
+              ? NotificationType.UNREAD
+              : NotificationType.ARCHIVE;
         // this.logger.debug(`Adding ${type} Notification: ${path}`);
 
         let notification: Notification;
@@ -205,7 +212,8 @@ export class NotificationsService {
 
         this.increment(notification.importance, NotificationsService.overview[type.toLowerCase()]);
 
-        if (type === NotificationType.UNREAD) {
+        // Both unread and active count toward the bell badge and live UI updates.
+        if (type === NotificationType.UNREAD || type === NotificationType.ACTIVE) {
             this.publishOverview();
             pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
                 notificationAdded: notification,
@@ -277,15 +285,20 @@ export class NotificationsService {
                 warning: 0,
                 total: 0,
             },
+            active: {
+                alert: 0,
+                info: 0,
+                warning: 0,
+                total: 0,
+            },
         };
         const seenPaths = new Set<string>();
 
         // todo - refactor this to be more memory efficient
         // i.e. by using a lazy generator vs the current eager implementation
         //
-        // recalculates stats for a particular store. Persistent ('active') notifications
-        // count toward the unread bucket (they're unread-state for display).
-        const recalculate = async (folder: string, bucket: 'unread' | 'archive') => {
+        // recalculates stats for a particular store (unread / archive / active).
+        const recalculate = async (folder: string, bucket: 'unread' | 'archive' | 'active') => {
             const ids = await this.listFilesInFolder(folder);
             ids.forEach((id) => seenPaths.add(id));
             const [notifications] = await this.loadNotificationsFromPaths(ids, {});
@@ -297,7 +310,7 @@ export class NotificationsService {
             [
                 [paths[NotificationType.ARCHIVE], 'archive'] as const,
                 [paths[NotificationType.UNREAD], 'unread'] as const,
-                [paths.active, 'unread'] as const,
+                [paths.active, 'active'] as const,
             ],
             ([folder, bucket]) => recalculate(folder, bucket)
         );
@@ -342,7 +355,10 @@ export class NotificationsService {
 
         void this.publishWarningsAndAlerts();
 
-        return this.notificationFileToGqlNotification({ id, type: NotificationType.UNREAD }, fileData);
+        return this.notificationFileToGqlNotification(
+            { id, type: data.persistent ? NotificationType.ACTIVE : NotificationType.UNREAD },
+            fileData
+        );
     }
 
     /**
@@ -495,8 +511,8 @@ export class NotificationsService {
         // so a resolve / idempotent re-raise leaves no stale twin behind — e.g. a copy in
         // unread/archive from before the active/ split, or one the user archived.
         const paths = this.paths();
-        const stores: Array<{ dir: string; bucket: 'unread' | 'archive' }> = [
-            { dir: paths.active, bucket: 'unread' },
+        const stores: Array<{ dir: string; bucket: 'unread' | 'archive' | 'active' }> = [
+            { dir: paths.active, bucket: 'active' },
             { dir: paths[NotificationType.UNREAD], bucket: 'unread' },
             { dir: paths[NotificationType.ARCHIVE], bucket: 'archive' },
         ];
@@ -532,7 +548,7 @@ export class NotificationsService {
     private async unlinkAndDecrement(
         path: string,
         importance: NotificationImportance,
-        bucket: 'unread' | 'archive'
+        bucket: 'unread' | 'archive' | 'active'
     ): Promise<void> {
         await unlink(path).catch((e) => {
             if (!this.isMissingFileError(e)) throw e;
@@ -577,7 +593,7 @@ export class NotificationsService {
             await this.unlinkAndDecrement(
                 path,
                 this.fileImportanceToGqlImportance(ini.importance),
-                'unread'
+                'active'
             );
             removed = true;
         }
@@ -812,52 +828,23 @@ export class NotificationsService {
         this.logger.verbose('Getting Notifications');
 
         const { type = NotificationType.UNREAD } = filters;
-        const { ARCHIVE, UNREAD, active } = this.paths();
+        const { ARCHIVE, UNREAD } = this.paths();
 
-        if (type === NotificationType.UNREAD) {
-            // Persistent ("Active") notifications live in their own small directory and
-            // always lead the unread list. Read them in full (cheap) and prepend them,
-            // then paginate the transient 'unread' store as usual — no full unread scan
-            // is needed to surface pinned conditions.
-            const { importance, offset = 0, limit } = filters;
-
-            const activeFiles = await this.listFilesInFolder(active);
-            const [persistent] = await this.loadNotificationsFromPaths(activeFiles, {
-                type: NotificationType.UNREAD,
-                importance,
+        if (type === NotificationType.ARCHIVE) {
+            // Exclude notifications present in both unread & archive from archive.
+            //* this is necessary because the legacy script writes new notifications to both places.
+            //* this should be a temporary measure.
+            const unreads = new Set(await readdir(UNREAD));
+            const files = await this.listFilesInFolder(ARCHIVE, (archives) => {
+                return archives.filter((file) => !unreads.has(file));
             });
-
-            const persistentWindow =
-                typeof limit === 'number'
-                    ? persistent.slice(offset, offset + limit)
-                    : persistent.slice(offset);
-            // How many of the requested window remain after the persistent slice.
-            const transientOffset = Math.max(0, offset - persistent.length);
-            const transientLimit =
-                typeof limit === 'number' ? Math.max(0, limit - persistentWindow.length) : undefined;
-
-            if (typeof transientLimit === 'number' && transientLimit === 0) {
-                return persistentWindow;
-            }
-
-            const transientFiles = await this.listFilesInFolder(UNREAD);
-            const [transient] = await this.loadNotificationsFromPaths(transientFiles, {
-                type: NotificationType.UNREAD,
-                importance,
-                offset: transientOffset,
-                limit: transientLimit,
-            });
-            return [...persistentWindow, ...transient];
+            const [archived] = await this.loadNotificationsFromPaths(files, filters);
+            return archived;
         }
 
-        // Exclude notifications present in both unread & archive from archive.
-        //* this is necessary because the legacy script writes new notifications to both places.
-        //* this should be a temporary measure.
-        const unreads = new Set(await readdir(UNREAD));
-        const files = await this.listFilesInFolder(ARCHIVE, (archives) => {
-            return archives.filter((file) => !unreads.has(file));
-        });
-
+        // UNREAD -> the transient 'unread' store; ACTIVE -> the persistent 'active' store.
+        // Each tab reads only its own directory, so pagination is clean and independent.
+        const files = await this.listFilesInFolder(this.paths()[type]);
         const [notifications] = await this.loadNotificationsFromPaths(files, filters);
         return notifications;
     }

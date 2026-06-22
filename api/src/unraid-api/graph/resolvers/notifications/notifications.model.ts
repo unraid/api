@@ -6,6 +6,9 @@ import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 
 export enum NotificationType {
     UNREAD = 'UNREAD',
     ARCHIVE = 'ARCHIVE',
+    // Persistent ("Active") condition-style notifications. Stored separately; they
+    // stay until their producer clears them and are never archived by the user.
+    ACTIVE = 'ACTIVE',
 }
 
 export enum NotificationImportance {
@@ -129,6 +132,12 @@ export class NotificationOverview {
     @Field(() => NotificationCounts)
     @IsNotEmpty()
     archive!: NotificationCounts;
+
+    @Field(() => NotificationCounts, {
+        description: 'Counts for persistent ("Active") condition-style notifications.',
+    })
+    @IsNotEmpty()
+    active!: NotificationCounts;
 }
 
 @ObjectType({ implements: () => Node })
