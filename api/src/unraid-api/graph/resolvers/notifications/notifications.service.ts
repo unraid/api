@@ -772,6 +772,24 @@ export class NotificationsService {
             });
         }
 
+        // Unread: hoist persistent ("Active") notifications to the top across the whole
+        // set *before* paginating, so pinned conditions are never buried behind a page of
+        // transient history (the per-page client sort can only reorder what it fetched).
+        // Persistent notifications can't be archived, so the archive path keeps the
+        // efficient slice-then-load pagination.
+        if (type === NotificationType.UNREAD) {
+            const { importance, offset = 0, limit } = filters;
+            const [all] = await this.loadNotificationsFromPaths(files, { type, importance });
+            // Stable sort (Node/V8): preserves loadNotificationsFromPaths' latest-first
+            // order within the persistent and non-persistent groups.
+            const hoisted = [...all].sort(
+                (a, b) => Number(b.persistent ?? false) - Number(a.persistent ?? false)
+            );
+            return typeof limit === 'number'
+                ? hoisted.slice(offset, offset + limit)
+                : hoisted.slice(offset);
+        }
+
         const [notifications] = await this.loadNotificationsFromPaths(files, filters);
         return notifications;
     }

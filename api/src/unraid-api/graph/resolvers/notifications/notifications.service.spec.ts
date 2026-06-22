@@ -576,6 +576,28 @@ describe.sequential('NotificationsService', () => {
         expect(keys).toEqual(['banner-ccc', 'webgui-pr-1']);
     });
 
+    it('getNotifications hoists persistent notifications into the first page', async () => {
+        // Persistent created first (oldest), then many newer transient notifications.
+        // Without server-side hoisting the persistent one sorts last (latest-first) and
+        // falls off the first page; pinned conditions must stay on page 1.
+        await createNotification({
+            key: 'webgui-pr-1',
+            persistent: true,
+            importance: NotificationImportance.WARNING,
+        });
+        for (let i = 0; i < 10; i++) {
+            await createNotification({ importance: NotificationImportance.INFO });
+        }
+
+        const firstPage = await service.getNotifications({
+            type: NotificationType.UNREAD,
+            offset: 0,
+            limit: 3,
+        });
+        expect(firstPage[0].persistent).toBe(true);
+        expect(firstPage[0].key).toBe('webgui-pr-1');
+    });
+
     it('deleteNotifications (Delete all) never deletes persistent notifications', async () => {
         const expectIn = makeExpectIn(expect);
 
