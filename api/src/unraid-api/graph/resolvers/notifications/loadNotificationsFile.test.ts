@@ -242,7 +242,7 @@ importance=not-a-valid-enum`;
         expect(result.description).toBe('Test Description');
     });
 
-    it('should handle missing description field (should return masked warning notification)', async () => {
+    it('should allow a missing description field (empty is valid, not masked)', async () => {
         const mockFileContent = `timestamp=1609459200
 event=Test Event
 subject=Test Subject
@@ -254,9 +254,13 @@ importance=normal`;
             '/test/path/test.notify',
             NotificationType.UNREAD
         );
-        // Should be a masked warning notification
-        expect(result.description).toContain('invalid and cannot be displayed');
-        expect(result.importance).toBe(NotificationImportance.WARNING);
+        // A missing description is allowed: condition/banner notifications carry their
+        // meaning in the title + Active badge, and the UI hides the empty line. It must
+        // not be masked as invalid.
+        expect(result.id).toBe('test.notify');
+        expect(result.description).toBe('');
+        expect(result.description).not.toContain('invalid and cannot be displayed');
+        expect(result.importance).toBe(NotificationImportance.INFO);
     });
 
     it('should preserve passthrough data from notification file (only known fields)', async () => {
