@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 import { useSessionStorage } from '@vueuse/core';
@@ -132,6 +132,22 @@ const overview = computed(() => {
   return result.value.notifications.overview;
 });
 
+// The Active tab only exists while there are condition-style notifications to show.
+const hasActiveNotifications = computed(() => !!overview.value && overview.value.active.total > 0);
+
+// If the Active tab is selected (e.g. restored from session storage) but there are no
+// active notifications, fall back to Unread so the hidden tab isn't left selected. Wait
+// for the overview to load before acting so we don't reset prematurely.
+watch(
+  [overview, hasActiveNotifications],
+  () => {
+    if (overview.value && !hasActiveNotifications.value && activeTab.value === 'active') {
+      activeTab.value = 'unread';
+    }
+  },
+  { immediate: true }
+);
+
 /** This recalculates the archived count due to notifications going to archived + unread when they are in an Unread state. */
 const readArchivedCount = computed(() => {
   if (!overview.value) return 0;
@@ -204,7 +220,7 @@ onMounted(() => {
               class="bg-muted/50 flex gap-0.5 rounded-lg p-0.5"
               :aria-label="t('notifications.sidebar.statusTabsListAria')"
             >
-              <TabsTrigger value="active" as-child>
+              <TabsTrigger v-if="hasActiveNotifications" value="active" as-child>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -212,9 +228,8 @@ onMounted(() => {
                 >
                   <span>{{ t('notifications.sidebar.activeTab') }}</span>
                   <span
-                    v-if="overview && overview.active.total > 0"
                     class="rounded-full border border-orange-300 bg-orange-100 px-1.5 py-0.5 text-xs font-medium text-orange-700 tabular-nums dark:border-orange-500/40 dark:bg-orange-500/20 dark:text-orange-200"
-                    >{{ overview.active.total }}</span
+                    >{{ overview?.active.total }}</span
                   >
                 </Button>
               </TabsTrigger>
@@ -299,7 +314,7 @@ onMounted(() => {
             </div>
           </div>
 
-          <TabsContent value="active" class="min-h-0 flex-1 flex-col">
+          <TabsContent v-if="hasActiveNotifications" value="active" class="min-h-0 flex-1 flex-col">
             <NotificationsList :importance="importance || undefined" :type="NotificationType.ACTIVE" />
           </TabsContent>
 
