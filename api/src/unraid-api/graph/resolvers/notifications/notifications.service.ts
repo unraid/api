@@ -46,8 +46,12 @@ const ACTIVE_NOTIFICATIONS_PATH = '/tmp/notifications/active';
 @Injectable()
 export class NotificationsService {
     private static readonly FILE_IO_BATCH_SIZE = 32;
+    // Coalesce a burst of external file removals (e.g. a bulk `notify clear`) into a single
+    // authoritative overview rebuild.
+    private static readonly UNLINK_RECALC_DEBOUNCE_MS = 150;
     private logger = new Logger(NotificationsService.name);
     private static watcher: FSWatcher | null = null;
+    private unlinkRecalcTimer: NodeJS.Timeout | null = null;
     /**
      * The path to the notification directory - will be updated if the user changes the notifier path
      */
@@ -191,9 +195,13 @@ export class NotificationsService {
         NotificationsService.watcher = watch(watchPaths, {
             usePolling: CHOKIDAR_USEPOLLING,
             ignoreInitial: true,
-        }).on('add', (path) => {
-            void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
-        });
+        })
+            .on('add', (path) => {
+                void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
+            })
+            .on('unlink', (path) => {
+                this.handleNotificationUnlink(path);
+            });
 
         return NotificationsService.watcher;
     }
@@ -209,6 +217,30 @@ export class NotificationsService {
         }
 
         await this.processNotificationAdd(path);
+    }
+
+    /**
+     * A notification file vanished. Our own delete/clear/archive mutations adjust the overview
+     * synchronously (and this fires for those too), but external removals — the webgui
+     * `notify clear`, a producer resolving a keyed condition, tmpfs being wiped — bypass them
+     * and would leave the overview inflated.
+     *
+     * We rebuild from disk rather than decrement: the file is already gone (no importance to
+     * read), and an absolute snapshot is idempotent with any synchronous decrement that already
+     * happened, so it can't double-count. The rebuild is debounced so a bulk removal collapses
+     * into one pass.
+     */
+    private handleNotificationUnlink(path: string) {
+        if (!path.endsWith('.notify')) return;
+        // The in-flight hydration snapshot will already reflect this removal.
+        if (this.isHydratingOverview) return;
+        if (this.unlinkRecalcTimer) clearTimeout(this.unlinkRecalcTimer);
+        this.unlinkRecalcTimer = setTimeout(() => {
+            this.unlinkRecalcTimer = null;
+            void this.recalculateOverview()
+                .then(() => this.publishWarningsAndAlerts())
+                .catch((e) => this.logger.error(e));
+        }, NotificationsService.UNLINK_RECALC_DEBOUNCE_MS);
     }
 
     private async processNotificationAdd(path: string) {

@@ -179,6 +179,32 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
         expect(processNotificationAdd).toHaveBeenCalledWith(bufferedPath);
     });
 
+    it('debounces a single authoritative recalc when notification files are unlinked', async () => {
+        vi.useFakeTimers();
+        try {
+            const recalc = vi
+                .spyOn(service, 'recalculateOverview')
+                .mockResolvedValue({ error: false, overview: service.getOverview() });
+            Reflect.set(service, 'publishWarningsAndAlerts', vi.fn().mockResolvedValue(undefined));
+            const handleUnlink = (
+                Reflect.get(service, 'handleNotificationUnlink') as (path: string) => void
+            ).bind(service);
+
+            // Non-notification files are ignored entirely.
+            handleUnlink(`${testNotificationsDir}/active/not-a-notification.txt`);
+            // A burst of real removals collapses into one rebuild.
+            handleUnlink(`${testNotificationsDir}/active/a.notify`);
+            handleUnlink(`${testNotificationsDir}/active/b.notify`);
+            handleUnlink(`${testNotificationsDir}/unread/c.notify`);
+
+            expect(recalc).not.toHaveBeenCalled(); // still within the debounce window
+            await vi.advanceTimersByTimeAsync(200);
+            expect(recalc).toHaveBeenCalledTimes(1);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it('should load and validate a valid notification file', async () => {
         const mockFileContent = `timestamp=1609459200
 event=Test Event
