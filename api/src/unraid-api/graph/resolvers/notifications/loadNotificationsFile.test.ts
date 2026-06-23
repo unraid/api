@@ -121,8 +121,10 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     });
 
     it('creates the notifications watcher without replaying existing files', () => {
+        // The configured path (testNotificationsDir) is not the tmpfs default, so the
+        // always-off-disk active dir falls outside it and is watched as a second path.
         expect(mockWatch).toHaveBeenCalledWith(
-            testNotificationsDir,
+            [testNotificationsDir, '/tmp/notifications/active'],
             expect.objectContaining({
                 ignoreInitial: true,
             })

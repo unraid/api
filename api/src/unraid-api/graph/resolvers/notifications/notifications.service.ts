@@ -186,7 +186,7 @@ export class NotificationsService {
         // /tmp/notifications), basePath's recursive watch already covers it, so watching both
         // would double-fire 'add' events.
         const activeNested = relative(basePath, ACTIVE_NOTIFICATIONS_PATH) === 'active';
-        const watchPaths = activeNested ? basePath : [basePath, ACTIVE_NOTIFICATIONS_PATH];
+        const watchPaths = activeNested ? [basePath] : [basePath, ACTIVE_NOTIFICATIONS_PATH];
 
         NotificationsService.watcher = watch(watchPaths, {
             usePolling: CHOKIDAR_USEPOLLING,
