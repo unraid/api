@@ -714,3 +714,37 @@ describe.concurrent('NotificationsService legacy script compatibility', () => {
         }
     );
 });
+
+describe.concurrent('NotificationsService active path is always off-disk', () => {
+    // Simulate "Store notifications to boot drive" = Yes: the configured notifier path is
+    // somewhere other than the default /tmp/notifications (on real systems, the flash
+    // device). Active notifications must NOT follow it. We use a writable temp dir instead
+    // of a literal /boot path so the service's startup mkdir succeeds in CI.
+    const flashPath = '/tmp/test/flash-notifications';
+    const buildService = async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                NotificationsService,
+                {
+                    provide: ConfigService,
+                    useValue: { get: vi.fn().mockReturnValue(flashPath) },
+                },
+            ],
+        }).compile();
+        const service = module.get<NotificationsService>(NotificationsService);
+        await disableNotificationsWatcher();
+        return service;
+    };
+
+    it('keeps active in tmpfs while event stores follow the flash path', async ({ expect }) => {
+        const service = await buildService();
+        const paths = service.paths();
+        // Condition-style notifications are derived state and must never persist to flash.
+        expect(paths.active).toBe('/tmp/notifications/active');
+        expect(paths[NotificationType.ACTIVE]).toBe('/tmp/notifications/active');
+        // Event notifications still honor the user's flash preference.
+        expect(paths.basePath).toBe(flashPath);
+        expect(paths[NotificationType.UNREAD]).toBe(`${flashPath}/unread`);
+        expect(paths[NotificationType.ARCHIVE]).toBe(`${flashPath}/archive`);
+    });
+});

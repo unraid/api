@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'fs/promises';
-import { basename, join } from 'path';
+import { basename, join, relative } from 'path';
 
 import type { Stats } from 'fs';
 import { FSWatcher, watch } from 'chokidar';
@@ -30,6 +30,18 @@ import {
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 import { SortFn } from '@app/unraid-api/types/util.js';
 import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp } from '@app/utils.js';
+
+/**
+ * Condition-style ("active") notifications are derived state: true only while their
+ * condition holds, and re-raised by the webgui on every page load. They are ALWAYS stored
+ * off-disk in tmpfs, never under the user-configurable notifier path (which may point at the
+ * flash boot device when "Store notifications to boot drive" is set). Persisting a derived
+ * condition across reboots strands it forever once the condition is gone (e.g. the plugin
+ * that raised it was removed); keeping it in tmpfs makes a reboot free GC.
+ *
+ * This MUST match the webgui `notify` script's hardcoded $active path.
+ */
+const ACTIVE_NOTIFICATIONS_PATH = '/tmp/notifications/active';
 
 @Injectable()
 export class NotificationsService {
@@ -91,7 +103,9 @@ export class NotificationsService {
         }
 
         const makePath = (type: NotificationType) => join(basePath, type.toLowerCase());
-        const active = makePath(NotificationType.ACTIVE);
+        // Active notifications always live in tmpfs, decoupled from the configurable
+        // basePath. See ACTIVE_NOTIFICATIONS_PATH.
+        const active = ACTIVE_NOTIFICATIONS_PATH;
         return {
             basePath,
             // Persistent (condition-style) notifications are stored separately so they
@@ -148,7 +162,8 @@ export class NotificationsService {
             mkdir(join(basePath, NotificationType.ARCHIVE.toLowerCase()), {
                 recursive: true,
             }),
-            mkdir(join(basePath, 'active'), { recursive: true }),
+            // Active notifications live in tmpfs, not under basePath. See ACTIVE_NOTIFICATIONS_PATH.
+            mkdir(ACTIVE_NOTIFICATIONS_PATH, { recursive: true }),
         ]);
     }
 
@@ -165,7 +180,15 @@ export class NotificationsService {
         }
         await NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
 
-        NotificationsService.watcher = watch(basePath, {
+        // Active notifications live in tmpfs (ACTIVE_NOTIFICATIONS_PATH), which is outside
+        // basePath whenever the user stores event notifications on the flash device. Watch it
+        // separately in that case; when it is already nested under basePath (the default
+        // /tmp/notifications), basePath's recursive watch already covers it, so watching both
+        // would double-fire 'add' events.
+        const activeNested = relative(basePath, ACTIVE_NOTIFICATIONS_PATH) === 'active';
+        const watchPaths = activeNested ? basePath : [basePath, ACTIVE_NOTIFICATIONS_PATH];
+
+        NotificationsService.watcher = watch(watchPaths, {
             usePolling: CHOKIDAR_USEPOLLING,
             ignoreInitial: true,
         }).on('add', (path) => {
