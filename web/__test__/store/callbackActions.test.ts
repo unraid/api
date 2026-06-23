@@ -177,7 +177,7 @@ describe('Callback Actions Store', () => {
       expect(store.callbackCallsCompleted).toBe(true);
       expect(store.callbackData).toBeUndefined();
       expect(store.sendType).toBe('fromUpc');
-      expect(store.encryptionKey).toBe(import.meta.env.VITE_CALLBACK_KEY);
+      expect(store.encryptionKey).toBe(import.meta.env.VITE_CALLBACK_KEY ?? '');
     });
   });
 

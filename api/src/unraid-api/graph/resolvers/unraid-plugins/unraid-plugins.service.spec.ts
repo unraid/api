@@ -165,14 +165,19 @@ describe('UnraidPluginsService', () => {
     });
 
     it('listInstalledPlugins returns empty array when plugin directory is missing', async () => {
-        const configService = {
-            get: vi.fn().mockReturnValue({
-                'dynamix-base': '/tmp/definitely-missing-dynamix-base',
-            }),
-        } as unknown as ConfigService;
-        const configuredService = new UnraidPluginsService(configService);
+        const tempDir = await mkdtemp(join(tmpdir(), 'unraid-plugins-missing-test-'));
+        try {
+            const configService = {
+                get: vi.fn().mockReturnValue({
+                    'dynamix-base': join(tempDir, 'missing', 'dynamix-base'),
+                }),
+            } as unknown as ConfigService;
+            const configuredService = new UnraidPluginsService(configService);
 
-        await expect(configuredService.listInstalledPlugins()).resolves.toEqual([]);
+            await expect(configuredService.listInstalledPlugins()).resolves.toEqual([]);
+        } finally {
+            await rm(tempDir, { recursive: true, force: true });
+        }
     });
 
     it('removes completed operations after retention ttl', async () => {
