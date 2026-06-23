@@ -29,6 +29,7 @@ import DropdownConnectStatus from '~/components/UserProfile/DropdownConnectStatu
 import DropdownError from '~/components/UserProfile/DropdownError.vue';
 import DropdownItem from '~/components/UserProfile/DropdownItem.vue';
 import Keyline from '~/components/UserProfile/Keyline.vue';
+import { useOsUpdateStatus } from '~/composables/useOsUpdateStatus';
 import { useAccountStore } from '~/store/account';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
@@ -45,17 +46,15 @@ const errorsStore = useErrorsStore();
 const updateOsStore = useUpdateOsStore();
 
 const { errors } = storeToRefs(errorsStore);
+const { keyActions, connectPluginInstalled, registered, stateData, stateDataError } =
+  storeToRefs(useServerStore());
 const {
-  keyActions,
-  connectPluginInstalled,
+  available: osUpdateAvailable,
+  availableWithRenewal: osUpdateAvailableWithRenewal,
+  entitlementExpired,
   rebootType,
-  registered,
-  regUpdatesExpired,
-  stateData,
-  stateDataError,
-} = storeToRefs(useServerStore());
-const { available: osUpdateAvailable, availableWithRenewal: osUpdateAvailableWithRenewal } =
-  storeToRefs(updateOsStore);
+  rebootRequired,
+} = useOsUpdateStatus();
 
 const signInAction = computed(
   () => stateData.value.actions?.filter((act: { name: string }) => act.name === 'signIn') ?? []
@@ -159,9 +158,15 @@ const rebootDetectedButton = computed((): UserProfileLink => {
 });
 
 const updateOsButton = computed((): UserProfileLink[] => {
-  const btns = [];
-  if (rebootType.value === 'downgrade' || rebootType.value === 'update') {
+  const btns: UserProfileLink[] = [];
+  if (rebootRequired.value) {
     btns.push(rebootDetectedButton.value);
+    return btns;
+  }
+
+  // Update entitlement has lapsed: the renewal/eligibility link stands in for
+  // the update button (a pending reboot above still applies an installed update).
+  if (entitlementExpired.value) {
     return btns;
   }
 
@@ -175,7 +180,7 @@ const updateOsButton = computed((): UserProfileLink[] => {
 
 const links = computed((): UserProfileLink[] => {
   return [
-    ...(regUpdatesExpired.value
+    ...(entitlementExpired.value
       ? [
           {
             href: WEBGUI_TOOLS_REGISTRATION,
@@ -186,8 +191,9 @@ const links = computed((): UserProfileLink[] => {
         ]
       : []),
 
-    // ensure we only show the update button when we don't have an error
-    ...(!stateDataError.value ? [...updateOsButton.value] : []),
+    // Surface the update button regardless of registration/key state errors;
+    // updateOsButton itself omits it when update entitlement has expired.
+    ...updateOsButton.value,
 
     // connect plugin links
     ...(registered.value && connectPluginInstalled.value

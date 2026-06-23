@@ -108,6 +108,7 @@ describe('DropdownContent', () => {
   };
 
   beforeEach(() => {
+    vi.clearAllMocks();
     setActivePinia(createPinia());
 
     serverStoreRefs.keyActions!.value = [];
@@ -127,6 +128,58 @@ describe('DropdownContent', () => {
     errorsStoreRefs.errors!.value = [];
     updateOsStoreRefs.available!.value = null;
     updateOsStoreRefs.availableWithRenewal!.value = null;
+  });
+
+  it('shows the OS update button even when the server has a state error', () => {
+    // e.g. EGUID key/GUID mismatch: updating is still allowed.
+    serverStoreRefs.stateDataError!.value = { message: 'Registration key mismatch' };
+
+    const wrapper = shallowMount(DropdownContent, {
+      global: {
+        plugins: [createTestI18n()],
+      },
+    });
+
+    const items = wrapper
+      .findAllComponents({ name: 'DropdownItem' })
+      .map((itemWrapper) => itemWrapper.props('item') as UserProfileLink);
+
+    expect(items.some((item) => item?.text === 'Check for Update')).toBe(true);
+  });
+
+  it('hides the OS update button when update entitlement has expired', () => {
+    serverStoreRefs.regUpdatesExpired!.value = true;
+
+    const wrapper = shallowMount(DropdownContent, {
+      global: {
+        plugins: [createTestI18n()],
+      },
+    });
+
+    const items = wrapper
+      .findAllComponents({ name: 'DropdownItem' })
+      .map((itemWrapper) => itemWrapper.props('item') as UserProfileLink);
+
+    expect(items.some((item) => item?.text === 'Check for Update')).toBe(false);
+    // the renewal/eligibility link stands in for it
+    expect(items.some((item) => item?.text === 'OS Update Eligibility Expired')).toBe(true);
+  });
+
+  it('still shows the reboot button when entitlement has expired but a reboot is pending', () => {
+    serverStoreRefs.regUpdatesExpired!.value = true;
+    serverStoreRefs.rebootType!.value = 'update';
+
+    const wrapper = shallowMount(DropdownContent, {
+      global: {
+        plugins: [createTestI18n()],
+      },
+    });
+
+    const items = wrapper
+      .findAllComponents({ name: 'DropdownItem' })
+      .map((itemWrapper) => itemWrapper.props('item') as UserProfileLink);
+
+    expect(items.some((item) => item?.text === 'Reboot Required for Update')).toBe(true);
   });
 
   it('does not show manage-license helper text when sign-in is the only action', () => {

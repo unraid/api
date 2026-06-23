@@ -240,13 +240,23 @@ const showUpdateEligibility = computed(() => {
   return !['Basic', 'Plus', 'Pro', 'Lifetime', 'Trial'].includes(keyType.value);
 });
 
-const showPostInstallKeyError = computed(() =>
-  Boolean(
-    stateDataError.value &&
-      callbackCallsCompleted.value &&
-      (keyInstallStatus.value === 'success' || keyInstallStatus.value === 'failed')
-  )
+const keyInstallResolved = computed(
+  () => keyInstallStatus.value === 'success' || keyInstallStatus.value === 'failed'
 );
+
+const showPostInstallKeyError = computed(() =>
+  Boolean(stateDataError.value && callbackCallsCompleted.value && keyInstallResolved.value)
+);
+
+/**
+ * A key install in this callback left the server with a license error — or the
+ * post-callback reconciliation that would clear it hasn't finished yet. Until we
+ * know the final key state, keep suppressing the OS update confirmation so the
+ * user can't start an update against a possibly-still-broken license. Broader
+ * than `showPostInstallKeyError` (which waits for `callbackCallsCompleted`)
+ * because the confirm button must stay hidden during the pending window too.
+ */
+const keyErrorBlocksUpdate = computed(() => Boolean(stateDataError.value && keyInstallResolved.value));
 </script>
 
 <template>
@@ -327,7 +337,7 @@ const showPostInstallKeyError = computed(() =>
         />
       </div>
 
-      <template v-if="updateOsStatus === 'confirming' && !stateDataError">
+      <template v-if="updateOsStatus === 'confirming' && !keyErrorBlocksUpdate">
         <div class="my-4 flex flex-col gap-y-2">
           <div class="flex flex-col gap-y-1">
             <p class="text-center text-lg">
@@ -383,7 +393,7 @@ const showPostInstallKeyError = computed(() =>
           </template>
         </template>
 
-        <template v-if="updateOsStatus === 'confirming' && !stateDataError">
+        <template v-if="updateOsStatus === 'confirming' && !keyErrorBlocksUpdate">
           <BrandButton
             variant="underline"
             :icon="XMarkIcon"
