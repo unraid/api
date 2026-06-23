@@ -121,8 +121,10 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     });
 
     it('creates the notifications watcher without replaying existing files', () => {
+        // The configured path (testNotificationsDir) is not the tmpfs default, so the
+        // always-off-disk active dir falls outside it and is watched as a second path.
         expect(mockWatch).toHaveBeenCalledWith(
-            testNotificationsDir,
+            [testNotificationsDir, '/tmp/notifications/active'],
             expect.objectContaining({
                 ignoreInitial: true,
             })
@@ -175,6 +177,32 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
         );
 
         expect(processNotificationAdd).toHaveBeenCalledWith(bufferedPath);
+    });
+
+    it('debounces a single authoritative recalc when notification files are unlinked', async () => {
+        vi.useFakeTimers();
+        try {
+            const recalc = vi
+                .spyOn(service, 'recalculateOverview')
+                .mockResolvedValue({ error: false, overview: service.getOverview() });
+            Reflect.set(service, 'publishWarningsAndAlerts', vi.fn().mockResolvedValue(undefined));
+            const handleUnlink = (
+                Reflect.get(service, 'handleNotificationUnlink') as (path: string) => void
+            ).bind(service);
+
+            // Non-notification files are ignored entirely.
+            handleUnlink(`${testNotificationsDir}/active/not-a-notification.txt`);
+            // A burst of real removals collapses into one rebuild.
+            handleUnlink(`${testNotificationsDir}/active/a.notify`);
+            handleUnlink(`${testNotificationsDir}/active/b.notify`);
+            handleUnlink(`${testNotificationsDir}/unread/c.notify`);
+
+            expect(recalc).not.toHaveBeenCalled(); // still within the debounce window
+            await vi.advanceTimersByTimeAsync(200);
+            expect(recalc).toHaveBeenCalledTimes(1);
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it('should load and validate a valid notification file', async () => {
@@ -242,7 +270,7 @@ importance=not-a-valid-enum`;
         expect(result.description).toBe('Test Description');
     });
 
-    it('should handle missing description field (should return masked warning notification)', async () => {
+    it('should allow a missing description field (empty is valid, not masked)', async () => {
         const mockFileContent = `timestamp=1609459200
 event=Test Event
 subject=Test Subject
@@ -254,9 +282,13 @@ importance=normal`;
             '/test/path/test.notify',
             NotificationType.UNREAD
         );
-        // Should be a masked warning notification
-        expect(result.description).toContain('invalid and cannot be displayed');
-        expect(result.importance).toBe(NotificationImportance.WARNING);
+        // A missing description is allowed: condition/banner notifications carry their
+        // meaning in the title + Active badge, and the UI hides the empty line. It must
+        // not be masked as invalid.
+        expect(result.id).toBe('test.notify');
+        expect(result.description).toBe('');
+        expect(result.description).not.toContain('invalid and cannot be displayed');
+        expect(result.importance).toBe(NotificationImportance.INFO);
     });
 
     it('should preserve passthrough data from notification file (only known fields)', async () => {

@@ -1,11 +1,14 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Node } from '@unraid/shared/graphql.model.js';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export enum NotificationType {
     UNREAD = 'UNREAD',
     ARCHIVE = 'ARCHIVE',
+    // Persistent ("Active") condition-style notifications. Stored separately; they
+    // stay until their producer clears them and are never archived by the user.
+    ACTIVE = 'ACTIVE',
 }
 
 export enum NotificationImportance {
@@ -60,9 +63,11 @@ export class NotificationData {
     @IsNotEmpty()
     subject!: string;
 
+    // Description is optional in practice (e.g. condition/banner notifications carry
+    // their meaning in the title + Active badge). Allow empty so they aren't masked
+    // as invalid; the UI hides the line when empty.
     @Field()
     @IsString()
-    @IsNotEmpty()
     description!: string;
 
     @Field(() => NotificationImportance)
@@ -74,6 +79,25 @@ export class NotificationData {
     @IsString()
     @IsOptional()
     link?: string;
+
+    @Field({
+        nullable: true,
+        description:
+            'Stable key for a condition-style notification. Raising again with the same key replaces the existing one; clear it with clearNotificationByKey when the condition resolves.',
+    })
+    @IsString()
+    @IsOptional()
+    key?: string;
+
+    @Field({
+        nullable: true,
+        defaultValue: false,
+        description:
+            'Persistent notifications cannot be archived by the user; they stay until cleared programmatically (typically via their key) when the underlying condition resolves.',
+    })
+    @IsBoolean()
+    @IsOptional()
+    persistent?: boolean;
 }
 
 @ObjectType('NotificationCounts')
@@ -108,6 +132,12 @@ export class NotificationOverview {
     @Field(() => NotificationCounts)
     @IsNotEmpty()
     archive!: NotificationCounts;
+
+    @Field(() => NotificationCounts, {
+        description: 'Counts for persistent ("Active") condition-style notifications.',
+    })
+    @IsNotEmpty()
+    active!: NotificationCounts;
 }
 
 @ObjectType({ implements: () => Node })
@@ -122,9 +152,11 @@ export class Notification extends Node {
     @IsNotEmpty()
     subject!: string;
 
+    // Description is optional in practice (e.g. condition/banner notifications carry
+    // their meaning in the title + Active badge). Allow empty so they aren't masked
+    // as invalid; the UI hides the line when empty.
     @Field()
     @IsString()
-    @IsNotEmpty()
     description!: string;
 
     @Field(() => NotificationImportance)
@@ -136,6 +168,21 @@ export class Notification extends Node {
     @IsString()
     @IsOptional()
     link?: string;
+
+    @Field({
+        nullable: true,
+        description: 'Stable key for condition-style notifications (idempotent raise / clear-by-key).',
+    })
+    @IsString()
+    @IsOptional()
+    key?: string;
+
+    @Field({
+        description:
+            'Whether this notification persists until its condition is resolved. Persistent notifications are not user-archivable.',
+    })
+    @IsBoolean()
+    persistent!: boolean;
 
     @Field(() => NotificationType)
     @IsEnum(NotificationType)

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
+import { useSessionStorage } from '@vueuse/core';
 
 import {
   Button,
@@ -14,12 +15,8 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
 } from '@unraid/ui';
-import { Settings } from 'lucide-vue-next';
+import { Archive, Settings, Trash2 } from 'lucide-vue-next';
 
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {
@@ -27,6 +24,7 @@ import {
   deleteArchivedNotifications,
   NOTIFICATION_FRAGMENT,
   notificationsOverview,
+  reconcileBannerNotifications,
   resetOverview,
 } from '~/components/Notifications/graphql/notification.query';
 import {
@@ -43,13 +41,18 @@ import { useConfirm } from '~/composables/useConfirm';
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
 const { mutate: recalculateOverview } = useMutation(resetOverview);
+const { mutate: reconcileBanners } = useMutation(reconcileBannerNotifications);
 const { confirm } = useConfirm();
-const importance = ref<Importance | undefined>(undefined);
+// Filter selections persist for the browser session so navigating between webgui
+// pages (each a full reload) keeps the chosen filters in place. '' = All Types.
+const importance = useSessionStorage<Importance | ''>('unraid.notifications.importance', '');
+// The selected status tab (active / unread / archived) also sticks for the session.
+const activeTab = useSessionStorage('unraid.notifications.tab', 'unread');
 
 const { t } = useI18n();
 
-const filterOptions = computed<Array<{ label: string; value?: Importance }>>(() => [
-  { label: t('notifications.sidebar.filters.all') },
+const filterOptions = computed<Array<{ label: string; value: Importance | '' }>>(() => [
+  { label: t('notifications.sidebar.filters.all'), value: '' },
   { label: t('notifications.sidebar.filters.alert'), value: Importance.ALERT },
   { label: t('notifications.sidebar.filters.info'), value: Importance.INFO },
   { label: t('notifications.sidebar.filters.warning'), value: Importance.WARNING },
@@ -129,6 +132,22 @@ const overview = computed(() => {
   return result.value.notifications.overview;
 });
 
+// The Active tab only exists while there are condition-style notifications to show.
+const hasActiveNotifications = computed(() => !!overview.value && overview.value.active.total > 0);
+
+// If the Active tab is selected (e.g. restored from session storage) but there are no
+// active notifications, fall back to Unread so the hidden tab isn't left selected. Wait
+// for the overview to load before acting so we don't reset prematurely.
+watch(
+  [overview, hasActiveNotifications],
+  () => {
+    if (overview.value && !hasActiveNotifications.value && activeTab.value === 'active') {
+      activeTab.value = 'unread';
+    }
+  },
+  { immediate: true }
+);
+
 /** This recalculates the archived count due to notifications going to archived + unread when they are in an Unread state. */
 const readArchivedCount = computed(() => {
   if (!overview.value) return 0;
@@ -136,9 +155,29 @@ const readArchivedCount = computed(() => {
   return Math.max(0, archive.total - unread.total);
 });
 
-const prepareToViewNotifications = () => {
-  void recalculateOverview();
+// Legacy webgui banners (CA, boot checks, ...) re-stamp themselves with the page's
+// current generation on load; ask the backend to clear any the producer stopped
+// rendering. Deletes flow back to the badge via the overview subscription.
+const reconcileStaleBanners = () => {
+  const bannerGen = (globalThis as { bannerGen?: string }).bannerGen;
+  if (bannerGen) return reconcileBanners({ currentGeneration: bannerGen });
+  return Promise.resolve();
 };
+
+const prepareToViewNotifications = () => {
+  void reconcileStaleBanners().finally(() => {
+    void recalculateOverview();
+  });
+};
+
+// Self-correct the badge on every page load (not just when the bell is opened):
+// reconcile once the page has settled so banners raised on DOM-ready / via ajax
+// (e.g. the boot-corrupt check) have re-stamped before we clear stale ones.
+onMounted(() => {
+  const run = () => setTimeout(() => void reconcileStaleBanners(), 2500);
+  if (document.readyState === 'complete') run();
+  else window.addEventListener('load', run, { once: true });
+});
 </script>
 
 <template>
@@ -154,62 +193,110 @@ const prepareToViewNotifications = () => {
       class="flex h-screen max-h-screen min-h-screen w-full max-w-screen flex-col gap-5 px-0 pb-0 sm:max-w-[540px]"
     >
       <div class="relative flex h-full w-full flex-col">
-        <SheetHeader class="ml-1 items-baseline gap-1 px-3 pb-2">
-          <SheetTitle class="text-2xl">{{ t('notifications.sidebar.title') }}</SheetTitle>
+        <SheetHeader class="gap-1 px-4 pt-1 pb-3">
+          <div class="flex items-center gap-1.5">
+            <SheetTitle class="text-xl font-semibold tracking-tight">{{
+              t('notifications.sidebar.title')
+            }}</SheetTitle>
+            <a href="/Settings/Notifications" :title="t('notifications.sidebar.editSettingsTooltip')">
+              <Button
+                variant="ghost"
+                size="sm"
+                class="text-muted-foreground hover:text-foreground size-7 p-0"
+              >
+                <Settings class="h-4 w-4" />
+                <span class="sr-only">{{ t('notifications.sidebar.editSettingsTooltip') }}</span>
+              </Button>
+            </a>
+          </div>
         </SheetHeader>
         <Tabs
-          default-value="unread"
+          v-model="activeTab"
           class="flex min-h-0 flex-1 flex-col"
           :aria-label="t('notifications.sidebar.statusTabsAria')"
         >
-          <div class="flex flex-row flex-wrap items-center justify-between gap-3 px-3">
-            <TabsList class="flex" :aria-label="t('notifications.sidebar.statusTabsListAria')">
+          <div class="flex flex-row flex-wrap items-center justify-between gap-3 px-4">
+            <TabsList
+              class="bg-muted/50 flex gap-0.5 rounded-lg p-0.5"
+              :aria-label="t('notifications.sidebar.statusTabsListAria')"
+            >
+              <TabsTrigger v-if="hasActiveNotifications" value="active" as-child>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium data-[state=active]:shadow-sm"
+                >
+                  <span>{{ t('notifications.sidebar.activeTab') }}</span>
+                  <span
+                    class="rounded-full border border-orange-300 bg-orange-100 px-1.5 py-0.5 text-xs font-medium text-orange-700 tabular-nums dark:border-orange-500/40 dark:bg-orange-500/20 dark:text-orange-200"
+                    >{{ overview?.active.total }}</span
+                  >
+                </Button>
+              </TabsTrigger>
               <TabsTrigger value="unread" as-child>
-                <Button variant="ghost" size="sm" class="inline-flex items-center gap-1 px-3 py-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium data-[state=active]:shadow-sm"
+                >
                   <span>{{ t('notifications.sidebar.unreadTab') }}</span>
-                  <span v-if="overview" class="font-normal">({{ overview.unread.total }})</span>
+                  <span
+                    v-if="overview"
+                    class="bg-muted-foreground/15 rounded-full px-1.5 py-0.5 text-xs font-medium tabular-nums"
+                    >{{ overview.unread.total }}</span
+                  >
                 </Button>
               </TabsTrigger>
               <TabsTrigger value="archived" as-child>
-                <Button variant="ghost" size="sm" class="inline-flex items-center gap-1 px-3 py-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class="text-muted-foreground data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium data-[state=active]:shadow-sm"
+                >
                   <span>{{ t('notifications.sidebar.archivedTab') }}</span>
-                  <span v-if="overview" class="font-normal">({{ readArchivedCount }})</span>
+                  <span
+                    v-if="overview"
+                    class="bg-muted-foreground/15 rounded-full px-1.5 py-0.5 text-xs font-medium tabular-nums"
+                    >{{ readArchivedCount }}</span
+                  >
                 </Button>
               </TabsTrigger>
             </TabsList>
             <TabsContent value="unread" class="flex-col items-end">
               <Button
                 :disabled="loadingArchiveAll"
-                variant="link"
+                variant="ghost"
                 size="sm"
-                class="text-foreground hover:text-destructive transition-none"
+                class="text-muted-foreground hover:text-foreground inline-flex h-8 items-center gap-1.5 px-2 text-xs font-medium"
                 @click="confirmAndArchiveAll"
               >
+                <Archive class="h-4 w-4" />
                 {{ t('notifications.sidebar.archiveAllAction') }}
               </Button>
             </TabsContent>
             <TabsContent value="archived" class="flex-col items-end">
               <Button
                 :disabled="loadingDeleteAll"
-                variant="link"
+                variant="ghost"
                 size="sm"
-                class="text-foreground hover:text-destructive transition-none"
+                class="text-muted-foreground hover:text-destructive inline-flex h-8 items-center gap-1.5 px-2 text-xs font-medium"
                 @click="confirmAndDeleteArchives"
               >
+                <Trash2 class="h-4 w-4" />
                 {{ t('notifications.sidebar.deleteAllAction') }}
               </Button>
             </TabsContent>
           </div>
 
-          <div class="mt-3 flex items-start justify-between gap-3 px-3">
-            <div class="flex min-w-0 flex-1 flex-col gap-2">
+          <div class="border-border/60 mt-3 border-b px-4 pb-3">
+            <div class="overflow-x-auto">
               <div
-                class="border-border/60 bg-muted/60 flex flex-wrap items-center gap-1 rounded-xl border p-1"
+                class="border-border/60 bg-muted/60 inline-flex items-center gap-1 rounded-xl border p-1"
                 role="group"
               >
                 <Button
                   v-for="option in filterOptions"
-                  :key="option.value ?? 'all'"
+                  :key="option.value || 'all'"
                   variant="ghost"
                   size="sm"
                   class="h-8 rounded-lg border border-transparent px-3 text-xs font-medium transition-colors"
@@ -225,30 +312,18 @@ const prepareToViewNotifications = () => {
                 </Button>
               </div>
             </div>
-            <div class="shrink-0">
-              <TooltipProvider>
-                <Tooltip :delay-duration="0">
-                  <TooltipTrigger as-child>
-                    <a href="/Settings/Notifications">
-                      <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
-                        <Settings class="h-4 w-4" />
-                      </Button>
-                    </a>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{{ t('notifications.sidebar.editSettingsTooltip') }}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
           </div>
 
+          <TabsContent v-if="hasActiveNotifications" value="active" class="min-h-0 flex-1 flex-col">
+            <NotificationsList :importance="importance || undefined" :type="NotificationType.ACTIVE" />
+          </TabsContent>
+
           <TabsContent value="unread" class="min-h-0 flex-1 flex-col">
-            <NotificationsList :importance="importance" :type="NotificationType.UNREAD" />
+            <NotificationsList :importance="importance || undefined" :type="NotificationType.UNREAD" />
           </TabsContent>
 
           <TabsContent value="archived" class="min-h-0 flex-1 flex-col">
-            <NotificationsList :importance="importance" :type="NotificationType.ARCHIVE" />
+            <NotificationsList :importance="importance || undefined" :type="NotificationType.ARCHIVE" />
           </TabsContent>
         </Tabs>
       </div>

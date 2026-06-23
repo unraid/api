@@ -51,7 +51,7 @@ type Documents = {
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": typeof types.LogFilesDocument,
     "\n  query LogFileContent($path: String!, $lines: Int, $startLine: Int) {\n    logFile(path: $path, lines: $lines, startLine: $startLine) {\n      path\n      content\n      totalLines\n      startLine\n    }\n  }\n": typeof types.LogFileContentDocument,
     "\n  subscription LogFileSubscription($path: String!) {\n    logFile(path: $path) {\n      path\n      content\n      totalLines\n    }\n  }\n": typeof types.LogFileSubscriptionDocument,
-    "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    type\n    timestamp\n    formattedTimestamp\n  }\n": typeof types.NotificationFragmentFragmentDoc,
+    "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    persistent\n    type\n    timestamp\n    formattedTimestamp\n  }\n": typeof types.NotificationFragmentFragmentDoc,
     "\n  fragment NotificationCountFragment on NotificationCounts {\n    total\n    info\n    warning\n    alert\n  }\n": typeof types.NotificationCountFragmentFragmentDoc,
     "\n  query Notifications($filter: NotificationFilter!) {\n    notifications {\n      id\n      list(filter: $filter) {\n        ...NotificationFragment\n      }\n    }\n  }\n": typeof types.NotificationsDocument,
     "\n  query WarningAndAlertNotifications {\n    notifications {\n      id\n      warningsAndAlerts {\n        ...NotificationFragment\n      }\n    }\n  }\n": typeof types.WarningAndAlertNotificationsDocument,
@@ -59,11 +59,12 @@ type Documents = {
     "\n  mutation ArchiveAllNotifications {\n    archiveAll {\n      unread {\n        total\n      }\n      archive {\n        info\n        warning\n        alert\n        total\n      }\n    }\n  }\n": typeof types.ArchiveAllNotificationsDocument,
     "\n  mutation DeleteNotification($id: PrefixedID!, $type: NotificationType!) {\n    deleteNotification(id: $id, type: $type) {\n      archive {\n        total\n      }\n    }\n  }\n": typeof types.DeleteNotificationDocument,
     "\n  mutation DeleteAllNotifications {\n    deleteArchivedNotifications {\n      archive {\n        total\n      }\n      unread {\n        total\n      }\n    }\n  }\n": typeof types.DeleteAllNotificationsDocument,
-    "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n      }\n    }\n  }\n": typeof types.OverviewDocument,
+    "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n        active {\n          info\n          warning\n          alert\n          total\n        }\n      }\n    }\n  }\n": typeof types.OverviewDocument,
     "\n  mutation RecomputeOverview {\n    recalculateOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": typeof types.RecomputeOverviewDocument,
     "\n  mutation NotifyIfUnique($input: NotificationData!) {\n    notifyIfUnique(input: $input) {\n      ...NotificationFragment\n    }\n  }\n": typeof types.NotifyIfUniqueDocument,
+    "\n  mutation ReconcileBannerNotifications($currentGeneration: String!) {\n    reconcileBannerNotifications(currentGeneration: $currentGeneration) {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": typeof types.ReconcileBannerNotificationsDocument,
     "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n": typeof types.NotificationAddedSubDocument,
-    "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": typeof types.NotificationOverviewSubDocument,
+    "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n      active {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": typeof types.NotificationOverviewSubDocument,
     "\n  subscription NotificationsWarningsAndAlertsSub {\n    notificationsWarningsAndAlerts {\n      ...NotificationFragment\n    }\n  }\n": typeof types.NotificationsWarningsAndAlertsSubDocument,
     "\n  query GetAvailableLanguages {\n    customization {\n      availableLanguages {\n        code\n        name\n        url\n      }\n    }\n  }\n": typeof types.GetAvailableLanguagesDocument,
     "\n  mutation BypassOnboarding {\n    onboarding {\n      bypassOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": typeof types.BypassOnboardingDocument,
@@ -139,7 +140,7 @@ const documents: Documents = {
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": types.LogFilesDocument,
     "\n  query LogFileContent($path: String!, $lines: Int, $startLine: Int) {\n    logFile(path: $path, lines: $lines, startLine: $startLine) {\n      path\n      content\n      totalLines\n      startLine\n    }\n  }\n": types.LogFileContentDocument,
     "\n  subscription LogFileSubscription($path: String!) {\n    logFile(path: $path) {\n      path\n      content\n      totalLines\n    }\n  }\n": types.LogFileSubscriptionDocument,
-    "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    type\n    timestamp\n    formattedTimestamp\n  }\n": types.NotificationFragmentFragmentDoc,
+    "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    persistent\n    type\n    timestamp\n    formattedTimestamp\n  }\n": types.NotificationFragmentFragmentDoc,
     "\n  fragment NotificationCountFragment on NotificationCounts {\n    total\n    info\n    warning\n    alert\n  }\n": types.NotificationCountFragmentFragmentDoc,
     "\n  query Notifications($filter: NotificationFilter!) {\n    notifications {\n      id\n      list(filter: $filter) {\n        ...NotificationFragment\n      }\n    }\n  }\n": types.NotificationsDocument,
     "\n  query WarningAndAlertNotifications {\n    notifications {\n      id\n      warningsAndAlerts {\n        ...NotificationFragment\n      }\n    }\n  }\n": types.WarningAndAlertNotificationsDocument,
@@ -147,11 +148,12 @@ const documents: Documents = {
     "\n  mutation ArchiveAllNotifications {\n    archiveAll {\n      unread {\n        total\n      }\n      archive {\n        info\n        warning\n        alert\n        total\n      }\n    }\n  }\n": types.ArchiveAllNotificationsDocument,
     "\n  mutation DeleteNotification($id: PrefixedID!, $type: NotificationType!) {\n    deleteNotification(id: $id, type: $type) {\n      archive {\n        total\n      }\n    }\n  }\n": types.DeleteNotificationDocument,
     "\n  mutation DeleteAllNotifications {\n    deleteArchivedNotifications {\n      archive {\n        total\n      }\n      unread {\n        total\n      }\n    }\n  }\n": types.DeleteAllNotificationsDocument,
-    "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n      }\n    }\n  }\n": types.OverviewDocument,
+    "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n        active {\n          info\n          warning\n          alert\n          total\n        }\n      }\n    }\n  }\n": types.OverviewDocument,
     "\n  mutation RecomputeOverview {\n    recalculateOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": types.RecomputeOverviewDocument,
     "\n  mutation NotifyIfUnique($input: NotificationData!) {\n    notifyIfUnique(input: $input) {\n      ...NotificationFragment\n    }\n  }\n": types.NotifyIfUniqueDocument,
+    "\n  mutation ReconcileBannerNotifications($currentGeneration: String!) {\n    reconcileBannerNotifications(currentGeneration: $currentGeneration) {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": types.ReconcileBannerNotificationsDocument,
     "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n": types.NotificationAddedSubDocument,
-    "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": types.NotificationOverviewSubDocument,
+    "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n      active {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": types.NotificationOverviewSubDocument,
     "\n  subscription NotificationsWarningsAndAlertsSub {\n    notificationsWarningsAndAlerts {\n      ...NotificationFragment\n    }\n  }\n": types.NotificationsWarningsAndAlertsSubDocument,
     "\n  query GetAvailableLanguages {\n    customization {\n      availableLanguages {\n        code\n        name\n        url\n      }\n    }\n  }\n": types.GetAvailableLanguagesDocument,
     "\n  mutation BypassOnboarding {\n    onboarding {\n      bypassOnboarding {\n        status\n        completed\n        completedAtVersion\n        shouldOpen\n      }\n    }\n  }\n": types.BypassOnboardingDocument,
@@ -355,7 +357,7 @@ export function graphql(source: "\n  subscription LogFileSubscription($path: Str
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    type\n    timestamp\n    formattedTimestamp\n  }\n"): (typeof documents)["\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    type\n    timestamp\n    formattedTimestamp\n  }\n"];
+export function graphql(source: "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    persistent\n    type\n    timestamp\n    formattedTimestamp\n  }\n"): (typeof documents)["\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    persistent\n    type\n    timestamp\n    formattedTimestamp\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -387,7 +389,7 @@ export function graphql(source: "\n  mutation DeleteAllNotifications {\n    dele
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n        active {\n          info\n          warning\n          alert\n          total\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n        active {\n          info\n          warning\n          alert\n          total\n        }\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -399,11 +401,15 @@ export function graphql(source: "\n  mutation NotifyIfUnique($input: Notificatio
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  mutation ReconcileBannerNotifications($currentGeneration: String!) {\n    reconcileBannerNotifications(currentGeneration: $currentGeneration) {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation ReconcileBannerNotifications($currentGeneration: String!) {\n    reconcileBannerNotifications(currentGeneration: $currentGeneration) {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n"): (typeof documents)["\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n      active {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n      active {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
