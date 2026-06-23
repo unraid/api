@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.36.0](https://github.com/unraid/api/compare/v4.35.1...v4.36.0) (2026-06-23)
+
+
+### Features
+
+* add docker restart mutation ([#2022](https://github.com/unraid/api/issues/2022)) ([b58120c](https://github.com/unraid/api/commit/b58120ca1ef484b68d81dffd72d5a307fefca24f))
+
 ## [4.35.1](https://github.com/unraid/api/compare/v4.35.0...v4.35.1) (2026-06-18)
 
 
