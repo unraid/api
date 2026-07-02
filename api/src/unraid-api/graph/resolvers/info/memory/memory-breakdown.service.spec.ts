@@ -91,5 +91,23 @@ describe('MemoryBreakdownService', () => {
             expect(execaMock).toHaveBeenCalledTimes(1);
             expect(listContainersMock).toHaveBeenCalledTimes(1);
         });
+
+        it('reuses a single in-flight collection for concurrent callers', async () => {
+            readFileMock.mockResolvedValue('size 4 100\n');
+            execaMock.mockResolvedValue({ stdout: '' });
+            let resolveContainers: (value: unknown[]) => void = () => {};
+            listContainersMock.mockReturnValue(
+                new Promise((resolve) => {
+                    resolveContainers = resolve;
+                })
+            );
+
+            const first = service.getSources();
+            const second = service.getSources();
+            resolveContainers([]);
+            await Promise.all([first, second]);
+
+            expect(listContainersMock).toHaveBeenCalledTimes(1);
+        });
     });
 });

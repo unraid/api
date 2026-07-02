@@ -44,12 +44,23 @@ export class MemoryBreakdownService {
     private cache?: { expiresAt: number; sources: Promise<MemoryBreakdownSources> };
 
     async getSources(): Promise<MemoryBreakdownSources> {
-        const now = Date.now();
-        if (this.cache && this.cache.expiresAt > now) {
+        if (this.cache && this.cache.expiresAt > Date.now()) {
             return this.cache.sources;
         }
         const sources = this.collectSources();
-        this.cache = { expiresAt: now + MemoryBreakdownService.CACHE_TTL_MS, sources };
+        // Keep the in-flight promise cached so concurrent callers reuse it even
+        // if collection outlasts the TTL; start the TTL only once it settles.
+        const entry = { expiresAt: Number.POSITIVE_INFINITY, sources };
+        this.cache = entry;
+        sources
+            .then(() => {
+                if (this.cache === entry) {
+                    entry.expiresAt = Date.now() + MemoryBreakdownService.CACHE_TTL_MS;
+                }
+            })
+            .catch(() => {
+                if (this.cache === entry) this.cache = undefined;
+            });
         return sources;
     }
 

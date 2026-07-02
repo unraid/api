@@ -9,34 +9,22 @@ import { MemoryUtilization } from '@app/unraid-api/graph/resolvers/info/memory/m
 export class MemoryUtilizationResolver {
     constructor(private readonly breakdown: MemoryBreakdownService) {}
 
-    @ResolveField(() => GraphQLBigInt, {
-        nullable: true,
-        description: 'ZFS ARC cache memory in bytes',
-    })
+    @ResolveField(() => GraphQLBigInt, { nullable: true, name: 'zfsCache' })
     async zfsCache(): Promise<number | null> {
         return (await this.breakdown.getSources()).zfsCache;
     }
 
-    @ResolveField(() => GraphQLBigInt, {
-        nullable: true,
-        description: 'VM memory in bytes',
-    })
+    @ResolveField(() => GraphQLBigInt, { nullable: true, name: 'vm' })
     async vm(): Promise<number | null> {
         return (await this.breakdown.getSources()).vm;
     }
 
-    @ResolveField(() => GraphQLBigInt, {
-        nullable: true,
-        description: 'Docker memory in bytes',
-    })
+    @ResolveField(() => GraphQLBigInt, { nullable: true, name: 'docker' })
     async docker(): Promise<number | null> {
         return (await this.breakdown.getSources()).docker;
     }
 
-    @ResolveField(() => GraphQLBigInt, {
-        nullable: true,
-        description: 'System memory in bytes',
-    })
+    @ResolveField(() => GraphQLBigInt, { nullable: true, name: 'system' })
     async system(@Parent() memory: MemoryUtilization): Promise<number> {
         const { zfsCache, vm, docker } = await this.breakdown.getSources();
         const used = memory.total - memory.available;
