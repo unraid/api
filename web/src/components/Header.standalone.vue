@@ -150,8 +150,8 @@ const copyLanIp = async () => {
 
 <style scoped>
 /*
- * Compact mirror: version and status share the metadata row; logo and server
- * controls share the primary row.
+ * Compact mirror: logo and status share the top row; version and server
+ * controls share the bottom row.
  */
 .unraid-header-shell {
   display: grid;
@@ -171,15 +171,15 @@ const copyLanIp = async () => {
 
 .uh-logo {
   grid-column: 1;
-  grid-row: 2;
+  grid-row: 1;
   align-self: center;
   justify-self: start;
 }
 
 .uh-version {
   grid-column: 1;
-  grid-row: 1;
-  align-self: start;
+  grid-row: 2;
+  align-self: center;
   justify-self: start;
 }
 
