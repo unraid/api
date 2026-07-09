@@ -150,15 +150,15 @@ const copyLanIp = async () => {
 
 <style scoped>
 /*
- * Single-row overlay: each side anchors independently so logo height does not
- * affect the status/nav positions on the right.
+ * Single-row overlay: primary entries center vertically while metadata anchors
+ * independently to the top-right and bottom-left.
  */
 .unraid-header-shell {
   display: grid;
   column-gap: 0.75rem;
   align-items: stretch;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: minmax(max-content, 1fr);
 }
 
 .uh-meta-right {
@@ -171,9 +171,8 @@ const copyLanIp = async () => {
 .uh-logo {
   grid-column: 1;
   grid-row: 1;
-  align-self: start;
+  align-self: center;
   justify-self: start;
-  padding-top: 0.25rem;
 }
 
 .uh-version {
@@ -186,7 +185,7 @@ const copyLanIp = async () => {
 .uh-nav-right {
   grid-column: 2;
   grid-row: 1;
-  align-self: end;
+  align-self: center;
   justify-self: end;
 }
 </style>
