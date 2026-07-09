@@ -87,9 +87,9 @@ const copyLanIp = async () => {
       <HeaderVersion />
     </div>
 
-    <div class="uh-status relative z-10 flex max-w-full min-w-0 flex-col gap-y-1">
+    <div class="uh-status relative z-10 flex max-w-full min-w-0 flex-col items-end gap-y-1">
       <ArrayUsage v-if="showArrayUsage" />
-      <UpcServerStatus class="!items-start sm:!items-end" />
+      <UpcServerStatus />
     </div>
 
     <div
@@ -139,14 +139,16 @@ const copyLanIp = async () => {
 .unraid-header-grid {
   display: grid;
   column-gap: 1rem;
-  row-gap: 0.5rem;
+  row-gap: 0.25rem;
   align-items: center;
+  /* Narrowest: logo + account controls on the top row, the uptime/license status
+     lifted just under them, then version and name dropped down below. */
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    'logo actions'
-    'meta meta'
+    'logo   actions'
     'status status'
-    'name name';
+    'meta   meta'
+    'name   name';
 }
 
 .uh-logo {
@@ -157,7 +159,7 @@ const copyLanIp = async () => {
 }
 .uh-status {
   grid-area: status;
-  justify-self: start;
+  justify-self: end;
 }
 .uh-name {
   grid-area: name;
@@ -168,19 +170,15 @@ const copyLanIp = async () => {
   justify-self: end;
 }
 
-@media (min-width: 640px) {
+/* Once there is horizontal room, the status shares the top row with the logo and
+   account controls; version and name stay dropped down. */
+@media (min-width: 480px) {
   .unraid-header-grid {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
-      'logo status status'
-      'meta name actions';
-  }
-
-  .uh-status {
-    justify-self: end;
-  }
-  .uh-name {
-    justify-self: end;
+      'logo status actions'
+      'meta meta   meta'
+      'name name   name';
   }
 }
 </style>
