@@ -174,12 +174,13 @@ const copyLanIp = async () => {
   grid-row: 1;
   align-self: center;
   justify-self: start;
+  padding-top: 0.25rem;
 }
 
 .uh-version {
   grid-column: 1;
   grid-row: 2;
-  align-self: center;
+  align-self: start;
   justify-self: start;
 }
 
