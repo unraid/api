@@ -96,6 +96,7 @@ const initialServerData: Server = {
 // layout composition, which is what these tests exercise.
 const stubs = {
   HeaderVersion: { template: '<div data-testid="header-version"></div>' },
+  ArrayUsage: { template: '<div data-testid="array-usage"></div>' },
   UpcServerStatus: {
     template: '<div data-testid="server-status"></div>',
     props: ['class'],
@@ -212,6 +213,17 @@ describe('Header.standalone.vue', () => {
     // logo/version area (the root cause of the old mobile overlap).
     expect(cls).not.toContain('absolute');
     expect(root.find('.absolute:not(.unraid-banner-gradient-layer)').exists()).toBe(false);
+  });
+
+  it('hides the array-usage bar by default and shows it when enabled', async () => {
+    expect(wrapper.find('[data-testid="array-usage"]').exists()).toBe(false);
+
+    const withUsage = mount(Header, {
+      props: { server: JSON.stringify(initialServerData), showArrayUsage: 'true' },
+      global: { plugins: [pinia], stubs },
+    });
+    expect(withUsage.find('[data-testid="array-usage"]').exists()).toBe(true);
+    withUsage.unmount();
   });
 
   it('copies the LAN IP when the server name is clicked', async () => {
