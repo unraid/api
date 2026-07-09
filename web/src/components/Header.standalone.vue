@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 
 import { Button, DropdownMenu } from '@unraid/ui';
 
+import type { HeaderLogoStyle } from '~/themes/types';
 import type { Server } from '~/types/server';
 
 import ArrayUsage from '~/components/Header/ArrayUsage.vue';
@@ -44,6 +45,11 @@ export interface Props {
    * arrive as strings, so accept both.
    */
   showArrayUsage?: boolean | string;
+  /**
+   * Header logo rendering style from WebGUI display settings. The empty string
+   * is the persisted default and maps to the gradient logo.
+   */
+  headerLogoStyle?: HeaderLogoStyle | string;
 }
 const props = defineProps<Props>();
 
@@ -63,6 +69,9 @@ const description = computed(() => serverStore.description);
 const lanIp = computed(() => serverStore.lanIp);
 const bannerGradient = computed(() => themeStore.bannerGradient);
 const theme = computed(() => themeStore.theme);
+const logoStyle = computed<HeaderLogoStyle>(() =>
+  props.headerLogoStyle === 'theme' ? 'theme' : 'gradient'
+);
 
 const dropdownOpen = ref(false);
 
@@ -92,7 +101,7 @@ const copyLanIp = async () => {
     </div>
 
     <div class="uh-left relative z-10 flex min-w-0 flex-col items-start justify-center gap-y-1">
-      <HeaderLogo />
+      <HeaderLogo :logo-style="logoStyle" />
       <div class="uh-version flex max-w-full min-w-0 flex-col">
         <HeaderVersion />
       </div>
@@ -164,10 +173,6 @@ const copyLanIp = async () => {
 .uh-left {
   grid-area: left;
   justify-self: start;
-}
-
-.uh-version {
-  padding-left: 0.375rem;
 }
 
 .uh-nav-right {
