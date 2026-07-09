@@ -200,18 +200,19 @@ describe('Header.standalone.vue', () => {
     );
   });
 
-  it('lays out as a flow container that stacks on mobile and rows on desktop (no overlap)', () => {
+  it('lays out on a responsive grid with each region in its own area (no overlap)', () => {
     const root = wrapper.get('#UnraidHeader');
-    const cls = root.classes();
-    // Mobile-first: vertical stack so the reboot banner, title, and bell never collide.
-    expect(cls).toContain('flex');
-    expect(cls).toContain('flex-col');
-    // Desktop: switch to a row with the two clusters pushed apart.
-    expect(cls).toContain('sm:flex-row');
-    expect(cls).toContain('sm:justify-between');
-    // The consolidated header must not absolutely-position a cluster over the
-    // logo/version area (the root cause of the old mobile overlap).
-    expect(cls).not.toContain('absolute');
+    // A single grid owns the responsive layout (breakpoints live in scoped CSS).
+    expect(root.classes()).toContain('unraid-header-grid');
+    // Every header region is placed in its own grid area, so nothing is absolutely
+    // positioned on top of anything else (the root cause of the old mobile overlap).
+    expect(root.find('.uh-logo').exists()).toBe(true);
+    expect(root.find('.uh-meta').exists()).toBe(true);
+    expect(root.find('.uh-status').exists()).toBe(true);
+    expect(root.find('.uh-name').exists()).toBe(true);
+    expect(root.find('.uh-actions').exists()).toBe(true);
+    // The only absolutely-positioned element allowed is the banner gradient layer.
+    expect(root.classes()).not.toContain('absolute');
     expect(root.find('.absolute:not(.unraid-banner-gradient-layer)').exists()).toBe(false);
   });
 

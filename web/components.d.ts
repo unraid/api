@@ -80,6 +80,7 @@ declare module 'vue' {
     FilteredLogModal: typeof import('./src/components/Logs/FilteredLogModal.vue')['default']
     'Header.standalone': typeof import('./src/components/Header.standalone.vue')['default']
     HeaderContent: typeof import('./src/components/Docker/HeaderContent.vue')['default']
+    HeaderLogo: typeof import('./src/components/Header/HeaderLogo.vue')['default']
     'HeaderOsVersion.standalone': typeof import('./src/components/HeaderOsVersion.standalone.vue')['default']
     HeaderVersion: typeof import('./src/components/Header/HeaderVersion.vue')['default']
     IgnoredRelease: typeof import('./src/components/UpdateOs/IgnoredRelease.vue')['default']
