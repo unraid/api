@@ -77,100 +77,80 @@ const copyLanIp = async () => {
 <template>
   <div
     id="UnraidHeader"
-    class="unraid-header-grid text-foreground relative z-20 w-full max-w-full px-2 py-1"
+    class="unraid-header-shell text-foreground relative z-20 w-full max-w-full px-2 py-1"
   >
     <div
       v-if="bannerGradient"
       class="unraid-banner-gradient-layer pointer-events-none absolute inset-0 z-0"
     />
 
-    <HeaderLogo class="uh-logo relative z-10" />
-
-    <div class="uh-meta relative z-10 flex max-w-full min-w-0 flex-col">
-      <HeaderVersion />
+    <div class="uh-left relative z-10 flex min-w-0 flex-col items-start justify-between gap-y-1">
+      <HeaderLogo />
+      <div class="flex max-w-full min-w-0 flex-col">
+        <HeaderVersion />
+      </div>
     </div>
 
-    <div class="uh-status relative z-10 flex max-w-full min-w-0 flex-col items-end gap-y-1">
-      <ArrayUsage v-if="showArrayUsage" />
-      <UpcServerStatus />
-    </div>
-
-    <div class="uh-controls relative z-10 flex min-w-0 flex-row items-center justify-end gap-x-1">
-      <div
-        class="uh-name text-header-text-primary relative flex min-w-0 flex-row items-center border-0 text-base"
-      >
-        <template v-if="description && theme?.descriptionShow">
-          <span
-            class="hidden truncate text-right text-base md:!inline-flex md:!items-center"
-            v-html="description"
-          />
-          <span class="text-header-text-secondary hidden px-2 md:!inline-flex md:!items-center"
-            >&bull;</span
-          >
-        </template>
-        <Button
-          v-if="lanIp"
-          variant="ghost"
-          :title="t('userProfile.clickToCopyLanIp', [lanIp])"
-          class="text-header-text-primary flex h-auto min-w-0 items-center truncate p-0 text-base opacity-100 transition-opacity hover:opacity-75 focus:opacity-75"
-          @click="copyLanIp()"
-        >
-          {{ name }}
-        </Button>
-        <span v-else class="text-header-text-primary xs:text-base flex items-center truncate text-sm">
-          {{ name }}
-        </span>
+    <div class="uh-right relative z-10 flex min-w-0 flex-col items-end justify-between gap-y-0.5">
+      <div class="uh-status flex max-w-full min-w-0 flex-col items-end gap-y-1 text-right">
+        <ArrayUsage v-if="showArrayUsage" />
+        <UpcServerStatus />
       </div>
 
-      <NotificationsSidebar />
+      <div class="uh-controls flex min-w-0 flex-row items-center justify-end gap-x-1">
+        <div
+          class="uh-name text-header-text-primary relative flex min-w-0 flex-row items-center border-0 text-base"
+        >
+          <template v-if="description && theme?.descriptionShow">
+            <span
+              class="hidden truncate text-right text-base md:!inline-flex md:!items-center"
+              v-html="description"
+            />
+            <span class="text-header-text-secondary hidden px-2 md:!inline-flex md:!items-center"
+              >&bull;</span
+            >
+          </template>
+          <Button
+            v-if="lanIp"
+            variant="ghost"
+            :title="t('userProfile.clickToCopyLanIp', [lanIp])"
+            class="text-header-text-primary flex h-auto min-w-0 items-center truncate p-0 text-base opacity-100 transition-opacity hover:opacity-75 focus:opacity-75"
+            @click="copyLanIp()"
+          >
+            {{ name }}
+          </Button>
+          <span v-else class="text-header-text-primary xs:text-base flex items-center truncate text-sm">
+            {{ name }}
+          </span>
+        </div>
 
-      <DropdownMenu v-model:open="dropdownOpen" align="end" side="bottom" :side-offset="4">
-        <template #trigger>
-          <UpcDropdownTrigger />
-        </template>
-        <template #content>
-          <div class="max-w-[350px] sm:min-w-[350px]">
-            <UpcDropdownContent @close-dropdown="dropdownOpen = false" />
-          </div>
-        </template>
-      </DropdownMenu>
+        <NotificationsSidebar />
+
+        <DropdownMenu v-model:open="dropdownOpen" align="end" side="bottom" :side-offset="4">
+          <template #trigger>
+            <UpcDropdownTrigger />
+          </template>
+          <template #content>
+            <div class="max-w-[350px] sm:min-w-[350px]">
+              <UpcDropdownContent @close-dropdown="dropdownOpen = false" />
+            </div>
+          </template>
+        </DropdownMenu>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 /*
- * Mirrors the desktop header at every size and reflows responsively:
- *   logo (top-left)          status: uptime + license (top-right)
- *   version (bottom-left)    name + notifications + account menu (bottom-right)
- *
- * The logo column is minmax(0, 1fr) and the logo image is max-w-full, so on narrow
- * screens the logo shrinks to keep everything on the two rows instead of
- * overflowing.
+ * Two independent columns keep the header close to the legacy desktop model while
+ * still allowing each side to stack internally on narrow screens:
+ *   logo + version        status + controls
  */
-.unraid-header-grid {
+.unraid-header-shell {
   display: grid;
   column-gap: 0.75rem;
-  row-gap: 0;
-  align-items: center;
+  align-items: stretch;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    'logo status'
-    'meta controls';
-}
-
-.uh-logo {
-  grid-area: logo;
-}
-.uh-meta {
-  grid-area: meta;
-}
-.uh-status {
-  grid-area: status;
-  justify-self: end;
-}
-.uh-controls {
-  grid-area: controls;
-  justify-self: end;
 }
 </style>
