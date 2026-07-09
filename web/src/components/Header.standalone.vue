@@ -150,15 +150,16 @@ const copyLanIp = async () => {
 
 <style scoped>
 /*
- * Three vertical bands: status pulls to the top-right, version pulls to the
- * bottom-left, and the logo/nav groups are centered in the remaining middle.
+ * Compact mirror: version and status share the metadata row; logo and server
+ * controls share the primary row.
  */
 .unraid-header-shell {
   display: grid;
   column-gap: 0.75rem;
+  row-gap: 0.25rem;
   align-items: stretch;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
 }
 
 .uh-meta-right {
@@ -177,8 +178,8 @@ const copyLanIp = async () => {
 
 .uh-version {
   grid-column: 1;
-  grid-row: 3;
-  align-self: end;
+  grid-row: 1;
+  align-self: start;
   justify-self: start;
 }
 
