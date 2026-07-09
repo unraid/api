@@ -84,10 +84,7 @@ const copyLanIp = async () => {
 </script>
 
 <template>
-  <div
-    id="UnraidHeader"
-    class="unraid-header-shell text-foreground relative z-20 w-full max-w-full px-2 py-1"
-  >
+  <div id="UnraidHeader" class="unraid-header-shell text-foreground relative z-20 w-full max-w-full">
     <div
       v-if="bannerGradient"
       class="unraid-banner-gradient-layer pointer-events-none absolute inset-0 z-0"
