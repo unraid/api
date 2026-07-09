@@ -75,7 +75,10 @@ const copyLanIp = async () => {
 </script>
 
 <template>
-  <div id="UnraidHeader" class="unraid-header-grid text-foreground relative z-20 w-full max-w-full p-2">
+  <div
+    id="UnraidHeader"
+    class="unraid-header-grid text-foreground relative z-20 w-full max-w-full px-2 py-1"
+  >
     <div
       v-if="bannerGradient"
       class="unraid-banner-gradient-layer pointer-events-none absolute inset-0 z-0"
@@ -92,33 +95,33 @@ const copyLanIp = async () => {
       <UpcServerStatus />
     </div>
 
-    <div
-      class="uh-name text-header-text-primary relative z-10 flex min-w-0 flex-row items-center border-0 text-base"
-    >
-      <template v-if="description && theme?.descriptionShow">
-        <span
-          class="hidden truncate text-right text-base md:!inline-flex md:!items-center"
-          v-html="description"
-        />
-        <span class="text-header-text-secondary hidden px-2 md:!inline-flex md:!items-center"
-          >&bull;</span
-        >
-      </template>
-      <Button
-        v-if="lanIp"
-        variant="ghost"
-        :title="t('userProfile.clickToCopyLanIp', [lanIp])"
-        class="text-header-text-primary flex h-auto min-w-0 items-center truncate p-0 text-base opacity-100 transition-opacity hover:opacity-75 focus:opacity-75"
-        @click="copyLanIp()"
+    <div class="uh-controls relative z-10 flex min-w-0 flex-row items-center justify-end gap-x-1">
+      <div
+        class="uh-name text-header-text-primary relative flex min-w-0 flex-row items-center border-0 text-base"
       >
-        {{ name }}
-      </Button>
-      <span v-else class="text-header-text-primary xs:text-base flex items-center truncate text-sm">
-        {{ name }}
-      </span>
-    </div>
+        <template v-if="description && theme?.descriptionShow">
+          <span
+            class="hidden truncate text-right text-base md:!inline-flex md:!items-center"
+            v-html="description"
+          />
+          <span class="text-header-text-secondary hidden px-2 md:!inline-flex md:!items-center"
+            >&bull;</span
+          >
+        </template>
+        <Button
+          v-if="lanIp"
+          variant="ghost"
+          :title="t('userProfile.clickToCopyLanIp', [lanIp])"
+          class="text-header-text-primary flex h-auto min-w-0 items-center truncate p-0 text-base opacity-100 transition-opacity hover:opacity-75 focus:opacity-75"
+          @click="copyLanIp()"
+        >
+          {{ name }}
+        </Button>
+        <span v-else class="text-header-text-primary xs:text-base flex items-center truncate text-sm">
+          {{ name }}
+        </span>
+      </div>
 
-    <div class="uh-actions relative z-10 flex flex-row items-center gap-x-2">
       <NotificationsSidebar />
 
       <DropdownMenu v-model:open="dropdownOpen" align="end" side="bottom" :side-offset="4">
@@ -147,13 +150,13 @@ const copyLanIp = async () => {
  */
 .unraid-header-grid {
   display: grid;
-  column-gap: 1rem;
-  row-gap: 0.25rem;
+  column-gap: 0.75rem;
+  row-gap: 0;
   align-items: center;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    'logo status status'
-    'meta name   actions';
+    'logo status'
+    'meta controls';
 }
 
 .uh-logo {
@@ -166,12 +169,8 @@ const copyLanIp = async () => {
   grid-area: status;
   justify-self: end;
 }
-.uh-name {
-  grid-area: name;
-  justify-self: end;
-}
-.uh-actions {
-  grid-area: actions;
+.uh-controls {
+  grid-area: controls;
   justify-self: end;
 }
 </style>
