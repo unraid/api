@@ -97,11 +97,12 @@ const copyLanIp = async () => {
       <UpcServerStatus />
     </div>
 
-    <div class="uh-left relative z-10 flex min-w-0 flex-col items-start justify-center gap-y-1">
+    <div class="uh-logo relative z-10 flex min-w-0 items-center justify-start">
       <HeaderLogo :logo-style="logoStyle" />
-      <div class="uh-version flex max-w-full min-w-0 flex-col">
-        <HeaderVersion />
-      </div>
+    </div>
+
+    <div class="uh-version relative z-10 flex max-w-full min-w-0 flex-col items-start justify-center">
+      <HeaderVersion />
     </div>
 
     <div class="uh-nav-right relative z-10 flex min-w-0 flex-row items-center justify-end gap-x-1">
@@ -149,17 +150,18 @@ const copyLanIp = async () => {
 
 <style scoped>
 /*
- * Two columns: the left side owns logo + version; the right side pins status to
- * the top while keeping server name and controls centered against the nav area.
+ * Two columns: the top row centers the logo vertically while status stays top
+ * right; the bottom row pulls the version down alongside server name/actions.
  */
 .unraid-header-shell {
   display: grid;
   column-gap: 0.75rem;
   align-items: stretch;
   grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(max-content, 1fr) auto;
   grid-template-areas:
-    'left meta-right'
-    'left nav-right';
+    'logo meta-right'
+    'version nav-right';
 }
 
 .uh-meta-right {
@@ -167,8 +169,14 @@ const copyLanIp = async () => {
   justify-self: end;
 }
 
-.uh-left {
-  grid-area: left;
+.uh-logo {
+  grid-area: logo;
+  align-self: stretch;
+  justify-self: start;
+}
+
+.uh-version {
+  grid-area: version;
   justify-self: start;
 }
 
