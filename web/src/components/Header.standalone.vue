@@ -136,19 +136,24 @@ const copyLanIp = async () => {
 </template>
 
 <style scoped>
+/*
+ * Mirrors the desktop header at every size and reflows responsively:
+ *   logo (top-left)          status: uptime + license (top-right)
+ *   version (bottom-left)    name + notifications + account menu (bottom-right)
+ *
+ * The logo column is minmax(0, 1fr) and the logo image is max-w-full, so on narrow
+ * screens the logo shrinks to keep everything on the two rows instead of
+ * overflowing.
+ */
 .unraid-header-grid {
   display: grid;
   column-gap: 1rem;
   row-gap: 0.25rem;
   align-items: center;
-  /* Narrowest: logo + account controls on the top row, the uptime/license status
-     lifted just under them, then version and name dropped down below. */
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   grid-template-areas:
-    'logo   actions'
-    'status status'
-    'meta   meta'
-    'name   name';
+    'logo status status'
+    'meta name   actions';
 }
 
 .uh-logo {
@@ -163,22 +168,10 @@ const copyLanIp = async () => {
 }
 .uh-name {
   grid-area: name;
-  justify-self: start;
+  justify-self: end;
 }
 .uh-actions {
   grid-area: actions;
   justify-self: end;
-}
-
-/* Once there is horizontal room, the status shares the top row with the logo and
-   account controls; version and name stay dropped down. */
-@media (min-width: 480px) {
-  .unraid-header-grid {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      'logo status actions'
-      'meta meta   meta'
-      'name name   name';
-  }
 }
 </style>

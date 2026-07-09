@@ -25,10 +25,11 @@ const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => ({
     target="_blank"
     rel="noopener"
     :aria-label="unraidLogoHeaderLink.title"
+    class="block max-w-full min-w-0"
   >
     <img
       :src="'/webGui/images/UN-logotype-gradient.svg'"
-      class="xs:w-[16rem] h-auto max-h-[3rem] w-[14rem] object-contain"
+      class="xs:w-[16rem] h-auto max-h-[3rem] w-[14rem] max-w-full object-contain"
       alt="Unraid Logo"
     />
   </a>
