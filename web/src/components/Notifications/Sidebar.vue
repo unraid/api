@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
@@ -139,10 +139,30 @@ const readArchivedCount = computed(() => {
 const prepareToViewNotifications = () => {
   void recalculateOverview();
 };
+
+// Defer mounting the (heavy) tab/list body until the panel has started its open
+// animation. The slide is a compositor transform, but the panel's FIRST paint must
+// finish before it can show — keeping that first paint cheap (header only) lets the
+// slide start immediately instead of hitching while the notification lists mount.
+const open = ref(false);
+const bodyMounted = ref(false);
+watch(open, (isOpen) => {
+  if (isOpen) {
+    bodyMounted.value = false;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (open.value) bodyMounted.value = true;
+      })
+    );
+  }
+  // On close, keep the body mounted so it stays visible during the exit slide; reka
+  // unmounts the whole SheetContent (and the body with it) once the exit animation
+  // finishes.
+});
 </script>
 
 <template>
-  <Sheet>
+  <Sheet v-model:open="open">
     <SheetTrigger as-child>
       <Button variant="header" size="header" @click="prepareToViewNotifications">
         <span class="sr-only">{{ t('notifications.sidebar.openButtonSr') }}</span>
@@ -158,6 +178,7 @@ const prepareToViewNotifications = () => {
           <SheetTitle class="text-2xl">{{ t('notifications.sidebar.title') }}</SheetTitle>
         </SheetHeader>
         <Tabs
+          v-if="bodyMounted"
           default-value="unread"
           class="flex min-h-0 flex-1 flex-col"
           :aria-label="t('notifications.sidebar.statusTabsAria')"
