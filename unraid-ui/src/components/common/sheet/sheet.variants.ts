@@ -2,7 +2,12 @@ import type { VariantProps } from 'class-variance-authority';
 import { cva } from 'class-variance-authority';
 
 export const sheetVariants = cva(
-  'fixed z-50 bg-background gap-4 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500 border-border',
+  // Animate ONLY via the transform/opacity keyframes (animate-in/out). The panel is
+  // promoted to its own compositor layer (will-change-transform) so the slide runs
+  // off the main thread and is not stalled by the panel's contents mounting. We do
+  // NOT add a blanket `transition` here: it would transition every property
+  // (box-shadow, filter, …) alongside the keyframe and cause per-frame repaints.
+  'fixed z-50 bg-background gap-4 shadow-lg border-border will-change-transform data-[state=open]:animate-in data-[state=open]:duration-300 data-[state=open]:ease-out data-[state=closed]:animate-out data-[state=closed]:duration-200 data-[state=closed]:ease-in',
   {
     variants: {
       side: {
