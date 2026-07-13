@@ -203,14 +203,14 @@ describe('Header.standalone.vue', () => {
   it('lays out on a responsive grid with each region in its own area (no overlap)', () => {
     const root = wrapper.get('#UnraidHeader');
     // A single grid owns the responsive layout (breakpoints live in scoped CSS).
-    expect(root.classes()).toContain('unraid-header-grid');
+    expect(root.classes()).toContain('unraid-header-shell');
     // Every header region is placed in its own grid area, so nothing is absolutely
     // positioned on top of anything else (the root cause of the old mobile overlap).
     expect(root.find('.uh-logo').exists()).toBe(true);
-    expect(root.find('.uh-meta').exists()).toBe(true);
-    expect(root.find('.uh-status').exists()).toBe(true);
+    expect(root.find('.uh-version').exists()).toBe(true);
+    expect(root.find('.uh-meta-right').exists()).toBe(true);
+    expect(root.find('.uh-nav-right').exists()).toBe(true);
     expect(root.find('.uh-name').exists()).toBe(true);
-    expect(root.find('.uh-actions').exists()).toBe(true);
     // The only absolutely-positioned element allowed is the banner gradient layer.
     expect(root.classes()).not.toContain('absolute');
     expect(root.find('.absolute:not(.unraid-banner-gradient-layer)').exists()).toBe(false);
