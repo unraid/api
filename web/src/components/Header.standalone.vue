@@ -157,22 +157,6 @@ const copyLanIp = async () => {
   align-items: stretch;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: auto minmax(max-content, 1fr) auto;
-  /* The web component mounts client-side after its module bundle loads, so the
-     header content would otherwise snap in. This shell element is only created
-     when Vue mounts, so a one-shot fade-in on insertion softens that pop-in. */
-  animation: uh-header-fade-in 180ms ease-out both;
-}
-
-@keyframes uh-header-fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .unraid-header-shell {
-    animation: none;
-  }
 }
 
 .uh-meta-right {
