@@ -67,7 +67,6 @@ const showArrayUsage = computed(
 const name = computed(() => serverStore.name);
 const description = computed(() => serverStore.description);
 const lanIp = computed(() => serverStore.lanIp);
-const bannerGradient = computed(() => themeStore.bannerGradient);
 const theme = computed(() => themeStore.theme);
 const logoStyle = computed<HeaderLogoStyle>(() =>
   props.headerLogoStyle === 'theme' ? 'theme' : 'gradient'
@@ -85,11 +84,6 @@ const copyLanIp = async () => {
 
 <template>
   <div id="UnraidHeader" class="unraid-header-shell text-foreground relative z-20 w-full max-w-full">
-    <div
-      v-if="bannerGradient"
-      class="unraid-banner-gradient-layer pointer-events-none absolute inset-0 z-0"
-    />
-
     <div class="uh-meta-right relative z-10 flex max-w-full min-w-0 flex-col items-end gap-y-1 text-end">
       <ArrayUsage v-if="showArrayUsage" />
       <UpcServerStatus />
