@@ -33,13 +33,30 @@ jobs:
           script: |
             const workflowRun = context.payload.workflow_run;
             const runId = workflowRun.id;
+            const headSha = workflowRun.head_sha;
+
+            // Same-repo PRs populate this directly.
             let prNumber = workflowRun.pull_requests?.[0]?.number;
 
+            // Fork PRs leave pull_requests empty. Match the run's head commit
+            // against open PRs; pr.head.sha is the fork commit, so this works
+            // across repositories where the commits API cannot.
+            if (!prNumber) {
+              const pulls = await github.paginate(github.rest.pulls.list, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                per_page: 100,
+              });
+              prNumber = pulls.find((pr) => pr.head.sha === headSha)?.number;
+            }
+
+            // Last resort: only finds same-repo commits.
             if (!prNumber) {
               const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                commit_sha: workflowRun.head_sha,
+                commit_sha: headSha,
               });
               prNumber = prs.data[0]?.number;
             }
