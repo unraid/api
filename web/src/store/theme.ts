@@ -68,6 +68,15 @@ const applyDarkClass = (isDark: boolean, darkModeRef?: { value: boolean }) => {
   }
 };
 
+// Drives the `#header.image::before` edge gradient (see main.css). Without this
+// class the header falls back to a full-coverage gradient overlay that hides the
+// banner image; with it, the gradient only fades the left/right edges so the
+// banner image stays visible in the middle.
+const syncBannerGradientClass = (hasGradient: boolean) => {
+  if (!isDomAvailable()) return;
+  document.documentElement.classList[hasGradient ? 'add' : 'remove']('has-banner-gradient');
+};
+
 const bootstrapDarkClass = (darkModeRef?: { value: boolean }) => {
   if (isDarkModeActive()) {
     applyDarkClass(true, darkModeRef);
@@ -209,6 +218,9 @@ export const useThemeStore = defineStore('theme', () => {
     },
     { immediate: false }
   );
+
+  // Toggle the edge-gradient class whenever banner-gradient eligibility changes.
+  watch(bannerGradient, (hasGradient) => syncBannerGradientClass(hasGradient), { immediate: true });
 
   // Initialize theme from DOM on store creation
   const domThemeName = readDomThemeName();
