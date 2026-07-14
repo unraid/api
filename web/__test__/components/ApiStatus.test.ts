@@ -12,6 +12,8 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import ApiStatus from '~/components/ApiStatus/ApiStatus.vue';
+
 const mockWebguiUnraidApiCommand = vi.fn();
 
 vi.mock('~/composables/services/webgui', () => ({
@@ -22,8 +24,6 @@ const mockServerStore = { csrf: '' };
 vi.mock('~/store/server', () => ({
   useServerStore: () => mockServerStore,
 }));
-
-import ApiStatus from '~/components/ApiStatus/ApiStatus.vue';
 
 const mountComponent = () =>
   mount(ApiStatus, {
