@@ -90,9 +90,7 @@ const copyLanIp = async () => {
       class="unraid-banner-gradient-layer pointer-events-none absolute inset-0 z-0"
     />
 
-    <div
-      class="uh-meta-right relative z-10 flex max-w-full min-w-0 flex-col items-end gap-y-1 text-right"
-    >
+    <div class="uh-meta-right relative z-10 flex max-w-full min-w-0 flex-col items-end gap-y-1 text-end">
       <ArrayUsage v-if="showArrayUsage" />
       <UpcServerStatus />
     </div>
@@ -111,7 +109,7 @@ const copyLanIp = async () => {
       >
         <template v-if="description && theme?.descriptionShow">
           <span
-            class="hidden truncate text-right text-base md:!inline-flex md:!items-center"
+            class="hidden truncate text-end text-base md:!inline-flex md:!items-center"
             v-html="description"
           />
           <span class="text-header-text-secondary hidden px-2 md:!inline-flex md:!items-center"

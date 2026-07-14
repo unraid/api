@@ -31,7 +31,7 @@ const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => ({
     target="_blank"
     rel="noopener"
     :aria-label="unraidLogoHeaderLink.title"
-    class="block max-w-full min-w-0"
+    class="flex max-w-full min-w-0"
   >
     <svg
       v-if="logoStyle === 'theme'"
