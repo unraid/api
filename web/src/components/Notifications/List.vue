@@ -58,6 +58,10 @@ const notifications = computed(() => {
   return list.filter((n) => n.type === props.type);
 });
 
+// Each tab reads a single store (active / unread / archive), so the list is already
+// homogeneous and in the API's latest-first order — no client-side filtering or sort.
+const displayNotifications = computed(() => notifications.value);
+
 const { t } = useI18n();
 
 // saves timestamp of latest visible notification to local storage
@@ -106,6 +110,53 @@ const importanceLabel = computed(() => {
   }
 });
 
+// Dismiss/leave animation: the card slides out to the right while collapsing its
+// own vertical space (height + margins + padding + borders), so the cards below
+// flow up as a single continuous motion instead of jumping after the fact.
+const prefersReducedMotion =
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+function onLeave(el: Element, done: () => void) {
+  if (prefersReducedMotion || !(el instanceof HTMLElement)) {
+    done();
+    return;
+  }
+  const node = el;
+  const cs = getComputedStyle(node);
+  node.style.overflow = 'hidden';
+  node.style.boxSizing = 'border-box';
+  const animation = node.animate(
+    [
+      {
+        opacity: 1,
+        transform: 'translateX(0)',
+        height: `${node.offsetHeight}px`,
+        marginTop: cs.marginTop,
+        marginBottom: cs.marginBottom,
+        paddingTop: cs.paddingTop,
+        paddingBottom: cs.paddingBottom,
+        borderTopWidth: cs.borderTopWidth,
+        borderBottomWidth: cs.borderBottomWidth,
+      },
+      { opacity: 0, transform: 'translateX(2rem)', offset: 0.55 },
+      {
+        opacity: 0,
+        transform: 'translateX(2rem)',
+        height: '0px',
+        marginTop: '0px',
+        marginBottom: '0px',
+        paddingTop: '0px',
+        paddingBottom: '0px',
+        borderTopWidth: '0px',
+        borderBottomWidth: '0px',
+      },
+    ],
+    { duration: 340, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }
+  );
+  animation.onfinish = done;
+  animation.oncancel = done;
+}
+
 const noNotificationsMessage = computed(() => {
   if (!props.importance) {
     return t('notifications.list.noNotifications');
@@ -118,22 +169,13 @@ const noNotificationsMessage = computed(() => {
 
 <template>
   <div
-    v-if="notifications?.length > 0"
+    v-if="displayNotifications.length > 0"
     v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
-    class="flex min-h-0 flex-1 flex-col overflow-y-scroll px-3"
+    class="flex min-h-0 flex-1 flex-col overflow-y-scroll px-4"
   >
-    <TransitionGroup
-      name="notification-list"
-      tag="div"
-      class="divide-y"
-      enter-active-class="transition-all duration-300 ease-out"
-      leave-active-class="transition-all duration-300 ease-in absolute right-0 left-0"
-      enter-from-class="opacity-0 -translate-x-4"
-      leave-to-class="opacity-0 translate-x-4"
-      move-class="transition-transform duration-300"
-    >
+    <TransitionGroup name="notification-list" tag="div" class="flex flex-col" @leave="onLeave">
       <NotificationsItem
-        v-for="notification in notifications"
+        v-for="notification in displayNotifications"
         :key="notification.id"
         v-bind="notification"
       />
@@ -147,9 +189,33 @@ const noNotificationsMessage = computed(() => {
   </div>
 
   <LoadingError v-else :loading="loading" :error="offlineError ?? error" @retry="refetch">
-    <div v-if="notifications?.length === 0" class="contents">
+    <div v-if="displayNotifications.length === 0" class="contents">
       <CheckIcon class="h-10 translate-y-3 text-green-600" />
       {{ noNotificationsMessage }}
     </div>
   </LoadingError>
 </template>
+
+<style scoped>
+/* New items ease in; reorders (e.g. a persistent item moving to the top) glide via
+   FLIP. The dismiss/leave animation is handled in JS (onLeave) so the card can
+   slide out AND collapse its own space in one continuous motion. */
+.notification-list-move,
+.notification-list-enter-active {
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.notification-list-enter-from {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-list-move,
+  .notification-list-enter-active {
+    transition: none;
+  }
+}
+</style>

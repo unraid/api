@@ -1,13 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'fs/promises';
-import { basename, join } from 'path';
+import { basename, join, relative } from 'path';
 
 import type { Stats } from 'fs';
 import { FSWatcher, watch } from 'chokidar';
 import { ValidationError } from 'class-validator';
 import { execa } from 'execa';
-import { emptyDir } from 'fs-extra';
 import { decode } from 'html-entities';
 import { encode as encodeIni } from 'ini';
 import { v7 as uuidv7 } from 'uuid';
@@ -32,11 +31,27 @@ import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils
 import { SortFn } from '@app/unraid-api/types/util.js';
 import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp } from '@app/utils.js';
 
+/**
+ * Condition-style ("active") notifications are derived state: true only while their
+ * condition holds, and re-raised by the webgui on every page load. They are ALWAYS stored
+ * off-disk in tmpfs, never under the user-configurable notifier path (which may point at the
+ * flash boot device when "Store notifications to boot drive" is set). Persisting a derived
+ * condition across reboots strands it forever once the condition is gone (e.g. the plugin
+ * that raised it was removed); keeping it in tmpfs makes a reboot free GC.
+ *
+ * This MUST match the webgui `notify` script's hardcoded $active path.
+ */
+const ACTIVE_NOTIFICATIONS_PATH = '/tmp/notifications/active';
+
 @Injectable()
 export class NotificationsService {
     private static readonly FILE_IO_BATCH_SIZE = 32;
+    // Coalesce a burst of external file removals (e.g. a bulk `notify clear`) into a single
+    // authoritative overview rebuild.
+    private static readonly UNLINK_RECALC_DEBOUNCE_MS = 150;
     private logger = new Logger(NotificationsService.name);
     private static watcher: FSWatcher | null = null;
+    private unlinkRecalcTimer: NodeJS.Timeout | null = null;
     /**
      * The path to the notification directory - will be updated if the user changes the notifier path
      */
@@ -53,6 +68,12 @@ export class NotificationsService {
             total: 0,
         },
         archive: {
+            alert: 0,
+            info: 0,
+            warning: 0,
+            total: 0,
+        },
+        active: {
             alert: 0,
             info: 0,
             warning: 0,
@@ -77,7 +98,7 @@ export class NotificationsService {
      *          - path to the unread notifications
      *          - path to the archived notifications
      */
-    public paths(): Record<'basePath' | NotificationType, string> {
+    public paths(): Record<'basePath' | NotificationType, string> & { active: string } {
         const basePath = this.getConfiguredPath();
 
         if (this.path !== basePath) {
@@ -86,10 +107,17 @@ export class NotificationsService {
         }
 
         const makePath = (type: NotificationType) => join(basePath, type.toLowerCase());
+        // Active notifications always live in tmpfs, decoupled from the configurable
+        // basePath. See ACTIVE_NOTIFICATIONS_PATH.
+        const active = ACTIVE_NOTIFICATIONS_PATH;
         return {
             basePath,
+            // Persistent (condition-style) notifications are stored separately so they
+            // can be read cheaply and are never touched by bulk archive/delete.
+            active,
             [NotificationType.UNREAD]: makePath(NotificationType.UNREAD),
             [NotificationType.ARCHIVE]: makePath(NotificationType.ARCHIVE),
+            [NotificationType.ACTIVE]: active,
         };
     }
 
@@ -138,6 +166,8 @@ export class NotificationsService {
             mkdir(join(basePath, NotificationType.ARCHIVE.toLowerCase()), {
                 recursive: true,
             }),
+            // Active notifications live in tmpfs, not under basePath. See ACTIVE_NOTIFICATIONS_PATH.
+            mkdir(ACTIVE_NOTIFICATIONS_PATH, { recursive: true }),
         ]);
     }
 
@@ -154,12 +184,24 @@ export class NotificationsService {
         }
         await NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
 
-        NotificationsService.watcher = watch(basePath, {
+        // Active notifications live in tmpfs (ACTIVE_NOTIFICATIONS_PATH), which is outside
+        // basePath whenever the user stores event notifications on the flash device. Watch it
+        // separately in that case; when it is already nested under basePath (the default
+        // /tmp/notifications), basePath's recursive watch already covers it, so watching both
+        // would double-fire 'add' events.
+        const activeNested = relative(basePath, ACTIVE_NOTIFICATIONS_PATH) === 'active';
+        const watchPaths = activeNested ? [basePath] : [basePath, ACTIVE_NOTIFICATIONS_PATH];
+
+        NotificationsService.watcher = watch(watchPaths, {
             usePolling: CHOKIDAR_USEPOLLING,
             ignoreInitial: true,
-        }).on('add', (path) => {
-            void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
-        });
+        })
+            .on('add', (path) => {
+                void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
+            })
+            .on('unlink', (path) => {
+                this.handleNotificationUnlink(path);
+            });
 
         return NotificationsService.watcher;
     }
@@ -177,9 +219,37 @@ export class NotificationsService {
         await this.processNotificationAdd(path);
     }
 
+    /**
+     * A notification file vanished. Our own delete/clear/archive mutations adjust the overview
+     * synchronously (and this fires for those too), but external removals — the webgui
+     * `notify clear`, a producer resolving a keyed condition, tmpfs being wiped — bypass them
+     * and would leave the overview inflated.
+     *
+     * We rebuild from disk rather than decrement: the file is already gone (no importance to
+     * read), and an absolute snapshot is idempotent with any synchronous decrement that already
+     * happened, so it can't double-count. The rebuild is debounced so a bulk removal collapses
+     * into one pass.
+     */
+    private handleNotificationUnlink(path: string) {
+        if (!path.endsWith('.notify')) return;
+        // The in-flight hydration snapshot will already reflect this removal.
+        if (this.isHydratingOverview) return;
+        if (this.unlinkRecalcTimer) clearTimeout(this.unlinkRecalcTimer);
+        this.unlinkRecalcTimer = setTimeout(() => {
+            this.unlinkRecalcTimer = null;
+            void this.recalculateOverview()
+                .then(() => this.publishWarningsAndAlerts())
+                .catch((e) => this.logger.error(e));
+        }, NotificationsService.UNLINK_RECALC_DEBOUNCE_MS);
+    }
+
     private async processNotificationAdd(path: string) {
-        // The path looks like /{notification base path}/{type}/{notification id}
-        const type = path.includes('/unread/') ? NotificationType.UNREAD : NotificationType.ARCHIVE;
+        // The path looks like /{notification base path}/{store}/{notification id}.
+        const type = path.includes('/active/')
+            ? NotificationType.ACTIVE
+            : path.includes('/unread/')
+              ? NotificationType.UNREAD
+              : NotificationType.ARCHIVE;
         // this.logger.debug(`Adding ${type} Notification: ${path}`);
 
         let notification: Notification;
@@ -197,7 +267,8 @@ export class NotificationsService {
 
         this.increment(notification.importance, NotificationsService.overview[type.toLowerCase()]);
 
-        if (type === NotificationType.UNREAD) {
+        // Both unread and active count toward the bell badge and live UI updates.
+        if (type === NotificationType.UNREAD || type === NotificationType.ACTIVE) {
             this.publishOverview();
             pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
                 notificationAdded: notification,
@@ -269,23 +340,34 @@ export class NotificationsService {
                 warning: 0,
                 total: 0,
             },
+            active: {
+                alert: 0,
+                info: 0,
+                warning: 0,
+                total: 0,
+            },
         };
         const seenPaths = new Set<string>();
 
         // todo - refactor this to be more memory efficient
         // i.e. by using a lazy generator vs the current eager implementation
         //
-        // recalculates stats for a particular notification type
-        const recalculate = async (type: NotificationType) => {
-            const ids = await this.listFilesInFolder(this.paths()[type]);
+        // recalculates stats for a particular store (unread / archive / active).
+        const recalculate = async (folder: string, bucket: 'unread' | 'archive' | 'active') => {
+            const ids = await this.listFilesInFolder(folder);
             ids.forEach((id) => seenPaths.add(id));
             const [notifications] = await this.loadNotificationsFromPaths(ids, {});
-            notifications.forEach((n) => this.increment(n.importance, overview[type.toLowerCase()]));
+            notifications.forEach((n) => this.increment(n.importance, overview[bucket]));
         };
 
+        const paths = this.paths();
         const results = await batchProcess(
-            [NotificationType.ARCHIVE, NotificationType.UNREAD],
-            recalculate
+            [
+                [paths[NotificationType.ARCHIVE], 'archive'] as const,
+                [paths[NotificationType.UNREAD], 'unread'] as const,
+                [paths.active, 'active'] as const,
+            ],
+            ([folder, bucket]) => recalculate(folder, bucket)
         );
 
         if (results.errorOccurred) {
@@ -300,6 +382,12 @@ export class NotificationsService {
      *------------------------------------------------------------------------**/
 
     public async createNotification(data: NotificationData): Promise<Notification> {
+        // Condition-style notifications are keyed and idempotent: raising one with an
+        // existing key replaces the prior instance (latest wins) instead of stacking dupes.
+        if (data.key) {
+            await this.clearNotificationsByKey(data.key);
+        }
+
         const id: string = await this.makeNotificationId(data.title);
         const fileData = this.makeNotificationFileData(data);
 
@@ -311,7 +399,10 @@ export class NotificationsService {
             this.logger.debug(`[createNotification] legacy notifier failed: ${error}`);
             this.logger.verbose(`[createNotification] Writing: ${JSON.stringify(fileData, null, 4)}`);
 
-            const path = join(this.paths().UNREAD, id);
+            // Persistent notifications belong in the 'active' store, matching the legacy
+            // notifier's write path.
+            const dir = data.persistent ? this.paths().active : this.paths().UNREAD;
+            const path = join(dir, id);
             const ini = encodeIni(fileData);
             // this.logger.debug(`[createNotification] INI: ${ini}`);
             await writeFile(path, ini);
@@ -319,7 +410,10 @@ export class NotificationsService {
 
         void this.publishWarningsAndAlerts();
 
-        return this.notificationFileToGqlNotification({ id, type: NotificationType.UNREAD }, fileData);
+        return this.notificationFileToGqlNotification(
+            { id, type: data.persistent ? NotificationType.ACTIVE : NotificationType.UNREAD },
+            fileData
+        );
     }
 
     /**
@@ -332,7 +426,7 @@ export class NotificationsService {
      * @returns A 2-element tuple containing the legacy notifier command and arguments.
      */
     public getLegacyScriptArgs(notification: NotificationIni): [string, string[]] {
-        const { event, subject, description, link, importance } = notification;
+        const { event, subject, description, link, importance, key, persistent } = notification;
         const args = [
             ['-i', importance],
             ['-e', event],
@@ -341,6 +435,12 @@ export class NotificationsService {
         ];
         if (link) {
             args.push(['-l', link]);
+        }
+        if (key) {
+            args.push(['-k', key]);
+        }
+        if (persistent === 'true') {
+            args.push(['-p']);
         }
         return ['/usr/local/emhttp/webGui/scripts/notify', args.flat()];
     }
@@ -370,7 +470,7 @@ export class NotificationsService {
 
     /** transforms gql compliant NotificationData to .notify compliant data*/
     private makeNotificationFileData(notification: NotificationData): NotificationIni {
-        const { title, subject, description, link, importance } = notification;
+        const { title, subject, description, link, importance, key, persistent } = notification;
 
         const data: NotificationIni = {
             timestamp: unraidTimestamp().toString(),
@@ -382,10 +482,16 @@ export class NotificationsService {
 
         // HACK - the ini encoder stringifies all fields defined on the object, even if they're undefined.
         // this results in a field like "link=undefined" in the resulting ini string.
-        // So, we only add a link if it's defined
+        // So, we only add optional fields if they're defined/truthy.
 
         if (link) {
             data.link = link;
+        }
+        if (key) {
+            data.key = key;
+        }
+        if (persistent) {
+            data.persistent = 'true';
         }
         return data;
     }
@@ -421,14 +527,12 @@ export class NotificationsService {
      * @remarks Ensures the notifications directory exists before emptying it
      */
     public async deleteNotifications(type: NotificationType) {
-        await emptyDir(this.paths()[type]);
-        NotificationsService.overview[type.toLowerCase()] = {
-            alert: 0,
-            info: 0,
-            warning: 0,
-            total: 0,
-        };
-        await this.publishOverview();
+        const dir = this.paths()[type];
+        // Persistent notifications live in 'active', never in unread/archive, so a bulk
+        // delete here structurally can't touch them — just remove everything in the store.
+        const paths = await this.listFilesInFolder(dir);
+        await batchProcess(paths, (path) => unlink(path));
+        await this.recalculateOverview();
         if (type === NotificationType.UNREAD) {
             void this.publishWarningsAndAlerts();
         }
@@ -444,6 +548,114 @@ export class NotificationsService {
     public async deleteAllNotifications() {
         await this.deleteNotifications(NotificationType.ARCHIVE);
         await this.deleteNotifications(NotificationType.UNREAD);
+        return this.getOverview();
+    }
+
+    /**
+     * Clears all unread notifications that share a stable producer `key`.
+     *
+     * This is how condition-style (typically persistent) notifications are resolved: a
+     * producer raises one with a key (e.g. "reboot-required") and clears it with the same
+     * key once the condition no longer holds. Also used to make keyed creates idempotent.
+     *
+     * @param key The stable producer key to clear.
+     * @returns The updated notification overview.
+     */
+    public async clearNotificationsByKey(key: string): Promise<NotificationOverview> {
+        // Keyed conditions normally live in 'active' (persistent), but sweep every store
+        // so a resolve / idempotent re-raise leaves no stale twin behind — e.g. a copy in
+        // unread/archive from before the active/ split, or one the user archived.
+        const paths = this.paths();
+        const stores: Array<{ dir: string; bucket: 'unread' | 'archive' | 'active' }> = [
+            { dir: paths.active, bucket: 'active' },
+            { dir: paths[NotificationType.UNREAD], bucket: 'unread' },
+            { dir: paths[NotificationType.ARCHIVE], bucket: 'archive' },
+        ];
+        let removed = false;
+        for (const { dir, bucket } of stores) {
+            for (const path of await this.listFilesInFolder(dir)) {
+                let ini: NotificationIni;
+                try {
+                    ini = parseConfig<NotificationIni>({
+                        file: decode(await readFile(path, 'utf-8')),
+                        type: 'ini',
+                    });
+                } catch {
+                    continue;
+                }
+                if (ini.key !== key) continue;
+                await this.unlinkAndDecrement(
+                    path,
+                    this.fileImportanceToGqlImportance(ini.importance),
+                    bucket
+                );
+                removed = true;
+            }
+        }
+        if (removed) {
+            await this.publishOverview();
+            void this.publishWarningsAndAlerts();
+        }
+        return this.getOverview();
+    }
+
+    /** Unlinks a notification file and decrements the given overview bucket. */
+    private async unlinkAndDecrement(
+        path: string,
+        importance: NotificationImportance,
+        bucket: 'unread' | 'archive' | 'active'
+    ): Promise<void> {
+        await unlink(path).catch((e) => {
+            if (!this.isMissingFileError(e)) throw e;
+        });
+        this.decrement(importance, NotificationsService.overview[bucket]);
+    }
+
+    /**
+     * Reconciles JS-sourced banner notifications (keys prefixed `banner-`).
+     *
+     * Legacy webgui banners (CA's "Action Centre Enabled", boot checks, ...) have no
+     * explicit clear: they re-render on every page load while active and simply stop
+     * when resolved. The page stamps each banner -> bell notification with the current
+     * page-load generation; this clears any unread `banner-` notification NOT stamped
+     * with the supplied (current) generation, i.e. one whose producer stopped rendering
+     * it. Non-banner keys (PR plugins, reboot-required, ...) own their own lifecycle and
+     * are left untouched.
+     *
+     * Called by the notification drawer when it loads, so the served list and overview
+     * are authoritative without relying on a page-side timer.
+     *
+     * @param currentGeneration The page's current banner generation stamp.
+     * @returns The updated notification overview.
+     */
+    public async reconcileBannerNotifications(currentGeneration: string): Promise<NotificationOverview> {
+        // Banners are persistent, so they live in the 'active' store — read only that
+        // (small) directory rather than scanning all of unread.
+        const files = await this.listFilesInFolder(this.paths().active);
+        let removed = false;
+        for (const path of files) {
+            let ini: NotificationIni;
+            try {
+                ini = parseConfig<NotificationIni>({
+                    file: decode(await readFile(path, 'utf-8')),
+                    type: 'ini',
+                });
+            } catch {
+                continue; // skip unreadable/corrupt files; they surface elsewhere
+            }
+            if (!(ini.key ?? '').startsWith('banner-')) continue;
+            if (String(ini.gen ?? '') === currentGeneration) continue;
+            await this.unlinkAndDecrement(
+                path,
+                this.fileImportanceToGqlImportance(ini.importance),
+                'active'
+            );
+            removed = true;
+        }
+        if (removed) {
+            await this.publishOverview();
+            void this.publishWarningsAndAlerts();
+        }
         return this.getOverview();
     }
 
@@ -538,6 +750,12 @@ export class NotificationsService {
          *------------------------**/
         const snapshot = this.getOverview();
         const notification = await this.loadNotificationFile(unreadPath, NotificationType.UNREAD);
+
+        // Persistent notifications represent an ongoing condition. They are not
+        // dismissed casually (the UI gates this behind a warning, and bulk archiveAll
+        // skips them), but an explicit, confirmed single dismiss is allowed: it
+        // acknowledges/hides the reminder. The condition itself is unaffected, so it
+        // re-pins if the producer raises it again (idempotent key).
         const moveToArchive = this.moveNotification({
             from: NotificationType.UNREAD,
             to: NotificationType.ARCHIVE,
@@ -582,14 +800,14 @@ export class NotificationsService {
     public async archiveAll(importance?: NotificationImportance) {
         const { UNREAD } = this.paths();
 
-        if (!importance) {
-            await readdir(UNREAD).then((ids) => this.archiveIds(ids));
-            return { overview: NotificationsService.overview };
-        }
-
         const overviewSnapshot = this.getOverview();
+        // Persistent notifications live in 'active', not 'unread', so "Archive all" over the
+        // unread store can't touch them — no persistent filtering needed.
         const unreads = await this.listFilesInFolder(UNREAD);
-        const [notifications] = await this.loadNotificationsFromPaths(unreads, { importance });
+        const [notifications] = await this.loadNotificationsFromPaths(
+            unreads,
+            importance ? { importance } : {}
+        );
         const archive = this.moveNotification({
             from: NotificationType.UNREAD,
             to: NotificationType.ARCHIVE,
@@ -666,20 +884,22 @@ export class NotificationsService {
 
         const { type = NotificationType.UNREAD } = filters;
         const { ARCHIVE, UNREAD } = this.paths();
-        let files: string[];
 
-        if (type === NotificationType.UNREAD) {
-            files = await this.listFilesInFolder(UNREAD);
-        } else {
+        if (type === NotificationType.ARCHIVE) {
             // Exclude notifications present in both unread & archive from archive.
             //* this is necessary because the legacy script writes new notifications to both places.
             //* this should be a temporary measure.
             const unreads = new Set(await readdir(UNREAD));
-            files = await this.listFilesInFolder(ARCHIVE, (archives) => {
+            const files = await this.listFilesInFolder(ARCHIVE, (archives) => {
                 return archives.filter((file) => !unreads.has(file));
             });
+            const [archived] = await this.loadNotificationsFromPaths(files, filters);
+            return archived;
         }
 
+        // UNREAD -> the transient 'unread' store; ACTIVE -> the persistent 'active' store.
+        // Each tab reads only its own directory, so pagination is clean and independent.
+        const files = await this.listFilesInFolder(this.paths()[type]);
         const [notifications] = await this.loadNotificationsFromPaths(files, filters);
         return notifications;
     }
@@ -883,6 +1103,7 @@ export class NotificationsService {
                 subject: nameMask,
                 description: `This notification is invalid and cannot be displayed! For details, see the logs and the notification file at ${path}`,
                 importance: NotificationImportance.WARNING,
+                persistent: false,
                 timestamp: dateMask.toISOString(),
                 formattedTimestamp: this.formatDatetime(dateMask),
             };
@@ -908,7 +1129,14 @@ export class NotificationsService {
         details: Pick<Notification, 'id' | 'type'>,
         fileData: NotificationIni
     ): Notification {
-        const { importance, timestamp, event: title, description = '', ...passthroughData } = fileData;
+        const {
+            importance,
+            timestamp,
+            event: title,
+            description = '',
+            persistent,
+            ...passthroughData
+        } = fileData;
         const { type, id } = details;
         return {
             ...passthroughData,
@@ -917,6 +1145,9 @@ export class NotificationsService {
             title,
             description,
             importance: this.fileImportanceToGqlImportance(importance),
+            // The ini parser may coerce `persistent="true"` to a boolean, so normalize
+            // via String() rather than a strict string compare.
+            persistent: String(persistent) === 'true',
             timestamp: this.parseNotificationDateToIsoDate(timestamp)?.toISOString(),
             formattedTimestamp: this.formatTimestamp(timestamp),
         };

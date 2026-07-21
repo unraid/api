@@ -10,9 +10,10 @@ import type { TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { existsSync } from 'fs';
-import { mkdir } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
 
 import { execa } from 'execa';
+import { emptyDir } from 'fs-extra';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { NotificationIni } from '@app/core/types/states/notification.js';
@@ -44,6 +45,12 @@ const zeroOverview = (): NotificationOverview => ({
         warning: 0,
         total: 0,
     },
+    active: {
+        alert: 0,
+        info: 0,
+        warning: 0,
+        total: 0,
+    },
 });
 
 async function disableNotificationsWatcher() {
@@ -64,6 +71,8 @@ describe.sequential('NotificationsService', () => {
         basePath,
         UNREAD: `${basePath}/unread`,
         ARCHIVE: `${basePath}/archive`,
+        ACTIVE: `${basePath}/active`,
+        active: `${basePath}/active`,
     };
 
     /**------------------------------------------------------------------------
@@ -88,13 +97,23 @@ describe.sequential('NotificationsService', () => {
         await disableNotificationsWatcher();
         vi.spyOn(service, 'paths').mockImplementation(() => testPaths);
 
-        await service.deleteAllNotifications();
+        // Hard-wipe the test dirs directly: deleteAllNotifications intentionally
+        // preserves persistent notifications, which would otherwise leak between tests.
+        await Promise.all([
+            emptyDir(testPaths.UNREAD),
+            emptyDir(testPaths.ARCHIVE),
+            emptyDir(testPaths.active),
+        ]);
     });
 
     // make sure each test is isolated (as much as possible)
     afterEach(async () => {
         Reflect.set(NotificationsService, 'overview', zeroOverview());
-        await service.deleteAllNotifications();
+        await Promise.all([
+            emptyDir(testPaths.UNREAD),
+            emptyDir(testPaths.ARCHIVE),
+            emptyDir(testPaths.active),
+        ]);
     });
 
     /**------------------------------------------------------------------------
@@ -107,8 +126,10 @@ describe.sequential('NotificationsService', () => {
             subject = 'Test Subject',
             description = 'Test Description',
             importance = NotificationImportance.INFO,
+            persistent,
+            key,
         } = data;
-        return service.createNotification({ title, subject, description, importance });
+        return service.createNotification({ title, subject, description, importance, persistent, key });
     }
 
     async function findById(id: string, type: NotificationType = NotificationType.UNREAD) {
@@ -509,6 +530,132 @@ describe.sequential('NotificationsService', () => {
         expect.soft(overview.unread.total).toEqual(6);
         expect.soft(overview.archive.total).toEqual(3);
     });
+
+    it('archiveAll never archives persistent notifications', async () => {
+        const expectIn = makeExpectIn(expect);
+        await Promise.all([
+            createNotification({ importance: NotificationImportance.WARNING }),
+            createNotification({ importance: NotificationImportance.INFO }),
+            createNotification({
+                importance: NotificationImportance.WARNING,
+                persistent: true,
+                key: 'persistent-condition',
+            }),
+        ]);
+
+        // 2 transient land in UNREAD; the persistent one lands in ACTIVE.
+        await expectIn({ type: NotificationType.UNREAD }, 2);
+        await expectIn({ type: NotificationType.ACTIVE }, 1);
+
+        // Unfiltered "Archive all" archives the transient unread and leaves ACTIVE alone.
+        await service.archiveAll();
+        await expectIn({ type: NotificationType.UNREAD }, 0);
+        await expectIn({ type: NotificationType.ARCHIVE }, 2);
+        await expectIn({ type: NotificationType.ACTIVE }, 1);
+
+        // The per-importance variant also never touches ACTIVE.
+        await service.archiveAll(NotificationImportance.WARNING);
+        await expectIn({ type: NotificationType.ACTIVE }, 1);
+    });
+
+    it('reconcileBannerNotifications clears only stale banner-* notifications', async () => {
+        // Persistent (banner/keyed) notifications live in the 'active' store; the `gen`
+        // stamp is written by the legacy notify script, so write files directly there to
+        // exercise the reconcile read path.
+        const writeNotify = (id: string, key: string, gen: string) =>
+            writeFile(
+                `${testPaths.active}/${id}.notify`,
+                [
+                    'timestamp=1700000000',
+                    'event="Test"',
+                    'subject="Test"',
+                    'description="Test"',
+                    'importance="warning"',
+                    `key="${key}"`,
+                    'persistent="true"',
+                    `gen="${gen}"`,
+                ].join('\n') + '\n'
+            );
+
+        // Two banners stamped with an old generation, one re-raised with the current
+        // generation, plus a non-banner keyed (lifecycle-managed) notification.
+        await writeNotify('banner_aaa', 'banner-aaa', '100');
+        await writeNotify('banner_bbb', 'banner-bbb', '100');
+        await writeNotify('banner_ccc', 'banner-ccc', '200');
+        await writeNotify('webgui_pr_1', 'webgui-pr-1', '100');
+
+        await service.reconcileBannerNotifications('200');
+
+        // Stale banners cleared; current-gen banner and non-banner key survive (in ACTIVE).
+        const remaining = await service.getNotifications({
+            type: NotificationType.ACTIVE,
+            offset: 0,
+            limit: 50,
+        });
+        const keys = remaining.map((n) => n.key).sort();
+        expect(keys).toEqual(['banner-ccc', 'webgui-pr-1']);
+    });
+
+    it('serves persistent under ACTIVE and transient under UNREAD', async () => {
+        await createNotification({
+            key: 'webgui-pr-1',
+            persistent: true,
+            importance: NotificationImportance.WARNING,
+        });
+        for (let i = 0; i < 3; i++) {
+            await createNotification({ importance: NotificationImportance.INFO });
+        }
+
+        const active = await service.getNotifications({
+            type: NotificationType.ACTIVE,
+            offset: 0,
+            limit: 50,
+        });
+        const unread = await service.getNotifications({
+            type: NotificationType.UNREAD,
+            offset: 0,
+            limit: 50,
+        });
+
+        expect(active.map((n) => n.key)).toEqual(['webgui-pr-1']);
+        expect(active.every((n) => n.persistent)).toBe(true);
+        expect(unread).toHaveLength(3);
+        expect(unread.some((n) => n.persistent)).toBe(false);
+    });
+
+    it('Delete all / Archive all never touch persistent notifications', async () => {
+        const expectIn = makeExpectIn(expect);
+
+        // Persistent notifications live in the 'active' store, so bulk archive/delete over
+        // unread/archive structurally cannot reach them.
+        await writeFile(
+            `${testPaths.active}/persistent-condition.notify`,
+            [
+                'timestamp=1700000000',
+                'event="Active"',
+                'subject="System notice"',
+                'importance="warning"',
+                'key="persistent-condition"',
+                'persistent="true"',
+            ].join('\n') + '\n'
+        );
+        await createNotification({ importance: NotificationImportance.INFO });
+        await createNotification({ importance: NotificationImportance.INFO });
+
+        // Archive all (unread -> archive), then Delete all archived.
+        await service.archiveAll();
+        await service.deleteNotifications(NotificationType.ARCHIVE);
+        await service.deleteNotifications(NotificationType.UNREAD);
+
+        // The persistent one survives and is still served under ACTIVE (from active/).
+        const persistent = await service.getNotifications({
+            type: NotificationType.ACTIVE,
+            offset: 0,
+            limit: 50,
+        });
+        expect(persistent.map((n) => n.key)).toEqual(['persistent-condition']);
+        await expectIn({ type: NotificationType.ACTIVE }, 1);
+    });
 });
 
 describe.concurrent('NotificationsService legacy script compatibility', () => {
@@ -566,4 +713,38 @@ describe.concurrent('NotificationsService legacy script compatibility', () => {
             }
         }
     );
+});
+
+describe.concurrent('NotificationsService active path is always off-disk', () => {
+    // Simulate "Store notifications to boot drive" = Yes: the configured notifier path is
+    // somewhere other than the default /tmp/notifications (on real systems, the flash
+    // device). Active notifications must NOT follow it. We use a writable temp dir instead
+    // of a literal /boot path so the service's startup mkdir succeeds in CI.
+    const flashPath = '/tmp/test/flash-notifications';
+    const buildService = async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                NotificationsService,
+                {
+                    provide: ConfigService,
+                    useValue: { get: vi.fn().mockReturnValue(flashPath) },
+                },
+            ],
+        }).compile();
+        const service = module.get<NotificationsService>(NotificationsService);
+        await disableNotificationsWatcher();
+        return service;
+    };
+
+    it('keeps active in tmpfs while event stores follow the flash path', async ({ expect }) => {
+        const service = await buildService();
+        const paths = service.paths();
+        // Condition-style notifications are derived state and must never persist to flash.
+        expect(paths.active).toBe('/tmp/notifications/active');
+        expect(paths[NotificationType.ACTIVE]).toBe('/tmp/notifications/active');
+        // Event notifications still honor the user's flash preference.
+        expect(paths.basePath).toBe(flashPath);
+        expect(paths[NotificationType.UNREAD]).toBe(`${flashPath}/unread`);
+        expect(paths[NotificationType.ARCHIVE]).toBe(`${flashPath}/archive`);
+    });
 });

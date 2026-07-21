@@ -17,6 +17,9 @@ export const notificationOverviewSubscription = graphql(/* GraphQL */ `
       unread {
         ...NotificationCountFragment
       }
+      active {
+        ...NotificationCountFragment
+      }
     }
   }
 `);

@@ -8,6 +8,7 @@ export const NOTIFICATION_FRAGMENT = graphql(/* GraphQL */ `
     description
     importance
     link
+    persistent
     type
     timestamp
     formattedTimestamp
@@ -106,6 +107,12 @@ export const notificationsOverview = graphql(/* GraphQL */ `
         archive {
           total
         }
+        active {
+          info
+          warning
+          alert
+          total
+        }
       }
     }
   }
@@ -129,6 +136,24 @@ export const notifyIfUnique = graphql(/* GraphQL */ `
   mutation NotifyIfUnique($input: NotificationData!) {
     notifyIfUnique(input: $input) {
       ...NotificationFragment
+    }
+  }
+`);
+
+/**
+ * Clears JS-sourced banner notifications that the page stopped rendering, by
+ * comparing each "banner-" notification's stored generation to the current
+ * page-load generation. Called when the drawer loads.
+ */
+export const reconcileBannerNotifications = graphql(/* GraphQL */ `
+  mutation ReconcileBannerNotifications($currentGeneration: String!) {
+    reconcileBannerNotifications(currentGeneration: $currentGeneration) {
+      archive {
+        ...NotificationCountFragment
+      }
+      unread {
+        ...NotificationCountFragment
+      }
     }
   }
 `);
