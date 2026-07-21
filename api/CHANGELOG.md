@@ -1,5 +1,21 @@
 # Changelog
 
+## [4.36.0](https://github.com/unraid/api/compare/v4.35.1...v4.36.0) (2026-07-21)
+
+
+### Features
+
+* add docker restart mutation ([#2022](https://github.com/unraid/api/issues/2022)) ([b58120c](https://github.com/unraid/api/commit/b58120ca1ef484b68d81dffd72d5a307fefca24f))
+* update dependencies ([#2028](https://github.com/unraid/api/issues/2028)) ([1c8522d](https://github.com/unraid/api/commit/1c8522dda6957254319a2950ace6c4c8d1613c7b))
+
+
+### Bug Fixes
+
+* **ci:** publish PR plugin after unrelated failures ([#2046](https://github.com/unraid/api/issues/2046)) ([a2b0833](https://github.com/unraid/api/commit/a2b083374b55d337c344a180cae65573ec066e80))
+* **ci:** resolve PR number for fork PR plugin uploads ([#2040](https://github.com/unraid/api/issues/2040)) ([a086778](https://github.com/unraid/api/commit/a086778f971f4ffcdaf8da3d4494b05c6f377b5d))
+* **ui:** smooth notification drawer slide-in/out ([#2038](https://github.com/unraid/api/issues/2038)) ([66e86fe](https://github.com/unraid/api/commit/66e86fef17d87e130df66a9bdb9d3b51e1050a11))
+* **web:** send CSRF token on fetch-based webGUI requests ([#2039](https://github.com/unraid/api/issues/2039)) ([8cb15f1](https://github.com/unraid/api/commit/8cb15f121f21b0ccfedd1582ad503db3d35073ef))
+
 ## [4.35.1](https://github.com/unraid/api/compare/v4.35.0...v4.35.1) (2026-06-18)
 
 
