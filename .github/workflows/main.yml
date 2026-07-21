@@ -163,6 +163,28 @@ jobs:
           files: ./coverage/coverage-final.json,../web/coverage/coverage-final.json,../unraid-ui/coverage/coverage-final.json,../packages/unraid-api-plugin-connect/coverage/coverage-final.json,../packages/unraid-shared/coverage/coverage-final.json
           fail_ci_if_error: false
 
+  audit:
+    name: Audit Dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Install Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Audit production dependencies
+        run: pnpm run audit --prod
+
   build-artifacts:
     name: Build All Artifacts
     uses: ./.github/workflows/build-artifacts.yml

@@ -4,7 +4,6 @@ import { lookup as lookupDNS, resolve as resolveDNS } from 'node:dns';
 import { promisify } from 'node:util';
 
 import { got, HTTPError, TimeoutError } from 'got';
-import ip from 'ip';
 import NodeCache from 'node-cache';
 
 import { ConfigType, MinigraphStatus } from '../config/connect.config.js';
@@ -12,6 +11,7 @@ import { ConnectConfigService } from '../config/connect.config.service.js';
 import { ONE_HOUR_SECS, ONE_MINUTE_SECS } from '../helper/generic-consts.js';
 import { MothershipConnectionService } from '../mothership-proxy/connection.service.js';
 import { CloudResponse, MinigraphqlResponse } from './cloud.model.js';
+import { isPrivateIp } from './is-private-ip.js';
 
 interface CacheSchema {
     cloudIp: string;
@@ -221,7 +221,7 @@ export class CloudService {
          * The user likely has a PI-hole or something similar running that rewrites
          * the record to a private address.
          */
-        if (ip.isPrivate(local) || ip.isPrivate(network)) {
+        if (isPrivateIp(local) || isPrivateIp(network)) {
             throw new Error(
                 `"${hostname}" is being resolved to a private IP. [local="${local ?? 'NOT FOUND'}"] [network="${
                     network ?? 'NOT FOUND'

@@ -520,7 +520,7 @@ const [_transitionContainerRef] = useAutoAnimate({
             />
           </div>
         </template>
-        <USkeleton v-if="loading" class="h-6 w-full" :ui="{ rounded: 'rounded' }" />
+        <USkeleton v-if="loading" class="h-6 w-full rounded" />
         <DockerSidebarTree
           v-else
           :containers="containers"
