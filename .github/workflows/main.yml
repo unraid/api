@@ -33,7 +33,7 @@ jobs:
           run_install: false
 
       - name: Install Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: ".nvmrc"
           cache: 'pnpm'
@@ -178,7 +178,7 @@ jobs:
           run_install: false
 
       - name: Install Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: ".nvmrc"
 
