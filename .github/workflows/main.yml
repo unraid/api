@@ -181,7 +181,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: ".nvmrc"
-          cache: 'pnpm'
 
       - name: Audit production dependencies
         run: pnpm run audit --prod
