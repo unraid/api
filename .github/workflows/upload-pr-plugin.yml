@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   upload-pr-plugin:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' }}
+    if: ${{ github.event.workflow_run.event == 'pull_request' }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -76,6 +76,7 @@ jobs:
           mkdir -p "${{ runner.temp }}/pr-plugin"
 
       - name: Download plugin artifact
+        id: artifact
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
         env:
           RUN_ID: ${{ steps.context.outputs.run_id }}
@@ -96,7 +97,8 @@ jobs:
             );
 
             if (!artifact) {
-              core.setFailed(`No unraid-plugin artifact found for workflow run ${runId}`);
+              core.notice(`No unraid-plugin artifact found for workflow run ${runId}; skipping upload`);
+              core.setOutput('found', 'false');
               return;
             }
 
@@ -109,9 +111,11 @@ jobs:
 
             const zipPath = path.join(process.env.RUNNER_TEMP, 'pr-plugin', 'artifact.zip');
             fs.writeFileSync(zipPath, Buffer.from(download.data));
+            core.setOutput('found', 'true');
             core.info(`Downloaded ${artifact.name}`);
 
       - name: Extract and validate plugin files
+        if: steps.artifact.outputs.found == 'true'
         id: files
         run: |
           set -Eeuo pipefail
@@ -171,6 +175,7 @@ jobs:
           ls -la "$DEPLOY_DIR"
 
       - name: Upload plugin to Cloudflare
+        if: steps.artifact.outputs.found == 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
@@ -199,6 +204,7 @@ jobs:
             --acl public-read
 
       - name: Comment URL
+        if: steps.artifact.outputs.found == 'true'
         uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405
         with:
           number: ${{ steps.context.outputs.pr_number }}
