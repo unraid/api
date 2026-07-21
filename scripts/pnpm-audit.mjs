@@ -34,6 +34,13 @@ if (report && report.error) {
   report = undefined;
 }
 
+if (report && !isRecognizedAuditReport(report)) {
+  process.stderr.write('pnpm audit returned an unrecognized report shape; failing closed.\n');
+  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+  process.exitCode = audit.status || 1;
+  report = undefined;
+}
+
 if (report) {
   const workspaceImporters = getWorkspaceImporters(cwd);
   const auditConfig = readAuditConfig(cwd);
@@ -48,6 +55,17 @@ if (report) {
 
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   process.exitCode = Object.keys(report.advisories ?? {}).length === 0 ? 0 : (audit.status ?? 1);
+}
+
+function isRecognizedAuditReport(report) {
+  return (
+    typeof report === 'object' &&
+    report !== null &&
+    typeof report.advisories === 'object' &&
+    report.advisories !== null &&
+    typeof report.metadata === 'object' &&
+    report.metadata !== null
+  );
 }
 
 function pruneActionsWithoutAdvisories(report) {
