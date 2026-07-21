@@ -310,6 +310,81 @@ describe('CallbackFeedback.vue', () => {
     expect(wrapper.find('.modal').attributes('data-success')).toBe('false');
   });
 
+  describe('OS update confirmation', () => {
+    it('renders the update confirmation when a standalone update lands on a server with a state error', () => {
+      updateOsStatus.value = 'confirming';
+      callbackUpdateRelease.value = { name: 'Unraid 7.3.1' };
+      osVersion.value = '7.3.0';
+      // Server is in an error state (e.g. EGUID GUID mismatch) but no key was installed
+      stateDataError.value = true;
+      keyInstallStatus.value = 'ready';
+
+      const wrapper = mountComponent();
+
+      expect(wrapper.find('h1').text()).toBe('Update Unraid OS confirmation required');
+      expect(wrapper.text()).toContain('Current Version: Unraid 7.3.0');
+      expect(wrapper.text()).toContain('New Version: Unraid 7.3.1');
+      expect(wrapper.text()).toContain('Confirm and start update');
+    });
+
+    it('confirms the update when the confirm button is clicked', async () => {
+      updateOsStatus.value = 'confirming';
+      callbackUpdateRelease.value = { name: 'Unraid 7.3.1' };
+      stateDataError.value = true;
+      keyInstallStatus.value = 'ready';
+
+      const wrapper = mountComponent();
+
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((button) => button.text() === 'Confirm and start update');
+      expect(confirmButton).toBeDefined();
+      await confirmButton!.trigger('click');
+
+      expect(mockInstallOsUpdate).toHaveBeenCalledTimes(1);
+      expect(mockSetCallbackStatus).toHaveBeenCalledWith('ready');
+    });
+
+    it('suppresses the update confirmation when a key install left the server in an error state', () => {
+      updateOsStatus.value = 'confirming';
+      callbackUpdateRelease.value = { name: 'Unraid 7.3.1' };
+      osVersion.value = '7.3.0';
+      // Combined key-install + update flow where the install errored
+      callbackStatus.value = 'success';
+      keyActionType.value = 'purchase';
+      keyInstallStatus.value = 'success';
+      keyType.value = 'Pro';
+      stateDataError.value = true;
+      callbackCallsCompleted.value = true;
+
+      const wrapper = mountComponent();
+
+      expect(wrapper.text()).not.toContain('New Version: Unraid 7.3.1');
+      expect(wrapper.text()).not.toContain('Confirm and start update');
+      expect(wrapper.text()).toContain('Post Install License Key Error');
+    });
+
+    it('suppresses the update confirmation while key-install reconciliation is still pending', () => {
+      updateOsStatus.value = 'confirming';
+      callbackUpdateRelease.value = { name: 'Unraid 7.3.1' };
+      osVersion.value = '7.3.0';
+      // Combined key-install + update flow, but the delayed refreshServerState
+      // reconciliation has not finished yet, so the pre-refresh error persists.
+      callbackStatus.value = 'success';
+      keyActionType.value = 'purchase';
+      keyInstallStatus.value = 'success';
+      keyType.value = 'Pro';
+      stateDataError.value = true;
+      refreshServerStateStatus.value = 'refreshing';
+      callbackCallsCompleted.value = false;
+
+      const wrapper = mountComponent();
+
+      expect(wrapper.text()).not.toContain('New Version: Unraid 7.3.1');
+      expect(wrapper.text()).not.toContain('Confirm and start update');
+    });
+  });
+
   it('reloads the page when the modal is dismissed after a callback action', async () => {
     const mockReload = vi.fn();
 

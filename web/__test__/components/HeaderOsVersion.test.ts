@@ -11,7 +11,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { TestingPinia } from '@pinia/testing';
 import type { VueWrapper } from '@vue/test-utils';
-import type { Error as CustomApiError } from '~/store/errors';
 import type { ServerUpdateOsResponse } from '~/types/server';
 
 import HeaderOsVersion from '~/components/HeaderOsVersion.standalone.vue';
@@ -77,11 +76,6 @@ describe('HeaderOsVersion', () => {
   let serverStore: ReturnType<typeof useServerStore>;
   let errorsStore: ReturnType<typeof useErrorsStore>;
 
-  const findUpdateStatusComponent = () => {
-    const statusElement = wrapper.find('a.group:not([title*="release notes"]), button.group');
-    return statusElement.exists() ? statusElement : null;
-  };
-
   beforeEach(() => {
     testingPinia = createTestingPinia({ createSpy: vi.fn });
     setActivePinia(testingPinia);
@@ -124,14 +118,10 @@ describe('HeaderOsVersion', () => {
     expect(hasUpdateButton).toBe(false);
   });
 
-  it('does not render update status when stateDataError is present', async () => {
-    const mockError: CustomApiError = {
-      message: 'State data fetch failed',
-      heading: 'Fetch Error',
-      level: 'error',
-      type: 'serverState',
-    };
-    errorsStore.errors = [mockError];
+  it('still renders the update-available badge when the server has a state error', async () => {
+    // A registration/key error (EGUID GUID mismatch → stateDataError) must not
+    // hide an available OS update — update eligibility is independent of it.
+    serverStore.state = 'EGUID';
     serverStore.updateOsResponse = {
       version: '6.13.0',
       isNewer: true,
@@ -141,7 +131,20 @@ describe('HeaderOsVersion', () => {
 
     await nextTick();
 
-    expect(findUpdateStatusComponent()).toBeNull();
+    expect(serverStore.stateDataError).toBeDefined();
+    expect(wrapper.find('[title="Unraid OS 6.13.0 Update Available"]').exists()).toBe(true);
+  });
+
+  it('renders the pending-reboot badge even when stateDataError is present', async () => {
+    // EGUID (registration/key mismatch) produces a state error, but a pending
+    // reboot applies an already-installed update and must still be surfaced.
+    serverStore.state = 'EGUID';
+    serverStore.rebootType = 'update';
+
+    await nextTick();
+
+    expect(wrapper.find('[title="Reboot Required for Update"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Reboot Required for Update');
   });
 
   it('removes logo class from logo wrapper on mount', async () => {

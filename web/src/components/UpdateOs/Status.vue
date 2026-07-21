@@ -16,6 +16,7 @@ import { Badge, BrandLoading, Button } from '@unraid/ui';
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 
 import useDateTimeHelper from '~/composables/dateTime';
+import { useOsUpdateStatus } from '~/composables/useOsUpdateStatus';
 import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
@@ -42,12 +43,18 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 
 const LoadingIcon = () => h(BrandLoading, { variant: 'white', style: 'width: 16px; height: 16px;' });
 
-const { dateTimeFormat, osVersion, rebootType, rebootVersion, regExp, regUpdatesExpired } =
-  storeToRefs(serverStore);
-const { available, availableWithRenewal } = storeToRefs(updateOsStore);
-const { ineligibleText, rebootTypeText, status } = storeToRefs(updateOsActionsStore);
-
-const updateAvailable = computed(() => available.value || availableWithRenewal.value);
+const { dateTimeFormat, osVersion, regExp } = storeToRefs(serverStore);
+const { ineligibleText, status } = storeToRefs(updateOsActionsStore);
+const {
+  available,
+  availableWithRenewal,
+  updateAvailable,
+  entitlementExpired,
+  rebootType,
+  rebootTypeText,
+  rebootVersion,
+  rebootRequired,
+} = useOsUpdateStatus();
 
 const { outputDateTimeReadableDiff: readableDiffRegExp, outputDateTimeFormatted: formattedRegExp } =
   useDateTimeHelper(dateTimeFormat.value, t, true, regExp.value);
@@ -57,12 +64,12 @@ const regExpOutput = computed(() => {
     return undefined;
   }
   return {
-    text: regUpdatesExpired.value
+    text: entitlementExpired.value
       ? `${t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [formattedRegExp.value])} ${t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
       : t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
           formattedRegExp.value,
         ]),
-    title: regUpdatesExpired.value
+    title: entitlementExpired.value
       ? t('registration.updateExpirationAction.ineligibleAsOf', [readableDiffRegExp.value])
       : t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesFor', [
           readableDiffRegExp.value,
@@ -70,9 +77,7 @@ const regExpOutput = computed(() => {
   };
 });
 
-const showRebootButton = computed(
-  () => rebootType.value === 'downgrade' || rebootType.value === 'update'
-);
+const showRebootButton = rebootRequired;
 
 const checkButton = computed(() => {
   if (showRebootButton.value || props.showExternalDowngrade) {
