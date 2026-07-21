@@ -150,11 +150,10 @@ describe('UnraidPluginsService', () => {
             await writeFile(join(pluginsDir, 'community.applications.plg'), 'plugin-data');
             await writeFile(join(pluginsDir, 'README.txt'), 'not-a-plugin');
 
-            const configService = {
-                get: vi.fn().mockReturnValue({
-                    'dynamix-base': dynamixBase,
-                }),
-            } as unknown as ConfigService;
+            const configService = new ConfigService();
+            vi.spyOn(configService, 'get').mockReturnValue({
+                'dynamix-base': dynamixBase,
+            });
             const configuredService = new UnraidPluginsService(configService);
 
             const result = await configuredService.listInstalledPlugins();
@@ -167,11 +166,10 @@ describe('UnraidPluginsService', () => {
     it('listInstalledPlugins returns empty array when plugin directory is missing', async () => {
         const tempDir = await mkdtemp(join(tmpdir(), 'unraid-plugins-missing-test-'));
         try {
-            const configService = {
-                get: vi.fn().mockReturnValue({
-                    'dynamix-base': join(tempDir, 'missing', 'dynamix-base'),
-                }),
-            } as unknown as ConfigService;
+            const configService = new ConfigService();
+            vi.spyOn(configService, 'get').mockReturnValue({
+                'dynamix-base': join(tempDir, 'missing', 'dynamix-base'),
+            });
             const configuredService = new UnraidPluginsService(configService);
 
             await expect(configuredService.listInstalledPlugins()).resolves.toEqual([]);
@@ -183,14 +181,15 @@ describe('UnraidPluginsService', () => {
     it('removes completed operations after retention ttl', async () => {
         vi.useFakeTimers();
         try {
-            const ttlConfigService = {
-                get: vi.fn((key: string, defaultValue: unknown) => {
+            const ttlConfigService = new ConfigService();
+            vi.spyOn(ttlConfigService, 'get').mockImplementation(
+                (key: string, defaultValue?: unknown) => {
                     if (key === 'plugins.installOperationRetentionMs') {
                         return 1_000;
                     }
                     return defaultValue;
-                }),
-            } as unknown as ConfigService;
+                }
+            );
             const serviceWithShortTtl = new UnraidPluginsService(ttlConfigService);
 
             const processWithShortTtl = new MockExecaProcess();

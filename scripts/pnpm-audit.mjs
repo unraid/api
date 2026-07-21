@@ -9,6 +9,7 @@ const args = process.argv.slice(2).filter((arg) => arg !== '--json');
 const audit = spawnSync('pnpm', ['audit', '--json', ...args], {
   cwd,
   encoding: 'utf8',
+  maxBuffer: 10 * 1024 * 1024,
   stdio: ['ignore', 'pipe', 'pipe'],
 });
 
@@ -25,6 +26,12 @@ try {
     process.stdout.write(audit.stdout);
   }
   process.exitCode = audit.status ?? 1;
+}
+
+if (report && report.error) {
+  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+  process.exitCode = audit.status || 1;
+  report = undefined;
 }
 
 if (report) {

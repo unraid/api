@@ -39,7 +39,7 @@ const openValue = ref<string | string[] | undefined>(props.modelValue ?? props.d
 watch(
   () => props.modelValue,
   (val) => {
-    if (val !== undefined) openValue.value = val;
+    openValue.value = val;
   }
 );
 
