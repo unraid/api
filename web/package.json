@@ -129,7 +129,7 @@
     "convert": "5.12.0",
     "crypto-js": "4.2.0",
     "dayjs": "1.11.14",
-    "dompurify": "3.4.10",
+    "dompurify": "3.4.12",
     "focus-trap": "7.6.5",
     "graphql": "16.11.0",
     "graphql-tag": "2.12.6",

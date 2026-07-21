@@ -9,10 +9,10 @@ overrides:
   '@graphql-tools/utils': 10.9.1
   ajv@<6.14.0: 6.15.0
   ajv@>=7.0.0-alpha.0 <8.18.0: 8.20.0
-  axios: 1.17.0
-  brace-expansion@<1.1.13: 1.1.13
-  brace-expansion@>=4.0.0 <5.0.5: 5.0.6
-  brace-expansion@>=5.0.0 <5.0.5: 5.0.5
+  axios: 1.18.1
+  body-parser: 2.3.0
+  brace-expansion@<1.1.16: 1.1.16
+  brace-expansion@>=3.0.0 <5.0.7: 5.0.7
   defu: 6.1.7
   esbuild: 0.28.1
   fast-uri: 3.1.2
@@ -26,7 +26,7 @@ overrides:
   js-beautify: 1.15.4
   js-cookie: 3.0.8
   jiti: 2.7.0
-  js-yaml: 4.2.0
+  js-yaml: 4.3.0
   lodash: 4.18.1
   minimatch@<3.1.5: 3.1.5
   minimatch@>=9.0.0 <9.0.9: 9.0.9
@@ -36,7 +36,8 @@ overrides:
   postcss: 8.5.15
   qs: 6.15.2
   shell-quote: 1.8.4
-  tar: 7.5.16
+  protobufjs: 7.6.5
+  tar: 7.5.20
   tmp: 0.2.7
   uuid@>=8.0.0 <11.1.1: 11.1.1
   uuid@>=11.0.0 <11.1.1: 11.1.1
@@ -344,8 +345,8 @@ importers:
         specifier: 5.31.7
         version: 5.31.7
       undici:
-        specifier: 7.27.2
-        version: 7.27.2
+        specifier: 7.28.0
+        version: 7.28.0
       unraid-api-plugin-connect:
         specifier: workspace:*
         version: link:../packages/unraid-api-plugin-connect
@@ -670,8 +671,8 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
       undici:
-        specifier: 7.27.2
-        version: 7.27.2
+        specifier: 7.28.0
+        version: 7.28.0
       vitest:
         specifier: 3.2.6
         version: 3.2.6(@types/node@22.18.0)(@vitest/ui@3.2.6)(happy-dom@20.10.3)(jiti@2.7.0)(jsdom@26.1.0)(lightningcss@1.32.0)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.9.0)
@@ -782,8 +783,8 @@ importers:
         specifier: 7.8.2
         version: 7.8.2
       undici:
-        specifier: 7.27.2
-        version: 7.27.2
+        specifier: 7.28.0
+        version: 7.28.0
     devDependencies:
       '@graphql-tools/utils':
         specifier: 10.9.1
@@ -934,8 +935,8 @@ importers:
         specifier: 2.1.1
         version: 2.1.1
       dompurify:
-        specifier: 3.4.10
-        version: 3.4.10
+        specifier: 3.4.12
+        version: 3.4.12
       kebab-case:
         specifier: 2.0.2
         version: 2.0.2
@@ -1138,7 +1139,7 @@ importers:
         version: 3.6.0(@jsonforms/core@3.6.0)(@jsonforms/vue@3.6.0(@jsonforms/core@3.6.0)(vue@3.5.20(typescript@5.9.2)))(ajv@8.20.0)(dayjs@1.11.14)(lodash@4.18.1)(maska@2.1.11)(vue@3.5.20(typescript@5.9.2))(vuetify@3.9.6)
       '@nuxt/ui':
         specifier: 4.8.2
-        version: 4.8.2(@internationalized/date@3.12.2)(@internationalized/number@3.6.7)(@netlify/blobs@9.1.2)(@tiptap/extensions@3.26.1(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1))(@tiptap/y-tiptap@3.0.5(prosemirror-model@1.25.8)(prosemirror-state@1.4.4)(prosemirror-view@1.41.9)(y-protocols@1.0.7(yjs@13.6.31))(yjs@13.6.31))(axios@1.17.0)(change-case@5.4.4)(db0@0.3.4)(embla-carousel@8.6.0)(focus-trap@7.6.5)(ioredis@5.11.1)(jwt-decode@4.0.0)(magicast@0.5.3)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(tailwindcss@4.1.12)(typescript@5.9.2)(vite@7.3.5(@types/node@22.18.0)(jiti@2.7.0)(lightningcss@1.32.0)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.9.0))(vue-router@4.5.1(vue@3.5.20(typescript@5.9.2)))(vue@3.5.20(typescript@5.9.2))(yjs@13.6.31)(zod@3.25.76)
+        version: 4.8.2(@internationalized/date@3.12.2)(@internationalized/number@3.6.7)(@netlify/blobs@9.1.2)(@tiptap/extensions@3.26.1(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1))(@tiptap/y-tiptap@3.0.5(prosemirror-model@1.25.8)(prosemirror-state@1.4.4)(prosemirror-view@1.41.9)(y-protocols@1.0.7(yjs@13.6.31))(yjs@13.6.31))(axios@1.18.1)(change-case@5.4.4)(db0@0.3.4)(embla-carousel@8.6.0)(focus-trap@7.6.5)(ioredis@5.11.1)(jwt-decode@4.0.0)(magicast@0.5.3)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(tailwindcss@4.1.12)(typescript@5.9.2)(vite@7.3.5(@types/node@22.18.0)(jiti@2.7.0)(lightningcss@1.32.0)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.9.0))(vue-router@4.5.1(vue@3.5.20(typescript@5.9.2)))(vue@3.5.20(typescript@5.9.2))(yjs@13.6.31)(zod@3.25.76)
       '@tanstack/vue-table':
         specifier: 8.21.3
         version: 8.21.3(vue@3.5.20(typescript@5.9.2))
@@ -1156,7 +1157,7 @@ importers:
         version: 13.8.0(vue@3.5.20(typescript@5.9.2))
       '@vueuse/integrations':
         specifier: 13.8.0
-        version: 13.8.0(axios@1.17.0)(change-case@5.4.4)(focus-trap@7.6.5)(fuse.js@7.4.2)(jwt-decode@4.0.0)(vue@3.5.20(typescript@5.9.2))
+        version: 13.8.0(axios@1.18.1)(change-case@5.4.4)(focus-trap@7.6.5)(fuse.js@7.4.2)(jwt-decode@4.0.0)(vue@3.5.20(typescript@5.9.2))
       '@vvo/tzdb':
         specifier: 6.186.0
         version: 6.186.0
@@ -1182,8 +1183,8 @@ importers:
         specifier: 1.11.14
         version: 1.11.14
       dompurify:
-        specifier: 3.4.10
-        version: 3.4.10
+        specifier: 3.4.12
+        version: 3.4.12
       focus-trap:
         specifier: 7.6.5
         version: 7.6.5
@@ -5436,7 +5437,7 @@ packages:
     resolution: {integrity: sha512-64mD5Q7heVkr8JsqBFDh9xnQJrPLmWJghy8Qtj9UeLosQL9n+JYTcS7d+eNsEVwuvZvxfF7hUSi87jABm/eYpw==}
     peerDependencies:
       async-validator: ^4
-      axios: 1.17.0
+      axios: 1.18.1
       change-case: ^5
       drauu: ^0.4
       focus-trap: ^7
@@ -5478,7 +5479,7 @@ packages:
     resolution: {integrity: sha512-76I5FT2ESvCmCaSwapI+a/u/CFtNXmzl9f9lNp1hRtx8vKB8hfiokJr8IvQqcQG5ckGXElyXK516b54ozV3MvA==}
     peerDependencies:
       async-validator: ^4
-      axios: 1.17.0
+      axios: 1.18.1
       change-case: ^5
       drauu: ^0.4
       focus-trap: ^7 || ^8
@@ -5905,8 +5906,8 @@ packages:
   await-lock@2.2.2:
     resolution: {integrity: sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw==}
 
-  axios@1.17.0:
-    resolution: {integrity: sha512-J8SwNxprqqpbfenehxWYXE7CW+wM1BB4w3+N+g+/Wx40xM4rsLrfPmHHxSWIxJLYDgSY/HqlFPIYb2/S3rxafw==}
+  axios@1.18.1:
+    resolution: {integrity: sha512-3nTvFlvpn9Zu/RkHUqtc7/+al4UpRW5az71ap5zccp6e8RAYEzhMTecX8Dz1wWDYrPpUoB1HAQEGEAEvUr7S9g==}
 
   babel-plugin-syntax-trailing-function-commas@7.0.0-beta.0:
     resolution: {integrity: sha512-Xj9XuRuz3nTSbaTXWv3itLOcxyF4oPD8douBBmj7U9BBC6nEBYfyOJYQMf/8PJAFotC62UY5dFfIGEPr7WswzQ==}
@@ -5975,8 +5976,8 @@ packages:
   bodec@0.1.0:
     resolution: {integrity: sha512-Ylo+MAo5BDUq1KA3f3R/MFhh+g8cnHmo8bz3YPGhI1znrMaf77ol1sfvYJzsw3nTE+Y2GryfDxBaR+AqpAkEHQ==}
 
-  body-parser@2.2.2:
-    resolution: {integrity: sha512-oP5VkATKlNwcgvxi0vM0p/D3n2C3EReYVX+DNYs5TjZFn/oQt2j+4sVJtSMr18pdRr8wjTcBl6LoV+FUwzPmNA==}
+  body-parser@2.3.0:
+    resolution: {integrity: sha512-2cGmJupaNgg+QUwVLAucDuWuoMZ6EX9iHDRswZ5lsNYEmwPaRknMPCLZz07yTzVq/83p4o/wzbDZbBrTvGGTIw==}
     engines: {node: '>=18'}
 
   boolbase@1.0.0:
@@ -5986,14 +5987,14 @@ packages:
     resolution: {integrity: sha512-d0II/GO9uf9lfUHH2BQsjxzRJZBdsjgsBiW4BvhWk/3qoKwQFjIDVN19PfX8F2D/r9PCMTtLWjYVCFrpeYUzsw==}
     deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
-  brace-expansion@1.1.13:
-    resolution: {integrity: sha512-9ZLprWS6EENmhEOpjCYW2c8VkmOvckIJZfkr7rBW6dObmfgJ/L1GpSYW5Hpo9lDz4D1+n0Ckz8rU7FwHDQiG/w==}
+  brace-expansion@1.1.16:
+    resolution: {integrity: sha512-IDw48K2/2kRkg9LdJxurvq3lV3aBgq0REY89duEqFRthjlPdXHKMj7EnQOXVckxzgisinf3nHfrcE2FufFLXMw==}
 
   brace-expansion@2.1.1:
     resolution: {integrity: sha512-WR1cURNjuvBLMZBMbqM0UoE+WAfdUcEV1ccD8PVBVOI+Z3ND4+SZbN8RsfT2bMuG1qwz5RFvPukSZm5fF2D5eA==}
 
-  brace-expansion@5.0.6:
-    resolution: {integrity: sha512-kLpxurY4Z4r9sgMsyG0Z9uzsBlgiU/EFKhj/h91/8yHu0edo7XuixOIH3VcJ8kkxs6/jPzoI6U9Vj3WqbMQ94g==}
+  brace-expansion@5.0.7:
+    resolution: {integrity: sha512-7oFy703dxfY3/NLxC1fh2SUCQ0H9rmAY+5EpDVfXjUTTs+HEwR2nYaqLv+GWcTsumwxPfiz6CzCNkwXwBUwqCA==}
     engines: {node: 18 || 20 || >=22}
 
   braces@3.0.3:
@@ -6852,8 +6853,8 @@ packages:
     resolution: {integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==}
     engines: {node: '>= 4'}
 
-  dompurify@3.4.10:
-    resolution: {integrity: sha512-0xzNv0e7oYC6yyuOGZIABPM4qtg3QxLFniDNPP4ZP90wR8Yq3zgwpRbrNiT4N3IKqDbbYFEJLV+JWEs19aZ//w==}
+  dompurify@3.4.12:
+    resolution: {integrity: sha512-zQvGet8Z2sWbQhCmfFz/T5QWH2oBmjnqK3qvOjaqaNLrLEF912WamU+ohnTp0TCep/MFVHpdJuCZEdFOdTnEFg==}
 
   domutils@3.2.2:
     resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
@@ -8526,8 +8527,8 @@ packages:
   js-tokens@9.0.1:
     resolution: {integrity: sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==}
 
-  js-yaml@4.2.0:
-    resolution: {integrity: sha512-ePWsvanv0DWuDRsW8dnt+R4jQ31SCRCQ7hhNcPXZPsoBZiemuZNYGf7adZdqX2D86j6rvKp3RpCxVTSb8WQlOw==}
+  js-yaml@4.3.0:
+    resolution: {integrity: sha512-1td788aAnnZ5qs7V2QIRl1owjtYpbKt749Y3xauqQgwIIGF/xXWz1wMTEBx5O3LK3lXLVuqXPdPxj2BoFHaW9Q==}
     hasBin: true
 
   jsdom@26.1.0:
@@ -10026,8 +10027,8 @@ packages:
   proto-list@1.2.4:
     resolution: {integrity: sha512-vtK/94akxsTMhe0/cbfpR+syPuszcuwhqVjJq26CuNDgFGj682oRBXOP5MJpv2r7JtE8MsiepGIqvvOTBwn2vA==}
 
-  protobufjs@7.6.4:
-    resolution: {integrity: sha512-RJJPTTpvFfHcWLkIa2JFWK4XvtSzS0yEWDmunqHXli1h3JlkbcQZXDZdcWxv+JK3Xsl5/UFDPZ0iGm7DAengYw==}
+  protobufjs@7.6.5:
+    resolution: {integrity: sha512-/FPD0nUc9jH6rfFjji9IBqOz4pcSE3CsT1m7Ep6Mdb0LxSUMj8hgl6GomOvZzpNpAqqGaXA0P3VSrZLFzIhQrw==}
     engines: {node: '>=12.0.0'}
 
   proxy-addr@2.0.7:
@@ -10959,8 +10960,8 @@ packages:
     resolution: {integrity: sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==}
     engines: {node: '>=6'}
 
-  tar@7.5.16:
-    resolution: {integrity: sha512-56adEpPMouktRlBLXiaYFFzZ/3+JXa8P9n7WbR+ibIjtviN55mEaOkiysCnPnWm+7kkui1Dn8J9l+g6zV8731w==}
+  tar@7.5.20:
+    resolution: {integrity: sha512-9FcyK4PA6+WbzlTM9WhQm6vB5W7cP7dUiPsv1g7YDwEQnQ1CGpK3MGlKk/ITVWMk05kHZuBhmVhiv8LZoy/PFQ==}
     engines: {node: '>=18'}
 
   terser@5.43.1:
@@ -11285,8 +11286,8 @@ packages:
     resolution: {integrity: sha512-6KQ/+QxK49Z/p3HO6E5ZCZWNnCasyZLa5ExaVYyvPxUwKtbCPMKELJOqh7EqOle0t9cH/7d2TaaTRRa6Nhs4YQ==}
     engines: {node: '>=20.18.1'}
 
-  undici@7.27.2:
-    resolution: {integrity: sha512-uZsKNuzQxDMUY6M3pIMvy5tvlGmtq8XJ2oLAkfRKGNu+1VQAIvLy2xIVG5ATZl5wDXl/tddByAWCizRbOme+TA==}
+  undici@7.28.0:
+    resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
     engines: {node: '>=20.18.1'}
 
   unenv@2.0.0-rc.24:
@@ -11734,6 +11735,9 @@ packages:
 
   vue-component-type-helpers@3.3.5:
     resolution: {integrity: sha512-Fe1jyPJoUGpJOYKOri44jduR7My4yYINOMJISuMAbmrs+L5LbIDUc8NTWZYY3EJLK0yPLuCmcd5zoCsE4k2/KA==}
+
+  vue-component-type-helpers@3.3.7:
+    resolution: {integrity: sha512-Skkhw9agYSgsWqv7bxSOGJZa9SaiJbZVGdXuFWnrzKaQYHnw9qbjD630rw6RyMqDbp54nfLCLw5SZA55if7JLg==}
 
   vue-demi@0.14.10:
     resolution: {integrity: sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==}
@@ -12237,7 +12241,7 @@ snapshots:
       '@apollo/utils.withrequired': 3.0.0
       '@graphql-tools/schema': 10.0.25(graphql@16.11.0)
       async-retry: 1.3.3
-      body-parser: 2.2.2
+      body-parser: 2.3.0
       content-type: 1.0.5
       cors: 2.8.6
       finalhandler: 2.1.1
@@ -13215,7 +13219,7 @@ snapshots:
       globals: 14.0.0
       ignore: 5.3.2
       import-fresh: 3.3.1
-      js-yaml: 4.2.0
+      js-yaml: 4.3.0
       minimatch: 3.1.5
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
@@ -13860,14 +13864,14 @@ snapshots:
     dependencies:
       lodash.camelcase: 4.3.0
       long: 5.3.2
-      protobufjs: 7.6.4
+      protobufjs: 7.6.5
       yargs: 17.7.2
 
   '@grpc/proto-loader@0.8.1':
     dependencies:
       lodash.camelcase: 4.3.0
       long: 5.3.2
-      protobufjs: 7.6.4
+      protobufjs: 7.6.5
       yargs: 17.7.2
 
   '@headlessui/vue@1.7.23(vue@3.5.20(typescript@5.9.2))':
@@ -14329,7 +14333,7 @@ snapshots:
   '@manypkg/tools@2.1.0':
     dependencies:
       jju: 1.4.0
-      js-yaml: 4.2.0
+      js-yaml: 4.3.0
       tinyglobby: 0.2.17
 
   '@mapbox/node-pre-gyp@2.0.0':
@@ -14340,7 +14344,7 @@ snapshots:
       node-fetch: 2.7.0
       nopt: 8.1.0
       semver: 7.7.2
-      tar: 7.5.16
+      tar: 7.5.20
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -14736,7 +14740,7 @@ snapshots:
       pkg-types: 2.3.1
       std-env: 4.1.0
 
-  '@nuxt/ui@4.8.2(@internationalized/date@3.12.2)(@internationalized/number@3.6.7)(@netlify/blobs@9.1.2)(@tiptap/extensions@3.26.1(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1))(@tiptap/y-tiptap@3.0.5(prosemirror-model@1.25.8)(prosemirror-state@1.4.4)(prosemirror-view@1.41.9)(y-protocols@1.0.7(yjs@13.6.31))(yjs@13.6.31))(axios@1.17.0)(change-case@5.4.4)(db0@0.3.4)(embla-carousel@8.6.0)(focus-trap@7.6.5)(ioredis@5.11.1)(jwt-decode@4.0.0)(magicast@0.5.3)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(tailwindcss@4.1.12)(typescript@5.9.2)(vite@7.3.5(@types/node@22.18.0)(jiti@2.7.0)(lightningcss@1.32.0)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.9.0))(vue-router@4.5.1(vue@3.5.20(typescript@5.9.2)))(vue@3.5.20(typescript@5.9.2))(yjs@13.6.31)(zod@3.25.76)':
+  '@nuxt/ui@4.8.2(@internationalized/date@3.12.2)(@internationalized/number@3.6.7)(@netlify/blobs@9.1.2)(@tiptap/extensions@3.26.1(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1))(@tiptap/y-tiptap@3.0.5(prosemirror-model@1.25.8)(prosemirror-state@1.4.4)(prosemirror-view@1.41.9)(y-protocols@1.0.7(yjs@13.6.31))(yjs@13.6.31))(axios@1.18.1)(change-case@5.4.4)(db0@0.3.4)(embla-carousel@8.6.0)(focus-trap@7.6.5)(ioredis@5.11.1)(jwt-decode@4.0.0)(magicast@0.5.3)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(tailwindcss@4.1.12)(typescript@5.9.2)(vite@7.3.5(@types/node@22.18.0)(jiti@2.7.0)(lightningcss@1.32.0)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.9.0))(vue-router@4.5.1(vue@3.5.20(typescript@5.9.2)))(vue@3.5.20(typescript@5.9.2))(yjs@13.6.31)(zod@3.25.76)':
     dependencies:
       '@floating-ui/dom': 1.7.6
       '@iconify/vue': 5.0.1(vue@3.5.20(typescript@5.9.2))
@@ -14766,10 +14770,10 @@ snapshots:
       '@tiptap/pm': 3.26.1
       '@tiptap/starter-kit': 3.26.1
       '@tiptap/suggestion': 3.26.1(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1)
-      '@tiptap/vue-3': 3.26.1(@floating-ui/dom@1.7.4)(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1)(vue@3.5.20(typescript@5.9.2))
+      '@tiptap/vue-3': 3.26.1(@floating-ui/dom@1.7.6)(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1)(vue@3.5.20(typescript@5.9.2))
       '@unhead/vue': 2.1.15(vue@3.5.20(typescript@5.9.2))
       '@vueuse/core': 14.3.0(vue@3.5.20(typescript@5.9.2))
-      '@vueuse/integrations': 14.3.0(axios@1.17.0)(change-case@5.4.4)(focus-trap@7.6.5)(fuse.js@7.4.2)(jwt-decode@4.0.0)(vue@3.5.20(typescript@5.9.2))
+      '@vueuse/integrations': 14.3.0(axios@1.18.1)(change-case@5.4.4)(focus-trap@7.6.5)(fuse.js@7.4.2)(jwt-decode@4.0.0)(vue@3.5.20(typescript@5.9.2))
       '@vueuse/shared': 14.3.0(vue@3.5.20(typescript@5.9.2))
       colortranslator: 5.0.0
       consola: 3.4.2
@@ -15198,7 +15202,7 @@ snapshots:
 
   '@runonflux/nat-upnp@1.0.2':
     dependencies:
-      axios: 1.17.0
+      axios: 1.18.1
       fast-xml-parser: 5.8.0
     transitivePeerDependencies:
       - debug
@@ -15326,7 +15330,7 @@ snapshots:
       storybook: 9.1.20(@testing-library/dom@10.4.0)(prettier@3.6.2)(vite@7.3.5(@types/node@22.18.0)(jiti@2.7.0)(lightningcss@1.32.0)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.9.0))
       type-fest: 2.19.0
       vue: 3.5.20(typescript@5.9.2)
-      vue-component-type-helpers: 3.3.5
+      vue-component-type-helpers: 3.3.7
 
   '@swc/core-darwin-arm64@1.13.5':
     optional: true
@@ -15498,7 +15502,7 @@ snapshots:
   '@tailwindcss/oxide@4.1.12':
     dependencies:
       detect-libc: 2.0.4
-      tar: 7.5.16
+      tar: 7.5.20
     optionalDependencies:
       '@tailwindcss/oxide-android-arm64': 4.1.12
       '@tailwindcss/oxide-darwin-arm64': 4.1.12
@@ -15678,7 +15682,7 @@ snapshots:
     dependencies:
       '@tiptap/extension-drag-handle': 3.26.1(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/extension-collaboration@3.26.1(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1)(@tiptap/y-tiptap@3.0.5(prosemirror-model@1.25.8)(prosemirror-state@1.4.4)(prosemirror-view@1.41.9)(y-protocols@1.0.7(yjs@13.6.31))(yjs@13.6.31))(yjs@13.6.31))(@tiptap/extension-node-range@3.26.1(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1)(@tiptap/y-tiptap@3.0.5(prosemirror-model@1.25.8)(prosemirror-state@1.4.4)(prosemirror-view@1.41.9)(y-protocols@1.0.7(yjs@13.6.31))(yjs@13.6.31))
       '@tiptap/pm': 3.26.1
-      '@tiptap/vue-3': 3.26.1(@floating-ui/dom@1.7.4)(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1)(vue@3.5.20(typescript@5.9.2))
+      '@tiptap/vue-3': 3.26.1(@floating-ui/dom@1.7.6)(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1)(vue@3.5.20(typescript@5.9.2))
       vue: 3.5.20(typescript@5.9.2)
 
   '@tiptap/extension-drag-handle@3.26.1(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/extension-collaboration@3.26.1(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1)(@tiptap/y-tiptap@3.0.5(prosemirror-model@1.25.8)(prosemirror-state@1.4.4)(prosemirror-view@1.41.9)(y-protocols@1.0.7(yjs@13.6.31))(yjs@13.6.31))(yjs@13.6.31))(@tiptap/extension-node-range@3.26.1(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1)(@tiptap/y-tiptap@3.0.5(prosemirror-model@1.25.8)(prosemirror-state@1.4.4)(prosemirror-view@1.41.9)(y-protocols@1.0.7(yjs@13.6.31))(yjs@13.6.31))':
@@ -15838,9 +15842,9 @@ snapshots:
       '@tiptap/core': 3.26.1(@tiptap/pm@3.26.1)
       '@tiptap/pm': 3.26.1
 
-  '@tiptap/vue-3@3.26.1(@floating-ui/dom@1.7.4)(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1)(vue@3.5.20(typescript@5.9.2))':
+  '@tiptap/vue-3@3.26.1(@floating-ui/dom@1.7.6)(@tiptap/core@3.26.1(@tiptap/pm@3.26.1))(@tiptap/pm@3.26.1)(vue@3.5.20(typescript@5.9.2))':
     dependencies:
-      '@floating-ui/dom': 1.7.4
+      '@floating-ui/dom': 1.7.6
       '@tiptap/core': 3.26.1(@tiptap/pm@3.26.1)
       '@tiptap/pm': 3.26.1
       vue: 3.5.20(typescript@5.9.2)
@@ -16796,25 +16800,25 @@ snapshots:
       '@vueuse/shared': 14.3.0(vue@3.5.20(typescript@5.9.2))
       vue: 3.5.20(typescript@5.9.2)
 
-  '@vueuse/integrations@13.8.0(axios@1.17.0)(change-case@5.4.4)(focus-trap@7.6.5)(fuse.js@7.4.2)(jwt-decode@4.0.0)(vue@3.5.20(typescript@5.9.2))':
+  '@vueuse/integrations@13.8.0(axios@1.18.1)(change-case@5.4.4)(focus-trap@7.6.5)(fuse.js@7.4.2)(jwt-decode@4.0.0)(vue@3.5.20(typescript@5.9.2))':
     dependencies:
       '@vueuse/core': 13.8.0(vue@3.5.20(typescript@5.9.2))
       '@vueuse/shared': 13.8.0(vue@3.5.20(typescript@5.9.2))
       vue: 3.5.20(typescript@5.9.2)
     optionalDependencies:
-      axios: 1.17.0
+      axios: 1.18.1
       change-case: 5.4.4
       focus-trap: 7.6.5
       fuse.js: 7.4.2
       jwt-decode: 4.0.0
 
-  '@vueuse/integrations@14.3.0(axios@1.17.0)(change-case@5.4.4)(focus-trap@7.6.5)(fuse.js@7.4.2)(jwt-decode@4.0.0)(vue@3.5.20(typescript@5.9.2))':
+  '@vueuse/integrations@14.3.0(axios@1.18.1)(change-case@5.4.4)(focus-trap@7.6.5)(fuse.js@7.4.2)(jwt-decode@4.0.0)(vue@3.5.20(typescript@5.9.2))':
     dependencies:
       '@vueuse/core': 14.3.0(vue@3.5.20(typescript@5.9.2))
       '@vueuse/shared': 14.3.0(vue@3.5.20(typescript@5.9.2))
       vue: 3.5.20(typescript@5.9.2)
     optionalDependencies:
-      axios: 1.17.0
+      axios: 1.18.1
       change-case: 5.4.4
       focus-trap: 7.6.5
       fuse.js: 7.4.2
@@ -17196,7 +17200,7 @@ snapshots:
 
   await-lock@2.2.2: {}
 
-  axios@1.17.0:
+  axios@1.18.1:
     dependencies:
       follow-redirects: 1.16.0(debug@4.3.7)
       form-data: 4.0.6
@@ -17292,10 +17296,10 @@ snapshots:
 
   bodec@0.1.0: {}
 
-  body-parser@2.2.2:
+  body-parser@2.3.0:
     dependencies:
       bytes: 3.1.2
-      content-type: 1.0.5
+      content-type: 2.0.0
       debug: 4.4.3
       http-errors: 2.0.1
       iconv-lite: 0.7.2
@@ -17310,7 +17314,7 @@ snapshots:
 
   boolean@3.2.0: {}
 
-  brace-expansion@1.1.13:
+  brace-expansion@1.1.16:
     dependencies:
       balanced-match: 1.0.2
       concat-map: 0.0.1
@@ -17319,7 +17323,7 @@ snapshots:
     dependencies:
       balanced-match: 1.0.2
 
-  brace-expansion@5.0.6:
+  brace-expansion@5.0.7:
     dependencies:
       balanced-match: 4.0.4
 
@@ -17810,7 +17814,7 @@ snapshots:
   cosmiconfig@8.3.6(typescript@5.9.2):
     dependencies:
       import-fresh: 3.3.1
-      js-yaml: 4.2.0
+      js-yaml: 4.3.0
       parse-json: 5.2.0
       path-type: 4.0.0
     optionalDependencies:
@@ -17820,7 +17824,7 @@ snapshots:
     dependencies:
       env-paths: 2.2.1
       import-fresh: 3.3.1
-      js-yaml: 4.2.0
+      js-yaml: 4.3.0
       parse-json: 5.2.0
     optionalDependencies:
       typescript: 5.9.2
@@ -18136,7 +18140,7 @@ snapshots:
       '@grpc/grpc-js': 1.14.4
       '@grpc/proto-loader': 0.7.15
       docker-modem: 5.0.7
-      protobufjs: 7.6.4
+      protobufjs: 7.6.5
       tar-fs: 2.1.4
       uuid: 11.1.1
     transitivePeerDependencies:
@@ -18164,7 +18168,7 @@ snapshots:
     dependencies:
       domelementtype: 2.3.0
 
-  dompurify@3.4.10:
+  dompurify@3.4.12:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
@@ -18812,7 +18816,7 @@ snapshots:
   express@5.2.1:
     dependencies:
       accepts: 2.0.0
-      body-parser: 2.2.2
+      body-parser: 2.3.0
       content-disposition: 1.1.0
       content-type: 1.0.5
       cookie: 0.7.2
@@ -20006,7 +20010,7 @@ snapshots:
 
   isomorphic-dompurify@2.26.0:
     dependencies:
-      dompurify: 3.4.10
+      dompurify: 3.4.12
       jsdom: 26.1.0
     transitivePeerDependencies:
       - bufferutil
@@ -20090,7 +20094,7 @@ snapshots:
 
   js-tokens@9.0.1: {}
 
-  js-yaml@4.2.0:
+  js-yaml@4.3.0:
     dependencies:
       argparse: 2.0.1
 
@@ -20616,11 +20620,11 @@ snapshots:
 
   minimatch@10.2.5:
     dependencies:
-      brace-expansion: 5.0.6
+      brace-expansion: 5.0.7
 
   minimatch@3.1.5:
     dependencies:
-      brace-expansion: 1.1.13
+      brace-expansion: 1.1.16
 
   minimatch@9.0.9:
     dependencies:
@@ -21372,7 +21376,7 @@ snapshots:
       debug: 4.4.3
       eventemitter2: 6.4.9
       fast-json-patch: 3.1.1
-      js-yaml: 4.2.0
+      js-yaml: 4.3.0
       pidusage: 4.0.1
       pm2-deploy: 1.0.2
       proxy-agent: 6.5.0
@@ -21579,7 +21583,7 @@ snapshots:
 
   proto-list@1.2.4: {}
 
-  protobufjs@7.6.4:
+  protobufjs@7.6.5:
     dependencies:
       '@protobufjs/aspromise': 1.1.2
       '@protobufjs/base64': 1.1.2
@@ -22210,7 +22214,7 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       ts-morph: 27.0.2
-      undici: 7.27.2
+      undici: 7.28.0
       validate-npm-package-name: 5.0.1
       vue-metamorph: 3.3.4(eslint@9.34.0(jiti@2.7.0))
       zod: 3.25.76
@@ -22719,7 +22723,7 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  tar@7.5.16:
+  tar@7.5.20:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
@@ -23014,7 +23018,7 @@ snapshots:
 
   undici@7.24.8: {}
 
-  undici@7.27.2: {}
+  undici@7.28.0: {}
 
   unenv@2.0.0-rc.24:
     dependencies:
@@ -23603,6 +23607,8 @@ snapshots:
 
   vue-component-type-helpers@3.3.5: {}
 
+  vue-component-type-helpers@3.3.7: {}
+
   vue-demi@0.14.10(vue@3.5.20(typescript@5.9.2)):
     dependencies:
       vue: 3.5.20(typescript@5.9.2)
@@ -23641,7 +23647,7 @@ snapshots:
       dot-object: 2.1.5
       glob: 7.2.3
       is-valid-glob: 1.0.0
-      js-yaml: 4.2.0
+      js-yaml: 4.3.0
 
   vue-i18n@11.1.11(vue@3.5.20(typescript@5.9.2)):
     dependencies:
@@ -23821,7 +23827,7 @@ snapshots:
 
   wireit@0.14.12:
     dependencies:
-      brace-expansion: 5.0.6
+      brace-expansion: 5.0.7
       chokidar: 3.6.0
       fast-glob: 3.3.3
       jsonc-parser: 3.3.1

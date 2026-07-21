@@ -147,7 +147,7 @@
         "semver": "7.7.2",
         "strftime": "0.10.3",
         "systeminformation": "5.31.7",
-        "undici": "7.27.2",
+        "undici": "7.28.0",
         "uuid": "13.0.2",
         "ws": "8.21.0",
         "zen-observable-ts": "1.1.0",
