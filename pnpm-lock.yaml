@@ -269,9 +269,6 @@ importers:
       ini:
         specifier: 5.0.0
         version: 5.0.0
-      ip:
-        specifier: 2.0.1
-        version: 2.0.1
       jose:
         specifier: 6.0.13
         version: 6.0.13
@@ -435,9 +432,6 @@ importers:
       '@types/ini':
         specifier: 4.1.1
         version: 4.1.1
-      '@types/ip':
-        specifier: 1.1.3
-        version: 1.1.3
       '@types/lodash':
         specifier: 4.17.20
         version: 4.17.20
@@ -546,9 +540,6 @@ importers:
       '@unraid/shared':
         specifier: workspace:*
         version: link:../unraid-shared
-      ip:
-        specifier: 2.0.1
-        version: 2.0.1
       node-cache:
         specifier: 5.1.2
         version: 5.1.2
@@ -601,9 +592,6 @@ importers:
       '@types/ini':
         specifier: 4.1.1
         version: 4.1.1
-      '@types/ip':
-        specifier: 1.1.3
-        version: 1.1.3
       '@types/lodash-es':
         specifier: 4.17.12
         version: 4.17.12
@@ -4740,9 +4728,6 @@ packages:
   '@types/inquirer@9.0.9':
     resolution: {integrity: sha512-/mWx5136gts2Z2e5izdoRCo46lPp5TMs9R15GTSsgg/XnZyxDWVqoVU3R9lWnccKpqwsJLvRoxbCjoJtZB7DSw==}
 
-  '@types/ip@1.1.3':
-    resolution: {integrity: sha512-64waoJgkXFTYnCYDUWgSATJ/dXEBanVkaP5d4Sbk7P6U7cTTMhxVyROTckc6JKdwCrgnAjZMn0k3177aQxtDEA==}
-
   '@types/jsdom@21.1.7':
     resolution: {integrity: sha512-yOriVnggzrnQ3a9OKOCxaVuSug3w3/SbOj5i7VwXWZEyUNl3bLF9V3MfxGbZKuwqJOQyRfqXyROBB1CoZLFWzA==}
 
@@ -8163,9 +8148,6 @@ packages:
   ip-address@10.2.0:
     resolution: {integrity: sha512-/+S6j4E9AHvW9SWMSEY9Xfy66O5PWvVEJ08O0y5JGyEKQpojb0K0GKpz/v5HJ/G0vi3D2sjGK78119oXZeE0qA==}
     engines: {node: '>= 12'}
-
-  ip@2.0.1:
-    resolution: {integrity: sha512-lJUL9imLTNi1ZfXT+DU6rBBdbiKGBuay9B6xGSPVjUeQwaH1RIGqef8RZkUtHioLmSNpPR5M4HVKJGm1j8FWVQ==}
 
   ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
@@ -15970,10 +15952,6 @@ snapshots:
       '@types/through': 0.0.33
       rxjs: 7.8.2
 
-  '@types/ip@1.1.3':
-    dependencies:
-      '@types/node': 22.18.0
-
   '@types/jsdom@21.1.7':
     dependencies:
       '@types/node': 22.18.0
@@ -19770,8 +19748,6 @@ snapshots:
     optional: true
 
   ip-address@10.2.0: {}
-
-  ip@2.0.1: {}
 
   ipaddr.js@1.9.1: {}
 

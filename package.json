@@ -63,11 +63,6 @@
       "ws": "8.21.0",
       "yaml": "2.9.0"
     },
-    "auditConfig": {
-      "ignoreCves": [
-        "CVE-2024-29415"
-      ]
-    },
     "peerDependencyRules": {
       "allowAny": [
         "vue"
