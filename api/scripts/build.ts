@@ -13,6 +13,11 @@ type ApiPackageJson = PackageJson & {
     version: string;
     peerDependencies: Record<string, string>;
     dependencies?: Record<string, string>;
+    overrides?: Record<string, unknown>;
+};
+
+type RootPackageJson = PackageJson & {
+    pnpm?: { overrides?: Record<string, string> };
 };
 
 /**
@@ -92,6 +97,15 @@ try {
 
     // omit dev dependencies from vendored dependencies in release build
     parsedPackageJson.devDependencies = {};
+
+    // Propagate the workspace's pnpm.overrides into the production package.json so the
+    // npm-built release resolves the same security-patched transitive versions as the
+    // pnpm workspace the audit gate validates. npm honors the `name@range` key syntax.
+    const rootPackageJson = JSON.parse(await readFile('../package.json', 'utf-8')) as RootPackageJson;
+    const rootOverrides = rootPackageJson.pnpm?.overrides ?? {};
+    if (Object.keys(rootOverrides).length > 0) {
+        parsedPackageJson.overrides = { ...rootOverrides, ...(parsedPackageJson.overrides ?? {}) };
+    }
 
     // Create a temporary directory for packaging
     await mkdir('./deploy/pack/', { recursive: true });
