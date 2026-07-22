@@ -84,6 +84,21 @@ const copyLanIp = async () => {
 
 <template>
   <div id="UnraidHeader" class="unraid-header-shell text-foreground relative z-20 w-full max-w-full">
+    <!--
+      Banner-gradient backdrop. Darkens the right of the header so the metadata,
+      server name, and account controls stay legible over a bright banner image,
+      matching the legacy header. Rendered inside the component (in the `.unapi`
+      scope) because the webgui `#header` element lives outside that scope, so the
+      main.css `#header.image::before` edge gradient never matches here. The
+      `.unraid-banner-gradient-layer` class (styled in main.css) paints
+      `var(--banner-gradient)`, which is null when the banner gradient is
+      disabled, so this self-gates. Sits behind the content columns (z-0).
+    -->
+    <div
+      class="unraid-banner-gradient-layer pointer-events-none absolute inset-y-0 right-0 left-[55%] z-0"
+      aria-hidden="true"
+    />
+
     <div class="uh-meta-right relative z-10 flex max-w-full min-w-0 flex-col items-end gap-y-1 text-end">
       <ArrayUsage v-if="showArrayUsage" />
       <UpcServerStatus />
