@@ -260,11 +260,46 @@ export async function mountUnifiedApp() {
     const vnode = createVNode(wrappedComponent);
     vnode.appContext = app._context; // Share the app context
 
-    // Clear the element and render the component into it
-    // ensureUnapiScope(element);
-    // ensureContainerScope(element, mapping);
-    element.replaceChildren();
-    render(vnode, element);
+    // Preserve any server-rendered placeholder (e.g. the header boot logo) so the
+    // element is never visibly empty while the client render is in flight — that
+    // render can land a frame or more after this call, and clearing first leaves
+    // a blank flash. Vue needs a clean container to mount into, so render into a
+    // fresh, layout-transparent (display: contents) child appended AFTER the
+    // placeholder. The placeholder stays visible until the real content appears,
+    // at which point the observer removes it — a seamless swap. Elements without
+    // a placeholder keep the original clear-then-render path.
+    const placeholderNodes = Array.from(element.childNodes);
+    let renderTarget: HTMLElement = element;
+    if (placeholderNodes.length > 0) {
+      const buffer = document.createElement('div');
+      buffer.style.display = 'contents';
+      element.appendChild(buffer);
+      renderTarget = buffer;
+
+      const removePlaceholder = () => {
+        for (const node of placeholderNodes) {
+          if (node.parentNode === element) {
+            element.removeChild(node);
+          }
+        }
+      };
+      const observer = new MutationObserver(() => {
+        if (buffer.childElementCount > 0) {
+          observer.disconnect();
+          removePlaceholder();
+        }
+      });
+      observer.observe(buffer, { childList: true });
+      // Safety net: never leave a stale placeholder if the render never lands.
+      setTimeout(() => {
+        observer.disconnect();
+        removePlaceholder();
+      }, 5000);
+    } else {
+      element.replaceChildren();
+    }
+
+    render(vnode, renderTarget);
 
     // Mark as mounted
     element.setAttribute('data-vue-mounted', 'true');
@@ -277,7 +312,7 @@ export async function mountUnifiedApp() {
     // Store for cleanup
     mountedComponents.push({
       element,
-      unmount: () => render(null, element),
+      unmount: () => render(null, renderTarget),
     });
   });
 
