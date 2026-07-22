@@ -71,6 +71,11 @@ const theme = computed(() => themeStore.theme);
 const logoStyle = computed<HeaderLogoStyle>(() =>
   props.headerLogoStyle === 'theme' ? 'theme' : 'gradient'
 );
+// On mobile the meta row spans full width over the banner image, so its text
+// needs its own legibility treatment (drop-shadow) rather than the right-only
+// banner gradient. Only when a banner image is present, otherwise the header is
+// a solid color the theme text already reads against.
+const hasBanner = computed(() => theme.value?.banner === true);
 
 const dropdownOpen = ref(false);
 
@@ -99,9 +104,22 @@ const copyLanIp = async () => {
       aria-hidden="true"
     />
 
-    <div class="uh-meta-right relative z-10 flex max-w-full min-w-0 flex-col items-end gap-y-1 text-end">
+    <div
+      class="uh-meta-right relative z-10 flex max-w-full min-w-0 flex-col items-end gap-y-1 text-end"
+      :class="{ 'uh-meta-over-banner': hasBanner }"
+    >
       <ArrayUsage v-if="showArrayUsage" />
-      <UpcServerStatus />
+      <!--
+        Below sm the meta row becomes a full-width top strip so the uptime and
+        registration state split to opposite ends (uptime left, state right)
+        instead of stacking cramped on the right. At sm+ it collapses back to the
+        right-aligned desktop cluster. Over a banner, force white text so both
+        ends read against the image (paired with the drop-shadow in scoped CSS).
+      -->
+      <UpcServerStatus
+        class="max-sm:!w-full max-sm:!flex-row max-sm:!items-center max-sm:!justify-between max-sm:!gap-x-2 max-sm:px-2"
+        :class="{ 'max-sm:!text-white': hasBanner }"
+      />
     </div>
 
     <div class="uh-logo relative z-10 flex min-w-0 items-center justify-start">
@@ -173,6 +191,27 @@ const copyLanIp = async () => {
   grid-row: 1;
   align-self: start;
   justify-self: end;
+}
+
+/*
+ * Mobile (below sm): the meta row spans the full width as a top strip so uptime
+ * and registration state split to opposite ends. Over a banner image the text
+ * gets a drop-shadow (and white color, set on the child) for legibility instead
+ * of a heavy backdrop bar; the right-only banner gradient does not reach the
+ * left-aligned uptime. At sm+ the desktop right-aligned cluster (above) applies
+ * unchanged.
+ */
+@media (max-width: 639.98px) {
+  .uh-meta-right {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  .uh-meta-over-banner {
+    text-shadow:
+      0 1px 2px rgb(0 0 0 / 0.95),
+      0 0 4px rgb(0 0 0 / 0.8);
+  }
 }
 
 .uh-logo {
