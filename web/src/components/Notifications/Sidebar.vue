@@ -175,7 +175,7 @@ watch(open, (isOpen) => {
     >
       <div class="relative flex h-full w-full flex-col">
         <SheetHeader class="ml-1 items-baseline gap-1 px-3 pb-2">
-          <SheetTitle class="text-2xl">{{ t('notifications.sidebar.title') }}</SheetTitle>
+          <SheetTitle>{{ t('notifications.sidebar.title') }}</SheetTitle>
         </SheetHeader>
         <Tabs
           v-if="bodyMounted"
