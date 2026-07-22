@@ -21,7 +21,7 @@ jobs:
           target: "./"
           version: ${{ inputs.version && format('tags/{0}', inputs.version) || 'latest' }}
 
-      - uses: cardinalby/git-get-release-action@1.2.5
+      - uses: cardinalby/git-get-release-action@1.2.6
         id: release-info
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -30,7 +30,7 @@ jobs:
           prerelease: false
       - uses: actions/setup-node@v7
         with:
-          node-version: 22.19.0
+          node-version: 22.23.1
       - run: |
           cat << 'EOF' > release-notes.txt
           ${{ steps.release-info.outputs.body }}
