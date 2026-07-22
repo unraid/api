@@ -124,7 +124,9 @@ const copyLanIp = async () => {
 
     <div class="uh-logo-block relative z-10 flex min-w-0 flex-col items-start justify-center gap-y-2">
       <HeaderLogo :logo-style="logoStyle" />
-      <HeaderVersion />
+      <div class="uh-version flex min-w-0">
+        <HeaderVersion />
+      </div>
     </div>
 
     <div class="uh-nav-right relative z-10 flex min-w-0 flex-row items-center justify-end gap-x-1">
@@ -223,8 +225,8 @@ const copyLanIp = async () => {
  * Logo + version as one vertically-centered group (matching the legacy header),
  * rather than the logo floating in the middle band with the version pinned to
  * the bottom, which left an awkward gap above the logo. On desktop the group
- * spans the full height so it centers against the whole header; on mobile it
- * sits below the full-width meta strip (rows 2-3).
+ * spans the full height so it centers against the whole header; the mobile
+ * override below re-places it.
  */
 .uh-logo-block {
   grid-column: 1;
@@ -233,9 +235,33 @@ const copyLanIp = async () => {
   justify-self: start;
 }
 
+/*
+ * Mobile: the host is stretched to the full header height (see main.css) and the
+ * shell fills it, so the three grid rows span the whole header — the uptime sits
+ * just below the top and the version mirrors it just above the bottom. The logo
+ * stays centered in the middle row so it lines up with the account controls, and
+ * the version is floated out of the block's flow to the bottom-left; keeping it
+ * in flow would make the 2-line logo+version block impossible to center-align
+ * against the taller 1-line control row. The block is `position: static` on
+ * mobile so the floated version anchors to the shell (full height) rather than
+ * the block; the logo sits left of the banner gradient, so dropping the block's
+ * z-index here is safe.
+ */
 @media (max-width: 639.98px) {
+  .unraid-header-shell {
+    height: 100%;
+    padding-top: 0.25rem;
+  }
+
   .uh-logo-block {
-    grid-row: 2 / -1;
+    grid-row: 2;
+    position: static;
+  }
+
+  .uh-logo-block > .uh-version {
+    position: absolute;
+    bottom: 0.25rem;
+    left: 0;
   }
 }
 

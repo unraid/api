@@ -62,6 +62,17 @@ unraid-header.unapi {
   width: 100%;
 }
 
+/* The webgui `#header` centers its flex children. On mobile the consolidated
+   header wants its content top-anchored (uptime near the top, extra room at the
+   bottom), so stretch the host to the full header height and let the grid place
+   everything from the top. Styled here because `#header` and this host element
+   live outside the component's `.unapi` scope. */
+@media (max-width: 639.98px) {
+  unraid-header.unapi {
+    align-self: stretch;
+  }
+}
+
 /* Style for Unraid progress frame */
 iframe#progressFrame {
   background-color: var(--background-color);
