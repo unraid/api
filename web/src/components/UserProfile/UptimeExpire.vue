@@ -50,8 +50,11 @@ const countUp = computed<boolean>(() => {
   return state.value !== 'TRIAL' && state.value !== 'ENOCONN';
 });
 
-const { outputDateTimeReadableDiff: readableDiff, outputDateTimeFormatted: formatted } =
-  useDateTimeHelper(dateTimeFormat.value, t, false, time.value, countUp.value);
+const {
+  outputDateTimeReadableDiff: readableDiff,
+  outputDateTimeReadableDiffShort: readableDiffShort,
+  outputDateTimeFormatted: formatted,
+} = useDateTimeHelper(dateTimeFormat.value, t, false, time.value, countUp.value);
 
 const output = computed(() => {
   if (!countUp.value || state.value === 'EEXPIRED') {
@@ -72,6 +75,14 @@ const output = computed(() => {
           : props.shortText
             ? t('userProfile.uptimeExpire.expiresIn', [readableDiff.value])
             : t('userProfile.uptimeExpire.trialKeyExpiresIn', [readableDiff.value]),
+    };
+  }
+  // In compact (shortText) placements like the header, show only the largest
+  // uptime unit and surface the full breakdown + boot date on hover.
+  if (props.shortText) {
+    return {
+      title: `${t('userProfile.uptimeExpire.uptime', [readableDiff.value])}\n${t('userProfile.uptimeExpire.serverUpSince', [formatted.value])}`,
+      text: t('userProfile.uptimeExpire.uptime', [readableDiffShort.value]),
     };
   }
   return {
