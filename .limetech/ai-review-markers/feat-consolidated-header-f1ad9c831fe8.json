@@ -1,0 +1,21 @@
+{
+  "agent": "claude",
+  "base_oid": "f3205d978fada931da54df4255d41c07489066d9",
+  "base_ref": "origin/main",
+  "branch": "feat/consolidated-header",
+  "linear_data_shares": [],
+  "linear_skip_reason": "No durable cross-branch knowledge emerged; findings are branch-local non-blocking nits.",
+  "linear_state": "skipped",
+  "review_notes": "Requested preset auto; resolved to exhaustive (shared mount-engine contract, cross-repo coupling, broad blast radius). Lenses: security, architecture, correctness, tests/validation, type/modeling, maintenance \u2014 all run. Depth: exhaustive per relevant lens. Execution: delegated, one read-only subagent per lens. Models: strong, high reasoning. Source remediation: report-only. Marker: commit-on-green, no push (PR #2037 pre-exists).",
+  "review_status": "reviewed",
+  "reviewed_at": "2026-07-22T20:39:09Z",
+  "reviewed_sha": "ead8641413f1760b751880ac255be42559666caf",
+  "schema": "limetech.ai-review-marker.v1",
+  "scope": "branch-diff",
+  "summary": "No blocking findings. Delegated 6-lens exhaustive review of the consolidated header + shared mount-engine; only non-blocking items (shared-engine placeholder heuristic triggers on whitespace nodes; uncleared 5s safety-net timer) and nits (naming/magic-numbers, cross-repo SVG duplication, HeaderLogoStyle union collapse, test-coverage gaps). Lint clean; 654 tests pass (2 pre-existing unrelated Apollo teardown errors).",
+  "unreviewed_head_reason": "The latest PR SHA is the marker-only commit that records this review.",
+  "validation": {
+    "lint": "pass (eslint + prettier)",
+    "tests": "654 passed / 6 skipped / 67 files; 2 pre-existing Apollo window-teardown errors in markdown.test.ts + ThemeSwitcher.test.ts, unrelated to branch"
+  }
+}
