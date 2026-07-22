@@ -11,8 +11,9 @@ import { useServerStore } from '~/store/server';
  * Hydrates the server store from a `server` prop (JSON string when mounted as a
  * web component, or an object in dev/testing) and wires up the callback watcher.
  *
- * Shared by the standalone header entry points so the consolidated header and the
- * legacy `UserProfile` header behave identically when receiving server state.
+ * Used by the consolidated header (`Header.standalone.vue`). The legacy
+ * `UserProfile.standalone.vue` still inlines the equivalent hydration; this
+ * composable is the extracted form it can adopt to converge on one path.
  */
 export function useServerProp(getServer: () => Server | string | undefined) {
   const callbackStore = useCallbackActionsStore();

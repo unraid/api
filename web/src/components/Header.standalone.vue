@@ -47,9 +47,11 @@ export interface Props {
   showArrayUsage?: boolean | string;
   /**
    * Header logo rendering style from WebGUI display settings. The empty string
-   * is the persisted default and maps to the gradient logo.
+   * is the persisted default and maps to the gradient logo. Typed as the known
+   * styles plus `''` rather than a bare `string` so the union keeps its literal
+   * meaning (a bare `string` would erase it).
    */
-  headerLogoStyle?: HeaderLogoStyle | string;
+  headerLogoStyle?: HeaderLogoStyle | '';
 }
 const props = defineProps<Props>();
 
@@ -98,6 +100,8 @@ const copyLanIp = async () => {
       `.unraid-banner-gradient-layer` class (styled in main.css) paints
       `var(--banner-gradient)`, which is null when the banner gradient is
       disabled, so this self-gates. Sits behind the content columns (z-0).
+      `left-[55%]` starts the darkening at the right ~45%, matching the legacy
+      `#header.image::before` edge gradient in main.css (kept in sync by eye).
     -->
     <div
       class="unraid-banner-gradient-layer pointer-events-none absolute inset-y-0 right-0 left-[55%] z-0"
@@ -176,6 +180,11 @@ const copyLanIp = async () => {
 /*
  * Three bands: metadata anchors top/bottom while the logo and UPC controls stay
  * centered in the primary middle band without overlapping the tags.
+ */
+/*
+ * The `639.98px` media-query boundaries below are Tailwind's `sm` breakpoint
+ * (640px) minus a hair, so these hand-written queries stay in lockstep with the
+ * `sm:`/`max-sm:` utility classes used in the template above.
  */
 .unraid-header-shell {
   display: grid;
