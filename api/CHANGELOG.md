@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.36.1](https://github.com/unraid/api/compare/v4.36.0...v4.36.1) (2026-07-22)
+
+
+### Bug Fixes
+
+* **ci:** make dependency audit non-blocking ([#2048](https://github.com/unraid/api/issues/2048)) ([9db6c38](https://github.com/unraid/api/commit/9db6c38bf5f8fafeb5f6fad34bd5ca138416e970))
+* **deps:** resolve production audit advisories ([#2049](https://github.com/unraid/api/issues/2049)) ([e5654cc](https://github.com/unraid/api/commit/e5654ccfafeb174702d93bba1cc46954b3e023b6))
+
 ## [4.36.0](https://github.com/unraid/api/compare/v4.35.1...v4.36.0) (2026-07-21)
 
 
