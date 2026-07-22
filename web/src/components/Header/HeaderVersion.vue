@@ -166,7 +166,7 @@ const updateOsStatus = computed(() => {
 
         <DropdownMenuItem
           :disabled="!displayOsVersion"
-          class="cursor-pointer text-xs hover:bg-gray-100 dark:hover:bg-gray-800"
+          class="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer text-xs"
           @click="copyOsVersion"
         >
           <span class="flex w-full items-center justify-between">
@@ -180,7 +180,7 @@ const updateOsStatus = computed(() => {
 
         <DropdownMenuItem
           :disabled="!apiVersion"
-          class="cursor-pointer text-xs hover:bg-gray-100 dark:hover:bg-gray-800"
+          class="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer text-xs"
           @click="copyApiVersion"
         >
           <span class="flex w-full items-center justify-between">
