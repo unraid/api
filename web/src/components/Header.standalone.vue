@@ -191,6 +191,13 @@ const copyLanIp = async () => {
   grid-row: 1;
   align-self: start;
   justify-self: end;
+  /*
+   * The account trigger below has 8px of internal right padding, so the meta
+   * row needs the same inset for its right edge (uptime/registration/purchase)
+   * to line up with the nav controls. Reset on mobile where the row goes
+   * full-width (its inner content owns the padding there).
+   */
+  padding-right: 0.5rem;
 }
 
 /*
@@ -205,6 +212,7 @@ const copyLanIp = async () => {
   .uh-meta-right {
     grid-column: 1 / -1;
     justify-self: stretch;
+    padding-right: 0;
   }
 
   .uh-meta-over-banner {
