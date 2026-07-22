@@ -117,16 +117,13 @@ const copyLanIp = async () => {
         ends read against the image (paired with the drop-shadow in scoped CSS).
       -->
       <UpcServerStatus
-        class="max-sm:!w-full max-sm:!flex-row max-sm:!items-center max-sm:!justify-between max-sm:!gap-x-2 max-sm:px-2"
+        class="max-sm:!w-full max-sm:!flex-row max-sm:!items-center max-sm:!justify-between max-sm:!gap-x-2 max-sm:pr-2"
         :class="{ 'max-sm:!text-white': hasBanner }"
       />
     </div>
 
-    <div class="uh-logo relative z-10 flex min-w-0 items-center justify-start">
+    <div class="uh-logo-block relative z-10 flex min-w-0 flex-col items-start justify-center gap-y-2">
       <HeaderLogo :logo-style="logoStyle" />
-    </div>
-
-    <div class="uh-version relative z-10 flex max-w-full min-w-0 flex-col items-start justify-center">
       <HeaderVersion />
     </div>
 
@@ -222,18 +219,24 @@ const copyLanIp = async () => {
   }
 }
 
-.uh-logo {
+/*
+ * Logo + version as one vertically-centered group (matching the legacy header),
+ * rather than the logo floating in the middle band with the version pinned to
+ * the bottom, which left an awkward gap above the logo. On desktop the group
+ * spans the full height so it centers against the whole header; on mobile it
+ * sits below the full-width meta strip (rows 2-3).
+ */
+.uh-logo-block {
   grid-column: 1;
-  grid-row: 2;
+  grid-row: 1 / -1;
   align-self: center;
   justify-self: start;
 }
 
-.uh-version {
-  grid-column: 1;
-  grid-row: 3;
-  align-self: end;
-  justify-self: start;
+@media (max-width: 639.98px) {
+  .uh-logo-block {
+    grid-row: 2 / -1;
+  }
 }
 
 .uh-nav-right {

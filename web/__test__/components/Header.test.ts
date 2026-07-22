@@ -206,8 +206,7 @@ describe('Header.standalone.vue', () => {
     expect(root.classes()).toContain('unraid-header-shell');
     // Every header region is placed in its own grid area, so nothing is absolutely
     // positioned on top of anything else (the root cause of the old mobile overlap).
-    expect(root.find('.uh-logo').exists()).toBe(true);
-    expect(root.find('.uh-version').exists()).toBe(true);
+    expect(root.find('.uh-logo-block').exists()).toBe(true);
     expect(root.find('.uh-meta-right').exists()).toBe(true);
     expect(root.find('.uh-nav-right').exists()).toBe(true);
     expect(root.find('.uh-name').exists()).toBe(true);
