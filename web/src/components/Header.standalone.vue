@@ -20,12 +20,12 @@ import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
 /**
- * Consolidated Unraid header (Unraid 7.3+).
+ * Consolidated Unraid header (Unraid 7.4+).
  *
  * Owns the entire header in a single web component so the responsive layout can be
  * managed in one place: the Unraid logo, OS/API version dropdown and
  * reboot/update banner, the array-usage bar, the server name, server status,
- * notifications bell, and the user/account dropdown. On Unraid < 7.3 the legacy
+ * notifications bell, and the user/account dropdown. On Unraid < 7.4 the legacy
  * multi-component header (`unraid-header-os-version` + `unraid-user-profile`) is
  * rendered instead.
  *
