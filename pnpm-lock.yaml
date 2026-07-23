@@ -726,9 +726,15 @@ importers:
       class-validator:
         specifier: 0.15.1
         version: 0.15.1
+      graphql:
+        specifier: 16.11.0
+        version: 16.11.0
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      vitest:
+        specifier: 3.2.6
+        version: 3.2.6(@types/node@22.18.0)(@vitest/ui@3.2.6)(happy-dom@20.10.3)(jiti@2.7.0)(jsdom@26.1.0)(lightningcss@1.32.0)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.9.0)
 
   packages/unraid-api-plugin-health:
     devDependencies:
@@ -8929,6 +8935,7 @@ packages:
 
   lucide-vue-next@0.542.0:
     resolution: {integrity: sha512-cJfyhFoneDgYTouHwUJEutXaCW5EQuRrBsvfELudWnMiwfqvcEtpZTFZLdZ5Nrqow+znzn+Iyhu3KeYIfa3mEg==}
+    deprecated: Package deprecated. Please use @lucide/vue instead.
     peerDependencies:
       vue: '>=3.0.1'
 
@@ -11115,6 +11122,7 @@ packages:
   tsconfck@3.1.5:
     resolution: {integrity: sha512-CLDfGgUp7XPswWnezWwsCRxNmgQjhYq3VXHM0/XIRxhVrKw0M1if9agzryh1QS3nxjCROvV+xWxoJO1YctzzWg==}
     engines: {node: ^18 || >=20}
+    deprecated: unmaintained
     hasBin: true
     peerDependencies:
       typescript: ^5.0.0
@@ -11719,8 +11727,8 @@ packages:
   vue-component-type-helpers@3.3.5:
     resolution: {integrity: sha512-Fe1jyPJoUGpJOYKOri44jduR7My4yYINOMJISuMAbmrs+L5LbIDUc8NTWZYY3EJLK0yPLuCmcd5zoCsE4k2/KA==}
 
-  vue-component-type-helpers@3.3.7:
-    resolution: {integrity: sha512-Skkhw9agYSgsWqv7bxSOGJZa9SaiJbZVGdXuFWnrzKaQYHnw9qbjD630rw6RyMqDbp54nfLCLw5SZA55if7JLg==}
+  vue-component-type-helpers@3.3.8:
+    resolution: {integrity: sha512-troqCMmQodQDqUqn63NQaFi+CDSclSe7sc8VEBFqf5GFLqmGR2Ph3P2WEC7qwpRVyEWsTi/aAr4vyOe/B1hU3g==}
 
   vue-demi@0.14.10:
     resolution: {integrity: sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==}
@@ -15313,7 +15321,7 @@ snapshots:
       storybook: 9.1.20(@testing-library/dom@10.4.0)(prettier@3.6.2)(vite@7.3.5(@types/node@22.18.0)(jiti@2.7.0)(lightningcss@1.32.0)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.9.0))
       type-fest: 2.19.0
       vue: 3.5.20(typescript@5.9.2)
-      vue-component-type-helpers: 3.3.7
+      vue-component-type-helpers: 3.3.8
 
   '@swc/core-darwin-arm64@1.13.5':
     optional: true
@@ -23584,7 +23592,7 @@ snapshots:
 
   vue-component-type-helpers@3.3.5: {}
 
-  vue-component-type-helpers@3.3.7: {}
+  vue-component-type-helpers@3.3.8: {}
 
   vue-demi@0.14.10(vue@3.5.20(typescript@5.9.2)):
     dependencies:

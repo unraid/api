@@ -1,7 +1,7 @@
 import { join } from "path";
 import { $, cd } from "zx";
 import { existsSync } from "node:fs";
-import { readdir, writeFile } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
 import { ensureNodeJs } from "./utils/nodejs-helper";
 
@@ -11,6 +11,7 @@ import { apiDir } from "./utils/paths";
 import { getVendorBundleName, getVendorFullPath } from "./build-vendor-store";
 import { getAssetUrl } from "./utils/bucket-urls";
 import { validateStandaloneManifest, getStandaloneManifestPath } from "./utils/manifest-validator";
+import { writeVendorArchiveInfo } from "./utils/vendor-archive";
 
 
 // Check for manifest files in expected locations
@@ -89,7 +90,7 @@ const storeVendorArchiveInfo = async (version: string, vendorUrl: string, vendor
     });
     
     const configPath = join(configDir, "vendor_archive.json");
-    await writeFile(configPath, JSON.stringify(configData, null, 2));
+    await writeVendorArchiveInfo(configPath, configData);
     
     console.log(`Vendor archive information stored in ${configPath}`);
     console.log(`API Version: ${version}`);
