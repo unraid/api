@@ -54,7 +54,7 @@ unraid-modals.unapi {
   isolation: isolate;
 }
 
-/* Consolidated header (7.3+): custom elements default to display:inline, which
+/* Consolidated header (7.4+): custom elements default to display:inline, which
    shrink-wraps the grid. Make it fill the header so the layout can space the logo
    and account controls across the full available width. */
 unraid-header.unapi {
