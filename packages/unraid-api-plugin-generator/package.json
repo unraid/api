@@ -7,6 +7,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
     "prepare": "npm run build"
   },
   "dependencies": {
@@ -27,8 +28,10 @@
     "@types/inquirer": "9.0.9",
     "@types/node": "22.18.0",
     "@types/validate-npm-package-name": "4.0.2",
+    "graphql": "16.11.0",
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "3.2.6"
   }
 }
