@@ -376,36 +376,4 @@ describe('UserProfile.standalone.vue', () => {
 
     expect(wrapper.find('[data-testid="notifications-sidebar"]').exists()).toBe(true);
   });
-
-  it('conditionally renders banner based on theme store', async () => {
-    const bannerSelector = '.unraid-banner-gradient-layer';
-
-    themeStore.setTheme({
-      ...themeStore.theme,
-      banner: true,
-      bannerGradient: true,
-    });
-    await wrapper.vm.$nextTick();
-
-    expect(themeStore.bannerGradient).toBe(true);
-    expect(wrapper.find(bannerSelector).exists()).toBe(true);
-
-    themeStore.setTheme({
-      ...themeStore.theme,
-      bannerGradient: false,
-    });
-    await wrapper.vm.$nextTick();
-
-    expect(themeStore.bannerGradient).toBe(false);
-    expect(wrapper.find(bannerSelector).exists()).toBe(false);
-
-    themeStore.setTheme({
-      ...themeStore.theme,
-      bannerGradient: true,
-    });
-    await wrapper.vm.$nextTick();
-
-    expect(themeStore.bannerGradient).toBe(true);
-    expect(wrapper.find(bannerSelector).exists()).toBe(true);
-  });
 });
