@@ -23,24 +23,24 @@
   },
   "pnpm": {
     "overrides": {
-      "graphql": "16.11.0",
-      "@graphql-tools/utils": "10.9.1",
+      "graphql": "16.14.2",
+      "@graphql-tools/utils": "10.11.0",
       "ajv@<6.14.0": "6.15.0",
       "ajv@>=7.0.0-alpha.0 <8.18.0": "8.20.0",
       "axios": "1.18.1",
       "body-parser": "2.3.0",
       "brace-expansion@<1.1.16": "1.1.16",
-      "brace-expansion@>=3.0.0 <5.0.7": "5.0.7",
+      "brace-expansion@>=3.0.0 <5.0.7": "5.0.8",
       "defu": "6.1.7",
       "esbuild": "0.28.1",
       "fast-uri": "3.1.4",
-      "fast-xml-parser": "5.8.0",
+      "fast-xml-parser": "5.10.1",
       "file-type": "22.0.1",
-      "flatted": "3.4.2",
+      "flatted": "3.4.3",
       "follow-redirects": "1.16.0",
       "glob@>=11.0.0 <11.1.0": "11.1.0",
       "handlebars": "4.7.9",
-      "hono": "4.12.31",
+      "hono": "4.12.32",
       "immutable": "3.8.3",
       "js-beautify": "1.15.4",
       "js-cookie": "3.0.8",
@@ -49,19 +49,19 @@
       "lodash": "4.18.1",
       "minimatch@<3.1.5": "3.1.5",
       "minimatch@>=9.0.0 <9.0.9": "9.0.9",
-      "nuxt": "4.4.8",
+      "nuxt": "4.5.0",
       "picomatch@<2.3.2": "2.3.2",
-      "picomatch@>=4.0.0 <4.0.4": "4.0.4",
-      "postcss": "8.5.15",
-      "qs": "6.15.2",
-      "shell-quote": "1.8.4",
+      "picomatch@>=4.0.0 <4.0.4": "4.0.5",
+      "postcss": "8.5.22",
+      "qs": "6.15.3",
+      "shell-quote": "1.10.0",
       "protobufjs": "7.6.5",
-      "tar": "7.5.20",
+      "tar": "7.5.21",
       "tmp": "0.2.7",
       "uuid@>=8.0.0 <11.1.1": "11.1.1",
       "uuid@>=11.0.0 <11.1.1": "11.1.1",
       "vue-eslint-parser": "10.4.1",
-      "ws": "8.21.0",
+      "ws": "8.21.1",
       "yaml": "2.9.0"
     },
     "peerDependencyRules": {
@@ -91,13 +91,13 @@
     ]
   },
   "dependencies": {
-    "@manypkg/cli": "0.25.0",
-    "chalk": "5.6.0",
+    "@manypkg/cli": "0.25.1",
+    "chalk": "5.6.2",
     "diff": "8.0.4",
-    "ignore": "7.0.5"
+    "ignore": "7.0.6"
   },
   "devDependencies": {
-    "lint-staged": "16.1.5",
+    "lint-staged": "16.4.0",
     "simple-git-hooks": "2.13.1"
   },
   "simple-git-hooks": {
@@ -114,5 +114,5 @@
       "pnpm --filter @unraid/ui lint:fix"
     ]
   },
-  "packageManager": "pnpm@10.15.0"
+  "packageManager": "pnpm@10.34.5"
 }
