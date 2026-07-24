@@ -245,16 +245,13 @@ const copyLanIp = async () => {
 }
 
 /*
- * Mobile: the host is stretched to the full header height (see main.css) and the
- * shell fills it, so the three grid rows span the whole header — the uptime sits
- * just below the top and the version mirrors it just above the bottom. The logo
- * stays centered in the middle row so it lines up with the account controls, and
- * the version is floated out of the block's flow to the bottom-left; keeping it
- * in flow would make the 2-line logo+version block impossible to center-align
- * against the taller 1-line control row. The block is `position: static` on
- * mobile so the floated version anchors to the shell (full height) rather than
- * the block; the logo sits left of the banner gradient, so dropping the block's
- * z-index here is safe.
+ * Mobile: the meta row is a full-width top strip (see .uh-meta-right override),
+ * so the logo block and nav controls share the middle grid row. Both keep the
+ * base `align-self: center`, so the logo and the DEVGEN/bell/menu/avatar cluster
+ * stay vertically centered on the same line. The version sits directly under the
+ * logo in normal flow (the block is a left-aligned flex column, see template),
+ * so it shares the logo's left edge and gets natural space above the nav tabs
+ * rather than being floated hard against the header's bottom edge.
  */
 @media (max-width: 639.98px) {
   .unraid-header-shell {
@@ -264,13 +261,6 @@ const copyLanIp = async () => {
 
   .uh-logo-block {
     grid-row: 2;
-    position: static;
-  }
-
-  .uh-logo-block > .uh-version {
-    position: absolute;
-    bottom: 0.25rem;
-    left: 0;
   }
 }
 
@@ -279,5 +269,16 @@ const copyLanIp = async () => {
   grid-row: 2;
   align-self: center;
   justify-self: end;
+}
+
+/*
+ * Nudge the version tag down so its baseline lines up with the bottom of the
+ * account controls (hamburger/avatar) instead of sitting high against the logo.
+ * `position: relative` shifts it visually without reflowing the logo above it,
+ * so the logo/nav center alignment is preserved. Applies at both breakpoints.
+ */
+.uh-version {
+  position: relative;
+  top: 0.5rem;
 }
 </style>
