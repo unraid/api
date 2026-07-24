@@ -38,18 +38,18 @@ jobs:
         working-directory: api
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.ref || github.ref }}
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4.4.0
         name: Install pnpm
         with:
           run_install: false
 
       - name: Install Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.0.0
         with:
           node-version-file: ".nvmrc"
           cache: 'pnpm'
@@ -83,7 +83,7 @@ jobs:
         id: buildnumber
         if: github.repository == 'unraid/api'
         continue-on-error: true
-        uses: onyxmueller/build-tag-number@v1
+        uses: onyxmueller/build-tag-number@v1.1.0
         with:
           token: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN || github.token }}
           prefix: ${{ inputs.version_override || steps.vars.outputs.PACKAGE_LOCK_VERSION }}
@@ -99,7 +99,7 @@ jobs:
           tar -czf deploy/unraid-api.tgz -C deploy/pack/ .
 
       - name: Upload tgz to Github artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: unraid-api
           path: ${{ github.workspace }}/api/deploy/unraid-api.tgz
@@ -112,17 +112,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4.4.0
         name: Install pnpm
         with:
           run_install: false
 
       - name: Install Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.0.0
         with:
           node-version-file: ".nvmrc"
           cache: 'pnpm'
@@ -145,7 +145,7 @@ jobs:
         run: pnpm run build:wc
 
       - name: Upload Artifact to Github
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: unraid-wc-ui
           path: unraid-ui/dist-wc/
@@ -158,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.ref || github.ref }}
 
@@ -170,13 +170,13 @@ jobs:
           echo VITE_UNRAID_NET=${{ secrets.VITE_UNRAID_NET }} >> .env
           echo VITE_CALLBACK_KEY=${{ secrets.VITE_CALLBACK_KEY }} >> .env
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4.4.0
         name: Install pnpm
         with:
           run_install: false
 
       - name: Install Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.0.0
         with:
           node-version-file: ".nvmrc"
           cache: 'pnpm'
@@ -201,7 +201,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload build to Github artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: unraid-wc-rich
           path: web/dist
