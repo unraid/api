@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.37.0](https://github.com/unraid/api/compare/v4.36.1...v4.37.0) (2026-07-24)
+
+
+### Features
+
+* **web:** consolidated single-component header for Unraid 7.3+ (fixes mobile overlap) ([#2037](https://github.com/unraid/api/issues/2037)) ([62574cd](https://github.com/unraid/api/commit/62574cd946a21e28dd620f43dbb913112423b41e))
+
+
+### Bug Fixes
+
+* **web:** align consolidated header logo, version, and nav on mobile ([#2054](https://github.com/unraid/api/issues/2054)) ([12c23d8](https://github.com/unraid/api/commit/12c23d808a45e8521ded6d36bdf0c0aaf152775a))
+
 ## [4.36.1](https://github.com/unraid/api/compare/v4.36.0...v4.36.1) (2026-07-22)
 
 
