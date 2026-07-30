@@ -6,6 +6,58 @@ import type { ExternalKeyActions } from '@unraid/shared-callbacks';
 import { WebguiInstallKey } from '~/composables/services/webgui';
 import { useErrorsStore } from '~/store/errors';
 
+interface InstallKeySuccessResponse {
+  message: string;
+  status: 'success';
+}
+
+interface InstallKeyErrorResponse {
+  error: string;
+}
+
+const isInstallKeySuccessResponse = (response: unknown): response is InstallKeySuccessResponse =>
+  typeof response === 'object' &&
+  response !== null &&
+  'message' in response &&
+  typeof response.message === 'string' &&
+  'status' in response &&
+  response.status === 'success';
+
+const isInstallKeyErrorResponse = (response: unknown): response is InstallKeyErrorResponse =>
+  typeof response === 'object' &&
+  response !== null &&
+  'error' in response &&
+  typeof response.error === 'string';
+
+const parseInstallKeyErrorMessage = (message: string): string | undefined => {
+  try {
+    const parsed: unknown = JSON.parse(message);
+    return isInstallKeyErrorResponse(parsed) ? parsed.error : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const getInstallKeyErrorMessage = (error: unknown): string => {
+  if (typeof error === 'object' && error !== null && 'json' in error) {
+    const errorJson = error.json;
+    if (isInstallKeyErrorResponse(errorJson)) {
+      return errorJson.error;
+    }
+  }
+  if (typeof error === 'string') {
+    return parseInstallKeyErrorMessage(error) ?? error.toUpperCase();
+  }
+  if (error instanceof Error) {
+    return parseInstallKeyErrorMessage(error.message) ?? error.message;
+  }
+  return 'Unknown error';
+};
+
+const rethrowInstallRequestError = (error: unknown): never => {
+  throw error;
+};
+
 export const useInstallKeyStore = defineStore('installKey', () => {
   const errorsStore = useErrorsStore();
 
@@ -36,22 +88,27 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     }
 
     try {
-      const installResponse = await WebguiInstallKey.query({ url: keyUrl.value }).get();
+      const installResponse: unknown = await WebguiInstallKey.query({ url: keyUrl.value })
+        .get()
+        .error('Error', rethrowInstallRequestError)
+        .error('TypeError', rethrowInstallRequestError)
+        .json();
       console.log('[install] WebguiInstallKey installResponse', installResponse);
+
+      if (!isInstallKeySuccessResponse(installResponse)) {
+        const errorMessage = isInstallKeyErrorResponse(installResponse)
+          ? installResponse.error
+          : 'Invalid response from InstallKey.php';
+        throw new Error(errorMessage);
+      }
 
       keyInstallStatus.value = 'success';
     } catch (error) {
       console.error('[install] WebguiInstallKey error', error);
-      let errorMessage = 'Unknown error';
-      if (typeof error === 'string') {
-        errorMessage = error.toUpperCase();
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
       keyInstallStatus.value = 'failed';
       errorsStore.setError({
         heading: 'Failed to install key',
-        message: errorMessage,
+        message: getInstallKeyErrorMessage(error),
         level: 'error',
         ref: 'installKey',
         type: 'installKey',

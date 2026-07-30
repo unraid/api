@@ -294,18 +294,22 @@ describe('CallbackFeedback.vue', () => {
     expect(wrapper.text()).toContain('Fix Error');
   });
 
-  it('renders the generic error state for failed key installs', () => {
+  it('renders manual-install recovery for failed key installs', () => {
     callbackStatus.value = 'error';
-    keyActionType.value = 'purchase';
+    keyActionType.value = 'trialStart';
     keyInstallStatus.value = 'failed';
-    keyType.value = 'Pro';
-    keyUrl.value = 'https://example.com/pro.key';
+    keyType.value = 'Trial';
+    keyUrl.value = 'https://keys.lime-technology.com/Trial.key';
 
     const wrapper = mountComponent();
 
     expect(wrapper.find('h1').text()).toBe('Error');
     expect(wrapper.find('.description').text()).toBe('Something went wrong');
-    expect(wrapper.text()).toContain('Failed to Install Pro Key');
+    expect(wrapper.text()).toContain('Failed to Install Trial Key');
+    expect(wrapper.get('.brand-button').text()).toBe('Copy Key URL');
+    expect(wrapper.get('a[href="/Tools/Registration"]').text()).toBe(
+      'Then go to Tools > Registration to manually install it'
+    );
     expect(wrapper.find('.modal').attributes('data-error')).toBe('true');
     expect(wrapper.find('.modal').attributes('data-success')).toBe('false');
   });
