@@ -1,0 +1,61 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Header.standalone.vue theme layout > renders a consistent layout on the azure theme 1`] = `
+{
+  "gradientLayer": "absolute inset-y-0 pointer-events-none right-0 unraid-banner-gradient-layer w-[min(30%,320px)] z-0",
+  "logoSvg": "h-auto max-h-[3rem] shrink-0 w-[14rem] xs:w-[16rem]",
+  "regions": {
+    "arrayUsage": true,
+    "logoBlock": true,
+    "metaRight": true,
+    "navRight": true,
+    "version": true,
+  },
+}
+`;
+
+exports[`Header.standalone.vue theme layout > renders a consistent layout on the black theme 1`] = `
+{
+  "gradientLayer": "absolute inset-y-0 pointer-events-none right-0 unraid-banner-gradient-layer w-[min(30%,320px)] z-0",
+  "logoSvg": "h-auto max-h-[3rem] shrink-0 w-[14rem] xs:w-[16rem]",
+  "regions": {
+    "arrayUsage": false,
+    "logoBlock": true,
+    "metaRight": true,
+    "navRight": true,
+    "version": true,
+  },
+}
+`;
+
+exports[`Header.standalone.vue theme layout > renders a consistent layout on the gray theme 1`] = `
+{
+  "gradientLayer": "absolute inset-y-0 pointer-events-none right-0 unraid-banner-gradient-layer w-[min(30%,320px)] z-0",
+  "logoSvg": "h-auto max-h-[3rem] shrink-0 w-[14rem] xs:w-[16rem]",
+  "regions": {
+    "arrayUsage": true,
+    "logoBlock": true,
+    "metaRight": true,
+    "navRight": true,
+    "version": true,
+  },
+}
+`;
+
+exports[`Header.standalone.vue theme layout > renders a consistent layout on the white theme 1`] = `
+{
+  "gradientLayer": "absolute inset-y-0 pointer-events-none right-0 unraid-banner-gradient-layer w-[min(30%,320px)] z-0",
+  "logoSvg": "h-auto max-h-[3rem] shrink-0 w-[14rem] xs:w-[16rem]",
+  "regions": {
+    "arrayUsage": false,
+    "logoBlock": true,
+    "metaRight": true,
+    "navRight": true,
+    "version": true,
+  },
+}
+`;
+
+exports[`Header.standalone.vue theme layout > renders the gradient header logo style 1`] = `"h-auto max-h-[3rem] shrink-0 w-[14rem] xs:w-[16rem]"`;
+
+exports[`Header.standalone.vue theme layout > renders the theme header logo style 1`] = `"h-auto max-h-[3rem] shrink-0 text-header-text-primary w-[14rem] xs:w-[16rem]"`;
