@@ -4,6 +4,7 @@ exports[`Header.standalone.vue theme layout > renders a consistent layout on the
 {
   "gradientLayer": "absolute inset-y-0 pointer-events-none right-0 unraid-banner-gradient-layer w-[min(30%,320px)] z-0",
   "logoSvg": "h-auto max-h-[3rem] shrink-0 w-[14rem] xs:w-[16rem]",
+  "metaOverBanner": true,
   "regions": {
     "arrayUsage": true,
     "logoBlock": true,
@@ -18,6 +19,7 @@ exports[`Header.standalone.vue theme layout > renders a consistent layout on the
 {
   "gradientLayer": "absolute inset-y-0 pointer-events-none right-0 unraid-banner-gradient-layer w-[min(30%,320px)] z-0",
   "logoSvg": "h-auto max-h-[3rem] shrink-0 w-[14rem] xs:w-[16rem]",
+  "metaOverBanner": true,
   "regions": {
     "arrayUsage": false,
     "logoBlock": true,
@@ -32,6 +34,7 @@ exports[`Header.standalone.vue theme layout > renders a consistent layout on the
 {
   "gradientLayer": "absolute inset-y-0 pointer-events-none right-0 unraid-banner-gradient-layer w-[min(30%,320px)] z-0",
   "logoSvg": "h-auto max-h-[3rem] shrink-0 w-[14rem] xs:w-[16rem]",
+  "metaOverBanner": true,
   "regions": {
     "arrayUsage": true,
     "logoBlock": true,
@@ -46,6 +49,7 @@ exports[`Header.standalone.vue theme layout > renders a consistent layout on the
 {
   "gradientLayer": "absolute inset-y-0 pointer-events-none right-0 unraid-banner-gradient-layer w-[min(30%,320px)] z-0",
   "logoSvg": "h-auto max-h-[3rem] shrink-0 w-[14rem] xs:w-[16rem]",
+  "metaOverBanner": true,
   "regions": {
     "arrayUsage": false,
     "logoBlock": true,

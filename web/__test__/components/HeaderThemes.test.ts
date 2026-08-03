@@ -101,6 +101,9 @@ const layoutSignature = (wrapper: VueWrapper) => {
       // this differentiates the sidebar snapshots from the top-nav ones.
       arrayUsage: root.find('[data-testid="array-usage"]').exists(),
     },
+    // Driven by the theme's `banner` flag, so this also proves the theme was
+    // actually applied to the store rather than silently defaulting.
+    metaOverBanner: root.find('.uh-meta-over-banner').exists(),
   };
 };
 
@@ -140,7 +143,14 @@ describe('Header.standalone.vue theme layout', () => {
 
   beforeEach(() => {
     provideApolloClient(new ApolloClient({ cache: new InMemoryCache() }));
-    pinia = createTestingPinia({ createSpy: vi.fn, initialState: { server: { ...server } } });
+    // stubActions: false so themeStore.setTheme() actually mutates the store.
+    // With the default (stubbed) actions every case would silently run against
+    // the default theme, making the per-theme coverage meaningless.
+    pinia = createTestingPinia({
+      createSpy: vi.fn,
+      initialState: { server: { ...server } },
+      stubActions: false,
+    });
     setActivePinia(pinia);
   });
 
