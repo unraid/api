@@ -7,8 +7,8 @@ import { WebguiInstallKey } from '~/composables/services/webgui';
 import { useErrorsStore } from '~/store/errors';
 
 interface InstallKeySuccessResponse {
-  message: string;
-  status: 'success';
+  message?: string;
+  status: string;
 }
 
 interface InstallKeyErrorResponse {
@@ -18,10 +18,11 @@ interface InstallKeyErrorResponse {
 const isInstallKeySuccessResponse = (response: unknown): response is InstallKeySuccessResponse =>
   typeof response === 'object' &&
   response !== null &&
-  'message' in response &&
-  typeof response.message === 'string' &&
+  !Array.isArray(response) &&
   'status' in response &&
-  response.status === 'success';
+  typeof response.status === 'string' &&
+  (!('message' in response) || typeof response.message === 'string') &&
+  !('error' in response);
 
 const isInstallKeyErrorResponse = (response: unknown): response is InstallKeyErrorResponse =>
   typeof response === 'object' &&

@@ -113,6 +113,33 @@ describe('InstallKey Store', () => {
       expect(store.keyType).toBe('license');
     });
 
+    it.each([
+      {
+        name: 'Unraid 6.12.15/7.0 stopped-array response',
+        response: { status: 'Please Stop array to complete key installation' },
+      },
+      {
+        name: 'Unraid 6.12.15/7.0 stopped response',
+        response: { status: '' },
+      },
+      {
+        name: 'Unraid 7.1.4 stopped response',
+        response: { status: 'success' },
+      },
+    ])('should accept the $name', async ({ response }) => {
+      mockJsonFn.mockResolvedValueOnce(response);
+
+      await store.install(
+        createTestAction({
+          type: 'purchase',
+          keyUrl: 'https://example.com/license.key',
+        })
+      );
+
+      expect(store.keyInstallStatus).toBe('success');
+      expect(mockSetError).not.toHaveBeenCalled();
+    });
+
     it('should install trialStart keys using the same install flow', async () => {
       mockJsonFn.mockResolvedValueOnce({ status: 'success', message: 'Key installed' });
       const action = createTestAction({
@@ -221,8 +248,15 @@ describe('InstallKey Store', () => {
       });
     });
 
-    it('should reject an invalid success response', async () => {
-      mockJsonFn.mockResolvedValueOnce({ success: true });
+    it.each([
+      { name: 'response without a string status', response: { success: true } },
+      { name: 'array response', response: [{ status: 'success' }] },
+      {
+        name: 'response with a non-string optional message',
+        response: { status: 'success', message: null },
+      },
+    ])('should reject a $name', async ({ response }) => {
+      mockJsonFn.mockResolvedValueOnce(response);
 
       await store.install(
         createTestAction({
@@ -235,6 +269,26 @@ describe('InstallKey Store', () => {
       expect(mockSetError).toHaveBeenCalledWith({
         heading: 'Failed to install key',
         message: 'Invalid response from InstallKey.php',
+        level: 'error',
+        ref: 'installKey',
+        type: 'installKey',
+      });
+    });
+
+    it('should reject a resolved response containing an error', async () => {
+      mockJsonFn.mockResolvedValueOnce({ status: 'success', error: 'download error 8' });
+
+      await store.install(
+        createTestAction({
+          type: 'purchase',
+          keyUrl: 'https://example.com/license.key',
+        })
+      );
+
+      expect(store.keyInstallStatus).toBe('failed');
+      expect(mockSetError).toHaveBeenCalledWith({
+        heading: 'Failed to install key',
+        message: 'download error 8',
         level: 'error',
         ref: 'installKey',
         type: 'installKey',
