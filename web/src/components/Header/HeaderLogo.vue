@@ -37,7 +37,7 @@ const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => ({
       v-if="logoStyle === 'theme'"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 222.36 39.04"
-      class="text-header-text-primary xs:w-[16rem] h-auto max-h-[3rem] w-[14rem] max-w-full"
+      class="text-header-text-primary xs:w-[16rem] h-auto max-h-[3rem] w-[14rem] shrink-0"
       aria-hidden="true"
       focusable="false"
     >
@@ -58,7 +58,7 @@ const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => ({
       v-else
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 222.36 39.04"
-      class="xs:w-[16rem] h-auto max-h-[3rem] w-[14rem] max-w-full"
+      class="xs:w-[16rem] h-auto max-h-[3rem] w-[14rem] shrink-0"
       aria-hidden="true"
       focusable="false"
     >

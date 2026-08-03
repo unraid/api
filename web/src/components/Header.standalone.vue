@@ -100,11 +100,13 @@ const copyLanIp = async () => {
       `.unraid-banner-gradient-layer` class (styled in main.css) paints
       `var(--banner-gradient)`, which is null when the banner gradient is
       disabled, so this self-gates. Sits behind the content columns (z-0).
-      `left-[55%]` starts the darkening at the right ~45%, matching the legacy
-      `#header.image::before` edge gradient in main.css (kept in sync by eye).
+      Width matches the legacy `#header.image::before` edge gradient in main.css
+      (`background-size: min(30%, 320px) 100%`) rather than a bare percentage:
+      `left-[55%]` covered the right 45% (576px at a 1280px viewport), roughly
+      1.8x the legacy 320px, which visibly obscured users' banner images.
     -->
     <div
-      class="unraid-banner-gradient-layer pointer-events-none absolute inset-y-0 right-0 left-[55%] z-0"
+      class="unraid-banner-gradient-layer pointer-events-none absolute inset-y-0 right-0 z-0 w-[min(30%,320px)]"
       aria-hidden="true"
     />
 
