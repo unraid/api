@@ -16,8 +16,15 @@ import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-pr
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-session.service.js';
 import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state.service.js';
 
+const pkceFixtures = vi.hoisted(() => ({
+    verifier: 'test-code-verifier-------------------------',
+    challenge: 'He8Y2ddQw0a5vkMogWuyUbJoC8aUAhgQGdMOelEFFic',
+}));
+
 // Mock openid-client
 vi.mock('openid-client', () => ({
+    randomPKCECodeVerifier: vi.fn(() => pkceFixtures.verifier),
+    calculatePKCECodeChallenge: vi.fn(async () => pkceFixtures.challenge),
     buildAuthorizationUrl: vi.fn((config, params) => {
         const url = new URL(config.serverMetadata().authorization_endpoint);
         Object.entries(params).forEach(([key, value]) => {
@@ -164,6 +171,7 @@ describe('OidcService Integration', () => {
                 clientId: 'test-client-id',
                 issuer: 'https://discovery.example.com',
                 scopes: ['openid'],
+                usePkce: true,
                 authorizationRules: [],
             };
 
@@ -190,7 +198,39 @@ describe('OidcService Integration', () => {
             const url = await service.getAuthorizationUrl(params);
 
             expect(clientConfigService.getOrCreateConfig).toHaveBeenCalledWith(provider);
-            expect(url).toContain('https://discovery.example.com/authorize');
+            const urlObj = new URL(url);
+            expect(urlObj.origin).toBe('https://discovery.example.com');
+            expect(urlObj.pathname).toBe('/authorize');
+            expect(urlObj.searchParams.get('code_challenge')).toBe(pkceFixtures.challenge);
+            expect(urlObj.searchParams.get('code_challenge_method')).toBe('S256');
+        });
+
+        it('should add S256 PKCE parameters for opted-in providers', async () => {
+            const provider: OidcProvider = {
+                id: 'pkce-provider',
+                name: 'PKCE Provider',
+                clientId: 'test-client-id',
+                authorizationEndpoint: 'https://custom.example.com/auth',
+                scopes: ['openid'],
+                usePkce: true,
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            const url = await service.getAuthorizationUrl({
+                providerId: 'pkce-provider',
+                state: 'client-state-123',
+                requestOrigin: 'https://example.com',
+                requestOriginInfo: {
+                    protocol: 'https',
+                    host: 'example.com',
+                },
+            });
+
+            const urlObj = new URL(url);
+            expect(urlObj.searchParams.get('code_challenge')).toBe(pkceFixtures.challenge);
+            expect(urlObj.searchParams.get('code_challenge_method')).toBe('S256');
         });
 
         it('should throw when provider not found', async () => {
@@ -254,6 +294,7 @@ describe('OidcService Integration', () => {
                     originalState: 'original-state',
                     clientState: 'original-state',
                     redirectUri: 'https://example.com/callback',
+                    codeVerifier: pkceFixtures.verifier,
                 }
             );
 
@@ -269,7 +310,15 @@ describe('OidcService Integration', () => {
             const token = await service.handleCallback(params);
 
             expect(token).toBe('padded-token-123');
-            expect(tokenExchangeService.exchangeCodeForTokens).toHaveBeenCalled();
+            expect(tokenExchangeService.exchangeCodeForTokens).toHaveBeenCalledWith(
+                mockConfig,
+                provider,
+                'auth-code-123',
+                'original-state',
+                'https://example.com/callback',
+                params.fullCallbackUrl,
+                pkceFixtures.verifier
+            );
             expect(claimsService.parseIdToken).toHaveBeenCalledWith('id.token.here');
             expect(claimsService.validateClaims).toHaveBeenCalledWith(mockClaims);
             expect(authorizationService.checkAuthorization).toHaveBeenCalledWith(provider, mockClaims);
