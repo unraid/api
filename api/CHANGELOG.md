@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.37.1](https://github.com/unraid/api/compare/v4.37.0...v4.37.1) (2026-08-12)
+
+
+### Bug Fixes
+
+* **api:** enable PKCE for Unraid OIDC ([#2061](https://github.com/unraid/api/issues/2061)) ([5f87782](https://github.com/unraid/api/commit/5f877826c2a525aeb6b4751b1108a04182f638e5))
+
 ## [4.37.0](https://github.com/unraid/api/compare/v4.36.1...v4.37.0) (2026-08-03)
 
 
