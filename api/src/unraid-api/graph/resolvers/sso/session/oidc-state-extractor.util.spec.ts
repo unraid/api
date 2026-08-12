@@ -57,6 +57,24 @@ describe('OidcStateExtractor', () => {
             expect(result.redirectUri).toBe(redirectUri);
         });
 
+        it('should extract the PKCE verifier from validated state', async () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-state-123';
+            const redirectUri = 'https://example.com/callback';
+            const codeVerifier = 'pkce-code-verifier';
+
+            const state = await stateService.generateSecureState(
+                providerId,
+                clientState,
+                redirectUri,
+                codeVerifier
+            );
+
+            const result = await OidcStateExtractor.extractAndValidateState(state, stateService);
+
+            expect(result.codeVerifier).toBe(codeVerifier);
+        });
+
         it('should extract and validate a valid state without redirectUri', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';

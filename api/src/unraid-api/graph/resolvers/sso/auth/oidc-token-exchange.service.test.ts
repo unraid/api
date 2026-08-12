@@ -193,6 +193,37 @@ describe('OidcTokenExchangeService', () => {
             expect(client.authorizationCodeGrant).toHaveBeenCalled();
         });
 
+        it('should pass the stored PKCE verifier and exact redirect URI to the grant', async () => {
+            const code = 'test-code';
+            const state = 'test-state';
+            const redirectUri = 'https://self-hosted.example/callback';
+            const codeVerifier = 'test-code-verifier';
+            const mockTokens = {
+                access_token: 'test-access-token',
+                id_token: 'test-id-token',
+            };
+
+            vi.mocked(client.authorizationCodeGrant).mockResolvedValue(mockTokens as any);
+
+            await service.exchangeCodeForTokens(
+                mockConfig,
+                mockProvider,
+                code,
+                state,
+                redirectUri,
+                undefined,
+                codeVerifier
+            );
+
+            const grantCall = vi.mocked(client.authorizationCodeGrant).mock.calls[0];
+            const cleanUrl = grantCall[1] as URL;
+            const checks = grantCall[2] as client.AuthorizationCodeGrantChecks;
+
+            expect(cleanUrl.origin + cleanUrl.pathname).toBe(redirectUri);
+            expect(checks.expectedState).toBe(state);
+            expect(checks.pkceCodeVerifier).toBe(codeVerifier);
+        });
+
         it('should handle non-string fullCallbackUrl types gracefully', async () => {
             const code = 'test-code';
             const state = 'test-state';

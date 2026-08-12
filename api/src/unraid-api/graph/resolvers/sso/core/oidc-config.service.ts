@@ -122,6 +122,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             clientId: 'CONNECT_SERVER_SSO',
             issuer: 'https://account.unraid.net',
             scopes: ['openid', 'profile', 'email'],
+            usePkce: true,
             authorizationRules: [],
             buttonText: 'Login With Unraid.net',
             buttonIcon:
@@ -286,6 +287,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             name: provider.name,
             clientId: provider.clientId,
             clientSecret: provider.clientSecret,
+            usePkce: provider.usePkce,
             issuer: provider.issuer,
             authorizationEndpoint: provider.authorizationEndpoint,
             tokenEndpoint: provider.tokenEndpoint,
