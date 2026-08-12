@@ -1,30 +1,8 @@
 {
   "disposition": "PATCH",
-  "expected_structural_delta": "Add one transient verifier field across the existing state and token-exchange path, one internal provider capability flag, and focused tests; add no durable store, redirect allowlist, new runtime owner, or parallel OIDC flow.",
-  "minimum_design": "Extend the existing API OIDC state envelope and openid-client flow with a per-request S256 code verifier, and enable it for the built-in Unraid.net provider.",
-  "outcome": "Prevent authorization-code interception by binding the API OIDC client flow to the same browser transaction through PKCE.",
-  "reuse_decisions": [
-    {
-      "decision": "extend",
-      "name": "Existing OIDC state cache",
-      "rationale": "Reuse the existing state cache and secure state envelope to carry the transient PKCE verifier."
-    },
-    {
-      "decision": "extend",
-      "name": "openid-client authorization flow",
-      "rationale": "Reuse the existing openid-client authorization URL and token exchange APIs for S256 PKCE."
-    },
-    {
-      "decision": "extend",
-      "name": "OIDC provider configuration",
-      "rationale": "Add an internal provider capability flag so only the Unraid.net provider opts into PKCE."
-    },
-    {
-      "decision": "not applicable",
-      "name": "New persistent store or redirect allowlist",
-      "rationale": "PKCE is transient per authorization and the product contract permits arbitrary user-controlled callback URLs."
-    }
-  ],
+  "forecast_commit": "1d94e1c1cdd26fcfb4478ab3bc5e024c678b9fd6",
+  "reviewed_sha": "a147b7c0d78049e01643435afa77677cd623f46e",
   "schema": "limetech.ai-review-marker.v2",
-  "stage": "forecast"
+  "stage": "final",
+  "unresolved_proportionality_findings": []
 }
