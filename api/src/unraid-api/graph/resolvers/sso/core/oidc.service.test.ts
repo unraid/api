@@ -16,10 +16,15 @@ import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-pr
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-session.service.js';
 import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state.service.js';
 
+const pkceFixtures = vi.hoisted(() => ({
+    verifier: 'test-code-verifier-------------------------',
+    challenge: 'He8Y2ddQw0a5vkMogWuyUbJoC8aUAhgQGdMOelEFFic',
+}));
+
 // Mock openid-client
 vi.mock('openid-client', () => ({
-    randomPKCECodeVerifier: vi.fn(() => 'test-code-verifier'),
-    calculatePKCECodeChallenge: vi.fn(async (verifier: string) => `challenge-${verifier}`),
+    randomPKCECodeVerifier: vi.fn(() => pkceFixtures.verifier),
+    calculatePKCECodeChallenge: vi.fn(async () => pkceFixtures.challenge),
     buildAuthorizationUrl: vi.fn((config, params) => {
         const url = new URL(config.serverMetadata().authorization_endpoint);
         Object.entries(params).forEach(([key, value]) => {
@@ -196,7 +201,7 @@ describe('OidcService Integration', () => {
             const urlObj = new URL(url);
             expect(urlObj.origin).toBe('https://discovery.example.com');
             expect(urlObj.pathname).toBe('/authorize');
-            expect(urlObj.searchParams.get('code_challenge')).toBe('challenge-test-code-verifier');
+            expect(urlObj.searchParams.get('code_challenge')).toBe(pkceFixtures.challenge);
             expect(urlObj.searchParams.get('code_challenge_method')).toBe('S256');
         });
 
@@ -224,7 +229,7 @@ describe('OidcService Integration', () => {
             });
 
             const urlObj = new URL(url);
-            expect(urlObj.searchParams.get('code_challenge')).toBe('challenge-test-code-verifier');
+            expect(urlObj.searchParams.get('code_challenge')).toBe(pkceFixtures.challenge);
             expect(urlObj.searchParams.get('code_challenge_method')).toBe('S256');
         });
 
@@ -289,7 +294,7 @@ describe('OidcService Integration', () => {
                     originalState: 'original-state',
                     clientState: 'original-state',
                     redirectUri: 'https://example.com/callback',
-                    codeVerifier: 'test-code-verifier',
+                    codeVerifier: pkceFixtures.verifier,
                 }
             );
 
@@ -312,7 +317,7 @@ describe('OidcService Integration', () => {
                 'original-state',
                 'https://example.com/callback',
                 params.fullCallbackUrl,
-                'test-code-verifier'
+                pkceFixtures.verifier
             );
             expect(claimsService.parseIdToken).toHaveBeenCalledWith('id.token.here');
             expect(claimsService.validateClaims).toHaveBeenCalledWith(mockClaims);

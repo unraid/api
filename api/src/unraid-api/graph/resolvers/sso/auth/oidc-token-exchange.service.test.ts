@@ -197,7 +197,7 @@ describe('OidcTokenExchangeService', () => {
             const code = 'test-code';
             const state = 'test-state';
             const redirectUri = 'https://self-hosted.example/callback';
-            const codeVerifier = 'test-code-verifier';
+            const codeVerifier = 'test-code-verifier'.padEnd(43, '-');
             const mockTokens = {
                 access_token: 'test-access-token',
                 id_token: 'test-id-token',
