@@ -166,6 +166,7 @@ describe('OidcService Integration', () => {
                 clientId: 'test-client-id',
                 issuer: 'https://discovery.example.com',
                 scopes: ['openid'],
+                usePkce: true,
                 authorizationRules: [],
             };
 
@@ -192,7 +193,11 @@ describe('OidcService Integration', () => {
             const url = await service.getAuthorizationUrl(params);
 
             expect(clientConfigService.getOrCreateConfig).toHaveBeenCalledWith(provider);
-            expect(url).toContain('https://discovery.example.com/authorize');
+            const urlObj = new URL(url);
+            expect(urlObj.origin).toBe('https://discovery.example.com');
+            expect(urlObj.pathname).toBe('/authorize');
+            expect(urlObj.searchParams.get('code_challenge')).toBe('challenge-test-code-verifier');
+            expect(urlObj.searchParams.get('code_challenge_method')).toBe('S256');
         });
 
         it('should add S256 PKCE parameters for opted-in providers', async () => {
