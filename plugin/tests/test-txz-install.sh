@@ -51,6 +51,7 @@ run_case() {
   local component_dir
 
   root="$(mktemp -d)"
+  trap 'rm -rf "$root"' EXIT
   component_dir="$root/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
   prepare_root "$root"
 
@@ -97,6 +98,7 @@ run_case() {
   fi
 
   rm -rf "$root"
+  trap - EXIT
   echo "$case_name passed"
 }
 
