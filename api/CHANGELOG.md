@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.37.2](https://github.com/unraid/api/compare/v4.37.1...v4.37.2) (2026-08-18)
+
+
+### Bug Fixes
+
+* **plugin:** clean stale web components from TXZ installs ([#2063](https://github.com/unraid/api/issues/2063)) ([d0dc27b](https://github.com/unraid/api/commit/d0dc27b99b0fc29a87c34d4b727c0f53f13fd2a8))
+
 ## [4.37.1](https://github.com/unraid/api/compare/v4.37.0...v4.37.1) (2026-08-12)
 
 
