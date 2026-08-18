@@ -24,14 +24,6 @@ ln -sf ../local/bin/unraid-api usr/bin/unraid-api
 backup_file_if_exists usr/local/unraid-api/.env
 cp usr/local/unraid-api/.env.production usr/local/unraid-api/.env
 
-# auto-generated actions from makepkg:
-( cd usr/local/bin ; rm -rf corepack )
-( cd usr/local/bin ; ln -sf ../lib/node_modules/corepack/dist/corepack.js corepack )
-( cd usr/local/bin ; rm -rf npm )
-( cd usr/local/bin ; ln -sf ../lib/node_modules/npm/bin/npm-cli.js npm )
-( cd usr/local/bin ; rm -rf npx )
-( cd usr/local/bin ; ln -sf ../lib/node_modules/npm/bin/npx-cli.js npx )
-
 remove_stale_component_files() {
   component_dir="usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
   [ -d "$component_dir" ] || return 0
@@ -60,6 +52,10 @@ remove_stale_component_files() {
 }
 
 remove_stale_component_files
+
+# makepkg appends generated symlink actions to this script when building the TXZ.
+# Keep those actions after the cleanup above.
+# auto-generated actions from makepkg:
 ( cd usr/local/bin ; rm -rf corepack )
 ( cd usr/local/bin ; ln -sf ../lib/node_modules/corepack/dist/corepack.js corepack )
 ( cd usr/local/bin ; rm -rf npm )
