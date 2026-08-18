@@ -52,13 +52,3 @@ remove_stale_component_files() {
 }
 
 remove_stale_component_files
-
-# makepkg appends generated symlink actions to this script when building the TXZ.
-# Keep those actions after the cleanup above.
-# auto-generated actions from makepkg:
-( cd usr/local/bin ; rm -rf corepack )
-( cd usr/local/bin ; ln -sf ../lib/node_modules/corepack/dist/corepack.js corepack )
-( cd usr/local/bin ; rm -rf npm )
-( cd usr/local/bin ; ln -sf ../lib/node_modules/npm/bin/npm-cli.js npm )
-( cd usr/local/bin ; rm -rf npx )
-( cd usr/local/bin ; ln -sf ../lib/node_modules/npm/bin/npx-cli.js npx )
