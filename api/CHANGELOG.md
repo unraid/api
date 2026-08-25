@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.37.3](https://github.com/unraid/api/compare/v4.37.2...v4.37.3) (2026-08-25)
+
+
+### Bug Fixes
+
+* **connect:** serialize nginx reload requests ([#2066](https://github.com/unraid/api/issues/2066)) ([d65341d](https://github.com/unraid/api/commit/d65341d59ab04023fa5ec2dabb82302fb69cd69b))
+
 ## [4.37.2](https://github.com/unraid/api/compare/v4.37.1...v4.37.2) (2026-08-18)
 
 
