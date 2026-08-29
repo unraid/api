@@ -60,6 +60,7 @@ interface OidcProviderSource {
 // This matches the stable provider exported by the host API without coupling
 // the plugin to the host's installed @unraid/shared build.
 const OIDC_PROVIDER_SOURCE_TOKEN = 'OidcProviderSource';
+const isUnraidAccountProvider = (id: string) => id === 'unraid.net' || id.endsWith(':unraid.net');
 const DOCKER_STATES_QUERY = parse('query ConnectDockerStates { docker { containers { state } } }');
 const VM_STATES_QUERY = parse('query ConnectVmStates { vms { domains { state } } }');
 const fields = [
@@ -331,7 +332,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
     async onOidcProvidersPersisted(): Promise<void> {
         if (
             !this.settings().gatewayServices.some(
-                (service) => service.enabled && service.auth === 'oidc'
+                (service) => service.enabled && service.auth !== 'upstream'
             )
         )
             return;
@@ -617,18 +618,33 @@ export class ConnectTunnelService implements OnModuleDestroy {
                 !/^[a-z0-9.-]+\.(?:preview\.)?myunraid\.net$/.test(hostname)
             )
                 throw new Error('Gateway requires the local nginx HTTPS hostname');
-            const delegated = settings.gatewayServices.some((s) => s.enabled && s.auth === 'oidc');
+            const enabledServices = settings.gatewayServices.filter((service) => service.enabled);
+            const delegated = enabledServices.some((service) => service.auth === 'oidc');
+            const accountProtected = enabledServices.some(
+                (service) => !service.auth || service.auth === 'account'
+            );
             const callbackOrigin = this.delegatedCallbackOrigin();
             if (delegated && !callbackOrigin)
                 throw new Error('Configured provider sign-in requires the parent tunnel route');
             const scalar = new PrefixedID();
+            const availableProviders =
+                delegated || accountProtected ? await this.oidc.getProviders() : [];
+            const accountProvider = accountProtected
+                ? availableProviders.find((provider) => isUnraidAccountProvider(provider.id))
+                : undefined;
+            const accountRules = accountProvider?.authorizationRules?.length
+                ? {
+                      authorizationRuleMode: accountProvider.authorizationRuleMode ?? 'or',
+                      authorizationRules: accountProvider.authorizationRules,
+                  }
+                : {};
             const selected = new Map(
                 settings.gatewayServices
                     .filter((service) => service.enabled && service.auth === 'oidc')
                     .map((service) => [scalar.parseValue(service.providerId), service.providerId])
             );
             const providers = delegated
-                ? (await this.oidc.getProviders())
+                ? availableProviders
                       .filter((provider) => selected.has(provider.id))
                       .map((provider) => {
                           if (!provider.issuer || !provider.authorizationRules?.length)
@@ -667,6 +683,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
                         ? 'https://preview.account.unraid.net'
                         : 'https://account.unraid.net',
                     clientId: 'CONNECT_SERVER_SSO',
+                    ...accountRules,
                     ...(delegated && {
                         oidcCallbackOrigin: callbackOrigin,
                         oidcProviders: providers,

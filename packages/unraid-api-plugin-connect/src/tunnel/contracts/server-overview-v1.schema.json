@@ -4,12 +4,7 @@
   "title": "Unraid Connect server overview v1",
   "description": "The non-PII, GraphQL-shaped server overview shared through Connect presence.",
   "type": "object",
-  "required": [
-    "schemaVersion",
-    "info",
-    "storage",
-    "network"
-  ],
+  "required": ["schemaVersion", "info", "storage", "network"],
   "additionalProperties": false,
   "properties": {
     "schemaVersion": {
@@ -37,9 +32,7 @@
   "$defs": {
     "info": {
       "type": "object",
-      "required": [
-        "os"
-      ],
+      "required": ["os"],
       "additionalProperties": false,
       "properties": {
         "os": {
@@ -48,42 +41,24 @@
       }
     },
     "os": {
-      "type": [
-        "object",
-        "null"
-      ],
-      "required": [
-        "release",
-        "uptime",
-        "hostname"
-      ],
+      "type": ["object", "null"],
+      "required": ["release", "uptime", "hostname"],
       "additionalProperties": false,
       "properties": {
         "release": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "uptime": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "hostname": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
     "storage": {
       "type": "object",
-      "required": [
-        "pools"
-      ],
+      "required": ["pools"],
       "additionalProperties": false,
       "properties": {
         "pools": {
@@ -116,58 +91,31 @@
           "type": "string"
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "kind": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "state": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "status": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "fsType": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "profile": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "fsSize": {
-          "type": [
-            "number",
-            "null"
-          ]
+          "type": ["number", "null"]
         },
         "fsFree": {
-          "type": [
-            "number",
-            "null"
-          ]
+          "type": ["number", "null"]
         },
         "fsUsed": {
-          "type": [
-            "number",
-            "null"
-          ]
+          "type": ["number", "null"]
         },
         "warnings": {
           "type": "array",
@@ -205,40 +153,22 @@
           "type": "string"
         },
         "role": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "state": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "status": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "fsSize": {
-          "type": [
-            "number",
-            "null"
-          ]
+          "type": ["number", "null"]
         },
         "fsFree": {
-          "type": [
-            "number",
-            "null"
-          ]
+          "type": ["number", "null"]
         },
         "fsUsed": {
-          "type": [
-            "number",
-            "null"
-          ]
+          "type": ["number", "null"]
         },
         "warnings": {
           "type": "array",
@@ -250,10 +180,7 @@
     },
     "warning": {
       "type": "object",
-      "required": [
-        "code",
-        "severity"
-      ],
+      "required": ["code", "severity"],
       "additionalProperties": false,
       "properties": {
         "code": {
@@ -266,9 +193,7 @@
     },
     "network": {
       "type": "object",
-      "required": [
-        "accessUrls"
-      ],
+      "required": ["accessUrls"],
       "additionalProperties": false,
       "properties": {
         "accessUrls": {
@@ -281,55 +206,29 @@
     },
     "accessUrl": {
       "type": "object",
-      "required": [
-        "type",
-        "name",
-        "url",
-        "ipv4",
-        "ipv6"
-      ],
+      "required": ["type", "name", "url", "ipv4", "ipv6"],
       "additionalProperties": false,
       "properties": {
         "type": {
           "type": "string"
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "url": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "ipv4": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "ipv6": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       }
     },
     "notificationCounts": {
-      "type": [
-        "object",
-        "null"
-      ],
-      "required": [
-        "alert",
-        "warning",
-        "info",
-        "total"
-      ],
+      "type": ["object", "null"],
+      "required": ["alert", "warning", "info", "total"],
       "additionalProperties": false,
       "properties": {
         "alert": {
@@ -356,10 +255,7 @@
     },
     "workloads": {
       "type": "object",
-      "required": [
-        "docker",
-        "virtualMachines"
-      ],
+      "required": ["docker", "virtualMachines"],
       "additionalProperties": false,
       "properties": {
         "docker": {
@@ -372,20 +268,11 @@
     },
     "workloadSummary": {
       "type": "object",
-      "required": [
-        "state",
-        "running",
-        "stopped",
-        "paused",
-        "total"
-      ],
+      "required": ["state", "running", "stopped", "paused", "total"],
       "additionalProperties": false,
       "properties": {
         "state": {
-          "enum": [
-            "available",
-            "unavailable"
-          ]
+          "enum": ["available", "unavailable"]
         },
         "running": {
           "type": "integer",

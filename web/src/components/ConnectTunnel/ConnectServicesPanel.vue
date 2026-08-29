@@ -10,7 +10,6 @@ import {
   SelectRoot,
   SelectTrigger,
   SelectValue,
-  Switch,
 } from '@unraid/ui';
 
 import type {
@@ -252,7 +251,7 @@ function edit(service?: ConnectGatewayServiceInput) {
         name: '',
         upstream: '',
         tlsServerName: '',
-        enabled: false,
+        enabled: true,
         auth: 'account',
         providerId: '',
         subjects: [],
@@ -701,55 +700,6 @@ function status(service: (typeof state.gateway.services)[number]) {
           </p>
         </div>
       </details>
-      <section class="border-border space-y-4 rounded-lg border p-4 @md:p-5">
-        <div class="space-y-1">
-          <p class="text-primary text-xs font-semibold tracking-wide uppercase">
-            {{ t('connectServices.steps.publish') }}
-          </p>
-          <h4 class="font-semibold">{{ t('connectServices.steps.publishTitle') }}</h4>
-        </div>
-        <div class="flex items-start justify-between gap-6">
-          <div class="space-y-1">
-            <p :id="`${id}-enabled`" class="font-medium">{{ t('connectServices.enable') }}</p>
-            <p :id="`${id}-auth`" class="text-muted-foreground max-w-prose text-sm">
-              {{
-                t(
-                  draft.auth === 'upstream'
-                    ? 'connectServices.applicationAuth'
-                    : draft.auth === 'oidc'
-                      ? 'connectServices.providerProtected'
-                      : 'connectServices.protected'
-                )
-              }}
-            </p>
-          </div>
-          <Switch
-            v-model="draft.enabled"
-            :disabled="saving"
-            :aria-labelledby="`${id}-enabled`"
-            :aria-describedby="`${id}-auth`"
-          />
-        </div>
-        <details class="text-sm">
-          <summary
-            class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
-          >
-            {{ t('connectServices.publishDetails') }}
-          </summary>
-          <div class="text-muted-foreground mt-3 max-w-prose space-y-2">
-            <p>
-              {{
-                t(
-                  draft.auth === 'upstream'
-                    ? 'connectServices.nativeClients'
-                    : 'connectServices.browserOnly'
-                )
-              }}
-            </p>
-            <p v-if="draft.enabled">{{ t('connectServices.enableNotice') }}</p>
-          </div>
-        </details>
-      </section>
       <div class="flex flex-wrap gap-3">
         <Button
           :disabled="

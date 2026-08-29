@@ -159,6 +159,21 @@ describe('native connector host integration', () => {
             {
                 getProviders: async () => [
                     {
+                        id: 'provider:unraid.net',
+                        name: 'Unraid Account',
+                        issuer: 'https://account.unraid.net',
+                        clientId: 'CONNECT_SERVER_SSO',
+                        scopes: ['openid'],
+                        authorizationRuleMode: 'and' as const,
+                        authorizationRules: [
+                            {
+                                claim: 'groups',
+                                operator: 'contains' as const,
+                                value: ['server-viewers'],
+                            },
+                        ],
+                    },
+                    {
                         id: 'configured',
                         name: 'Configured',
                         issuer: 'https://identity.example',
@@ -410,6 +425,10 @@ describe('native connector host integration', () => {
             purpose: appService.id,
             upstream: appService.upstream,
             auth: 'account',
+        });
+        expect(generated).toMatchObject({
+            authorizationRuleMode: 'and',
+            authorizationRules: [{ claim: 'groups', operator: 'contains', value: ['server-viewers'] }],
         });
         expect(tunnel.settings().tunnelHostnames).toHaveLength(2);
         await expect(

@@ -1089,9 +1089,7 @@
       "application": "Step 1",
       "applicationTitle": "Choose the local application",
       "access": "Step 2",
-      "accessTitle": "Choose who can open it",
-      "publish": "Step 3",
-      "publishTitle": "Review and publish"
+      "accessTitle": "Choose who can open it"
     },
     "edit": "Edit service",
     "editNamed": "Edit {name}",
@@ -1137,10 +1135,7 @@
     "advanced": "Advanced settings",
     "tlsName": "HTTPS certificate name (optional)",
     "tlsHelp": "Only needed when the local address uses HTTPS with an IP address. Enter the name printed on the application certificate, such as plex.home.arpa. Leave blank for HTTP or when the HTTPS URL already uses that name.",
-    "enable": "Enable remote access to this service",
-    "auth": "Only the server owner can pass the Unraid Account sign-in gate. The application keeps its own login.",
-    "browserOnly": "Browser access only for now. Native media clients may not support the browser sign-in flow.",
-    "enableNotice": "Saving will publish a service address and briefly reconnect this tunnel. Keep the application updated and its own authentication enabled.",
+    "auth": "Uses the server’s configured Unraid Account access rules. If no rules are configured, access is limited to the server owner. The application keeps its own login.",
     "stale": "These settings changed elsewhere. Cancel and reopen the editor before saving.",
     "save": "Save service",
     "saving": "Saving…",

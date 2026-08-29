@@ -517,13 +517,13 @@ describe('service editor', () => {
     await flushPromises();
     expect(empty.text()).toContain('No running containers with published TCP ports');
   });
-  it('starts disabled, requires explicit save and emits only the local settings contract', async () => {
+  it('publishes a new service when saved and emits only the local settings contract', async () => {
     const wrapper = services();
     await action(wrapper, 'Add service').trigger('click');
-    expect(wrapper.get('[role="switch"]').attributes('aria-checked')).toBe('false');
-    expect(wrapper.get('details').element.open).toBe(false);
-    expect(wrapper.text()).toContain('Only the server owner');
-    expect(wrapper.text()).toContain('Native media clients');
+    expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('Enable remote access to this service');
+    expect(wrapper.text()).toContain('configured Unraid Account access rules');
+    expect(wrapper.text()).toContain('limited to the server owner');
     await wrapper.get('input[autocomplete="off"]').setValue('Media');
     await wrapper.get('input[type="url"]').setValue('http://127.0.0.1:32400');
     expect(wrapper.emitted('save')).toBeUndefined();
@@ -537,7 +537,7 @@ describe('service editor', () => {
             name: 'Media',
             upstream: 'http://127.0.0.1:32400',
             tlsServerName: '',
-            enabled: false,
+            enabled: true,
             auth: 'account',
             providerId: '',
             subjects: [],
