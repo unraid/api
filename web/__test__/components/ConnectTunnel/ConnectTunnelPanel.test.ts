@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ConnectServiceTargetsQuery, ConnectTunnelPageQuery } from '~/composables/gql/graphql';
 
 import Auth from '~/components/Auth.standalone.vue';
+import BrandMark from '~/components/Brand/Mark.vue';
 import ConnectSettings from '~/components/ConnectSettings/ConnectSettings.standalone.vue';
 import ConnectServicesPanel from '~/components/ConnectTunnel/ConnectServicesPanel.vue';
 import ConnectTunnelPage from '~/components/ConnectTunnel/ConnectTunnel.standalone.vue';
@@ -169,7 +170,7 @@ describe('dedicated Connect controls', () => {
     });
     expect(wrapper.text()).toContain('last reported values');
     expect(wrapper.text()).toContain('9.75 GB used of 1 GB');
-    expect(wrapper.text()).toContain('Current status: Retrying');
+    expect(wrapper.text()).toContain('Connection status Retrying');
     expect(wrapper.text()).not.toContain('allowance is exhausted');
     visibleText(wrapper, 'local HTTPS listener is not serving its certificate');
     visibleText(wrapper, 'last reported values');
@@ -312,6 +313,7 @@ describe('Connect page save handler', () => {
 
   it('keeps remote access last and places services inside it', () => {
     const { wrapper } = renderPage();
+    expect(wrapper.findComponent(BrandMark).exists()).toBe(true);
     const headings = wrapper.findAll('h2').map((heading) => heading.text());
     expect(headings).toEqual([
       'Account Status:',

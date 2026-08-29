@@ -9,6 +9,7 @@ import { Button } from '@unraid/ui';
 import type { ConnectGatewaySettingsInput, ConnectTunnelSettingsInput } from '~/composables/gql/graphql';
 
 import Auth from '~/components/Auth.standalone.vue';
+import BrandMark from '~/components/Brand/Mark.vue';
 import ConnectServicesPanel from '~/components/ConnectTunnel/ConnectServicesPanel.vue';
 import ConnectTunnelPanel from '~/components/ConnectTunnel/ConnectTunnelPanel.vue';
 import { connectServiceTargetsQuery } from '~/components/ConnectTunnel/graphql/connect-service-targets.query';
@@ -131,23 +132,12 @@ async function migrate(confirmationToken: string) {
 <template>
   <div class="connect-tunnel-page mx-auto max-w-4xl space-y-8 p-4 text-base">
     <header class="flex items-start gap-4">
-      <svg
-        class="bg-foreground text-background h-12 w-12 shrink-0 rounded-full p-1.5"
-        viewBox="0 0 24 24"
+      <figure
+        class="from-unraid-red to-orange mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-linear-to-r"
         aria-hidden="true"
       >
-        <defs>
-          <mask id="connect-page-social-mask">
-            <circle cx="12" cy="12" r="12" fill="white" />
-            <path
-              transform="translate(3.36 3.36) scale(.72)"
-              fill="black"
-              d="M11.406 8.528h1.17v6.926h-1.17zM1.17 15.454H0V8.528h1.17zm4.534.828h1.17v2.645h-1.17zm-2.86-2.969h1.169v4.282h-1.17zm5.703 0h1.17v4.282h-1.17zM22.83 8.528H24v6.926h-1.17zm-4.534-.81h-1.17V5.073h1.17zm2.86 2.95h-1.169V6.406h1.17zm-5.72 0h-1.17V6.406h1.17z"
-            />
-          </mask>
-        </defs>
-        <circle cx="12" cy="12" r="12" fill="currentColor" mask="url(#connect-page-social-mask)" />
-      </svg>
+        <BrandMark gradient-start="#fff" gradient-stop="#fff" class="h-full w-full p-2.5" />
+      </figure>
       <div class="min-w-0 space-y-2">
         <h1 class="text-2xl font-semibold">{{ t('connectTunnel.title') }}</h1>
         <p class="text-muted-foreground max-w-2xl">{{ t('connectTunnel.description') }}</p>
