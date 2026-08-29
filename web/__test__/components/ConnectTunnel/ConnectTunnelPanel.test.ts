@@ -129,6 +129,8 @@ describe('dedicated Connect controls', () => {
       accessState: 'blocked',
       reason: 'quota_exhausted',
       status: 'unknown',
+      rateMode: 'limited',
+      rateBytesPerSecond: 500000,
       bytesUsed: 9745244848,
       quotaBytes: 1000000000,
       bytesRemaining: 0,
@@ -141,6 +143,8 @@ describe('dedicated Connect controls', () => {
     expect(wrapper.text()).toContain('0 GB remaining');
     expect(wrapper.text()).toContain('allowance is exhausted');
     expect(wrapper.text()).toContain('default allowance');
+    expect(wrapper.text()).toContain('Maximum tunnel speed');
+    expect(wrapper.text()).toContain('Up to 4 Mbps');
     expect(wrapper.text()).not.toContain('Usage is unavailable');
     visibleText(wrapper, '9.75 GB used of 1 GB');
     visibleText(wrapper, 'allowance is exhausted');

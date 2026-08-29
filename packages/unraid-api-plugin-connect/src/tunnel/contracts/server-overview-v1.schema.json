@@ -4,46 +4,93 @@
   "title": "Unraid Connect server overview v1",
   "description": "The non-PII, GraphQL-shaped server overview shared through Connect presence.",
   "type": "object",
-  "required": ["schemaVersion", "info", "storage", "network"],
+  "required": [
+    "schemaVersion",
+    "info",
+    "storage",
+    "network"
+  ],
   "additionalProperties": false,
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "info": { "$ref": "#/$defs/info" },
-    "storage": { "$ref": "#/$defs/storage" },
-    "network": { "$ref": "#/$defs/network" },
+    "schemaVersion": {
+      "const": 1
+    },
+    "info": {
+      "$ref": "#/$defs/info"
+    },
+    "storage": {
+      "$ref": "#/$defs/storage"
+    },
+    "network": {
+      "$ref": "#/$defs/network"
+    },
     "notificationCounts": {
       "$ref": "#/$defs/notificationCounts",
       "description": "Normalized unread counts from notifications.overview.unread."
+    },
+    "workloads": {
+      "$ref": "#/$defs/workloads",
+      "description": "Aggregate Docker and virtual-machine state. Workload names and identifiers are never included."
     }
   },
-  "x-graphql-selection": "info { os { release uptime hostname } } storage { pools { id name kind state status fsType profile fsSize fsFree fsUsed warnings { code severity } drives { id name role state status fsSize fsFree fsUsed warnings { code severity } } } } network { accessUrls { type name url ipv4 ipv6 } } notifications { overview { unread { alert warning info total } } }",
+  "x-graphql-selection": "info { os { release uptime hostname } } storage { pools { id name kind state status fsType profile fsSize fsFree fsUsed warnings { code severity } drives { id name role state status fsSize fsFree fsUsed warnings { code severity } } } } network { accessUrls { type name url ipv4 ipv6 } } notifications { overview { unread { alert warning info total } } } docker { containers { state } } vms { domains { state } }",
   "$defs": {
     "info": {
       "type": "object",
-      "required": ["os"],
+      "required": [
+        "os"
+      ],
       "additionalProperties": false,
       "properties": {
-        "os": { "$ref": "#/$defs/os" }
+        "os": {
+          "$ref": "#/$defs/os"
+        }
       }
     },
     "os": {
-      "type": ["object", "null"],
-      "required": ["release", "uptime", "hostname"],
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "release",
+        "uptime",
+        "hostname"
+      ],
       "additionalProperties": false,
       "properties": {
-        "release": { "type": ["string", "null"] },
-        "uptime": { "type": ["string", "null"] },
-        "hostname": { "type": ["string", "null"] }
+        "release": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uptime": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hostname": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
     "storage": {
       "type": "object",
-      "required": ["pools"],
+      "required": [
+        "pools"
+      ],
       "additionalProperties": false,
       "properties": {
         "pools": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/pool" }
+          "additionalProperties": {
+            "$ref": "#/$defs/pool"
+          }
         }
       }
     },
@@ -65,20 +112,74 @@
       ],
       "additionalProperties": false,
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": ["string", "null"] },
-        "kind": { "type": ["string", "null"] },
-        "state": { "type": ["string", "null"] },
-        "status": { "type": ["string", "null"] },
-        "fsType": { "type": ["string", "null"] },
-        "profile": { "type": ["string", "null"] },
-        "fsSize": { "type": ["number", "null"] },
-        "fsFree": { "type": ["number", "null"] },
-        "fsUsed": { "type": ["number", "null"] },
-        "warnings": { "type": "array", "items": { "$ref": "#/$defs/warning" } },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fsType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "profile": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fsSize": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "fsFree": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "fsUsed": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/warning"
+          }
+        },
         "drives": {
           "type": "object",
-          "additionalProperties": { "$ref": "#/$defs/drive" }
+          "additionalProperties": {
+            "$ref": "#/$defs/drive"
+          }
         }
       }
     },
@@ -97,52 +198,138 @@
       ],
       "additionalProperties": false,
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "role": { "type": ["string", "null"] },
-        "state": { "type": ["string", "null"] },
-        "status": { "type": ["string", "null"] },
-        "fsSize": { "type": ["number", "null"] },
-        "fsFree": { "type": ["number", "null"] },
-        "fsUsed": { "type": ["number", "null"] },
-        "warnings": { "type": "array", "items": { "$ref": "#/$defs/warning" } }
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fsSize": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "fsFree": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "fsUsed": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/warning"
+          }
+        }
       }
     },
     "warning": {
       "type": "object",
-      "required": ["code", "severity"],
+      "required": [
+        "code",
+        "severity"
+      ],
       "additionalProperties": false,
       "properties": {
-        "code": { "type": "string" },
-        "severity": { "type": "string" }
+        "code": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        }
       }
     },
     "network": {
       "type": "object",
-      "required": ["accessUrls"],
+      "required": [
+        "accessUrls"
+      ],
       "additionalProperties": false,
       "properties": {
         "accessUrls": {
           "type": "array",
-          "items": { "$ref": "#/$defs/accessUrl" }
+          "items": {
+            "$ref": "#/$defs/accessUrl"
+          }
         }
       }
     },
     "accessUrl": {
       "type": "object",
-      "required": ["type", "name", "url", "ipv4", "ipv6"],
+      "required": [
+        "type",
+        "name",
+        "url",
+        "ipv4",
+        "ipv6"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type": { "type": "string" },
-        "name": { "type": ["string", "null"] },
-        "url": { "type": ["string", "null"] },
-        "ipv4": { "type": ["string", "null"] },
-        "ipv6": { "type": ["string", "null"] }
+        "type": {
+          "type": "string"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ipv4": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ipv6": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
     "notificationCounts": {
-      "type": ["object", "null"],
-      "required": ["alert", "warning", "info", "total"],
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "alert",
+        "warning",
+        "info",
+        "total"
+      ],
       "additionalProperties": false,
       "properties": {
         "alert": {
@@ -156,6 +343,61 @@
           "maximum": 9007199254740991
         },
         "info": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "workloads": {
+      "type": "object",
+      "required": [
+        "docker",
+        "virtualMachines"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "docker": {
+          "$ref": "#/$defs/workloadSummary"
+        },
+        "virtualMachines": {
+          "$ref": "#/$defs/workloadSummary"
+        }
+      }
+    },
+    "workloadSummary": {
+      "type": "object",
+      "required": [
+        "state",
+        "running",
+        "stopped",
+        "paused",
+        "total"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
+        "running": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "stopped": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "paused": {
           "type": "integer",
           "minimum": 0,
           "maximum": 9007199254740991

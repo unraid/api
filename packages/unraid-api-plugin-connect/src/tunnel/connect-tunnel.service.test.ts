@@ -188,6 +188,34 @@ describe('native connector host integration', () => {
     const setFeatures = async (features: object) => {
         config.set('connect.config', await persister.validate({ ...tunnel.settings(), ...features }));
     };
+    it('collects only aggregate Docker and VM state for the shared overview', async () => {
+        const query = vi
+            .fn()
+            .mockResolvedValueOnce({
+                data: { docker: { containers: [{ state: 'RUNNING' }, { state: 'EXITED' }] } },
+            })
+            .mockResolvedValueOnce({
+                data: { vms: { domains: [{ state: 'RUNNING' }, { state: 'SHUTOFF' }] } },
+            });
+        Object.assign(tunnel, {
+            internalClient: { getClient: vi.fn().mockResolvedValue({ query }) },
+        });
+
+        const snapshot = await tunnel.preview();
+
+        expect(snapshot.workloads).toEqual({
+            docker: { state: 'available', running: 1, stopped: 1, paused: 0, total: 2 },
+            virtualMachines: {
+                state: 'available',
+                running: 1,
+                stopped: 1,
+                paused: 0,
+                total: 2,
+            },
+        });
+        expect(query).toHaveBeenCalledTimes(2);
+        expect(JSON.stringify(snapshot.workloads)).not.toMatch(/name|id|image/i);
+    });
     it('backfills authoritative aliases for an already-enabled installation', async () => {
         await setFeatures({
             certificateManagementEnabled: true,
@@ -589,6 +617,8 @@ setInterval(()=>{},1000);
                 access_state: 'blocked',
                 reason: 'quota_exhausted',
                 status: 'unknown',
+                rate_mode: 'limited',
+                rate_bytes_per_second: 500000,
                 bytes_used: 9745244848,
                 quota_bytes: 1000000000,
                 bytes_remaining: 0,
@@ -628,6 +658,7 @@ setInterval(()=>{},1000);
             const status = tunnel.status();
             expect(status.entitlementState).toBe(outcome === 'stale' ? 'unavailable' : 'current');
             expect(status.entitlement?.bytesUsed).toBe(outcome === 'recovered' ? 0 : 9745244848);
+            expect(status.entitlement?.rateBytesPerSecond).toBe(500000);
             expect(status.tunnelReason).toBe(outcome === 'recovered' ? '' : 'quota_exhausted');
             expect(new CloudService(tunnel).checkConnector().status).toBe('CONNECTED');
         }

@@ -32,7 +32,7 @@ export class ConnectTunnelSettingsResolver {
             status: this.tunnel.status(),
             overviewCleanupPending:
                 !config.serverDataReportingEnabled && !config.serverDataRemoteCleared,
-            overview: this.tunnel.preview(),
+            overview: await this.tunnel.preview(),
             certificateMigration: await this.tunnel.certificateMigration(),
         };
     }

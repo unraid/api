@@ -43,6 +43,8 @@ export const connectTunnelPageQuery = graphql(/* GraphQL */ `
           accessState
           reason
           status
+          rateMode
+          rateBytesPerSecond
           bytesUsed
           quotaBytes
           bytesRemaining

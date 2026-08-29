@@ -28,6 +28,10 @@ export class ConnectTunnelEntitlement {
     reason!: string | null;
     @Field(() => String)
     status!: string;
+    @Field(() => String)
+    rateMode!: string;
+    @Field(() => Float)
+    rateBytesPerSecond!: number;
     @Field(() => Float)
     bytesUsed!: number;
     @Field(() => Float)

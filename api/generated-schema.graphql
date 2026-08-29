@@ -3744,6 +3744,8 @@ type ConnectTunnelEntitlement {
   accessState: String!
   reason: String
   status: String!
+  rateMode: String!
+  rateBytesPerSecond: Float!
   bytesUsed: Float!
   quotaBytes: Float!
   periodStart: Float!

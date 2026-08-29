@@ -1,5 +1,5 @@
 import type { OnModuleDestroy } from '@nestjs/common';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { createHmac, randomBytes, X509Certificate } from 'node:crypto';
@@ -8,13 +8,16 @@ import { isIP } from 'node:net';
 import { uptime } from 'node:os';
 import { join } from 'node:path';
 
+import type { CanonicalInternalClientService } from '@unraid/shared';
 import type { NginxService } from '@unraid/shared/services/nginx.js';
 import type { ResultPromise } from 'execa';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import { NGINX_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
+import { CANONICAL_INTERNAL_CLIENT_TOKEN, NGINX_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 import { execa } from 'execa';
+import { parse } from 'graphql';
 
 import type { ConnectTunnelEntitlement } from './connect-tunnel-settings.model.js';
+import type { WorkloadStates } from './overview.js';
 import { ConnectConfigPersister } from '../config/config.persistence.js';
 import { MyServersConfig } from '../config/connect.config.js';
 import { writePrivateJson } from '../config/private-json-file.js';
@@ -57,6 +60,8 @@ interface OidcProviderSource {
 // This matches the stable provider exported by the host API without coupling
 // the plugin to the host's installed @unraid/shared build.
 const OIDC_PROVIDER_SOURCE_TOKEN = 'OidcProviderSource';
+const DOCKER_STATES_QUERY = parse('query ConnectDockerStates { docker { containers { state } } }');
+const VM_STATES_QUERY = parse('query ConnectVmStates { vms { domains { state } } }');
 const fields = [
     'certificateManagementEnabled',
     'tunnelRemoteAccessEnabled',
@@ -111,7 +116,10 @@ export class ConnectTunnelService implements OnModuleDestroy {
         private readonly urls: UrlResolverService,
         private readonly events: EventEmitter2,
         @Inject(NGINX_SERVICE_TOKEN) private readonly nginx: NginxService,
-        @Inject(OIDC_PROVIDER_SOURCE_TOKEN) private readonly oidc: OidcProviderSource
+        @Inject(OIDC_PROVIDER_SOURCE_TOKEN) private readonly oidc: OidcProviderSource,
+        @Optional()
+        @Inject(CANONICAL_INTERNAL_CLIENT_TOKEN)
+        private readonly internalClient?: CanonicalInternalClientService
     ) {}
 
     settings(): MyServersConfig {
@@ -217,20 +225,60 @@ export class ConnectTunnelService implements OnModuleDestroy {
             join(this.config.getOrThrow<string>('PATHS_CONFIG_MODULES'), 'server-state-v1.json')
         );
     }
-    preview() {
+    private async workloadStates(): Promise<WorkloadStates> {
+        const unavailable = { docker: null, virtualMachines: null };
+        if (!this.internalClient) return unavailable;
+        try {
+            const client = await this.internalClient.getClient({ enableSubscriptions: false });
+            const queryStates = async (
+                query: ReturnType<typeof parse>,
+                select: (data: Record<string, unknown>) => unknown
+            ): Promise<string[] | null> => {
+                let timer: NodeJS.Timeout | undefined;
+                try {
+                    const result = await Promise.race([
+                        client.query<Record<string, unknown>>({ query, fetchPolicy: 'no-cache' }),
+                        new Promise<null>((resolve) => {
+                            timer = setTimeout(() => resolve(null), 3_000);
+                        }),
+                    ]);
+                    if (!result) return null;
+                    const values = select(result.data);
+                    if (!Array.isArray(values)) return null;
+                    const states = values.map((value) => object(value).state);
+                    return states.every((state) => typeof state === 'string')
+                        ? (states as string[])
+                        : null;
+                } catch {
+                    return null;
+                } finally {
+                    if (timer) clearTimeout(timer);
+                }
+            };
+            const [docker, virtualMachines] = await Promise.all([
+                queryStates(DOCKER_STATES_QUERY, (data) => object(object(data).docker).containers),
+                queryStates(VM_STATES_QUERY, (data) => object(object(data).vms).domains),
+            ]);
+            return { docker, virtualMachines };
+        } catch {
+            return unavailable;
+        }
+    }
+    async preview() {
         return overview(
             this.config.get<unknown>('store.emhttp.var'),
             this.config.get<unknown>('store.emhttp.disks'),
             this.urls.getServerIps().urls,
-            this.bootTime
+            this.bootTime,
+            await this.workloadStates()
         );
     }
-    private writeState() {
+    private async writeState() {
         const config = this.settings();
         return writeOverview(
             this.statePath,
             config.apikey && config.serverDataReportingEnabled
-                ? this.preview()
+                ? await this.preview()
                 : overview({}, [], [], null)
         );
     }
@@ -281,7 +329,11 @@ export class ConnectTunnelService implements OnModuleDestroy {
 
     @OnEvent('oidc.providers.persisted', { async: true })
     async onOidcProvidersPersisted(): Promise<void> {
-        if (!this.settings().gatewayServices.some((service) => service.enabled && service.auth === 'oidc'))
+        if (
+            !this.settings().gatewayServices.some(
+                (service) => service.enabled && service.auth === 'oidc'
+            )
+        )
             return;
         await this.serial(() => this.reload(false));
     }
@@ -1001,7 +1053,10 @@ export function parseEntitlement(value: unknown): ConnectTunnelEntitlement | nul
         !['active', 'trial', 'past_due', 'canceled', 'expired', 'inactive', 'unknown'].includes(
             String(data.status)
         ) ||
-        !['bytes_used', 'quota_bytes', 'period_start', 'period_end'].every(count) ||
+        !['limited', 'unlimited'].includes(String(data.rate_mode)) ||
+        !['rate_bytes_per_second', 'bytes_used', 'quota_bytes', 'period_start', 'period_end'].every(
+            count
+        ) ||
         !(data.usage_updated_at === null || count('usage_updated_at')) ||
         !(data.bytes_remaining === null || count('bytes_remaining'))
     )
@@ -1012,6 +1067,7 @@ export function parseEntitlement(value: unknown): ConnectTunnelEntitlement | nul
     if (
         (reason !== null && reason !== 'quota_exhausted' && reason !== 'entitlement_inactive') ||
         (data.access_state === 'blocked') !== (reason !== null) ||
+        (data.rate_mode === 'limited') !== (Number(data.rate_bytes_per_second) > 0) ||
         Number(data.period_end) <= Number(data.period_start) ||
         data.bytes_remaining !== (quota === 0 ? null : Math.max(0, quota - used))
     )
@@ -1020,6 +1076,8 @@ export function parseEntitlement(value: unknown): ConnectTunnelEntitlement | nul
         accessState: String(data.access_state),
         reason,
         status: String(data.status),
+        rateMode: String(data.rate_mode),
+        rateBytesPerSecond: Number(data.rate_bytes_per_second),
         bytesUsed: used,
         quotaBytes: quota,
         bytesRemaining: data.bytes_remaining as number | null,

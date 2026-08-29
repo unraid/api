@@ -35,7 +35,11 @@ describe('server overview contract', () => {
                 { name: 'flash', type: 'FLASH', id: 'flash-guid' },
             ],
             [{ type: 'LAN', url: new URL('https://tower.local'), secret: 'credential' }],
-            '2026-01-01T00:00:00.000Z'
+            '2026-01-01T00:00:00.000Z',
+            {
+                docker: ['RUNNING', 'EXITED', 'PAUSED'],
+                virtualMachines: ['RUNNING', 'IDLE', 'SHUTOFF', 'PAUSED'],
+            }
         );
         expect(validate(value), JSON.stringify(validate.errors)).toBe(true);
         expect(value.storage.pools['array:array']).toMatchObject({
@@ -48,10 +52,37 @@ describe('server overview contract', () => {
             'drive:cache',
             'drive:cache2',
         ]);
+        expect(value.workloads).toEqual({
+            docker: { state: 'available', running: 1, stopped: 1, paused: 1, total: 3 },
+            virtualMachines: {
+                state: 'available',
+                running: 2,
+                stopped: 1,
+                paused: 1,
+                total: 4,
+            },
+        });
         expect(JSON.stringify(value)).not.toMatch(
             /serial-secret|private-guid|\/dev\/sda|flash-guid|credential/
         );
         expect(validate({ ...value, secret: 'private' })).toBe(false);
+    });
+    it('reports unavailable subsystems without exposing workload identity', () => {
+        const value = overview({}, [], [], null, {
+            docker: null,
+            virtualMachines: null,
+        });
+        expect(validate(value), JSON.stringify(validate.errors)).toBe(true);
+        expect(value.workloads).toEqual({
+            docker: { state: 'unavailable', running: 0, stopped: 0, paused: 0, total: 0 },
+            virtualMachines: {
+                state: 'unavailable',
+                running: 0,
+                stopped: 0,
+                paused: 0,
+                total: 0,
+            },
+        });
     });
     it('keeps absent state and unknown capacity valid', () => {
         for (const value of [

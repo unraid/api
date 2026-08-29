@@ -8,7 +8,35 @@ const text = (value: unknown): string | null => (typeof value === 'string' ? val
 const numeric = (value: unknown): number | null =>
     typeof value === 'number' && Number.isFinite(value) ? value : null;
 
-export function overview(vars: unknown, disks: unknown, urls: unknown, bootTime: string | null) {
+export type WorkloadStates = {
+    docker: string[] | null;
+    virtualMachines: string[] | null;
+};
+
+const workloadSummary = (
+    states: string[] | null,
+    runningStates: ReadonlySet<string>,
+    pausedStates: ReadonlySet<string>
+) => {
+    if (states === null) return { state: 'unavailable', running: 0, stopped: 0, paused: 0, total: 0 };
+    const running = states.filter((state) => runningStates.has(state)).length;
+    const paused = states.filter((state) => pausedStates.has(state)).length;
+    return {
+        state: 'available',
+        running,
+        stopped: states.length - running - paused,
+        paused,
+        total: states.length,
+    };
+};
+
+export function overview(
+    vars: unknown,
+    disks: unknown,
+    urls: unknown,
+    bootTime: string | null,
+    workloads?: WorkloadStates
+) {
     const system = object(vars);
     const groups = new Map<string, Record<string, unknown>[]>();
     if (Array.isArray(disks))
@@ -92,6 +120,16 @@ export function overview(vars: unknown, disks: unknown, urls: unknown, bootTime:
                   })
                 : [],
         },
+        ...(workloads && {
+            workloads: {
+                docker: workloadSummary(workloads.docker, new Set(['RUNNING']), new Set(['PAUSED'])),
+                virtualMachines: workloadSummary(
+                    workloads.virtualMachines,
+                    new Set(['RUNNING', 'IDLE']),
+                    new Set(['PAUSED', 'PMSUSPENDED'])
+                ),
+            },
+        }),
     };
 }
 

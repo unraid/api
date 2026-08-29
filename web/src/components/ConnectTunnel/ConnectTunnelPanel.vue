@@ -237,6 +237,18 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
               })
             }}
           </p>
+          <p>
+            {{ t('connectTunnel.usage.speed') }}:
+            <span class="font-medium tabular-nums">
+              {{
+                usage.rateMode === 'unlimited'
+                  ? t('connectTunnel.usage.unlimitedSpeed')
+                  : t('connectTunnel.usage.speedValue', {
+                      speed: (usage.rateBytesPerSecond * 8) / 1_000_000,
+                    })
+              }}
+            </span>
+          </p>
           <p v-if="usage.status === 'unknown'">{{ t('connectTunnel.usage.unknownPolicy') }}</p>
           <details>
             <summary
