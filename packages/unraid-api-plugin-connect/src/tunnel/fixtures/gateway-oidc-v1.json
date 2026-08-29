@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "issuer": "https://account.unraid.net",
+  "clientId": "CONNECT_SERVER_SSO",
+  "oidcCallbackOrigin": "https://tun-parent.example.myunraid.net",
+  "oidcProviders": [
+    {
+      "id": "server:configured",
+      "issuer": "https://identity.example",
+      "clientId": "service-client",
+      "clientSecret": "fixture-secret",
+      "scopes": [
+        "openid",
+        "email"
+      ],
+      "authorizationRuleMode": "or",
+      "authorizationRules": [
+        {
+          "claim": "sub",
+          "operator": "equals",
+          "value": [
+            "viewer"
+          ]
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "purpose": "webgui",
+      "upstream": "https://127.0.0.1",
+      "auth": "upstream"
+    },
+    {
+      "purpose": "app-0123456789abcdef",
+      "upstream": "http://127.0.0.1:32400",
+      "auth": "oidc",
+      "providerId": "server:configured",
+      "subjects": [
+        "viewer"
+      ]
+    }
+  ]
+}

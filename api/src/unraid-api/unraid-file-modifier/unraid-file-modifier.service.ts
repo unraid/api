@@ -70,7 +70,7 @@ export class UnraidFileModificationService
         );
 
         this.logger.debug(`Loading ${Object.keys(modificationModules).length} modifications...`);
-        for (const path in modificationModules) {
+        for (const path of Object.keys(modificationModules).sort()) {
             const module = modificationModules[path];
 
             // Try to load default export first

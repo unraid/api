@@ -6,6 +6,8 @@ import { BrandButton } from '@unraid/ui';
 
 import { useServerStore } from '~/store/server';
 
+const { allowSignOut = false } = defineProps<{ allowSignOut?: boolean }>();
+
 const { t } = useI18n();
 
 const serverStore = useServerStore();
@@ -18,7 +20,7 @@ const { authAction, stateData } = storeToRefs(serverStore);
       <h3 class="mb-2 text-base">{{ stateData?.heading ? t(stateData.heading) : '' }}</h3>
       <span class="text-sm" v-html="stateData?.message ? t(stateData.message) : ''" />
     </span>
-    <span v-if="authAction">
+    <span v-if="authAction && (authAction.name !== 'signOut' || allowSignOut)">
       <BrandButton
         :disabled="authAction?.disabled"
         :icon="authAction.icon"

@@ -1,5 +1,6 @@
 import { forwardRef, Inject, Injectable, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { RuleEffect } from '@jsonforms/core';
 import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
@@ -87,7 +88,8 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         private readonly validationService: OidcValidationService,
         @Optional()
         @Inject(forwardRef(() => OidcClientConfigService))
-        private readonly clientConfigService?: OidcClientConfigService
+        private readonly clientConfigService?: OidcClientConfigService,
+        @Optional() private readonly events?: EventEmitter2
     ) {
         super(configService);
         this.registerSettings();
@@ -402,6 +404,8 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             this.logger.debug(`Cleared OIDC client configuration cache for deleted provider ${id}`);
         }
 
+        await this.events?.emitAsync('oidc.providers.persisted');
+
         return true;
     }
 
@@ -520,6 +524,8 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                     this.clientConfigService.clearCache();
                     this.logger.debug('Cleared OIDC client configuration cache after provider update');
                 }
+
+                await this.events?.emitAsync('oidc.providers.persisted');
 
                 // Include validation results in response
                 const response: { restartRequired: boolean; values: OidcConfig; warnings?: string[] } = {

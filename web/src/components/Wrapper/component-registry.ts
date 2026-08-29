@@ -51,6 +51,11 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'connect-settings',
   },
   {
+    component: defineAsyncComponent(() => import('../ConnectTunnel/ConnectTunnel.standalone.vue')),
+    selector: 'unraid-connect-tunnel',
+    appId: 'connect-tunnel',
+  },
+  {
     component: defineAsyncComponent(() => import('@/components/Modals.standalone.vue')),
     selector: ['unraid-modals', '#modals', 'modals-direct'], // All possible modal selectors
     appId: 'modals',

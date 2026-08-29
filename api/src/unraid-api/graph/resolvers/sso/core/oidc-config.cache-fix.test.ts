@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test } from '@nestjs/testing';
 import * as fs from 'fs/promises';
 
@@ -22,6 +23,7 @@ describe('OIDC Config Cache Fix - Integration Test', () => {
     let configPersistence: OidcConfigPersistence;
     let clientConfigService: OidcClientConfigService;
     let mockConfigService: any;
+    let events: EventEmitter2;
 
     afterEach(() => {
         delete process.env.PATHS_CONFIG;
@@ -96,6 +98,7 @@ describe('OIDC Config Cache Fix - Integration Test', () => {
                 OidcConfigPersistence,
                 OidcClientConfigService,
                 OidcValidationService,
+                EventEmitter2,
                 {
                     provide: ConfigService,
                     useValue: mockConfigService,
@@ -109,6 +112,7 @@ describe('OIDC Config Cache Fix - Integration Test', () => {
 
         configPersistence = module.get<OidcConfigPersistence>(OidcConfigPersistence);
         clientConfigService = module.get<OidcClientConfigService>(OidcClientConfigService);
+        events = module.get(EventEmitter2);
 
         // Mock the persist method since we don't want to write to disk in tests
         vi.spyOn(configPersistence as any, 'persist').mockResolvedValue(undefined);
@@ -168,6 +172,7 @@ describe('OIDC Config Cache Fix - Integration Test', () => {
 
             // Spy on clearCache
             const clearCacheSpy = vi.spyOn(clientConfigService, 'clearCache');
+            const eventSpy = vi.spyOn(events, 'emitAsync');
 
             // Delete the provider
             const deleted = await configPersistence.deleteProvider(provider.id);
@@ -175,6 +180,7 @@ describe('OIDC Config Cache Fix - Integration Test', () => {
 
             // Verify cache was cleared for the deleted provider
             expect(clearCacheSpy).toHaveBeenCalledWith(provider.id);
+            expect(eventSpy).toHaveBeenCalledWith('oidc.providers.persisted');
         });
 
         it('should clear all provider caches when updated via settings updateValues', async () => {
@@ -198,6 +204,7 @@ describe('OIDC Config Cache Fix - Integration Test', () => {
 
             // Spy on clearCache
             const clearCacheSpy = vi.spyOn(clientConfigService, 'clearCache');
+            const eventSpy = vi.spyOn(events, 'emitAsync');
 
             // Mock validation
             const validationService = (configPersistence as any).validationService;
@@ -210,6 +217,7 @@ describe('OIDC Config Cache Fix - Integration Test', () => {
 
             // Verify cache was cleared (called without arguments to clear all)
             expect(clearCacheSpy).toHaveBeenCalledWith();
+            expect(eventSpy).toHaveBeenCalledWith('oidc.providers.persisted');
         });
 
         it('should NOT require API restart after updating provider issuer', async () => {

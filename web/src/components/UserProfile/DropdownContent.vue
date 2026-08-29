@@ -60,9 +60,6 @@ const { available: osUpdateAvailable, availableWithRenewal: osUpdateAvailableWit
 const signInAction = computed(
   () => stateData.value.actions?.filter((act: { name: string }) => act.name === 'signIn') ?? []
 );
-const signOutAction = computed(
-  () => stateData.value.actions?.filter((act: { name: string }) => act.name === 'signOut') ?? []
-);
 const createManageLicenseAction = (
   text: string,
   sourceAction?: ServerStateDataAction
@@ -201,7 +198,6 @@ const links = computed((): UserProfileLink[] => {
             title: t('userProfile.dropdownContent.opensConnectInNewTab'),
           },
           ...[manageUnraidNetAccount.value],
-          ...signOutAction.value,
         ]
       : [...[manageUnraidNetAccount.value]]),
     {

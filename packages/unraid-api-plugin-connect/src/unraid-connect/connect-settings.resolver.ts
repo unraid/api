@@ -1,5 +1,4 @@
 import { Logger } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
@@ -9,7 +8,6 @@ import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
-import { EVENTS } from '../helper/nest-tokens.js';
 import { ConnectSettingsService } from './connect-settings.service.js';
 import {
     AllowedOriginInput,
@@ -26,10 +24,7 @@ import {
 export class ConnectSettingsResolver {
     private readonly logger = new Logger(ConnectSettingsResolver.name);
 
-    constructor(
-        private readonly connectSettingsService: ConnectSettingsService,
-        private readonly eventEmitter: EventEmitter2
-    ) {}
+    constructor(private readonly connectSettingsService: ConnectSettingsService) {}
 
     @ResolveField(() => PrefixedID)
     public async id(): Promise<string> {
@@ -102,8 +97,7 @@ export class ConnectSettingsResolver {
         resource: Resource.CONNECT,
     })
     public async connectSignOut() {
-        this.eventEmitter.emit(EVENTS.LOGOUT, { reason: 'Manual Sign Out Using API' });
-        return true;
+        return this.connectSettingsService.signOut();
     }
 
     @Mutation(() => Boolean)

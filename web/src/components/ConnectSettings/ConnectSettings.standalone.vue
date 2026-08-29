@@ -1,15 +1,13 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 import { watchDebounced } from '@vueuse/core';
 
-import { BrandButton, jsonFormsAjv, jsonFormsRenderers, Label, SettingsGrid } from '@unraid/ui';
+import { BrandButton, jsonFormsAjv, jsonFormsRenderers } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 import { useJsonFormsI18n } from '~/helpers/jsonforms-i18n';
 
-import Auth from '~/components/Auth.standalone.vue';
 // unified settings values are returned as JSON, so use a generic record type
 // import type { ConnectSettingsValues } from '~/composables/gql/graphql';
 
@@ -18,14 +16,11 @@ import {
   updateConnectSettings,
 } from '~/components/ConnectSettings/graphql/settings.query';
 import OidcDebugLogs from '~/components/ConnectSettings/OidcDebugLogs.vue';
-import { useServerStore } from '~/store/server';
 
 // Disable automatic attribute inheritance
 defineOptions({
   inheritAttrs: false,
 });
-
-const { connectPluginInstalled } = storeToRefs(useServerStore());
 
 /**--------------------------------------------
  *     Settings State & Form definition
@@ -95,7 +90,6 @@ const jsonFormsI18n = useJsonFormsI18n();
 
 /** Called when the user clicks the "Apply" button */
 const submitSettingsUpdate = async () => {
-  console.log('[ConnectSettings] trying to update settings to', formState.value);
   await mutateSettings({ input: formState.value });
   await refetch();
 };
@@ -108,13 +102,6 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
 
 <template>
   <div>
-    <!-- common api-related actions -->
-    <SettingsGrid>
-      <template v-if="connectPluginInstalled">
-        <Label>{{ t('connectSettings.accountStatusLabel') }}</Label>
-        <Auth />
-      </template>
-    </SettingsGrid>
     <!-- auto-generated settings form -->
     <div class="mt-6 pl-3 [&_.vertical-layout]:space-y-6">
       <JsonForms

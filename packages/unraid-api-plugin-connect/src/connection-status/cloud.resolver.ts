@@ -1,9 +1,7 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
-import {
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { NetworkService } from '../network/network.service.js';
 import { Cloud } from './cloud.model.js';
@@ -24,25 +22,19 @@ export class CloudResolver {
         resource: Resource.CLOUD,
     })
     public async cloud(): Promise<Cloud> {
-        const minigraphql = this.cloudService.checkMothershipClient();
+        const minigraphql = this.cloudService.checkConnector();
         const cloud = await this.cloudService.checkCloudConnection();
 
-        const cloudError = cloud.error ? `NETWORK: ${cloud.error}` : '';
-        const miniGraphError = minigraphql.error ? `CLOUD: ${minigraphql.error}` : '';
-
-        let error = cloudError || miniGraphError || undefined;
-        if (cloudError && miniGraphError) {
-            error = `${cloudError}\n${miniGraphError}`;
-        }
+        const error = cloud.error || minigraphql.error || undefined;
 
         return {
             relay: {
                 // Left in for UPC backwards compat.
                 error: undefined,
-                status: 'connected',
+                status: minigraphql.status === 'CONNECTED' ? 'connected' : 'disconnected',
                 timeout: undefined,
             },
-            apiKey: { valid: true },
+            apiKey: { valid: minigraphql.status === 'CONNECTED' },
             minigraphql,
             cloud,
             allowedOrigins: this.networkService.getAllowedOrigins(),

@@ -92,6 +92,8 @@ export default defineConfig({
   },
 
   resolve: {
+    // Apollo's utility package imports GraphQL without declaring it as a peer.
+    dedupe: ['graphql'],
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '~': fileURLToPath(new URL('./src', import.meta.url)),

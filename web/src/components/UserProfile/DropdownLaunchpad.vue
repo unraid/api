@@ -56,7 +56,7 @@ const showExpireTime = computed(
           />
         </li>
       </ul>
-      <KeyActions :actions="stateData.actions" />
+      <KeyActions :actions="stateData.actions" :filter-out="['signOut']" />
     </template>
   </div>
 </template>

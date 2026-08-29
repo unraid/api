@@ -530,6 +530,55 @@ export type Connect = Node & {
   settings: ConnectSettings;
 };
 
+export type ConnectCertificateMigration = {
+  __typename?: 'ConnectCertificateMigration';
+  confirmationToken?: Maybe<Scalars['String']['output']>;
+  domain?: Maybe<Scalars['String']['output']>;
+  fingerprint?: Maybe<Scalars['String']['output']>;
+  managed: Scalars['Boolean']['output'];
+  reason: Scalars['String']['output'];
+  requestId?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+};
+
+export type ConnectGatewayServiceInput = {
+  auth?: Scalars['String']['input'];
+  enabled?: Scalars['Boolean']['input'];
+  id: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  providerId?: Scalars['String']['input'];
+  subjects?: Array<Scalars['String']['input']>;
+  tlsServerName?: Scalars['String']['input'];
+  upstream: Scalars['String']['input'];
+};
+
+export type ConnectGatewayServiceStatus = {
+  __typename?: 'ConnectGatewayServiceStatus';
+  auth: Scalars['String']['output'];
+  enabled: Scalars['Boolean']['output'];
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  providerId: Scalars['String']['output'];
+  subjects: Array<Scalars['String']['output']>;
+  tlsServerName: Scalars['String']['output'];
+  upstream: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export type ConnectGatewaySettings = {
+  __typename?: 'ConnectGatewaySettings';
+  available: Scalars['Boolean']['output'];
+  callbackUrl?: Maybe<Scalars['String']['output']>;
+  pending: Scalars['Boolean']['output'];
+  revision: Scalars['Int']['output'];
+  services: Array<ConnectGatewayServiceStatus>;
+};
+
+export type ConnectGatewaySettingsInput = {
+  expectedRevision: Scalars['Int']['input'];
+  services: Array<ConnectGatewayServiceInput>;
+};
+
 export type ConnectSettings = Node & {
   __typename?: 'ConnectSettings';
   /** The data schema for the Connect settings */
@@ -565,6 +614,53 @@ export type ConnectSignInInput = {
   apiKey: Scalars['String']['input'];
   /** User information for the sign-in */
   userInfo?: InputMaybe<ConnectUserInfoInput>;
+};
+
+export type ConnectTunnelEntitlement = {
+  __typename?: 'ConnectTunnelEntitlement';
+  accessState: Scalars['String']['output'];
+  bytesRemaining?: Maybe<Scalars['Float']['output']>;
+  bytesUsed: Scalars['Float']['output'];
+  periodEnd: Scalars['Float']['output'];
+  periodStart: Scalars['Float']['output'];
+  quotaBytes: Scalars['Float']['output'];
+  reason?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  updatedAt?: Maybe<Scalars['Float']['output']>;
+};
+
+export type ConnectTunnelSettings = {
+  __typename?: 'ConnectTunnelSettings';
+  certificateManagementEnabled: Scalars['Boolean']['output'];
+  certificateMigration: ConnectCertificateMigration;
+  gateway: ConnectGatewaySettings;
+  overview: Scalars['JSON']['output'];
+  overviewCleanupPending: Scalars['Boolean']['output'];
+  serverDataReportingEnabled: Scalars['Boolean']['output'];
+  signedIn: Scalars['Boolean']['output'];
+  status: ConnectTunnelStatus;
+  tunnelRemoteAccessEnabled: Scalars['Boolean']['output'];
+  tunnelUrl?: Maybe<Scalars['String']['output']>;
+};
+
+export type ConnectTunnelSettingsInput = {
+  certificateManagementEnabled: Scalars['Boolean']['input'];
+  serverDataReportingEnabled: Scalars['Boolean']['input'];
+  tunnelRemoteAccessEnabled: Scalars['Boolean']['input'];
+};
+
+export type ConnectTunnelStatus = {
+  __typename?: 'ConnectTunnelStatus';
+  certificate: Scalars['String']['output'];
+  entitlement?: Maybe<ConnectTunnelEntitlement>;
+  entitlementState: Scalars['String']['output'];
+  gateway: Scalars['String']['output'];
+  gatewayReason: Scalars['String']['output'];
+  presence: Scalars['String']['output'];
+  reason: Scalars['String']['output'];
+  routeState: Scalars['String']['output'];
+  tunnel: Scalars['String']['output'];
+  tunnelReason: Scalars['String']['output'];
 };
 
 export type ConnectUserInfoInput = {
@@ -1673,6 +1769,7 @@ export type Mutation = {
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   /** Initiates a flash drive backup using a configured remote. */
   initiateFlashBackup: FlashBackupStatus;
+  migrateConnectCertificate: ConnectCertificateMigration;
   moveDockerEntriesToFolder: ResolvedOrganizerV1;
   moveDockerItemsToPosition: ResolvedOrganizerV1;
   /** Creates a notification if an equivalent unread notification does not already exist. */
@@ -1697,6 +1794,8 @@ export type Mutation = {
   /** Marks a notification as unread. */
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
+  updateConnectGatewayServices: ConnectTunnelSettings;
+  updateConnectTunnelSettings: ConnectTunnelSettings;
   updateDockerViewPreferences: ResolvedOrganizerV1;
   /** Update server name, comment, and model */
   updateServerIdentity: Server;
@@ -1780,6 +1879,11 @@ export type MutationInitiateFlashBackupArgs = {
 };
 
 
+export type MutationMigrateConnectCertificateArgs = {
+  confirmationToken: Scalars['String']['input'];
+};
+
+
 export type MutationMoveDockerEntriesToFolderArgs = {
   destinationFolderId: Scalars['String']['input'];
   sourceEntryIds: Array<Scalars['String']['input']>;
@@ -1837,6 +1941,16 @@ export type MutationUnreadNotificationArgs = {
 
 export type MutationUpdateApiSettingsArgs = {
   input: ConnectSettingsInput;
+};
+
+
+export type MutationUpdateConnectGatewayServicesArgs = {
+  input: ConnectGatewaySettingsInput;
+};
+
+
+export type MutationUpdateConnectTunnelSettingsArgs = {
+  input: ConnectTunnelSettingsInput;
 };
 
 
@@ -2386,6 +2500,7 @@ export type Query = {
   cloud: Cloud;
   config: Config;
   connect: Connect;
+  connectTunnelSettings: ConnectTunnelSettings;
   customization?: Maybe<Customization>;
   disk: Disk;
   disks: Array<Disk>;
@@ -3680,6 +3795,32 @@ export type UpdateConnectSettingsMutationVariables = Exact<{
 
 export type UpdateConnectSettingsMutation = { __typename?: 'Mutation', updateSettings: { __typename?: 'UpdateSettingsResponse', restartRequired: boolean, values: any } };
 
+export type UpdateConnectTunnelPageMutationVariables = Exact<{
+  input: ConnectTunnelSettingsInput;
+}>;
+
+
+export type UpdateConnectTunnelPageMutation = { __typename?: 'Mutation', updateConnectTunnelSettings: { __typename?: 'ConnectTunnelSettings', signedIn: boolean, certificateManagementEnabled: boolean, tunnelRemoteAccessEnabled: boolean, serverDataReportingEnabled: boolean, tunnelUrl?: string | null, overviewCleanupPending: boolean, overview: any, status: { __typename?: 'ConnectTunnelStatus', presence: string, certificate: string, tunnel: string, reason: string }, certificateMigration: { __typename?: 'ConnectCertificateMigration', requestId?: string | null, status: string, reason: string, domain?: string | null, fingerprint?: string | null, managed: boolean, confirmationToken?: string | null } } };
+
+export type MigrateConnectCertificateMutationVariables = Exact<{
+  confirmationToken: Scalars['String']['input'];
+}>;
+
+
+export type MigrateConnectCertificateMutation = { __typename?: 'Mutation', migrateConnectCertificate: { __typename?: 'ConnectCertificateMigration', requestId?: string | null, status: string, reason: string, domain?: string | null, fingerprint?: string | null, managed: boolean, confirmationToken?: string | null } };
+
+export type UpdateConnectGatewayServicesMutationVariables = Exact<{
+  input: ConnectGatewaySettingsInput;
+}>;
+
+
+export type UpdateConnectGatewayServicesMutation = { __typename?: 'Mutation', updateConnectGatewayServices: { __typename?: 'ConnectTunnelSettings', gateway: { __typename?: 'ConnectGatewaySettings', revision: number, available: boolean, pending: boolean, callbackUrl?: string | null, services: Array<{ __typename?: 'ConnectGatewayServiceStatus', id: string, name: string, upstream: string, tlsServerName: string, auth: string, providerId: string, subjects: Array<string>, enabled: boolean, url?: string | null }> } } };
+
+export type ConnectTunnelPageQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ConnectTunnelPageQuery = { __typename?: 'Query', oidcProviders: Array<{ __typename?: 'OidcProvider', id: string, name: string }>, connectTunnelSettings: { __typename?: 'ConnectTunnelSettings', signedIn: boolean, certificateManagementEnabled: boolean, tunnelRemoteAccessEnabled: boolean, serverDataReportingEnabled: boolean, tunnelUrl?: string | null, overviewCleanupPending: boolean, overview: any, gateway: { __typename?: 'ConnectGatewaySettings', revision: number, available: boolean, pending: boolean, callbackUrl?: string | null, services: Array<{ __typename?: 'ConnectGatewayServiceStatus', id: string, name: string, upstream: string, tlsServerName: string, auth: string, providerId: string, subjects: Array<string>, enabled: boolean, url?: string | null }> }, status: { __typename?: 'ConnectTunnelStatus', gateway: string, gatewayReason: string, routeState: string, presence: string, certificate: string, tunnel: string, reason: string, tunnelReason: string, entitlementState: string, entitlement?: { __typename?: 'ConnectTunnelEntitlement', accessState: string, reason?: string | null, status: string, bytesUsed: number, quotaBytes: number, bytesRemaining?: number | null, periodStart: number, periodEnd: number, updatedAt?: number | null } | null }, certificateMigration: { __typename?: 'ConnectCertificateMigration', requestId?: string | null, status: string, reason: string, domain?: string | null, fingerprint?: string | null, managed: boolean, confirmationToken?: string | null } } };
+
 export type SetThemeMutationVariables = Exact<{
   theme: ThemeName;
 }>;
@@ -4192,6 +4333,10 @@ export const PreviewEffectivePermissionsDocument = {"kind":"Document","definitio
 export const GetPermissionsForRolesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPermissionsForRoles"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"roles"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Role"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getPermissionsForRoles"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"roles"},"value":{"kind":"Variable","name":{"kind":"Name","value":"roles"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<GetPermissionsForRolesQuery, GetPermissionsForRolesQueryVariables>;
 export const UnifiedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Unified"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unified"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]}}]} as unknown as DocumentNode<UnifiedQuery, UnifiedQueryVariables>;
 export const UpdateConnectSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateConnectSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"JSON"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"restartRequired"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<UpdateConnectSettingsMutation, UpdateConnectSettingsMutationVariables>;
+export const UpdateConnectTunnelPageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateConnectTunnelPage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectTunnelSettingsInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateConnectTunnelSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"signedIn"}},{"kind":"Field","name":{"kind":"Name","value":"certificateManagementEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"tunnelRemoteAccessEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"serverDataReportingEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"tunnelUrl"}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"presence"}},{"kind":"Field","name":{"kind":"Name","value":"certificate"}},{"kind":"Field","name":{"kind":"Name","value":"tunnel"}},{"kind":"Field","name":{"kind":"Name","value":"reason"}}]}},{"kind":"Field","name":{"kind":"Name","value":"overviewCleanupPending"}},{"kind":"Field","name":{"kind":"Name","value":"overview"}},{"kind":"Field","name":{"kind":"Name","value":"certificateMigration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"requestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"reason"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}},{"kind":"Field","name":{"kind":"Name","value":"fingerprint"}},{"kind":"Field","name":{"kind":"Name","value":"managed"}},{"kind":"Field","name":{"kind":"Name","value":"confirmationToken"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateConnectTunnelPageMutation, UpdateConnectTunnelPageMutationVariables>;
+export const MigrateConnectCertificateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"MigrateConnectCertificate"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"confirmationToken"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"migrateConnectCertificate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"confirmationToken"},"value":{"kind":"Variable","name":{"kind":"Name","value":"confirmationToken"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"requestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"reason"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}},{"kind":"Field","name":{"kind":"Name","value":"fingerprint"}},{"kind":"Field","name":{"kind":"Name","value":"managed"}},{"kind":"Field","name":{"kind":"Name","value":"confirmationToken"}}]}}]}}]} as unknown as DocumentNode<MigrateConnectCertificateMutation, MigrateConnectCertificateMutationVariables>;
+export const UpdateConnectGatewayServicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateConnectGatewayServices"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectGatewaySettingsInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateConnectGatewayServices"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gateway"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"revision"}},{"kind":"Field","name":{"kind":"Name","value":"available"}},{"kind":"Field","name":{"kind":"Name","value":"pending"}},{"kind":"Field","name":{"kind":"Name","value":"callbackUrl"}},{"kind":"Field","name":{"kind":"Name","value":"services"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"upstream"}},{"kind":"Field","name":{"kind":"Name","value":"tlsServerName"}},{"kind":"Field","name":{"kind":"Name","value":"auth"}},{"kind":"Field","name":{"kind":"Name","value":"providerId"}},{"kind":"Field","name":{"kind":"Name","value":"subjects"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}}]}}]}}]} as unknown as DocumentNode<UpdateConnectGatewayServicesMutation, UpdateConnectGatewayServicesMutationVariables>;
+export const ConnectTunnelPageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ConnectTunnelPage"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"oidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"connectTunnelSettings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"signedIn"}},{"kind":"Field","name":{"kind":"Name","value":"certificateManagementEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"tunnelRemoteAccessEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"serverDataReportingEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"tunnelUrl"}},{"kind":"Field","name":{"kind":"Name","value":"gateway"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"revision"}},{"kind":"Field","name":{"kind":"Name","value":"available"}},{"kind":"Field","name":{"kind":"Name","value":"pending"}},{"kind":"Field","name":{"kind":"Name","value":"callbackUrl"}},{"kind":"Field","name":{"kind":"Name","value":"services"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"upstream"}},{"kind":"Field","name":{"kind":"Name","value":"tlsServerName"}},{"kind":"Field","name":{"kind":"Name","value":"auth"}},{"kind":"Field","name":{"kind":"Name","value":"providerId"}},{"kind":"Field","name":{"kind":"Name","value":"subjects"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"status"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gateway"}},{"kind":"Field","name":{"kind":"Name","value":"gatewayReason"}},{"kind":"Field","name":{"kind":"Name","value":"routeState"}},{"kind":"Field","name":{"kind":"Name","value":"presence"}},{"kind":"Field","name":{"kind":"Name","value":"certificate"}},{"kind":"Field","name":{"kind":"Name","value":"tunnel"}},{"kind":"Field","name":{"kind":"Name","value":"reason"}},{"kind":"Field","name":{"kind":"Name","value":"tunnelReason"}},{"kind":"Field","name":{"kind":"Name","value":"entitlementState"}},{"kind":"Field","name":{"kind":"Name","value":"entitlement"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accessState"}},{"kind":"Field","name":{"kind":"Name","value":"reason"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"bytesUsed"}},{"kind":"Field","name":{"kind":"Name","value":"quotaBytes"}},{"kind":"Field","name":{"kind":"Name","value":"bytesRemaining"}},{"kind":"Field","name":{"kind":"Name","value":"periodStart"}},{"kind":"Field","name":{"kind":"Name","value":"periodEnd"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"overviewCleanupPending"}},{"kind":"Field","name":{"kind":"Name","value":"overview"}},{"kind":"Field","name":{"kind":"Name","value":"certificateMigration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"requestId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"reason"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}},{"kind":"Field","name":{"kind":"Name","value":"fingerprint"}},{"kind":"Field","name":{"kind":"Name","value":"managed"}},{"kind":"Field","name":{"kind":"Name","value":"confirmationToken"}}]}}]}}]}}]} as unknown as DocumentNode<ConnectTunnelPageQuery, ConnectTunnelPageQueryVariables>;
 export const SetThemeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"setTheme"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"theme"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ThemeName"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setTheme"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"theme"},"value":{"kind":"Variable","name":{"kind":"Name","value":"theme"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerImage"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"headerBackgroundColor"}},{"kind":"Field","name":{"kind":"Name","value":"showHeaderDescription"}},{"kind":"Field","name":{"kind":"Name","value":"headerPrimaryTextColor"}},{"kind":"Field","name":{"kind":"Name","value":"headerSecondaryTextColor"}}]}}]}}]}}]} as unknown as DocumentNode<SetThemeMutation, SetThemeMutationVariables>;
 export const GetDockerContainerSizesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetDockerContainerSizes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"containers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"skipCache"},"value":{"kind":"BooleanValue","value":true}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"sizeRootFs"}},{"kind":"Field","name":{"kind":"Name","value":"sizeRw"}},{"kind":"Field","name":{"kind":"Name","value":"sizeLog"}}]}}]}}]}}]} as unknown as DocumentNode<GetDockerContainerSizesQuery, GetDockerContainerSizesQueryVariables>;
 export const GetDockerContainersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetDockerContainers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skipCache"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}},"defaultValue":{"kind":"BooleanValue","value":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"portConflicts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"skipCache"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skipCache"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"containerPorts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"containers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"lanPorts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"lanIpPort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"containers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"containers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"skipCache"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skipCache"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"created"}},{"kind":"Field","name":{"kind":"Name","value":"lanIpPorts"}},{"kind":"Field","name":{"kind":"Name","value":"autoStart"}},{"kind":"Field","name":{"kind":"Name","value":"autoStartOrder"}},{"kind":"Field","name":{"kind":"Name","value":"autoStartWait"}},{"kind":"Field","name":{"kind":"Name","value":"ports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"hostConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"networkMode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"networkSettings"}},{"kind":"Field","name":{"kind":"Name","value":"mounts"}},{"kind":"Field","name":{"kind":"Name","value":"isOrphaned"}},{"kind":"Field","name":{"kind":"Name","value":"projectUrl"}},{"kind":"Field","name":{"kind":"Name","value":"registryUrl"}},{"kind":"Field","name":{"kind":"Name","value":"supportUrl"}},{"kind":"Field","name":{"kind":"Name","value":"iconUrl"}},{"kind":"Field","name":{"kind":"Name","value":"webUiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"shell"}},{"kind":"Field","name":{"kind":"Name","value":"templatePorts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"tailscaleEnabled"}}]}},{"kind":"Field","name":{"kind":"Name","value":"organizer"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"skipCache"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skipCache"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"prefs"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}},{"kind":"Field","name":{"kind":"Name","value":"meta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"lanIpPorts"}},{"kind":"Field","name":{"kind":"Name","value":"ports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"autoStart"}},{"kind":"Field","name":{"kind":"Name","value":"autoStartWait"}},{"kind":"Field","name":{"kind":"Name","value":"hostConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"networkMode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"networkSettings"}},{"kind":"Field","name":{"kind":"Name","value":"mounts"}},{"kind":"Field","name":{"kind":"Name","value":"created"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}},{"kind":"Field","name":{"kind":"Name","value":"templatePath"}},{"kind":"Field","name":{"kind":"Name","value":"isOrphaned"}},{"kind":"Field","name":{"kind":"Name","value":"projectUrl"}},{"kind":"Field","name":{"kind":"Name","value":"registryUrl"}},{"kind":"Field","name":{"kind":"Name","value":"supportUrl"}},{"kind":"Field","name":{"kind":"Name","value":"iconUrl"}},{"kind":"Field","name":{"kind":"Name","value":"webUiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"shell"}},{"kind":"Field","name":{"kind":"Name","value":"templatePorts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"tailscaleEnabled"}}]}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetDockerContainersQuery, GetDockerContainersQueryVariables>;

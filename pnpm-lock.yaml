@@ -545,18 +545,15 @@ importers:
         specifier: 5.1.2
         version: 5.1.2
     devDependencies:
-      '@apollo/client':
-        specifier: 3.14.0
-        version: 3.14.0(@types/react@19.0.8)(graphql-ws@6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.21.0))(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(subscriptions-transport-ws@0.11.0(graphql@16.11.0))
+      '@runonflux/nat-upnp':
+        specifier: 1.0.2
+        version: 1.0.2
+      '@nestjs/schedule':
+        specifier: 6.0.0
+        version: 6.0.0(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.26(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))
       '@faker-js/faker':
         specifier: 10.0.0
         version: 10.0.0
-      '@graphql-codegen/cli':
-        specifier: 6.0.0
-        version: 6.0.0(@parcel/watcher@2.5.6)(@types/node@22.18.0)(crossws@0.3.5)(graphql-sock@1.0.1(graphql@16.11.0))(graphql@16.11.0)(typescript@5.9.2)
-      '@graphql-typed-document-node/core':
-        specifier: 3.2.0
-        version: 3.2.0(graphql@16.11.0)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: 4.6.3
         version: 4.6.3(@vue/compiler-sfc@3.5.38)(prettier@3.6.2)
@@ -581,15 +578,9 @@ importers:
       '@nestjs/graphql':
         specifier: 13.4.2
         version: 13.4.2(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.26(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.15.1)(crossws@0.3.5)(graphql@16.11.0)(reflect-metadata@0.1.14)(ts-morph@27.0.2)
-      '@nestjs/schedule':
-        specifier: 6.0.0
-        version: 6.0.0(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.26(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))
       '@nestjs/testing':
         specifier: 11.1.26
         version: 11.1.26(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.26(@nestjs/common@11.1.26(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))
-      '@runonflux/nat-upnp':
-        specifier: 1.0.2
-        version: 1.0.2
       '@types/ini':
         specifier: 4.1.1
         version: 4.1.1
@@ -599,9 +590,6 @@ importers:
       '@types/node':
         specifier: 22.18.0
         version: 22.18.0
-      '@types/ws':
-        specifier: 8.18.1
-        version: 8.18.1
       camelcase-keys:
         specifier: 10.0.0
         version: 10.0.0
@@ -629,9 +617,6 @@ importers:
       graphql-subscriptions:
         specifier: 3.0.0
         version: 3.0.0(graphql@16.11.0)
-      graphql-ws:
-        specifier: 6.0.6
-        version: 6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.21.0)
       ini:
         specifier: 5.0.0
         version: 5.0.0
@@ -659,18 +644,9 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
-      undici:
-        specifier: 7.28.0
-        version: 7.28.0
       vitest:
         specifier: 3.2.6
         version: 3.2.6(@types/node@22.18.0)(@vitest/ui@3.2.6)(happy-dom@20.10.3)(jiti@2.7.0)(jsdom@26.1.0)(lightningcss@1.32.0)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.9.0)
-      ws:
-        specifier: 8.21.0
-        version: 8.21.0
-      zen-observable-ts:
-        specifier: 1.1.0
-        version: 1.1.0
 
   packages/unraid-api-plugin-generator:
     dependencies:

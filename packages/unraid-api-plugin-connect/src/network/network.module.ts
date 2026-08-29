@@ -11,17 +11,17 @@ import { UrlResolverService } from './url-resolver.service.js';
 @Module({
     imports: [ConfigModule],
     providers: [
+        UpnpService,
         NetworkService,
         NetworkResolver,
-        UpnpService,
         UrlResolverService,
         DnsService,
         ConnectConfigService,
     ],
     exports: [
+        UpnpService,
         NetworkService,
         NetworkResolver,
-        UpnpService,
         UrlResolverService,
         DnsService,
         ConnectConfigService,

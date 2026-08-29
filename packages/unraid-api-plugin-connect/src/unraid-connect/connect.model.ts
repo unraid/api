@@ -189,6 +189,21 @@ export class DynamicRemoteAccessStatus {
 
 @ObjectType()
 export class ConnectSettingsValues {
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    certificateManagementEnabled?: boolean;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    tunnelRemoteAccessEnabled?: boolean;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    serverDataReportingEnabled?: boolean;
+
     @Field(() => WAN_ACCESS_TYPE, { description: 'The type of WAN access used for Remote Access' })
     @IsEnum(WAN_ACCESS_TYPE)
     accessType!: WAN_ACCESS_TYPE;
@@ -209,6 +224,21 @@ export class ConnectSettingsValues {
 
 @InputType()
 export class ConnectSettingsInput {
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    certificateManagementEnabled?: boolean;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    tunnelRemoteAccessEnabled?: boolean;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    serverDataReportingEnabled?: boolean;
+
     @Field(() => WAN_ACCESS_TYPE, {
         nullable: true,
         description: 'The type of WAN access to use for Remote Access',
@@ -245,11 +275,11 @@ export class ConnectSettings implements Node {
 
     @Field(() => GraphQLJSON, { description: 'The data schema for the Connect settings' })
     @IsObject()
-    dataSchema!: Record<string, any>;
+    dataSchema!: Record<string, unknown>;
 
     @Field(() => GraphQLJSON, { description: 'The UI schema for the Connect settings' })
     @IsObject()
-    uiSchema!: Record<string, any>;
+    uiSchema!: Record<string, unknown>;
 
     @Field(() => ConnectSettingsValues, { description: 'The values for the Connect settings' })
     @ValidateNested()

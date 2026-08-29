@@ -13,6 +13,7 @@ import type { ServerconnectPluginInstalled } from '~/types/server';
 
 import Auth from '~/components/Auth.standalone.vue';
 import { useServerStore } from '~/store/server';
+import { useUnraidApiStore } from '~/store/unraidApi';
 import { createTestI18n, testTranslate } from '../utils/i18n';
 
 vi.mock('vue-i18n', async (importOriginal) => {
@@ -38,6 +39,7 @@ vi.mock('@unraid/shared-callbacks', () => ({
 
 const mockAccountStore = {
   signIn: vi.fn(),
+  signOut: vi.fn(),
 };
 
 vi.mock('~/store/account', () => ({
@@ -113,6 +115,37 @@ describe('Auth Component', () => {
     expect(wrapper.text()).toContain(
       'Please refresh the page to ensure you load your latest configuration'
     );
+  });
+
+  it('shows sign-out only when the Connect management page enables it', async () => {
+    const wrapper = mount(Auth, {
+      global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
+      },
+    });
+    serverStore = useServerStore();
+    serverStore.$patch({
+      state: 'PRO',
+      registered: true,
+      connectPluginInstalled: 'dynamix.unraid.net.plg',
+    });
+    expect(serverStore.authAction?.name).toBe('signOut');
+    await nextTick();
+    expect(wrapper.findComponent({ name: 'BrandButton' }).exists()).toBe(false);
+
+    await wrapper.setProps({ allowSignOut: true });
+    const button = wrapper.getComponent({ name: 'BrandButton' });
+    expect(button.props('text')).toBe('Sign Out of Unraid.net');
+    expect(button.props('disabled')).toBe(serverStore.authAction?.disabled);
+    expect(button.props('title')).toBe(serverStore.authAction?.title);
+    await button.trigger('click');
+    expect(mockAccountStore.signOut).not.toHaveBeenCalled();
+    serverStore.$patch({ keyfile: 'fixture-keyfile' });
+    useUnraidApiStore().$patch({ unraidApiStatus: 'online' });
+    await nextTick();
+    expect(button.props('disabled')).toBe(false);
+    await button.trigger('click');
+    expect(mockAccountStore.signOut).toHaveBeenCalledOnce();
   });
 
   it('calls the click handler when button is clicked', async () => {

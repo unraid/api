@@ -154,6 +154,19 @@ describe('DropdownContent', () => {
     expect(wrapper.text()).toContain('Replace, recover, or link your license on your Unraid Account.');
   });
 
+  it('omits Connect sign-out from the signed-in profile menu', () => {
+    serverStoreRefs.registered!.value = true;
+    serverStoreRefs.stateData!.value.actions = [
+      { name: 'signOut', text: 'Sign Out of Unraid.net', click: vi.fn() },
+    ];
+    const wrapper = shallowMount(DropdownContent, {
+      global: { plugins: [createTestI18n()] },
+    });
+    const items = wrapper.findAllComponents({ name: 'DropdownItem' }).map((item) => item.props('item'));
+    expect(items.some((item) => item?.name === 'signOut')).toBe(false);
+    expect(items.some((item) => item?.text === 'Manage Unraid.net Account')).toBe(true);
+  });
+
   it('shows the localized trial helper text when trial start is available', () => {
     serverStoreRefs.keyActions!.value = [{ name: 'trialStart', text: 'Start Trial' }];
 

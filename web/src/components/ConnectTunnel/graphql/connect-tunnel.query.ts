@@ -1,0 +1,67 @@
+import { graphql } from '~/composables/gql/gql';
+
+export const connectTunnelPageQuery = graphql(/* GraphQL */ `
+  query ConnectTunnelPage {
+    oidcProviders {
+      id
+      name
+    }
+    connectTunnelSettings {
+      signedIn
+      certificateManagementEnabled
+      tunnelRemoteAccessEnabled
+      serverDataReportingEnabled
+      tunnelUrl
+      gateway {
+        revision
+        available
+        pending
+        callbackUrl
+        services {
+          id
+          name
+          upstream
+          tlsServerName
+          auth
+          providerId
+          subjects
+          enabled
+          url
+        }
+      }
+      status {
+        gateway
+        gatewayReason
+        routeState
+        presence
+        certificate
+        tunnel
+        reason
+        tunnelReason
+        entitlementState
+        entitlement {
+          accessState
+          reason
+          status
+          bytesUsed
+          quotaBytes
+          bytesRemaining
+          periodStart
+          periodEnd
+          updatedAt
+        }
+      }
+      overviewCleanupPending
+      overview
+      certificateMigration {
+        requestId
+        status
+        reason
+        domain
+        fingerprint
+        managed
+        confirmationToken
+      }
+    }
+  }
+`);

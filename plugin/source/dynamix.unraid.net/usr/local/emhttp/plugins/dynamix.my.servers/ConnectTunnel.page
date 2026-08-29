@@ -1,0 +1,6 @@
+Menu="ManagementAccess:110"
+Title="Unraid Connect"
+Icon="icon-u-globe"
+Tag="globe"
+---
+<unraid-connect-tunnel></unraid-connect-tunnel>

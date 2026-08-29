@@ -1,0 +1,21 @@
+Index: /usr/local/emhttp/plugins/dynamix/ManagementAccess.page
+===================================================================
+--- /usr/local/emhttp/plugins/dynamix/ManagementAccess.page	original
++++ /usr/local/emhttp/plugins/dynamix/ManagementAccess.page	modified
+@@ -548,15 +548,11 @@
+ _(CA-signed certificate file)_:
+ : _(Not present)_
+ 
+ <?endif;?>
+ &nbsp;
+-: <span class="inline-block">
+-    <button type="submit" name="changePorts" value="Provision" <?=$disabled_provision?>><?=$provisionlabel?></button>
+-    <button type="submit" name="changePorts" value="Delete" <?=$disabled_delete?> >_(Delete)_</button>
+-  </span>
+-  <span class="inline-block"><?=$disabled_provision_msg?></span>
++: <a href="/Settings/ConnectTunnel">_(Manage certificate in Unraid API Settings)_</a>
+ 
+ <?if ($cert3Present):?>
+ 
+ <hr>
+ 

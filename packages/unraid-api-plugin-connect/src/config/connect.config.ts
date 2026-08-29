@@ -3,18 +3,24 @@ import { registerAs } from '@nestjs/config';
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
 import { URL_TYPE } from '@unraid/shared/network.model.js';
-import { plainToInstance } from 'class-transformer';
+import { plainToInstance, Type } from 'class-transformer';
 import {
+    ArrayMaxSize,
     IsArray,
     IsBoolean,
     IsEmail,
     IsEnum,
+    IsInt,
     IsNumber,
     IsOptional,
     IsString,
     Matches,
+    Min,
     ValidateIf,
+    ValidateNested,
 } from 'class-validator';
+
+import { ConnectGatewayService } from '../tunnel/gateway-settings.js';
 
 export enum MinigraphStatus {
     PRE_INIT = 'PRE_INIT',
@@ -34,6 +40,43 @@ export enum DynamicRemoteAccessType {
 @UsePipes(new ValidationPipe({ transform: true }))
 @InputType('MyServersConfigInput')
 export class MyServersConfig {
+    @IsArray()
+    @ArrayMaxSize(31)
+    @ValidateNested({ each: true })
+    @Type(() => ConnectGatewayService)
+    gatewayServices: ConnectGatewayService[] = [];
+    @IsInt()
+    @Min(0)
+    gatewayServicesRevision = 0;
+    @IsBoolean()
+    gatewayServicesPending = false;
+
+    @Field(() => Boolean)
+    @IsBoolean()
+    certificateManagementEnabled = false;
+
+    @Field(() => Boolean)
+    @IsBoolean()
+    tunnelRemoteAccessEnabled = false;
+
+    @Field(() => Boolean)
+    @IsBoolean()
+    serverDataReportingEnabled = false;
+
+    @Field(() => Boolean)
+    @IsBoolean()
+    serverDataRemoteCleared = false;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    tunnelHostname: string | null = null;
+
+    @Field(() => [String])
+    @IsArray()
+    @IsString({ each: true })
+    tunnelHostnames: string[] = [];
+
     // Remote Access Configurationx
     @Field(() => Boolean)
     @IsBoolean()
@@ -179,7 +222,6 @@ export const makeDisabledDynamicRemoteAccessState = (): DynamicRemoteAccessState
     });
 
 export type ConnectConfig = {
-    mothership: ConnectionMetadata;
     dynamicRemoteAccess: DynamicRemoteAccessState;
     config: MyServersConfig;
 };
@@ -190,6 +232,15 @@ export type ConfigType = ConnectConfig & {
 } & Record<string, string>;
 
 export const emptyMyServersConfig = (): MyServersConfig => ({
+    gatewayServices: [],
+    gatewayServicesRevision: 0,
+    gatewayServicesPending: false,
+    certificateManagementEnabled: false,
+    tunnelRemoteAccessEnabled: false,
+    serverDataReportingEnabled: false,
+    serverDataRemoteCleared: false,
+    tunnelHostname: null,
+    tunnelHostnames: [],
     wanaccess: false,
     wanport: 0,
     upnpEnabled: false,
@@ -202,9 +253,6 @@ export const emptyMyServersConfig = (): MyServersConfig => ({
 });
 
 export const configFeature = registerAs<ConnectConfig>('connect', () => ({
-    mothership: plainToInstance(ConnectionMetadata, {
-        status: MinigraphStatus.PRE_INIT,
-    }),
     dynamicRemoteAccess: makeDisabledDynamicRemoteAccessState(),
     config: plainToInstance(MyServersConfig, emptyMyServersConfig()),
 }));

@@ -96,6 +96,8 @@ describe.sequential('FileModificationService', () => {
     it('should load modifications', async () => {
         const mods = await service.loadModifications();
         expect(mods.length).toBeGreaterThan(0);
+        const ids = mods.map((mod) => mod.id);
+        expect(ids.indexOf('connect-tunnel-nginx')).toBeGreaterThan(ids.indexOf('rc-nginx'));
     });
 
     it('should apply modifications', async () => {

@@ -18,8 +18,9 @@ export class UpnpService implements OnModuleDestroy {
     #localPort: number | undefined;
 
     constructor(
-        private readonly configService: ConfigService<ConfigType>,
-        @Inject(UPNP_CLIENT_TOKEN) private readonly upnpClient: Client,
+        private readonly configService: ConfigService,
+        @Inject(UPNP_CLIENT_TOKEN)
+        private readonly upnpClient: Pick<Client, 'createMapping' | 'removeMapping' | 'getMappings'>,
         private readonly scheduleRegistry: SchedulerRegistry
     ) {}
 
@@ -148,7 +149,7 @@ export class UpnpService implements OnModuleDestroy {
     }
 
     async createOrRenewUpnpLease(args?: { localPort?: number; wanPort?: number }) {
-        const { localPort, wanPort } = args ?? {};
+        const { localPort = this.#localPort, wanPort = this.#wanPort } = args ?? {};
         const newWanOrLocalPort = wanPort !== this.#wanPort || localPort !== this.#localPort;
         const upnpWasInitialized = this.#wanPort && this.#localPort;
         // remove old mapping when new ports are requested

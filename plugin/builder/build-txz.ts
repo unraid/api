@@ -3,6 +3,7 @@ import { $, cd } from "zx";
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
+import { validateConnectConnector } from "./utils/connect-connector";
 import { ensureNodeJs } from "./utils/nodejs-helper";
 
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
@@ -111,6 +112,7 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
   if (!existsSync(sourceDir)) {
     throw new Error(`Source directory ${sourceDir} does not exist`);
   }
+  await validateConnectConnector(sourceDir);
   // Validate existence of webcomponent files:
   // source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
   const webcomponentDir = join(

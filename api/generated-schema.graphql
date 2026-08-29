@@ -3376,6 +3376,7 @@ type Query {
   connect: Connect!
   network: Network!
   cloud: Cloud!
+  connectTunnelSettings: ConnectTunnelSettings!
 }
 
 type Mutation {
@@ -3455,6 +3456,9 @@ type Mutation {
   connectSignOut: Boolean!
   setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
+  updateConnectTunnelSettings(input: ConnectTunnelSettingsInput!): ConnectTunnelSettings!
+  migrateConnectCertificate(confirmationToken: String!): ConnectCertificateMigration!
+  updateConnectGatewayServices(input: ConnectGatewaySettingsInput!): ConnectTunnelSettings!
 }
 
 input NotificationData {
@@ -3718,4 +3722,94 @@ type Subscription {
   systemMetricsTemperature: TemperatureMetrics
   upsUpdates: UPSDevice!
   pluginInstallUpdates(operationId: ID!): PluginInstallEvent!
+}
+
+input ConnectTunnelSettingsInput {
+  certificateManagementEnabled: Boolean!
+  tunnelRemoteAccessEnabled: Boolean!
+  serverDataReportingEnabled: Boolean!
+}
+
+type ConnectCertificateMigration {
+  requestId: String
+  status: String!
+  reason: String!
+  domain: String
+  fingerprint: String
+  managed: Boolean!
+  confirmationToken: String
+}
+
+type ConnectTunnelEntitlement {
+  accessState: String!
+  reason: String
+  status: String!
+  bytesUsed: Float!
+  quotaBytes: Float!
+  periodStart: Float!
+  periodEnd: Float!
+  bytesRemaining: Float
+  updatedAt: Float
+}
+
+type ConnectGatewayServiceStatus {
+  id: String!
+  name: String!
+  upstream: String!
+  tlsServerName: String!
+  enabled: Boolean!
+  auth: String!
+  providerId: String!
+  subjects: [String!]!
+  url: String
+}
+
+type ConnectGatewaySettings {
+  callbackUrl: String
+  revision: Int!
+  available: Boolean!
+  pending: Boolean!
+  services: [ConnectGatewayServiceStatus!]!
+}
+
+type ConnectTunnelStatus {
+  gateway: String!
+  gatewayReason: String!
+  routeState: String!
+  entitlement: ConnectTunnelEntitlement
+  entitlementState: String!
+  tunnelReason: String!
+  presence: String!
+  certificate: String!
+  tunnel: String!
+  reason: String!
+}
+
+type ConnectTunnelSettings {
+  gateway: ConnectGatewaySettings!
+  signedIn: Boolean!
+  certificateManagementEnabled: Boolean!
+  tunnelRemoteAccessEnabled: Boolean!
+  serverDataReportingEnabled: Boolean!
+  tunnelUrl: String
+  status: ConnectTunnelStatus!
+  overviewCleanupPending: Boolean!
+  overview: JSON!
+  certificateMigration: ConnectCertificateMigration!
+}
+
+input ConnectGatewaySettingsInput {
+  expectedRevision: Int!
+  services: [ConnectGatewayServiceInput!]!
+}
+
+input ConnectGatewayServiceInput {
+  id: String!
+  name: String!
+  upstream: String!
+  tlsServerName: String! = ""
+  enabled: Boolean! = false
+  auth: String! = "account"
+  providerId: String! = ""
+  subjects: [String!]! = []
 }

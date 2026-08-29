@@ -5,6 +5,7 @@ import { URL_TYPE } from '@unraid/shared/network.model.js';
 import { makeSafeRunner } from '@unraid/shared/util/processing.js';
 
 import { ConfigType } from '../config/connect.config.js';
+import { validHostname } from '../tunnel/control-plane.js';
 
 /**
  * Represents a Fully Qualified Domain Name (FQDN) entry in the nginx configuration.
@@ -116,7 +117,7 @@ export interface AccessUrl {
 export class UrlResolverService {
     private readonly logger = new Logger(UrlResolverService.name);
 
-    constructor(private readonly configService: ConfigService<ConfigType, true>) {}
+    constructor(private readonly configService: ConfigService<ConfigType, boolean>) {}
 
     /**
      * Constructs a URL from the given field parameters.
@@ -243,7 +244,7 @@ export class UrlResolverService {
 
     /**
      * Validates and sanitizes a WAN port value.
-     * 
+     *
      * @param rawPort - The raw port value from configuration
      * @returns A valid port number between 1-65535, or undefined if invalid
      */
@@ -351,7 +352,8 @@ export class UrlResolverService {
         nginx.fqdnUrls?.forEach((fqdnUrl: FqdnEntry) => {
             doSafely(() => {
                 const urlType = this.getUrlTypeFromFqdn(fqdnUrl.interface);
-                const portToUse = urlType === URL_TYPE.LAN ? nginx.httpsPort : wanport || nginx.httpsPort;
+                const portToUse =
+                    urlType === URL_TYPE.LAN ? nginx.httpsPort : wanport || nginx.httpsPort;
                 const fqdnUrlToUse = this.getUrlForField({
                     url: fqdnUrl.fqdn,
                     portSsl: Number(portToUse),
@@ -366,6 +368,19 @@ export class UrlResolverService {
             });
         });
 
+        const tunnel = this.configService.get('connect.config');
+        if (
+            tunnel?.apikey &&
+            tunnel.certificateManagementEnabled &&
+            tunnel.tunnelRemoteAccessEnabled &&
+            validHostname(tunnel.tunnelHostname)
+        ) {
+            urls.push({
+                type: URL_TYPE.WAN,
+                name: 'Connect tunnel',
+                ipv4: new URL(`https://${tunnel.tunnelHostname}`),
+            });
+        }
         return { urls, errors };
     }
 

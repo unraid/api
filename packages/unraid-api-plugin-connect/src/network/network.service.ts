@@ -18,8 +18,8 @@ export class NetworkService {
     ) {}
 
     async reloadNetworkStack() {
-        await this.nginxService.reload();
-        await this.dnsService.update();
+        if (!(await this.nginxService.reload())) throw new Error('Nginx reload failed');
+        if (!(await this.dnsService.update())) throw new Error('DNS update failed');
     }
 
     /**
