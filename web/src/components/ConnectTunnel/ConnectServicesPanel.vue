@@ -3,6 +3,13 @@ import { computed, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
+  GlobeAltIcon,
+  PencilSquareIcon,
+  PlusIcon,
+  Squares2X2Icon,
+  TrashIcon,
+} from '@heroicons/vue/24/outline';
+import {
   Button,
   Input,
   SelectContent,
@@ -327,22 +334,29 @@ function status(service: (typeof state.gateway.services)[number]) {
 
 <template>
   <section
-    class="border-border @container space-y-5 border-t pt-6"
+    class="border-border @container space-y-5 border-t pt-7"
     :aria-labelledby="`${id}-heading`"
     :aria-busy="saving"
   >
     <div class="flex flex-wrap items-start justify-between gap-4">
-      <div class="space-y-2">
-        <h2 :id="`${id}-heading`" class="text-lg font-semibold">{{ t('connectServices.title') }}</h2>
-        <p class="text-muted-foreground max-w-prose">{{ t('connectServices.description') }}</p>
+      <div class="flex items-start gap-4">
+        <div class="bg-primary/10 text-primary rounded-lg p-2.5" aria-hidden="true">
+          <Squares2X2Icon class="h-6 w-6" />
+        </div>
+        <div class="space-y-1.5">
+          <h2 :id="`${id}-heading`" class="text-lg font-semibold">{{ t('connectServices.title') }}</h2>
+          <p class="text-muted-foreground max-w-prose">{{ t('connectServices.description') }}</p>
+        </div>
       </div>
       <Button
         v-if="!draft"
         variant="outline"
         :disabled="!canChange || state.gateway.services.length >= 31"
         @click="edit()"
-        >{{ t('connectServices.add') }}</Button
       >
+        <PlusIcon class="mr-1.5 h-4 w-4" aria-hidden="true" />
+        {{ t('connectServices.add') }}
+      </Button>
     </div>
     <p v-if="!state.gateway.available" role="status" class="text-sm">
       {{ t('connectServices.setupRequired') }}
@@ -377,21 +391,24 @@ function status(service: (typeof state.gateway.services)[number]) {
       <li
         v-for="service in state.gateway.services"
         :key="service.id"
-        class="border-border space-y-3 rounded-lg border p-4"
+        class="border-border bg-muted/10 space-y-3 rounded-xl border p-4"
       >
         <div class="flex flex-col gap-3 @md:flex-row @md:items-start @md:justify-between">
-          <div class="min-w-0 space-y-1">
-            <h3 class="font-medium">{{ service.name }}</h3>
-            <p class="text-muted-foreground text-sm break-all">{{ service.upstream }}</p>
-            <p class="text-sm" role="status">{{ status(service) }}</p>
-            <a
-              v-if="service.url && service.enabled && !state.gateway.pending && ready"
-              class="text-primary inline-block text-sm break-all underline"
-              :href="service.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              >{{ t('connectServices.open', { name: service.name }) }}</a
-            >
+          <div class="flex min-w-0 items-start gap-3">
+            <GlobeAltIcon class="text-primary mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+            <div class="min-w-0 space-y-1">
+              <h3 class="font-medium">{{ service.name }}</h3>
+              <p class="text-muted-foreground text-sm break-all">{{ service.upstream }}</p>
+              <p class="text-sm" role="status">{{ status(service) }}</p>
+              <a
+                v-if="service.url && service.enabled && !state.gateway.pending && ready"
+                class="text-primary inline-block text-sm break-all underline"
+                :href="service.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                >{{ t('connectServices.open', { name: service.name }) }}</a
+              >
+            </div>
           </div>
           <div class="flex shrink-0 flex-wrap gap-3">
             <Button
@@ -399,15 +416,19 @@ function status(service: (typeof state.gateway.services)[number]) {
               :disabled="!canChange || Boolean(draft)"
               :aria-label="t('connectServices.editNamed', { name: service.name })"
               @click="edit(service)"
-              >{{ t('connectServices.edit') }}</Button
             >
+              <PencilSquareIcon class="mr-1.5 h-4 w-4" aria-hidden="true" />
+              {{ t('connectServices.edit') }}
+            </Button>
             <Button
               variant="outline"
               :disabled="!canChange || Boolean(draft)"
               :aria-label="t('connectServices.removeNamed', { name: service.name })"
               @click="removing = service.id"
-              >{{ t('connectServices.remove') }}</Button
             >
+              <TrashIcon class="mr-1.5 h-4 w-4" aria-hidden="true" />
+              {{ t('connectServices.remove') }}
+            </Button>
           </div>
         </div>
         <div v-if="removing === service.id" class="space-y-3">

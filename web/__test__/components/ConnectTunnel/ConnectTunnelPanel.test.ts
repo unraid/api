@@ -79,6 +79,8 @@ const visibleText = (wrapper: ReturnType<typeof render>, text: string) => {
   const paragraph = wrapper.findAll('p').find((p) => p.text().includes(text))!;
   expect(paragraph.element.closest('details')).toBeNull();
 };
+const featureSwitch = (wrapper: ReturnType<typeof mount>, key: string) =>
+  wrapper.get(`[role="switch"][aria-describedby*="-${key}-description"]`);
 
 describe('dedicated Connect controls', () => {
   it('collapses secondary details and preserves expansion and confirmation through polling', async () => {
@@ -196,7 +198,7 @@ describe('dedicated Connect controls', () => {
   });
   it('blocks migration with unsaved settings and shows native partial-install status', async () => {
     const wrapper = render();
-    await wrapper.findAll('[role="switch"]')[2]!.trigger('click');
+    await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
     expect(button(wrapper, 'Migrate certificate now').attributes('aria-disabled')).toBe('true');
     await wrapper.setProps({
       state: {
@@ -222,12 +224,12 @@ describe('dedicated Connect controls', () => {
   });
   it('saves only the three explicit feature flags and keeps drafts through status polling', async () => {
     const wrapper = render();
-    await wrapper.findAll('[role="switch"]')[2]!.trigger('click');
+    await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
     expect(wrapper.emitted('save')).toBeUndefined();
     await wrapper.setProps({
       state: { ...state(), status: { ...state().status, certificate: 'checking' } },
     });
-    expect(wrapper.findAll('[role="switch"]')[2]!.attributes('aria-checked')).toBe('true');
+    expect(featureSwitch(wrapper, 'serverDataReportingEnabled').attributes('aria-checked')).toBe('true');
     await button(wrapper, 'Apply changes').trigger('click');
     expect(wrapper.emitted('save')).toEqual([
       [
@@ -244,17 +246,21 @@ describe('dedicated Connect controls', () => {
   });
   it('requires certificates for remote access and supports discarding pending changes', async () => {
     const wrapper = render({ ...state(), certificateManagementEnabled: false });
-    expect(wrapper.findAll('[role="switch"]')[1]!.attributes('aria-disabled')).toBe('true');
-    await wrapper.findAll('[role="switch"]')[0]!.trigger('click');
-    await wrapper.findAll('[role="switch"]')[1]!.trigger('click');
-    expect(wrapper.findAll('[role="switch"]')[0]!.attributes('aria-disabled')).toBe('true');
+    expect(featureSwitch(wrapper, 'tunnelRemoteAccessEnabled').attributes('aria-disabled')).toBe('true');
+    await featureSwitch(wrapper, 'certificateManagementEnabled').trigger('click');
+    await featureSwitch(wrapper, 'tunnelRemoteAccessEnabled').trigger('click');
+    expect(featureSwitch(wrapper, 'certificateManagementEnabled').attributes('aria-disabled')).toBe(
+      'true'
+    );
     await button(wrapper, 'Discard changes').trigger('click');
-    expect(wrapper.findAll('[role="switch"]')[0]!.attributes('aria-checked')).toBe('false');
+    expect(featureSwitch(wrapper, 'certificateManagementEnabled').attributes('aria-checked')).toBe(
+      'false'
+    );
     expect(wrapper.emitted('save')).toBeUndefined();
   });
   it('prevents saving while signed out, busy, or disconnected and exposes save failures', async () => {
     const wrapper = render();
-    await wrapper.findAll('[role="switch"]')[2]!.trigger('click');
+    await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
     await wrapper.setProps({ saving: true });
     expect(button(wrapper, 'Applying…').attributes('aria-disabled')).toBe('true');
     await wrapper.setProps({ saving: false, unavailable: true, error: 'Request refused (403)' });
@@ -303,13 +309,28 @@ describe('Connect page save handler', () => {
     wrappers.push(wrapper);
     return { wrapper, mutate, refetch, stopPolling, startPolling, result, loading, error };
   }
+
+  it('keeps remote access last and places services inside it', () => {
+    const { wrapper } = renderPage();
+    const headings = wrapper.findAll('h2').map((heading) => heading.text());
+    expect(headings).toEqual([
+      'Account Status:',
+      'Certificate management',
+      'Server overview',
+      'Remote access',
+      'Services',
+    ]);
+    const remoteHeading = wrapper.findAll('h2').find((heading) => heading.text() === 'Remote access')!;
+    expect(remoteHeading.element.closest('section')?.textContent).toContain('Services');
+  });
+
   it.each(['loading', 'failed'])(
     'keeps account actions on Connect when tunnel settings are %s',
     async (status) => {
       const { wrapper, result, loading, error, refetch } = renderPage();
       expect(wrapper.findAllComponents(Auth)).toHaveLength(1);
       expect(wrapper.getComponent(Auth).props('allowSignOut')).toBe(true);
-      expect(wrapper.get('form').findComponent(Auth).exists()).toBe(false);
+      expect(wrapper.getComponent(Auth).element.closest('form')).toBeNull();
       result.value = undefined;
       loading.value = status === 'loading';
       error.value = status === 'failed' ? new Error('Unavailable') : null;
@@ -356,7 +377,7 @@ describe('Connect page save handler', () => {
   });
   it.each([false, true])('resumes observable polling after save (failure=%s)', async (fail) => {
     const { wrapper, mutate, refetch, stopPolling, startPolling } = renderPage(fail);
-    await wrapper.findAll('[role="switch"]')[2]!.trigger('click');
+    await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
     await wrapper
       .findAll('[role="button"]')
       .find((b) => b.text() === 'Apply changes')!
@@ -372,7 +393,7 @@ describe('Connect page save handler', () => {
     expect(stopPolling).toHaveBeenCalledOnce();
     expect(refetch).toHaveBeenCalledOnce();
     expect(startPolling).toHaveBeenCalledWith(5000);
-    expect(wrapper.get('form').attributes('aria-busy')).toBe('false');
+    expect(wrapper.getComponent(ConnectTunnelPanel).attributes('aria-busy')).toBe('false');
     if (fail) expect(wrapper.get('[role="alert"]').text()).toContain('Save refused');
     else expect(wrapper.text()).toContain('Connect settings saved.');
   });

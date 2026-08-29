@@ -2,6 +2,7 @@
 import { computed, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { ChartBarSquareIcon, CloudIcon, LockClosedIcon } from '@heroicons/vue/24/outline';
 import { Button, Switch } from '@unraid/ui';
 
 import type { ConnectTunnelPageQuery, ConnectTunnelSettingsInput } from '~/composables/gql/graphql';
@@ -67,9 +68,14 @@ watch(
 );
 const features = [
   'certificateManagementEnabled',
-  'tunnelRemoteAccessEnabled',
   'serverDataReportingEnabled',
+  'tunnelRemoteAccessEnabled',
 ] as const;
+const featureIcons = {
+  certificateManagementEnabled: LockClosedIcon,
+  tunnelRemoteAccessEnabled: CloudIcon,
+  serverDataReportingEnabled: ChartBarSquareIcon,
+};
 const featureStatus = (key: (typeof features)[number]) =>
   key === 'certificateManagementEnabled'
     ? state.status.certificate
@@ -120,22 +126,27 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
 </script>
 
 <template>
-  <form class="space-y-8" :aria-busy="saving" @submit.prevent="submit">
+  <div class="space-y-5" :aria-busy="saving">
     <p v-if="!state.signedIn" role="status">{{ t('connectTunnel.signIn') }}</p>
     <section
       v-for="key in features"
       :key="key"
-      class="border-border border-t pt-6"
+      class="border-border bg-muted/10 rounded-xl border p-5 @md:p-6"
       :aria-labelledby="`${id}-${key}-label`"
     >
       <div class="flex items-start justify-between gap-6">
-        <div class="min-w-0 space-y-2">
-          <h2 :id="`${id}-${key}-label`" class="text-lg font-semibold">
-            {{ t(`connectTunnel.features.${key}.title`) }}
-          </h2>
-          <p :id="`${id}-${key}-description`" class="text-muted-foreground max-w-prose">
-            {{ t(`connectTunnel.features.${key}.description`) }}
-          </p>
+        <div class="flex min-w-0 items-start gap-4">
+          <div class="bg-primary/10 text-primary mt-0.5 rounded-lg p-2.5" aria-hidden="true">
+            <component :is="featureIcons[key]" class="h-6 w-6" />
+          </div>
+          <div class="min-w-0 space-y-1.5">
+            <h2 :id="`${id}-${key}-label`" class="text-lg font-semibold">
+              {{ t(`connectTunnel.features.${key}.title`) }}
+            </h2>
+            <p :id="`${id}-${key}-description`" class="text-muted-foreground max-w-prose">
+              {{ t(`connectTunnel.features.${key}.description`) }}
+            </p>
+          </div>
         </div>
         <Switch
           v-model="draft[key]"
@@ -145,9 +156,10 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
           :aria-describedby="`${id}-${key}-description`"
         />
       </div>
-      <p class="mt-3 text-sm" role="status">
-        {{ t('connectTunnel.currentStatus', { status: statusLabel(featureStatus(key)) }) }}
-      </p>
+      <div class="mt-4 flex items-center gap-2 text-sm" role="status">
+        <span class="bg-primary h-2 w-2 rounded-full" aria-hidden="true" />
+        <span>{{ t('connectTunnel.currentStatus', { status: statusLabel(featureStatus(key)) }) }}</span>
+      </div>
       <div v-if="key === 'certificateManagementEnabled'" class="mt-4 space-y-3">
         <p v-if="state.certificateMigration.status !== 'idle'" role="status" class="text-sm">
           {{ t(`connectTunnel.migration.${state.certificateMigration.status}`) }}
@@ -300,6 +312,7 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
           </div>
         </details>
       </div>
+      <slot v-if="key === 'tunnelRemoteAccessEnabled'" name="services" />
       <template v-if="key === 'serverDataReportingEnabled'">
         <p v-if="state.overviewCleanupPending" class="mt-2 text-sm">
           {{ t('connectTunnel.cleanupPending') }}
@@ -331,5 +344,5 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
         t('connectTunnel.cancel')
       }}</Button>
     </div>
-  </form>
+  </div>
 </template>

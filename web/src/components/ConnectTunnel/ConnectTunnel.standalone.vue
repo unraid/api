@@ -3,6 +3,7 @@ import { computed, ref, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
+import { Cog6ToothIcon, UserCircleIcon } from '@heroicons/vue/24/outline';
 import { Button } from '@unraid/ui';
 
 import type { ConnectGatewaySettingsInput, ConnectTunnelSettingsInput } from '~/composables/gql/graphql';
@@ -101,16 +102,46 @@ async function migrate(confirmationToken: string) {
 
 <template>
   <div class="connect-tunnel-page mx-auto max-w-4xl space-y-8 p-4 text-base">
-    <header class="space-y-2">
-      <h1 class="text-2xl font-semibold">{{ t('connectTunnel.title') }}</h1>
-      <p class="text-muted-foreground">{{ t('connectTunnel.description') }}</p>
-      <a class="text-primary underline" href="/Settings/Connect">{{ t('connectTunnel.apiSettings') }}</a>
+    <header class="flex items-start gap-4">
+      <svg
+        class="bg-foreground text-background h-12 w-12 shrink-0 rounded-full p-1.5"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <defs>
+          <mask id="connect-page-social-mask">
+            <circle cx="12" cy="12" r="12" fill="white" />
+            <path
+              transform="translate(3.36 3.36) scale(.72)"
+              fill="black"
+              d="M11.406 8.528h1.17v6.926h-1.17zM1.17 15.454H0V8.528h1.17zm4.534.828h1.17v2.645h-1.17zm-2.86-2.969h1.169v4.282h-1.17zm5.703 0h1.17v4.282h-1.17zM22.83 8.528H24v6.926h-1.17zm-4.534-.81h-1.17V5.073h1.17zm2.86 2.95h-1.169V6.406h1.17zm-5.72 0h-1.17V6.406h1.17z"
+            />
+          </mask>
+        </defs>
+        <circle cx="12" cy="12" r="12" fill="currentColor" mask="url(#connect-page-social-mask)" />
+      </svg>
+      <div class="min-w-0 space-y-2">
+        <h1 class="text-2xl font-semibold">{{ t('connectTunnel.title') }}</h1>
+        <p class="text-muted-foreground max-w-2xl">{{ t('connectTunnel.description') }}</p>
+        <a class="text-primary inline-flex items-center gap-1.5 underline" href="/Settings/Connect">
+          <Cog6ToothIcon class="h-4 w-4" aria-hidden="true" />
+          {{ t('connectTunnel.apiSettings') }}
+        </a>
+      </div>
     </header>
-    <section class="space-y-3" :aria-labelledby="accountHeadingId">
-      <h2 :id="accountHeadingId" class="text-lg font-semibold">
-        {{ t('connectSettings.accountStatusLabel') }}
-      </h2>
-      <Auth allow-sign-out />
+    <section
+      class="border-border bg-muted/10 flex items-start gap-4 rounded-xl border p-5"
+      :aria-labelledby="accountHeadingId"
+    >
+      <div class="bg-primary/10 text-primary rounded-lg p-2.5" aria-hidden="true">
+        <UserCircleIcon class="h-6 w-6" />
+      </div>
+      <div class="min-w-0 flex-1 space-y-3">
+        <h2 :id="accountHeadingId" class="text-lg font-semibold">
+          {{ t('connectSettings.accountStatusLabel') }}
+        </h2>
+        <Auth allow-sign-out />
+      </div>
     </section>
     <p v-if="loading && !state" role="status">{{ t('connectTunnel.loading') }}</p>
     <div v-if="error" role="alert" class="mb-6 space-y-3">
@@ -126,21 +157,23 @@ async function migrate(confirmationToken: string) {
       :saved="saved"
       @save="save"
       @migrate="migrate"
-    />
-    <ConnectServicesPanel
-      v-if="state"
-      :state="state"
-      :providers="result?.oidcProviders ?? []"
-      :service-targets="serviceTargetsResult?.docker?.containers ?? []"
-      :service-targets-loading="serviceTargetsLoading"
-      :service-targets-error="Boolean(serviceTargetsError)"
-      :saving="saving"
-      :unavailable="Boolean(error)"
-      :error="servicesError"
-      :saved="servicesSaved"
-      @save="updateServices"
-      @refresh-targets="refetchServiceTargets({ skipCache: true })"
-    />
+    >
+      <template #services>
+        <ConnectServicesPanel
+          :state="state"
+          :providers="result?.oidcProviders ?? []"
+          :service-targets="serviceTargetsResult?.docker?.containers ?? []"
+          :service-targets-loading="serviceTargetsLoading"
+          :service-targets-error="Boolean(serviceTargetsError)"
+          :saving="saving"
+          :unavailable="Boolean(error)"
+          :error="servicesError"
+          :saved="servicesSaved"
+          @save="updateServices"
+          @refresh-targets="refetchServiceTargets({ skipCache: true })"
+        />
+      </template>
+    </ConnectTunnelPanel>
   </div>
 </template>
 
