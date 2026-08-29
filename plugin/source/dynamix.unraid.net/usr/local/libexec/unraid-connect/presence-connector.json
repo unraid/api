@@ -1,12 +1,12 @@
 {
     "source": "unraid/connect-tunnel",
-    "revision": "dfa50b7131a9d14a9231104fd408f4dc02201add",
+    "revision": "6e8b28edf801fb427bb6a74cfb51e88c81a01ed2",
     "command": "relay/cmd/presence-connector",
     "go": "go1.26.3",
     "goos": "linux",
     "goarch": "amd64",
     "cgo": false,
-    "sha256": "67548daf16f6b123163d02514510b777a9beda04504a5fad88b959d32ed1dd8d",
+    "sha256": "20cc7b6e21b38df6bcb694b9a2342ee9c014d52cf13fd4580381062086ba8c58",
     "overviewSchemaSha256": "d61c1ea8ae2ea583a76bf482ccc47738d95975f5745131c67b2ea11406d4b49d",
     "oidcConfigContractSha256": "b3a40de1c9362b5c25c27df945ddf86dcef7c577132018827f7158b643c4c8f8"
 }
