@@ -133,10 +133,10 @@ async function migrate(confirmationToken: string) {
   <div class="connect-tunnel-page mx-auto max-w-4xl space-y-8 p-4 text-base">
     <header class="flex items-start gap-4">
       <figure
-        class="from-unraid-red to-orange mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-linear-to-r"
+        class="from-unraid-red to-orange mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-r"
         aria-hidden="true"
       >
-        <BrandMark gradient-start="#fff" gradient-stop="#fff" class="h-full w-full p-2.5" />
+        <BrandMark gradient-start="#fff" gradient-stop="#fff" class="h-9 w-9 p-[6px]" />
       </figure>
       <div class="min-w-0 space-y-2">
         <h1 class="text-2xl font-semibold">{{ t('connectTunnel.title') }}</h1>

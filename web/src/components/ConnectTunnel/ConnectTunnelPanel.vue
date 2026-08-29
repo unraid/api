@@ -145,19 +145,14 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
         :class="key === 'tunnelRemoteAccessEnabled' ? '@3xl:col-span-2' : ''"
         :aria-labelledby="`${id}-${key}-label`"
       >
-        <div class="flex items-start justify-between gap-6">
-          <div class="flex min-w-0 items-start gap-4">
-            <div class="bg-primary/10 text-primary mt-0.5 rounded-lg p-2.5" aria-hidden="true">
-              <component :is="featureIcons[key]" class="h-6 w-6" />
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex min-w-0 items-center gap-3">
+            <div class="bg-primary/10 text-primary rounded-lg p-2" aria-hidden="true">
+              <component :is="featureIcons[key]" class="h-5 w-5" />
             </div>
-            <div class="min-w-0 space-y-1.5">
-              <h2 :id="`${id}-${key}-label`" class="text-lg font-semibold">
-                {{ t(`connectTunnel.features.${key}.title`) }}
-              </h2>
-              <p :id="`${id}-${key}-description`" class="text-muted-foreground max-w-prose">
-                {{ t(`connectTunnel.features.${key}.description`) }}
-              </p>
-            </div>
+            <h2 :id="`${id}-${key}-label`" class="text-lg font-semibold">
+              {{ t(`connectTunnel.features.${key}.title`) }}
+            </h2>
           </div>
           <Switch
             v-model="draft[key]"
@@ -169,7 +164,7 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
         </div>
         <div
           v-if="key !== 'tunnelRemoteAccessEnabled'"
-          class="mt-4 flex items-center gap-2 text-sm"
+          class="bg-primary/10 text-primary mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium"
           role="status"
         >
           <span class="bg-primary h-2 w-2 rounded-full" aria-hidden="true" />
@@ -177,6 +172,12 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
             t('connectTunnel.currentStatus', { status: statusLabel(featureStatus(key)) })
           }}</span>
         </div>
+        <p
+          :id="`${id}-${key}-description`"
+          class="text-muted-foreground mt-3 max-w-prose text-sm leading-6"
+        >
+          {{ t(`connectTunnel.features.${key}.description`) }}
+        </p>
         <div v-if="key === 'certificateManagementEnabled'" class="mt-4 space-y-3">
           <p v-if="state.certificateMigration.status !== 'idle'" role="status" class="text-sm">
             {{ t(`connectTunnel.migration.${state.certificateMigration.status}`) }}
