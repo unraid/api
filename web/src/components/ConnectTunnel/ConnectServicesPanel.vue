@@ -440,6 +440,7 @@ function status(service: (typeof state.gateway.services)[number]) {
             maxlength="253"
             :disabled="saving"
             autocomplete="off"
+            placeholder="plex.home.arpa"
             :aria-describedby="`${id}-tls-help`"
           />
           <p :id="`${id}-tls-help`" class="text-muted-foreground text-sm">
