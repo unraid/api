@@ -442,7 +442,7 @@ describe('service editor', () => {
       },
     ]);
   });
-  it('lists configured providers, shows the callback and saves a restricted service grant configuration', async () => {
+  it('lists configured providers, shows the callback and saves provider-backed access', async () => {
     const value = state();
     value.gateway.callbackUrl = 'https://tun-parent.example.test/graphql/api/auth/oidc/callback';
     const wrapper = services(value, [{ id: 'local-provider', name: 'Company sign-in' }]);
@@ -455,15 +455,11 @@ describe('service editor', () => {
     expect(wrapper.text()).toContain('does not grant access');
     expect(wrapper.text()).toContain(value.gateway.callbackUrl);
     expect(wrapper.text()).toContain('allowed callback redirects');
-    await wrapper.get('textarea').setValue('viewer-one\n');
-    expect((wrapper.get('textarea').element as HTMLTextAreaElement).value).toBe('viewer-one\n');
-    await wrapper.get('textarea').setValue('viewer-one\nviewer-two');
+    expect(wrapper.find('textarea').exists()).toBe(false);
     await action(wrapper, 'Save service').trigger('click');
     expect(wrapper.emitted('save')?.[0]).toMatchObject([
       {
-        services: [
-          { auth: 'oidc', providerId: 'local-provider', subjects: ['viewer-one', 'viewer-two'] },
-        ],
+        services: [{ auth: 'oidc', providerId: 'local-provider', subjects: [] }],
       },
     ]);
     wrapper.getComponent(SelectRoot).vm.$emit('update:modelValue', 'account');
@@ -471,6 +467,35 @@ describe('service editor', () => {
     await action(wrapper, 'Save service').trigger('click');
     expect(wrapper.emitted('save')?.[1]).toMatchObject([
       { services: [{ auth: 'account', providerId: '', subjects: [] }] },
+    ]);
+  });
+  it('shows the built-in account provider once while retaining other configured providers', async () => {
+    const wrapper = services(state(), [
+      { id: 'provider:unraid.net', name: 'Unraid.net' },
+      { id: 'provider:company', name: 'Company sign-in' },
+    ]);
+    await action(wrapper, 'Add service').trigger('click');
+    const optionLabels = (
+      wrapper.vm as unknown as { authOptions: { value: string; label: string }[] }
+    ).authOptions.map((option) => option.label);
+    expect(optionLabels.filter((label) => label === 'Unraid Account sign-in (default)')).toHaveLength(1);
+    expect(optionLabels).not.toContain('Unraid.net');
+    expect(optionLabels).toContain('Company sign-in');
+  });
+  it('edits a legacy Unraid.net OIDC service as Unraid Account without losing its saved mode', async () => {
+    const value = state();
+    value.gateway.services = [
+      { ...app, auth: 'oidc', providerId: 'provider:unraid.net', subjects: ['owner'] },
+    ];
+    const wrapper = services(value, [{ id: 'provider:unraid.net', name: 'Unraid.net' }]);
+    await action(wrapper, 'Edit service').trigger('click');
+    expect(wrapper.getComponent(SelectRoot).props('modelValue')).toBe('account');
+    expect(wrapper.text()).not.toContain('no longer configured');
+    await action(wrapper, 'Save service').trigger('click');
+    expect(wrapper.emitted('save')?.[0]).toMatchObject([
+      {
+        services: [{ auth: 'oidc', providerId: 'provider:unraid.net', subjects: ['owner'] }],
+      },
     ]);
   });
   it('does not replace a deleted provider with an unprotected route', async () => {

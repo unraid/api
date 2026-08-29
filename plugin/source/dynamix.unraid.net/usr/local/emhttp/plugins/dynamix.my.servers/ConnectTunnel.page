@@ -1,6 +1,16 @@
-Menu="ManagementAccess:110"
+Menu="OtherSettings"
 Title="Unraid Connect"
-Icon="icon-u-globe"
-Tag="globe"
+Icon="<svg class='PanelIcon' width='33' height='33' viewBox='0 0 24 24' aria-hidden='true'><defs><mask id='unraid-connect-social-mask'><circle cx='12' cy='12' r='12' fill='white'/><path transform='translate(2.64 2.64) scale(.78)' fill='black' d='M11.406 8.528h1.17v6.926h-1.17zM1.17 15.454H0V8.528h1.17zm4.534.828h1.17v2.645h-1.17zm-2.86-2.969h1.169v4.282h-1.17zm5.703 0h1.17v4.282h-1.17zM22.83 8.528H24v6.926h-1.17zm-4.534-.81h-1.17V5.073h1.17zm2.86 2.95h-1.169V6.406h1.17zm-5.72 0h-1.17V6.406h1.17z'/></mask></defs><circle cx='12' cy='12' r='12' fill='currentColor' mask='url(#unraid-connect-social-mask)'/></svg>"
+Tag="icon-unraid-social"
 ---
+<style>
+.icon-unraid-social {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGRlZnM+PG1hc2sgaWQ9ImEiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEyIiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIuNjQgMi42NCkgc2NhbGUoLjc4KSIgZmlsbD0iYmxhY2siIGQ9Ik0xMS40MDYgOC41MjhoMS4xN3Y2LjkyNmgtMS4xN3pNMS4xNyAxNS40NTRIMFY4LjUyOGgxLjE3em00LjUzNC44MjhoMS4xN3YyLjY0NWgtMS4xN3ptLTIuODYtMi45NjloMS4xNjl2NC4yODJoLTEuMTd6bTUuNzAzIDBoMS4xN3Y0LjI4MmgtMS4xN3pNMjIuODMgOC41MjhIMjR2Ni45MjZoLTEuMTd6bS00LjUzNC0uODFoLTEuMTdWNS4wNzNoMS4xN3ptMi44NiAyLjk1aC0xLjE2OVY2LjQwNmgxLjE3em0tNS43MiAwaC0xLjE3VjYuNDA2aDEuMTd6Ii8+PC9tYXNrPjwvZGVmcz48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMiIgZmlsbD0iYmxhY2siIG1hc2s9InVybCgjYSkiLz48L3N2Zz4=") center / contain no-repeat;
+  mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGRlZnM+PG1hc2sgaWQ9ImEiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEyIiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIuNjQgMi42NCkgc2NhbGUoLjc4KSIgZmlsbD0iYmxhY2siIGQ9Ik0xMS40MDYgOC41MjhoMS4xN3Y2LjkyNmgtMS4xN3pNMS4xNyAxNS40NTRIMFY4LjUyOGgxLjE3em00LjUzNC44MjhoMS4xN3YyLjY0NWgtMS4xN3ptLTIuODYtMi45NjloMS4xNjl2NC4yODJoLTEuMTd6bTUuNzAzIDBoMS4xN3Y0LjI4MmgtMS4xN3pNMjIuODMgOC41MjhIMjR2Ni45MjZoLTEuMTd6bS00LjUzNC0uODFoLTEuMTdWNS4wNzNoMS4xN3ptMi44NiAyLjk1aC0xLjE2OVY2LjQwNmgxLjE3em0tNS43MiAwaC0xLjE3VjYuNDA2aDEuMTd6Ii8+PC9tYXNrPjwvZGVmcz48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMiIgZmlsbD0iYmxhY2siIG1hc2s9InVybCgjYSkiLz48L3N2Zz4=") center / contain no-repeat;
+}
+</style>
 <unraid-connect-tunnel></unraid-connect-tunnel>

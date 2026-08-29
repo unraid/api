@@ -1137,8 +1137,6 @@
     "callbackHelp": "You may need to add this exact URL to the provider’s allowed callback redirects:",
     "callbackPending": "Enable the tunnel to get its callback URL.",
     "providerSetup": "Provider callback setup",
-    "publishDetails": "What happens when you save?",
-    "subjects": "Allowed user subjects (optional)",
-    "subjectsHelp": "Enter one exact provider subject (sub) per line, not an email address. Leave empty to use the provider’s access rules. Listed users must also pass those rules."
+    "publishDetails": "What happens when you save?"
   }
 }

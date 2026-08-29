@@ -355,7 +355,5 @@ _(OIDC Configuration)_:
 
 </div>
 
-<p><a href="/Settings/ConnectTunnel">_(Unraid Connect: remote access, certificates, and server overview)_</a></p>
-
 <!-- start unraid-api section -->
 <unraid-connect-settings></unraid-connect-settings>

@@ -49,19 +49,34 @@ watch(
     applicationAuthAcknowledged.value = false;
   }
 );
+const isUnraidAccountProvider = (providerId: string) =>
+  providerId === 'unraid.net' || providerId.endsWith(':unraid.net');
+const configuredProviders = computed(() =>
+  providers.filter((provider) => !isUnraidAccountProvider(provider.id))
+);
 const authOptions = computed(() => [
   { value: 'account', label: t('connectServices.accountAuth') },
-  ...providers.map((provider) => ({ value: `oidc:${provider.id}`, label: provider.name })),
+  ...configuredProviders.value.map((provider) => ({
+    value: `oidc:${provider.id}`,
+    label: provider.name,
+  })),
   { value: 'upstream', label: t('connectServices.applicationAuth') },
 ]);
 const needsAcknowledgment = computed(
   () => draft.value?.auth === 'upstream' && !applicationAuthAcknowledged.value
 );
 const selectedAuth = computed(() =>
-  draft.value?.auth === 'oidc' ? `oidc:${draft.value.providerId}` : draft.value?.auth
+  draft.value?.auth === 'oidc'
+    ? isUnraidAccountProvider(draft.value.providerId ?? '')
+      ? 'account'
+      : `oidc:${draft.value.providerId}`
+    : draft.value?.auth
 );
 const missingProvider = computed(
-  () => draft.value?.auth === 'oidc' && !providers.some((p) => p.id === draft.value?.providerId)
+  () =>
+    draft.value?.auth === 'oidc' &&
+    !isUnraidAccountProvider(draft.value.providerId ?? '') &&
+    !configuredProviders.value.some((provider) => provider.id === draft.value?.providerId)
 );
 function selectAuth(value: unknown) {
   if (!draft.value || typeof value !== 'string') return;
@@ -75,12 +90,6 @@ function selectAuth(value: unknown) {
     draft.value.subjects = [];
   }
 }
-const subjectText = computed({
-  get: () => draft.value?.subjects?.join('\n') ?? '',
-  set: (value: string) => {
-    if (draft.value) draft.value.subjects = value.split('\n');
-  },
-});
 const editable = (s: ConnectGatewayServiceInput): ConnectGatewayServiceInput => ({
   id: s.id,
   name: s.name,
@@ -418,20 +427,6 @@ function status(service: (typeof state.gateway.services)[number]) {
         >
           {{ t('connectServices.advanced') }}
         </summary>
-        <div v-if="draft.auth === 'oidc'" class="mt-3 space-y-2">
-          <label :for="`${id}-subjects`">{{ t('connectServices.subjects') }}</label>
-          <textarea
-            :id="`${id}-subjects`"
-            v-model="subjectText"
-            rows="3"
-            :disabled="saving"
-            class="border-input bg-background focus-visible:outline-ring w-full rounded-md border p-2 focus-visible:outline-2"
-            :aria-describedby="`${id}-subjects-help`"
-          />
-          <p :id="`${id}-subjects-help`" class="text-muted-foreground text-sm">
-            {{ t('connectServices.subjectsHelp') }}
-          </p>
-        </div>
         <div class="mt-3 space-y-2">
           <label :for="`${id}-tls`">{{ t('connectServices.tlsName') }}</label>
           <Input
