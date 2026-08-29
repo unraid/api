@@ -39,18 +39,6 @@ export class ArrayMutationsResolver {
         return this.arrayService.addDiskToArray(input);
     }
 
-    @ResolveField(() => UnraidArray, {
-        description:
-            "Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error.",
-    })
-    @UsePermissions({
-        action: AuthAction.UPDATE_ANY,
-        resource: Resource.ARRAY,
-    })
-    public async removeDiskFromArray(@Args('input') input: ArrayDiskInput): Promise<UnraidArray> {
-        return this.arrayService.removeDiskFromArray(input);
-    }
-
     @ResolveField(() => ArrayDisk, { description: 'Mount a disk in the array' })
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,

@@ -202,23 +202,6 @@ export class ArrayService {
         return this.getArrayData();
     }
 
-    async removeDiskFromArray(input: ArrayDiskInput): Promise<UnraidArray> {
-        if (await this.arrayIsRunning()) {
-            throw new ArrayRunningError();
-        }
-
-        const { slot } = input;
-        const slotStr = slot?.toString() ?? '';
-
-        // Remove disk
-        await emcmd({
-            changeDevice: 'apply',
-            [`slotId.${slotStr}`]: '',
-        });
-
-        return this.getArrayData();
-    }
-
     async mountArrayDisk(id: string): Promise<UnraidArray> {
         if (!(await this.arrayIsRunning())) {
             throw new BadRequestException('Array must be running to mount disks');

@@ -313,8 +313,6 @@ export type ArrayMutations = {
   clearArrayDiskStatistics: Scalars['Boolean']['output'];
   /** Mount a disk in the array */
   mountArrayDisk: ArrayDisk;
-  /** Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error. */
-  removeDiskFromArray: UnraidArray;
   /** Set array state */
   setState: UnraidArray;
   /** Unmount a disk from the array */
@@ -334,11 +332,6 @@ export type ArrayMutationsClearArrayDiskStatisticsArgs = {
 
 export type ArrayMutationsMountArrayDiskArgs = {
   id: Scalars['PrefixedID']['input'];
-};
-
-
-export type ArrayMutationsRemoveDiskFromArrayArgs = {
-  input: ArrayDiskInput;
 };
 
 
