@@ -93,7 +93,7 @@ async function migrate(confirmationToken: string) {
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl space-y-8 p-4 text-base">
+  <div class="connect-tunnel-page mx-auto max-w-4xl space-y-8 p-4 text-base">
     <header class="space-y-2">
       <h1 class="text-2xl font-semibold">{{ t('connectTunnel.title') }}</h1>
       <p class="text-muted-foreground">{{ t('connectTunnel.description') }}</p>
@@ -132,3 +132,19 @@ async function migrate(confirmationToken: string) {
     />
   </div>
 </template>
+
+<style scoped>
+.connect-tunnel-page :deep(p),
+.connect-tunnel-page :deep(label),
+.connect-tunnel-page :deep(summary),
+.connect-tunnel-page :deep(code),
+.connect-tunnel-page :deep(h1),
+.connect-tunnel-page :deep(h2),
+.connect-tunnel-page :deep(h3),
+.connect-tunnel-page :deep(h4),
+.connect-tunnel-page :deep(h5) {
+  text-align: start;
+  text-align-last: auto;
+  word-spacing: normal;
+}
+</style>
