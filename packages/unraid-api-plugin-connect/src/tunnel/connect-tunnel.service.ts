@@ -565,11 +565,8 @@ export class ConnectTunnelService implements OnModuleDestroy {
         );
     }
     private async assertHttps(): Promise<void> {
-        if (
-            !this.config.get('store.emhttp.nginx.sslEnabled') ||
-            this.config.get('store.emhttp.nginx.sslMode') !== 'auto'
-        ) {
-            throw new Error('Remote access requires strict HTTPS');
+        if (!this.config.get('store.emhttp.nginx.sslEnabled')) {
+            throw new Error('Remote access requires HTTPS');
         }
         const cert = new X509Certificate(await readFile(this.bundlePath()));
         if (
@@ -591,11 +588,8 @@ export class ConnectTunnelService implements OnModuleDestroy {
         const certificateOnly = cert && !tunnel && !sharing;
         let target = '127.0.0.1:1';
         if (tunnel) {
-            if (
-                !this.config.get('store.emhttp.nginx.sslEnabled') ||
-                this.config.get('store.emhttp.nginx.sslMode') !== 'auto'
-            ) {
-                throw new Error('Remote access requires strict HTTPS');
+            if (!this.config.get('store.emhttp.nginx.sslEnabled')) {
+                throw new Error('Remote access requires HTTPS');
             }
             const port = this.config.get<number>('store.emhttp.nginx.httpsPort');
             if (!Number.isInteger(port) || !port || port < 1 || port > 65535)
@@ -1067,7 +1061,7 @@ export function parseEntitlement(value: unknown): ConnectTunnelEntitlement | nul
     if (
         (reason !== null && reason !== 'quota_exhausted' && reason !== 'entitlement_inactive') ||
         (data.access_state === 'blocked') !== (reason !== null) ||
-        (data.rate_mode === 'limited') !== (Number(data.rate_bytes_per_second) > 0) ||
+        (data.rate_mode === 'limited') !== Number(data.rate_bytes_per_second) > 0 ||
         Number(data.period_end) <= Number(data.period_start) ||
         data.bytes_remaining !== (quota === 0 ? null : Math.max(0, quota - used))
     )

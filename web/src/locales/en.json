@@ -1018,7 +1018,7 @@
   "connectTunnel.security.relay": "Your HTTPS connection ends on this server. The Connect relay forwards encrypted traffic and cannot read the contents of your requests or responses.",
   "connectTunnel.security.metadata": "The relay can see the server hostname, connection metadata, and traffic usage. Server overview data shared with Connect is separate from this encrypted tunnel.",
   "connectTunnel.security.authentication": "Keep server authentication enabled. Encryption does not replace access controls.",
-  "connectTunnel.security.requirements": "Remote access requires strict HTTPS and a matching myunraid.net certificate.",
+  "connectTunnel.security.requirements": "Remote access requires HTTPS and a matching myunraid.net certificate.",
   "connectTunnel.previewData": "Preview shared data",
   "connectTunnel.previewDescription": "This preview shows what sharing would send. Opening it does not enable sharing.",
   "connectTunnel.cleanupPending": "Removal of any previously shared overview has not yet been confirmed.",
