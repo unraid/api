@@ -10,6 +10,7 @@ import type { ConnectGatewaySettingsInput, ConnectTunnelSettingsInput } from '~/
 import Auth from '~/components/Auth.standalone.vue';
 import ConnectServicesPanel from '~/components/ConnectTunnel/ConnectServicesPanel.vue';
 import ConnectTunnelPanel from '~/components/ConnectTunnel/ConnectTunnelPanel.vue';
+import { connectServiceTargetsQuery } from '~/components/ConnectTunnel/graphql/connect-service-targets.query';
 import {
   migrateConnectCertificateMutation,
   updateConnectGatewayServicesMutation,
@@ -23,6 +24,12 @@ const { result, loading, error, refetch, query } = useQuery(connectTunnelPageQue
   fetchPolicy: 'network-only',
   pollInterval: 5000,
 });
+const {
+  result: serviceTargetsResult,
+  loading: serviceTargetsLoading,
+  error: serviceTargetsError,
+  refetch: refetchServiceTargets,
+} = useQuery(connectServiceTargetsQuery, { skipCache: false }, { fetchPolicy: 'cache-and-network' });
 const { mutate } = useMutation(updateConnectTunnelPageMutation);
 const { mutate: saveServices } = useMutation(updateConnectGatewayServicesMutation);
 const servicesError = ref('');
@@ -121,14 +128,18 @@ async function migrate(confirmationToken: string) {
       @migrate="migrate"
     />
     <ConnectServicesPanel
-      :providers="result?.oidcProviders ?? []"
       v-if="state"
       :state="state"
+      :providers="result?.oidcProviders ?? []"
+      :service-targets="serviceTargetsResult?.docker?.containers ?? []"
+      :service-targets-loading="serviceTargetsLoading"
+      :service-targets-error="Boolean(serviceTargetsError)"
       :saving="saving"
       :unavailable="Boolean(error)"
       :error="servicesError"
       :saved="servicesSaved"
       @save="updateServices"
+      @refresh-targets="refetchServiceTargets({ skipCache: true })"
     />
   </div>
 </template>

@@ -5,13 +5,14 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { SelectRoot } from '@unraid/ui';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { ConnectTunnelPageQuery } from '~/composables/gql/graphql';
+import type { ConnectServiceTargetsQuery, ConnectTunnelPageQuery } from '~/composables/gql/graphql';
 
 import Auth from '~/components/Auth.standalone.vue';
 import ConnectSettings from '~/components/ConnectSettings/ConnectSettings.standalone.vue';
 import ConnectServicesPanel from '~/components/ConnectTunnel/ConnectServicesPanel.vue';
 import ConnectTunnelPage from '~/components/ConnectTunnel/ConnectTunnel.standalone.vue';
 import ConnectTunnelPanel from '~/components/ConnectTunnel/ConnectTunnelPanel.vue';
+import { ContainerPortType, ContainerState } from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
 vi.mock('@vue/apollo-composable', async (importOriginal) => ({
@@ -392,9 +393,21 @@ describe('Connect page save handler', () => {
 });
 
 describe('service editor', () => {
-  function services(value = state(), providers: { id: string; name: string }[] = []) {
+  type ServiceTarget = ConnectServiceTargetsQuery['docker']['containers'][number];
+  function services(
+    value = state(),
+    providers: { id: string; name: string }[] = [],
+    serviceTargets: ServiceTarget[] = [],
+    discovery: { loading?: boolean; error?: boolean } = {}
+  ) {
     const wrapper = mount(ConnectServicesPanel, {
-      props: { state: value, providers },
+      props: {
+        state: value,
+        providers,
+        serviceTargets,
+        serviceTargetsLoading: discovery.loading,
+        serviceTargetsError: discovery.error,
+      },
       global: { plugins: [createTestI18n()] },
     });
     wrappers.push(wrapper);
@@ -402,6 +415,8 @@ describe('service editor', () => {
   }
   const action = (wrapper: ReturnType<typeof services>, name: string) =>
     wrapper.findAll('[role="button"]').find((b) => b.text() === name)!;
+  const authSelect = (wrapper: ReturnType<typeof services>) =>
+    wrapper.findAllComponents(SelectRoot).at(-1)!;
   const app = {
     id: 'app-0123456789abcdef',
     name: 'Media',
@@ -413,6 +428,91 @@ describe('service editor', () => {
     providerId: '',
     subjects: [],
   };
+  const plexTarget: ServiceTarget = {
+    id: 'docker:plex',
+    names: ['/Plex'],
+    state: ContainerState.RUNNING,
+    webUiUrl: 'http://10.0.6.112:32400/web',
+    ports: [
+      {
+        privatePort: 32400,
+        publicPort: 32400,
+        type: ContainerPortType.TCP,
+      },
+      {
+        privatePort: 1900,
+        publicPort: 1900,
+        type: ContainerPortType.UDP,
+      },
+    ],
+  };
+  it('discovers running containers and builds the local target from a published TCP port', async () => {
+    const wrapper = services(
+      state(),
+      [],
+      [
+        plexTarget,
+        {
+          ...plexTarget,
+          id: 'docker:stopped',
+          names: ['/Stopped'],
+          state: ContainerState.EXITED,
+        },
+      ]
+    );
+    await action(wrapper, 'Add service').trigger('click');
+    expect(wrapper.text()).toContain('Docker container');
+    expect(wrapper.text()).toContain('Plex');
+    expect(wrapper.text()).toContain('Port 32400/TCP');
+    expect(wrapper.text()).not.toContain('1900');
+    expect(wrapper.text()).not.toContain('Stopped');
+    expect(wrapper.text()).toContain('http://127.0.0.1:32400');
+    expect((wrapper.get('input[autocomplete="off"]').element as HTMLInputElement).value).toBe('Plex');
+    expect(wrapper.find('input[type="url"]').exists()).toBe(false);
+
+    const protocol = wrapper
+      .findAllComponents(SelectRoot)
+      .find((select) => select.props('modelValue') === 'http')!;
+    protocol.vm.$emit('update:modelValue', 'https');
+    await flushPromises();
+    expect(wrapper.text()).toContain('https://127.0.0.1:32400');
+
+    await action(wrapper, 'Save service').trigger('click');
+    expect(wrapper.emitted('save')?.[0]).toMatchObject([
+      {
+        services: [
+          {
+            name: 'Plex',
+            upstream: 'https://127.0.0.1:32400',
+          },
+        ],
+      },
+    ]);
+  });
+  it('shows discovery progress and selects a target when the API response arrives', async () => {
+    const wrapper = services(state(), [], [], { loading: true });
+    await action(wrapper, 'Add service').trigger('click');
+    expect(wrapper.get('[role="status"]').text()).toContain('Finding running containers');
+    await wrapper.setProps({ serviceTargetsLoading: false, serviceTargets: [plexTarget] });
+    await flushPromises();
+    expect(wrapper.text()).toContain('http://127.0.0.1:32400');
+    expect((wrapper.get('input[autocomplete="off"]').element as HTMLInputElement).value).toBe('Plex');
+  });
+  it('keeps manual entry available when Docker discovery fails or has no published ports', async () => {
+    const failed = services(state(), [], [], { error: true });
+    await action(failed, 'Add service').trigger('click');
+    expect(failed.text()).toContain('could not load Docker containers');
+    await action(failed, 'Refresh containers').trigger('click');
+    expect(failed.emitted('refreshTargets')).toHaveLength(1);
+    await action(failed, 'Enter address manually').trigger('click');
+    expect(failed.find('input[type="url"]').exists()).toBe(true);
+
+    const empty = services();
+    await action(empty, 'Add service').trigger('click');
+    empty.findAllComponents(SelectRoot)[0]!.vm.$emit('update:modelValue', 'container');
+    await flushPromises();
+    expect(empty.text()).toContain('No running containers with published TCP ports');
+  });
   it('starts disabled, requires explicit save and emits only the local settings contract', async () => {
     const wrapper = services();
     await action(wrapper, 'Add service').trigger('click');
@@ -449,7 +549,7 @@ describe('service editor', () => {
     await action(wrapper, 'Add service').trigger('click');
     await wrapper.get('input[autocomplete="off"]').setValue('Media');
     await wrapper.get('input[type="url"]').setValue('http://127.0.0.1:32400');
-    wrapper.getComponent(SelectRoot).vm.$emit('update:modelValue', 'oidc:local-provider');
+    authSelect(wrapper).vm.$emit('update:modelValue', 'oidc:local-provider');
     await flushPromises();
     expect(wrapper.text()).toContain('existing access rules');
     expect(wrapper.text()).toContain('does not grant access');
@@ -462,7 +562,7 @@ describe('service editor', () => {
         services: [{ auth: 'oidc', providerId: 'local-provider', subjects: [] }],
       },
     ]);
-    wrapper.getComponent(SelectRoot).vm.$emit('update:modelValue', 'account');
+    authSelect(wrapper).vm.$emit('update:modelValue', 'account');
     await flushPromises();
     await action(wrapper, 'Save service').trigger('click');
     expect(wrapper.emitted('save')?.[1]).toMatchObject([
@@ -489,7 +589,7 @@ describe('service editor', () => {
     ];
     const wrapper = services(value, [{ id: 'provider:unraid.net', name: 'Unraid.net' }]);
     await action(wrapper, 'Edit service').trigger('click');
-    expect(wrapper.getComponent(SelectRoot).props('modelValue')).toBe('account');
+    expect(authSelect(wrapper).props('modelValue')).toBe('account');
     expect(wrapper.text()).not.toContain('no longer configured');
     await action(wrapper, 'Save service').trigger('click');
     expect(wrapper.emitted('save')?.[0]).toMatchObject([
@@ -512,7 +612,7 @@ describe('service editor', () => {
     await action(wrapper, 'Add service').trigger('click');
     await wrapper.get('input[autocomplete="off"]').setValue('Plex');
     await wrapper.get('input[type="url"]').setValue('http://127.0.0.1:32400');
-    wrapper.getComponent(SelectRoot).vm.$emit('update:modelValue', 'upstream');
+    authSelect(wrapper).vm.$emit('update:modelValue', 'upstream');
     await flushPromises();
     expect(wrapper.text()).toContain('Connect will not require');
     expect(wrapper.text()).toContain('trusted-network');
