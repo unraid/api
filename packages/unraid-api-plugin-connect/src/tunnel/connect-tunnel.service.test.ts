@@ -801,7 +801,7 @@ emit({event:'cert_migration_result', request_id:request.request_id, outcome:'fai
     });
     it('isolates the dedicated page from unified settings and clears overview data on opt-out', async () => {
         const settings = new UserSettingsService();
-        new ConnectSettingsService(
+        const legacySettings = new ConnectSettingsService(
             config,
             tunnel,
             settings,
@@ -816,6 +816,8 @@ emit({event:'cert_migration_result', request_id:request.request_id, outcome:'fai
                 { reloadNetworkStack: vi.fn() }
             )
         );
+        await legacySettings.syncSettings({ tunnelRemoteAccessEnabled: true } as never);
+        expect(tunnel.settings().tunnelRemoteAccessEnabled).toBe(false);
         const slice = await settings.getAllSettings();
         expect(slice.properties).not.toHaveProperty('connect');
         expect(slice.properties).toHaveProperty('remote-access');

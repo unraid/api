@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config';
 import type { SettingSlice } from '@unraid/shared/jsonforms/settings.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 
-import type { ConnectFeatures } from '../tunnel/connect-tunnel.service.js';
 import { RemoteAccessService } from '../remote-access/remote-access.service.js';
 import { ConnectTunnelService } from '../tunnel/connect-tunnel.service.js';
 import {
@@ -59,15 +58,6 @@ export class ConnectSettingsService {
                 ...(input.forwardType != null ? { forwardType: input.forwardType } : {}),
                 ...(input.port !== undefined ? { port: input.port } : {}),
             });
-        const changes: Partial<ConnectFeatures> = {};
-        for (const key of [
-            'certificateManagementEnabled',
-            'tunnelRemoteAccessEnabled',
-            'serverDataReportingEnabled',
-        ] as const) {
-            if (input[key] != null) changes[key] = input[key];
-        }
-        if (Object.keys(changes).length) await this.tunnel.update(changes);
         return false;
     }
     async enableDynamicRemoteAccess(_input: EnableDynamicRemoteAccessInput): Promise<never> {

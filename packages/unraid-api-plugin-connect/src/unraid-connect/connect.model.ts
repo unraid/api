@@ -224,21 +224,6 @@ export class ConnectSettingsValues {
 
 @InputType()
 export class ConnectSettingsInput {
-    @Field(() => Boolean, { nullable: true })
-    @IsOptional()
-    @IsBoolean()
-    certificateManagementEnabled?: boolean;
-
-    @Field(() => Boolean, { nullable: true })
-    @IsOptional()
-    @IsBoolean()
-    tunnelRemoteAccessEnabled?: boolean;
-
-    @Field(() => Boolean, { nullable: true })
-    @IsOptional()
-    @IsBoolean()
-    serverDataReportingEnabled?: boolean;
-
     @Field(() => WAN_ACCESS_TYPE, {
         nullable: true,
         description: 'The type of WAN access to use for Remote Access',
