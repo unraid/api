@@ -1098,6 +1098,8 @@
     "empty": "No additional services. Unraid remains available at the tunnel address above.",
     "setupRequired": "Enable remote access and use a connector and cloud deployment that support service routes.",
     "pending": "Setup pending",
+    "applying": "Applying gateway changes…",
+    "applyingHelp": "Connect is restarting the gateway and confirming the updated routes. Existing services may be briefly unavailable.",
     "pendingHelp": "The local settings are saved, but cloud routes are not confirmed. Removed or disabled services are not forwarded. Retry to complete this change.",
     "paused": "Tunnel disabled",
     "pausedHelp": "The service settings are saved. Enable remote access to apply their public routes.",

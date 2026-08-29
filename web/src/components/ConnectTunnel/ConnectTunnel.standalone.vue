@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useId } from 'vue';
+import { computed, onBeforeUnmount, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
@@ -35,11 +35,34 @@ const { mutate } = useMutation(updateConnectTunnelPageMutation);
 const { mutate: saveServices } = useMutation(updateConnectGatewayServicesMutation);
 const servicesError = ref('');
 const servicesSaved = ref(false);
+const gatewayApplying = ref(false);
+const gatewayApplyingRevision = ref<number | null>(null);
+let gatewayApplyingTimeout: ReturnType<typeof setTimeout> | undefined;
 const { mutate: migrateCertificate } = useMutation(migrateConnectCertificateMutation);
 const saving = ref(false);
 const state = computed(() => result.value?.connectTunnelSettings);
 const saveError = ref('');
 const saved = ref(false);
+
+function stopGatewayLoader() {
+  gatewayApplying.value = false;
+  gatewayApplyingRevision.value = null;
+  if (gatewayApplyingTimeout) clearTimeout(gatewayApplyingTimeout);
+  gatewayApplyingTimeout = undefined;
+}
+
+watch(state, (value) => {
+  if (!gatewayApplying.value || !value || gatewayApplyingRevision.value === null) return;
+  if (value.gateway.revision < gatewayApplyingRevision.value) return;
+  const ready =
+    !value.tunnelRemoteAccessEnabled ||
+    (!value.gateway.pending &&
+      value.status.gateway === 'ready' &&
+      value.status.routeState === 'ready' &&
+      ['connected', 'tunnel_idle'].includes(value.status.tunnel));
+  if (ready) stopGatewayLoader();
+});
+onBeforeUnmount(stopGatewayLoader);
 
 async function save(input: ConnectTunnelSettingsInput) {
   if (saving.value) return;
@@ -65,6 +88,10 @@ async function save(input: ConnectTunnelSettingsInput) {
 async function updateServices(input: ConnectGatewaySettingsInput) {
   if (saving.value) return;
   saving.value = true;
+  gatewayApplying.value = true;
+  gatewayApplyingRevision.value = input.expectedRevision + 1;
+  if (gatewayApplyingTimeout) clearTimeout(gatewayApplyingTimeout);
+  gatewayApplyingTimeout = setTimeout(stopGatewayLoader, 30_000);
   servicesSaved.value = false;
   servicesError.value = '';
   query.value?.stopPolling();
@@ -73,6 +100,7 @@ async function updateServices(input: ConnectGatewaySettingsInput) {
     if (!response?.data) throw new Error(t('connectTunnel.saveFailed'));
     servicesSaved.value = true;
   } catch (failure) {
+    stopGatewayLoader();
     servicesError.value = failure instanceof Error ? failure.message : t('connectTunnel.saveFailed');
   } finally {
     await Promise.resolve(refetch()).catch(() => undefined);
@@ -166,6 +194,7 @@ async function migrate(confirmationToken: string) {
           :service-targets-loading="serviceTargetsLoading"
           :service-targets-error="Boolean(serviceTargetsError)"
           :saving="saving"
+          :applying="gatewayApplying"
           :unavailable="Boolean(error)"
           :error="servicesError"
           :saved="servicesSaved"

@@ -324,6 +324,29 @@ describe('Connect page save handler', () => {
     expect(remoteHeading.element.closest('section')?.textContent).toContain('Services');
   });
 
+  it('keeps a gateway loader visible until the restarted connector reports ready', async () => {
+    const { wrapper, result } = renderPage();
+    wrapper.getComponent(ConnectServicesPanel).vm.$emit('save', {
+      expectedRevision: 0,
+      services: [],
+    });
+    await flushPromises();
+    expect(wrapper.text()).toContain('Applying gateway changes');
+    expect(wrapper.text()).not.toContain('Gateway unavailable');
+    expect(wrapper.getComponent(ConnectServicesPanel).props('applying')).toBe(true);
+
+    const ready = state();
+    ready.tunnelRemoteAccessEnabled = true;
+    ready.gateway.revision = 1;
+    ready.status.gateway = 'ready';
+    ready.status.routeState = 'ready';
+    ready.status.tunnel = 'connected';
+    result.value = { connectTunnelSettings: ready };
+    await flushPromises();
+    expect(wrapper.getComponent(ConnectServicesPanel).props('applying')).toBe(false);
+    expect(wrapper.text()).not.toContain('Applying gateway changes');
+  });
+
   it.each(['loading', 'failed'])(
     'keeps account actions on Connect when tunnel settings are %s',
     async (status) => {
@@ -661,6 +684,21 @@ describe('service editor', () => {
     const wrapper = services(value);
     expect(wrapper.text()).toContain('Application controls access');
     expect(wrapper.text()).not.toContain('Account sign-in required');
+  });
+  it('shows a loader instead of an unavailable service while gateway changes apply', async () => {
+    const value = state();
+    value.tunnelRemoteAccessEnabled = true;
+    value.gateway.services = [app];
+    value.status.gateway = 'unavailable';
+    value.status.routeState = 'unavailable';
+    const wrapper = services(value);
+    await wrapper.setProps({ applying: true });
+    expect(wrapper.attributes('aria-busy')).toBe('true');
+    expect(wrapper.text()).toContain('Applying gateway changes');
+    expect(wrapper.text()).toContain('restarting the gateway');
+    expect(wrapper.text()).not.toContain('Gateway unavailable');
+    expect(wrapper.find('a').exists()).toBe(false);
+    expect(action(wrapper, 'Add service').attributes('aria-disabled')).toBe('true');
   });
   it('preserves drafts during polling but blocks a stale revision', async () => {
     const wrapper = services();

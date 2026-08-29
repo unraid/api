@@ -3,6 +3,7 @@ import { computed, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
+  ArrowPathIcon,
   GlobeAltIcon,
   PencilSquareIcon,
   PlusIcon,
@@ -37,6 +38,7 @@ const {
   serviceTargetsLoading = false,
   serviceTargetsError = false,
   saving = false,
+  applying = false,
   unavailable = false,
   error = '',
   saved = false,
@@ -47,6 +49,7 @@ const {
   serviceTargetsLoading?: boolean;
   serviceTargetsError?: boolean;
   saving?: boolean;
+  applying?: boolean;
   unavailable?: boolean;
   error?: string;
   saved?: boolean;
@@ -225,7 +228,7 @@ const ready = computed(
     state.status.routeState === 'ready' &&
     ['connected', 'tunnel_idle'].includes(state.status.tunnel)
 );
-const blocked = computed(() => saving || unavailable || !state.signedIn);
+const blocked = computed(() => saving || applying || unavailable || !state.signedIn);
 const stale = computed(() => draft.value !== null && editingRevision.value !== state.gateway.revision);
 const canChange = computed(
   () =>
@@ -323,6 +326,7 @@ function retry() {
 function status(service: (typeof state.gateway.services)[number]) {
   if (!service.enabled) return t('connectServices.disabled');
   if (!state.tunnelRemoteAccessEnabled) return t('connectServices.paused');
+  if (applying) return t('connectServices.applying');
   if (state.gateway.pending || !service.url) return t('connectServices.pending');
   if (!ready.value) return t('connectServices.unavailable');
   if (service.auth === 'oidc') return t('connectServices.providerProtected');
@@ -336,7 +340,7 @@ function status(service: (typeof state.gateway.services)[number]) {
   <section
     class="border-border @container space-y-5 border-t pt-7"
     :aria-labelledby="`${id}-heading`"
-    :aria-busy="saving"
+    :aria-busy="saving || applying"
   >
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div class="flex items-start gap-4">
@@ -361,7 +365,18 @@ function status(service: (typeof state.gateway.services)[number]) {
     <p v-if="!state.gateway.available" role="status" class="text-sm">
       {{ t('connectServices.setupRequired') }}
     </p>
-    <div v-if="state.gateway.pending" role="status" class="space-y-2 text-sm">
+    <div
+      v-if="applying"
+      role="status"
+      class="border-primary/30 bg-primary/5 flex items-start gap-3 rounded-lg border p-4 text-sm"
+    >
+      <ArrowPathIcon class="text-primary mt-0.5 h-5 w-5 shrink-0 animate-spin" aria-hidden="true" />
+      <div class="space-y-1">
+        <p class="font-medium">{{ t('connectServices.applying') }}</p>
+        <p class="text-muted-foreground">{{ t('connectServices.applyingHelp') }}</p>
+      </div>
+    </div>
+    <div v-else-if="state.gateway.pending" role="status" class="space-y-2 text-sm">
       <p>
         {{
           t(
@@ -380,7 +395,9 @@ function status(service: (typeof state.gateway.services)[number]) {
       >
     </div>
     <p v-if="error" role="alert" class="text-destructive">{{ error }}</p>
-    <p v-else-if="saved" role="status" class="text-sm">{{ t('connectServices.saved') }}</p>
+    <p v-else-if="saved && !applying" role="status" class="text-sm">
+      {{ t('connectServices.saved') }}
+    </p>
     <p
       v-if="!state.gateway.services.length && !draft"
       class="border-border text-muted-foreground rounded-lg border border-dashed p-5 text-sm"
@@ -401,7 +418,7 @@ function status(service: (typeof state.gateway.services)[number]) {
               <p class="text-muted-foreground text-sm break-all">{{ service.upstream }}</p>
               <p class="text-sm" role="status">{{ status(service) }}</p>
               <a
-                v-if="service.url && service.enabled && !state.gateway.pending && ready"
+                v-if="service.url && service.enabled && !applying && !state.gateway.pending && ready"
                 class="text-primary inline-block text-sm break-all underline"
                 :href="service.url"
                 target="_blank"
