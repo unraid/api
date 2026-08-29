@@ -1081,6 +1081,15 @@
     "title": "Services",
     "description": "Reach your applications through this tunnel. Each enabled service has its own HTTPS address.",
     "add": "Add service",
+    "formDescription": "Set the destination, choose an access policy, then publish the address.",
+    "steps": {
+      "application": "Step 1",
+      "applicationTitle": "Choose the local application",
+      "access": "Step 2",
+      "accessTitle": "Choose who can open it",
+      "publish": "Step 3",
+      "publishTitle": "Review and publish"
+    },
     "edit": "Edit service",
     "editNamed": "Edit {name}",
     "remove": "Remove",
@@ -1118,6 +1127,7 @@
     "accountAuth": "Unraid Account sign-in (default)",
     "applicationAuth": "Application controls access",
     "applicationWarning": "Connect will not require an Unraid Account login or verify the application login. Anyone with this address can reach the application. Its own authentication must control access.",
+    "safetyTitle": "Before you publish",
     "networkWarning": "Disable anonymous access and trusted-network authentication exemptions. For Plex, do not allow the gateway address or local network to bypass authentication.",
     "authAcknowledgment": "I understand that the application alone controls access and have checked its authentication settings.",
     "nativeClients": "Native clients can use the application’s own login. Plex playback and client discovery must be tested with your server.",
@@ -1126,6 +1136,8 @@
     "providerMissing": "This provider is no longer configured. Select another sign-in option before saving.",
     "callbackHelp": "You may need to add this exact URL to the provider’s allowed callback redirects:",
     "callbackPending": "Enable the tunnel to get its callback URL.",
+    "providerSetup": "Provider callback setup",
+    "publishDetails": "What happens when you save?",
     "subjects": "Allowed user subjects (optional)",
     "subjectsHelp": "Enter one exact provider subject (sub) per line, not an email address. Leave empty to use the provider’s access rules. Listed users must also pass those rules."
   }

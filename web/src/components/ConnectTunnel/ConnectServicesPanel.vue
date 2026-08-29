@@ -223,11 +223,18 @@ function status(service: (typeof state.gateway.services)[number]) {
     </div>
     <p v-if="error" role="alert" class="text-destructive">{{ error }}</p>
     <p v-else-if="saved" role="status" class="text-sm">{{ t('connectServices.saved') }}</p>
-    <p v-if="!state.gateway.services.length && !draft" class="text-muted-foreground text-sm">
+    <p
+      v-if="!state.gateway.services.length && !draft"
+      class="border-border text-muted-foreground rounded-lg border border-dashed p-5 text-sm"
+    >
       {{ t('connectServices.empty') }}
     </p>
-    <ul v-if="state.gateway.services.length" class="divide-border divide-y">
-      <li v-for="service in state.gateway.services" :key="service.id" class="space-y-3 py-4">
+    <ul v-if="state.gateway.services.length" class="grid gap-3">
+      <li
+        v-for="service in state.gateway.services"
+        :key="service.id"
+        class="border-border space-y-3 rounded-lg border p-4"
+      >
         <div class="flex flex-col gap-3 @md:flex-row @md:items-start @md:justify-between">
           <div class="min-w-0 space-y-1">
             <h3 class="font-medium">{{ service.name }}</h3>
@@ -272,80 +279,124 @@ function status(service: (typeof state.gateway.services)[number]) {
         </div>
       </li>
     </ul>
-    <form v-if="draft" ref="form" class="border-border space-y-5 border-t pt-5" @submit.prevent="submit">
-      <h3 class="font-semibold">
-        {{
-          t(
-            state.gateway.services.some((s) => s.id === draft?.id)
-              ? 'connectServices.edit'
-              : 'connectServices.add'
-          )
-        }}
-      </h3>
-      <p v-if="stale" role="alert">{{ t('connectServices.stale') }}</p>
-      <div class="grid gap-4 @lg:grid-cols-2">
-        <div class="space-y-2">
-          <label :for="`${id}-name`">{{ t('connectServices.name') }}</label>
-          <Input
-            :id="`${id}-name`"
-            v-model="draft.name"
-            required
-            maxlength="80"
-            :disabled="saving"
-            autocomplete="off"
-            :placeholder="t('connectServices.namePlaceholder')"
-          />
-        </div>
-        <div class="space-y-2">
-          <label :for="`${id}-upstream`">{{ t('connectServices.upstream') }}</label>
-          <Input
-            :id="`${id}-upstream`"
-            v-model="draft.upstream"
-            type="url"
-            required
-            maxlength="300"
-            :disabled="saving"
-            autocomplete="off"
-            placeholder="http://127.0.0.1:32400"
-            :aria-describedby="`${id}-upstream-help`"
-          />
-        </div>
-      </div>
-      <p :id="`${id}-upstream-help`" class="text-muted-foreground text-sm">
-        {{ t('connectServices.upstreamHelp') }}
-      </p>
-      <div class="space-y-2">
-        <label :id="`${id}-auth-label`">{{ t('connectServices.authentication') }}</label>
-        <SelectRoot :model-value="selectedAuth" :disabled="saving" @update:model-value="selectAuth">
-          <SelectTrigger :aria-labelledby="`${id}-auth-label`" :aria-describedby="`${id}-auth-help`">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="option in authOptions" :key="option.value" :value="option.value">{{
-              option.label
-            }}</SelectItem>
-          </SelectContent>
-        </SelectRoot>
-        <p :id="`${id}-auth-help`" class="max-w-prose text-sm">
+    <form v-if="draft" ref="form" class="border-border space-y-4 border-t pt-6" @submit.prevent="submit">
+      <div class="space-y-1">
+        <h3 class="text-lg font-semibold">
           {{
             t(
-              draft.auth === 'upstream'
-                ? 'connectServices.applicationWarning'
-                : draft.auth === 'oidc'
-                  ? 'connectServices.providerHelp'
-                  : 'connectServices.auth'
+              state.gateway.services.some((s) => s.id === draft?.id)
+                ? 'connectServices.edit'
+                : 'connectServices.add'
             )
           }}
-        </p>
-        <div v-if="draft.auth === 'oidc'" class="space-y-2 text-sm">
-          <p v-if="missingProvider" role="alert">{{ t('connectServices.providerMissing') }}</p>
-          <p>{{ t('connectServices.callbackHelp') }}</p>
-          <code v-if="state.gateway.callbackUrl" class="block break-all select-all">{{
-            state.gateway.callbackUrl
-          }}</code>
-          <p v-else role="status">{{ t('connectServices.callbackPending') }}</p>
+        </h3>
+        <p class="text-muted-foreground text-sm">{{ t('connectServices.formDescription') }}</p>
+      </div>
+      <p
+        v-if="stale"
+        role="alert"
+        class="border-destructive/40 bg-destructive/5 rounded-md border p-3 text-sm"
+      >
+        {{ t('connectServices.stale') }}
+      </p>
+
+      <section class="border-border bg-muted/20 space-y-4 rounded-lg border p-4 @md:p-5">
+        <div class="space-y-1">
+          <p class="text-primary text-xs font-semibold tracking-wide uppercase">
+            {{ t('connectServices.steps.application') }}
+          </p>
+          <h4 class="font-semibold">{{ t('connectServices.steps.applicationTitle') }}</h4>
         </div>
-        <div v-if="draft.auth === 'upstream'" class="space-y-3">
+        <div class="grid gap-4 @lg:grid-cols-2">
+          <div class="space-y-2">
+            <label :for="`${id}-name`" class="font-medium">{{ t('connectServices.name') }}</label>
+            <Input
+              :id="`${id}-name`"
+              v-model="draft.name"
+              required
+              maxlength="80"
+              :disabled="saving"
+              autocomplete="off"
+              :placeholder="t('connectServices.namePlaceholder')"
+            />
+          </div>
+          <div class="space-y-2">
+            <label :for="`${id}-upstream`" class="font-medium">{{
+              t('connectServices.upstream')
+            }}</label>
+            <Input
+              :id="`${id}-upstream`"
+              v-model="draft.upstream"
+              type="url"
+              required
+              maxlength="300"
+              :disabled="saving"
+              autocomplete="off"
+              placeholder="http://127.0.0.1:32400"
+              :aria-describedby="`${id}-upstream-help`"
+            />
+            <p :id="`${id}-upstream-help`" class="text-muted-foreground text-sm">
+              {{ t('connectServices.upstreamHelp') }}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="border-border space-y-4 rounded-lg border p-4 @md:p-5">
+        <div class="space-y-1">
+          <p class="text-primary text-xs font-semibold tracking-wide uppercase">
+            {{ t('connectServices.steps.access') }}
+          </p>
+          <h4 class="font-semibold">{{ t('connectServices.steps.accessTitle') }}</h4>
+        </div>
+        <div class="max-w-xl space-y-2">
+          <label :id="`${id}-auth-label`" class="font-medium">{{
+            t('connectServices.authentication')
+          }}</label>
+          <SelectRoot :model-value="selectedAuth" :disabled="saving" @update:model-value="selectAuth">
+            <SelectTrigger :aria-labelledby="`${id}-auth-label`" :aria-describedby="`${id}-auth-help`">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="option in authOptions" :key="option.value" :value="option.value">{{
+                option.label
+              }}</SelectItem>
+            </SelectContent>
+          </SelectRoot>
+          <p :id="`${id}-auth-help`" class="text-muted-foreground text-sm">
+            {{
+              t(
+                draft.auth === 'upstream'
+                  ? 'connectServices.applicationWarning'
+                  : draft.auth === 'oidc'
+                    ? 'connectServices.providerHelp'
+                    : 'connectServices.auth'
+              )
+            }}
+          </p>
+        </div>
+        <details v-if="draft.auth === 'oidc'" class="text-sm">
+          <summary
+            class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            {{ t('connectServices.providerSetup') }}
+          </summary>
+          <div class="mt-3 space-y-2">
+            <p v-if="missingProvider" role="alert">{{ t('connectServices.providerMissing') }}</p>
+            <p>{{ t('connectServices.callbackHelp') }}</p>
+            <code
+              v-if="state.gateway.callbackUrl"
+              class="bg-muted block rounded p-2 break-all select-all"
+              >{{ state.gateway.callbackUrl }}</code
+            >
+            <p v-else role="status">{{ t('connectServices.callbackPending') }}</p>
+          </div>
+        </details>
+        <div
+          v-if="draft.auth === 'upstream'"
+          class="border-warning/50 bg-warning/5 space-y-3 rounded-md border p-4"
+        >
+          <h5 class="font-semibold">{{ t('connectServices.safetyTitle') }}</h5>
           <p class="max-w-prose text-sm">{{ t('connectServices.networkWarning') }}</p>
           <div class="flex items-start gap-3">
             <input
@@ -359,8 +410,9 @@ function status(service: (typeof state.gateway.services)[number]) {
             }}</label>
           </div>
         </div>
-      </div>
-      <details>
+      </section>
+
+      <details class="border-border rounded-lg border p-4">
         <summary
           class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
         >
@@ -395,34 +447,55 @@ function status(service: (typeof state.gateway.services)[number]) {
           </p>
         </div>
       </details>
-      <div class="flex items-start justify-between gap-6">
-        <div class="space-y-2">
-          <p :id="`${id}-enabled`" class="font-medium">{{ t('connectServices.enable') }}</p>
-          <p :id="`${id}-auth`" class="max-w-prose text-sm">
-            {{
-              t(
-                draft.auth === 'upstream'
-                  ? 'connectServices.applicationAuth'
-                  : draft.auth === 'oidc'
-                    ? 'connectServices.providerProtected'
-                    : 'connectServices.protected'
-              )
-            }}
+      <section class="border-border space-y-4 rounded-lg border p-4 @md:p-5">
+        <div class="space-y-1">
+          <p class="text-primary text-xs font-semibold tracking-wide uppercase">
+            {{ t('connectServices.steps.publish') }}
           </p>
+          <h4 class="font-semibold">{{ t('connectServices.steps.publishTitle') }}</h4>
         </div>
-        <Switch
-          v-model="draft.enabled"
-          :disabled="saving"
-          :aria-labelledby="`${id}-enabled`"
-          :aria-describedby="`${id}-auth`"
-        />
-      </div>
-      <p class="text-muted-foreground text-sm">
-        {{
-          t(draft.auth === 'upstream' ? 'connectServices.nativeClients' : 'connectServices.browserOnly')
-        }}
-      </p>
-      <p v-if="draft.enabled" class="text-sm">{{ t('connectServices.enableNotice') }}</p>
+        <div class="flex items-start justify-between gap-6">
+          <div class="space-y-1">
+            <p :id="`${id}-enabled`" class="font-medium">{{ t('connectServices.enable') }}</p>
+            <p :id="`${id}-auth`" class="text-muted-foreground max-w-prose text-sm">
+              {{
+                t(
+                  draft.auth === 'upstream'
+                    ? 'connectServices.applicationAuth'
+                    : draft.auth === 'oidc'
+                      ? 'connectServices.providerProtected'
+                      : 'connectServices.protected'
+                )
+              }}
+            </p>
+          </div>
+          <Switch
+            v-model="draft.enabled"
+            :disabled="saving"
+            :aria-labelledby="`${id}-enabled`"
+            :aria-describedby="`${id}-auth`"
+          />
+        </div>
+        <details class="text-sm">
+          <summary
+            class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
+            {{ t('connectServices.publishDetails') }}
+          </summary>
+          <div class="text-muted-foreground mt-3 max-w-prose space-y-2">
+            <p>
+              {{
+                t(
+                  draft.auth === 'upstream'
+                    ? 'connectServices.nativeClients'
+                    : 'connectServices.browserOnly'
+                )
+              }}
+            </p>
+            <p v-if="draft.enabled">{{ t('connectServices.enableNotice') }}</p>
+          </div>
+        </details>
+      </section>
       <div class="flex flex-wrap gap-3">
         <Button
           :disabled="!canChange || stale || needsAcknowledgment || missingProvider"
