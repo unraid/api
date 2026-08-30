@@ -600,6 +600,7 @@ setInterval(()=>{},1000);
                 status: 'unknown',
                 rate_mode: 'limited',
                 rate_bytes_per_second: 500000,
+                quota_mode: 'limited',
                 bytes_used: 9745244848,
                 quota_bytes: 1000000000,
                 bytes_remaining: 0,

@@ -999,6 +999,7 @@ export function parseEntitlement(value: unknown): ConnectTunnelEntitlement | nul
             String(data.status)
         ) ||
         !['limited', 'unlimited'].includes(String(data.rate_mode)) ||
+        !['limited', 'unlimited'].includes(String(data.quota_mode)) ||
         !['rate_bytes_per_second', 'bytes_used', 'quota_bytes', 'period_start', 'period_end'].every(
             count
         ) ||
@@ -1013,6 +1014,7 @@ export function parseEntitlement(value: unknown): ConnectTunnelEntitlement | nul
         (reason !== null && reason !== 'quota_exhausted' && reason !== 'entitlement_inactive') ||
         (data.access_state === 'blocked') !== (reason !== null) ||
         (data.rate_mode === 'limited') !== Number(data.rate_bytes_per_second) > 0 ||
+        (data.quota_mode === 'limited') !== quota > 0 ||
         Number(data.period_end) <= Number(data.period_start) ||
         data.bytes_remaining !== (quota === 0 ? null : Math.max(0, quota - used))
     )
