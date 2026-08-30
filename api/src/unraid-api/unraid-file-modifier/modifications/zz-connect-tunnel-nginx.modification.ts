@@ -15,6 +15,9 @@ export default class ConnectTunnelNginxModification extends ConnectCertificatePr
             `${anchor}
       # Add only the opted-in, certificate-covered Connect hostnames.
       local CONNECT_TUNNEL_CONFIG="/boot/config/plugins/dynamix.my.servers/configs/connect.json"
+      if [[ -e /boot/config/preview/enabled ]]; then
+        CONNECT_TUNNEL_CONFIG="/boot/config/preview/plugins/dynamix.my.servers/configs/connect.json"
+      fi
       local CONNECT_TUNNEL_HOST
       while IFS= read -r CONNECT_TUNNEL_HOST; do
         if [[ $CONNECT_TUNNEL_HOST =~ ^(tun|srv)-[a-f0-9]{32}\\.[a-z0-9-]+\\.(preview\\.)?myunraid\\.net$ && \${CONNECT_TUNNEL_HOST#*.} == \${CERTNAME#*.} ]]; then

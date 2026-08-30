@@ -2,7 +2,7 @@ Index: /etc/rc.d/rc.nginx
 ===================================================================
 --- /etc/rc.d/rc.nginx	original
 +++ /etc/rc.d/rc.nginx	modified
-@@ -26,11 +26,12 @@
+@@ -26,11 +26,15 @@
  SERVERS="/etc/nginx/conf.d/servers.conf"
  LOCATIONS="/etc/nginx/conf.d/locations.conf"
  INI="/var/local/emhttp/nginx.ini.new"
@@ -10,13 +10,16 @@ Index: /etc/rc.d/rc.nginx
  TSCERTPATH="$SSL/certs/ts_bundle.pem"
 -MYSERVERS="/boot/config/plugins/dynamix.my.servers/myservers.cfg"
 +CONNECT_CONFIG="/boot/config/plugins/dynamix.my.servers/configs/connect.json"
++if [[ -e /boot/config/preview/enabled ]]; then
++  CONNECT_CONFIG="/boot/config/preview/plugins/dynamix.my.servers/configs/connect.json"
++fi
 +API_UTILS="/usr/local/share/dynamix.unraid.net/scripts/api_utils.sh"
  DEFAULTS="/etc/default/nginx"
  SYSTEM="/sys/class/net"
  SYSLOG="/var/log/syslog"
  
  # Load defaults
-@@ -73,10 +74,27 @@
+@@ -73,10 +77,27 @@
  
  fqdn(){
    echo ${CERTNAME/'*'/${1//[.:]/-}}
@@ -44,7 +47,7 @@ Index: /etc/rc.d/rc.nginx
    T='    '
    if check && [[ $1 == lo ]]; then
      if [[ $IPV4 == yes ]]; then
-@@ -566,11 +584,11 @@
+@@ -566,11 +587,11 @@
      # extract common name from cert
      CERTNAME=$(openssl x509 -noout -subject -nameopt multiline -in $CERTPATH | sed -n 's/ *commonName *= //p')
      # define CSP frame-ancestors for cert
@@ -57,7 +60,7 @@ Index: /etc/rc.d/rc.nginx
        WANIP6=$(curl https://wanip6.unraid.net/ 2>/dev/null)
      fi
      if [[ $CERTNAME == *\.myunraid\.net ]]; then
-@@ -660,14 +678,14 @@
+@@ -660,14 +681,14 @@
    echo "NGINX_WANFQDN=\"$WANFQDN\"" >>$INI
    echo "NGINX_WANFQDN6=\"$WANFQDN6\"" >>$INI
    # defined if ts_bundle.pem present:

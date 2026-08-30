@@ -29,6 +29,9 @@ INI="/var/local/emhttp/nginx.ini.new"
 CERTPATH="$SSL/certs/certificate_bundle.pem"
 TSCERTPATH="$SSL/certs/ts_bundle.pem"
 CONNECT_CONFIG="/boot/config/plugins/dynamix.my.servers/configs/connect.json"
+if [[ -e /boot/config/preview/enabled ]]; then
+  CONNECT_CONFIG="/boot/config/preview/plugins/dynamix.my.servers/configs/connect.json"
+fi
 API_UTILS="/usr/local/share/dynamix.unraid.net/scripts/api_utils.sh"
 DEFAULTS="/etc/default/nginx"
 SYSTEM="/sys/class/net"

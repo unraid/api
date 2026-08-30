@@ -7,12 +7,19 @@ require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
  */
 class ConnectConfig
 {
-    public const CONFIG_PATH = ApiConfig::CONFIG_DIR . '/connect.json';
+    public static function configPath()
+    {
+        if (file_exists('/boot/config/preview/enabled')) {
+            return '/boot/config/preview/plugins/dynamix.my.servers/configs/connect.json';
+        }
+
+        return ApiConfig::CONFIG_DIR . '/connect.json';
+    }
 
     public static function getConfig()
     {
         try {
-            return json_decode(file_get_contents(self::CONFIG_PATH), true) ?? [];
+            return json_decode(file_get_contents(self::configPath()), true) ?? [];
         } catch (Throwable $e) {
             return [];
         }

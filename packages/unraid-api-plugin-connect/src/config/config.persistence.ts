@@ -36,6 +36,10 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
         return 'connect.config';
     }
 
+    override configPath(): string {
+        return this.configService.get<string>('CONNECT_CONFIG_PATH') ?? super.configPath();
+    }
+
     /**
      * @override
      * @returns The default config object.
@@ -64,10 +68,7 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
     private hasCertificate(): boolean {
         try {
             const certificate = new X509Certificate(
-                readFileSync(
-                    this.configService.get<string>('CONNECT_CERT_BUNDLE_PATH') ??
-                        '/boot/config/ssl/certs/certificate_bundle.pem'
-                )
+                readFileSync(this.configService.getOrThrow<string>('CONNECT_CERT_BUNDLE_PATH'))
             );
             return /(?:DNS:|CN=)(?:\*\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.myunraid\.net(?:,|\n|$)/i.test(
                 `${certificate.subjectAltName ?? ''}\n${certificate.subject}`
@@ -94,7 +95,8 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
         const config = existsSync(this.configPath())
             ? await this.validate(JSON.parse(await readFile(this.configPath(), 'utf8')))
             : existsSync(
-                    this.configService.get<string>('PATHS_MY_SERVERS_CONFIG') ??
+                    this.configService.get<string>('CONNECT_LEGACY_PATH') ??
+                        this.configService.get<string>('PATHS_MY_SERVERS_CONFIG') ??
                         '/boot/config/plugins/dynamix.my.servers/myservers.cfg'
                 )
               ? await this.migrateConfig()
@@ -178,8 +180,11 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
      */
     private async readLegacyConfig(filePath?: string) {
         filePath ??= this.configService.get(
-            'PATHS_MY_SERVERS_CONFIG',
-            '/boot/config/plugins/dynamix.my.servers/myservers.cfg'
+            'CONNECT_LEGACY_PATH',
+            this.configService.get(
+                'PATHS_MY_SERVERS_CONFIG',
+                '/boot/config/plugins/dynamix.my.servers/myservers.cfg'
+            )
         );
         if (!filePath) {
             throw new Error('No legacy config file path provided');

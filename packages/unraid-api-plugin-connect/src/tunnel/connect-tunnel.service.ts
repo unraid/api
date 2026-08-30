@@ -5,7 +5,7 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { createHmac, randomBytes, X509Certificate } from 'node:crypto';
 import { readFile, rm } from 'node:fs/promises';
 import { uptime } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 import type { CanonicalInternalClientService } from '@unraid/shared';
 import type { NginxService } from '@unraid/shared/services/nginx.js';
@@ -195,7 +195,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
     get statePath(): string {
         return (
             this.config.get<string>('CONNECT_STATE_PATH') ??
-            join(this.config.getOrThrow<string>('PATHS_CONFIG_MODULES'), 'server-state-v1.json')
+            join(dirname(this.persistence.configPath()), 'server-state-v1.json')
         );
     }
     private async workloadStates(): Promise<WorkloadStates> {
@@ -532,10 +532,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
     }
 
     private bundlePath() {
-        return (
-            this.config.get<string>('CONNECT_CERT_BUNDLE_PATH') ??
-            '/boot/config/ssl/certs/certificate_bundle.pem'
-        );
+        return this.config.getOrThrow<string>('CONNECT_CERT_BUNDLE_PATH');
     }
     private async assertHttps(): Promise<void> {
         if (!this.config.get('store.emhttp.nginx.sslEnabled')) {
@@ -553,7 +550,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
         }
     }
     async processEnvironment(): Promise<NodeJS.ProcessEnv | null> {
-        const configDirectory = this.config.getOrThrow<string>('PATHS_CONFIG_MODULES');
+        const configDirectory = dirname(this.persistence.configPath());
         await Promise.all(
             ['connect-gateway-v2.json', 'connect-gateway-v3.json'].map((name) =>
                 rm(join(configDirectory, name), { force: true })
@@ -649,7 +646,8 @@ export class ConnectTunnelService implements OnModuleDestroy {
             ...(gatewayPath
                 ? {
                       OIDC_CONFIG_PATH:
-                          process.env.PATHS_OIDC_JSON ?? join(configDirectory, 'oidc.json'),
+                          process.env.PATHS_OIDC_JSON ??
+                          join(this.config.getOrThrow<string>('PATHS_CONFIG_MODULES'), 'oidc.json'),
                   }
                 : {}),
             ...(sharing ? { STATE_FILE: this.statePath } : {}),

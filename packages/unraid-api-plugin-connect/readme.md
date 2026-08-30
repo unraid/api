@@ -54,11 +54,13 @@ It does not claim that remote data was deleted.
 
 ## Runtime configuration
 
-Set `CONNECT_CONTROL_PLANE_URL` to the intended HTTPS origin before enabling a feature.
-There is no implicit production endpoint. `CONNECT_PRESENCE_EVENT_PUBLIC_KEYS` supplies
-the Go binary's JSON public-key ring for entitlement events. Account credentials come
-from the existing Connect sign-in flow and are passed only in the child environment.
-No account key is placed in command arguments, the overview file, or settings output.
+The API uses the production Connect environment by default. `UNRAID_PREVIEW=1`,
+`UNRAID_PREVIEW=true`, `UNRAID_PREVIEW=yes`, or a `/boot/config/preview/enabled` marker
+selects the preview control plane and isolated Connect state. Explicit path and endpoint
+settings still take precedence. `CONNECT_PRESENCE_EVENT_PUBLIC_KEYS` supplies the Go
+binary's JSON public-key ring for entitlement events. Account credentials come from the
+existing Connect sign-in flow and are passed only in the child environment. No account
+key is placed in command arguments, the overview file, or settings output.
 
 Default runtime paths are:
 
@@ -69,8 +71,12 @@ Default runtime paths are:
 | Overview file      | `/boot/config/plugins/dynamix.my.servers/configs/server-state-v1.json` |
 
 For isolated local testing, the API accepts `CONNECT_CONNECTOR_PATH`,
-`CONNECT_CERT_BUNDLE_PATH`, `CONNECT_STATE_PATH`, and `CONNECT_CERT_PROVISIONER_PATH`.
-The API refreshes nginx when the shared connector reports that it installed a certificate.
+`UNRAID_CONNECT_CONFIG_PATH`, `UNRAID_CONNECT_LEGACY_PATH`,
+`CONNECT_CERT_BUNDLE_PATH`, `CONNECT_STATE_PATH`, `UNRAID_CONTROL_PLANE_URL`, and
+`CONNECT_CERT_PROVISIONER_PATH`. Preview mode puts the Connect files under
+`/boot/config/preview` but continues to read the server-owned `oidc.json` from the normal
+API configuration directory. The API refreshes nginx when the shared connector reports
+that it installed a certificate.
 
 The executable contains a root-only local multiplexer. Core and the Node API can
 both attach to the same connector runtime, send commands, and receive the same

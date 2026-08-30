@@ -18,6 +18,7 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
 require_once "$docroot/plugins/dynamix.plugin.manager/include/UnraidCheck.php";
 require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
+require_once "$docroot/plugins/dynamix.my.servers/include/connect-config.php";
 /**
  * ServerState class encapsulates server-related information and settings.
  *
@@ -176,7 +177,7 @@ class ServerState
          */
         $flashCfgPath = '/boot/config/plugins/dynamix.my.servers/myservers.cfg';
         $this->myServersFlashCfg = file_exists($flashCfgPath) ? @parse_ini_file($flashCfgPath, true) : [];
-        $connectJsonPath = '/boot/config/plugins/dynamix.my.servers/configs/connect.json';
+        $connectJsonPath = ConnectConfig::configPath();
         $connectConfig = file_exists($connectJsonPath) ? @json_decode(file_get_contents($connectJsonPath), true) : [];
 
         // ensure some vars are defined here so we don't have to test them later

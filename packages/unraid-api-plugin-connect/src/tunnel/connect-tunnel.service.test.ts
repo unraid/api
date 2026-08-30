@@ -406,6 +406,19 @@ describe('native connector host integration', () => {
             expect(() => validateGatewayServices([invalid as ConnectGatewayService])).toThrow();
         }
     });
+    it('isolates gateway state but keeps the server-owned OIDC configuration', async () => {
+        const connectPath = join(directory, 'preview', 'connect.json');
+        config.set('CONNECT_CONFIG_PATH', connectPath);
+        config.set('CONNECT_GATEWAY_ENABLED', 'true');
+        await tunnel.update({ certificateManagementEnabled: true, tunnelRemoteAccessEnabled: true });
+        await tunnel.updateGatewayServices({
+            expectedRevision: 0,
+            services: [{ ...appService, auth: 'oidc', providerId: 'configured', subjects: [] }],
+        });
+        const env = await tunnel.processEnvironment();
+        expect(env?.GATEWAY_CONFIG).toBe(join(directory, 'preview', 'connect-gateway-v1.json'));
+        expect(env?.OIDC_CONFIG_PATH).toBe(join(directory, 'oidc.json'));
+    });
     it('stops and rebuilds delegated auth after provider settings persist', async () => {
         config.set('CONNECT_GATEWAY_ENABLED', 'true');
         await tunnel.update({ certificateManagementEnabled: true, tunnelRemoteAccessEnabled: true });

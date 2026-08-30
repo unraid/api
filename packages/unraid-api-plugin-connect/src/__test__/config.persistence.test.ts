@@ -83,6 +83,20 @@ describe('Connect configuration persistence', () => {
         expect(config.get('connect.config')).toEqual(JSON.parse(file));
         await expect(stat(`${persister.configPath()}.tmp`)).rejects.toThrow();
     });
+    it('uses an isolated Connect path without moving other API configuration', async () => {
+        const connectPath = join(directory, 'preview', 'connect.json');
+        const isolatedConfig = new ConfigService({
+            PATHS_CONFIG_MODULES: directory,
+            CONNECT_CONFIG_PATH: connectPath,
+            CONNECT_CERT_BUNDLE_PATH: join(directory, 'bundle.pem'),
+        });
+        const isolatedPersister = new ConnectConfigPersister(isolatedConfig);
+        await isolatedPersister.save(await isolatedPersister.validate({ apikey: 'preview-key' }));
+        expect(isolatedPersister.configPath()).toBe(connectPath);
+        expect(JSON.parse(await readFile(connectPath, 'utf8'))).toMatchObject({
+            apikey: 'preview-key',
+        });
+    });
     it('loads saved opt-outs without reviving legacy credentials or resetting damaged config', async () => {
         makeCertificate(directory);
         await writeFile(

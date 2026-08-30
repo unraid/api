@@ -36,6 +36,9 @@ export default class RcNginxModification extends FileModification {
         let newContent = fileContent.replace(
             'MYSERVERS="/boot/config/plugins/dynamix.my.servers/myservers.cfg"',
             `CONNECT_CONFIG="/boot/config/plugins/dynamix.my.servers/configs/connect.json"
+if [[ -e /boot/config/preview/enabled ]]; then
+  CONNECT_CONFIG="/boot/config/preview/plugins/dynamix.my.servers/configs/connect.json"
+fi
 API_UTILS="/usr/local/share/dynamix.unraid.net/scripts/api_utils.sh"`
         );
 

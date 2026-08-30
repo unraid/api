@@ -2,7 +2,7 @@
 // Non-function exports from this module are loaded into the NestJS Config at runtime.
 
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { PackageJson, SetRequired } from 'type-fest';
@@ -101,6 +101,51 @@ export const PATHS_LOGS_FILE = process.env.PATHS_LOGS_FILE ?? '/var/log/graphql-
 
 export const PATHS_CONFIG_MODULES =
     process.env.PATHS_CONFIG_MODULES ?? '/boot/config/plugins/dynamix.my.servers/configs';
+
+export function resolveConnectEnvironment(
+    env: NodeJS.ProcessEnv,
+    preview: boolean,
+    configModulesPath: string
+) {
+    const previewBase = '/boot/config/preview/plugins/dynamix.my.servers';
+    const productionBase = '/boot/config/plugins/dynamix.my.servers';
+    const configPath =
+        env.UNRAID_CONNECT_CONFIG_PATH ??
+        env.CONNECT_CONFIG_PATH ??
+        join(preview ? join(previewBase, 'configs') : configModulesPath, 'connect.json');
+
+    return {
+        CONNECT_CONFIG_PATH: configPath,
+        CONNECT_LEGACY_PATH:
+            env.UNRAID_CONNECT_LEGACY_PATH ??
+            env.CONNECT_LEGACY_PATH ??
+            (preview
+                ? join(previewBase, 'myservers.cfg')
+                : (env.PATHS_MY_SERVERS_CONFIG ?? join(productionBase, 'myservers.cfg'))),
+        CONNECT_CERT_BUNDLE_PATH:
+            env.CONNECT_CERT_BUNDLE_PATH ??
+            (preview
+                ? '/boot/config/preview/ssl/certs/certificate_bundle.pem'
+                : '/boot/config/ssl/certs/certificate_bundle.pem'),
+        CONNECT_STATE_PATH: env.CONNECT_STATE_PATH ?? join(dirname(configPath), 'server-state-v1.json'),
+        CONNECT_CONTROL_PLANE_URL:
+            env.UNRAID_CONTROL_PLANE_URL ??
+            env.CONNECT_CONTROL_PLANE_URL ??
+            (preview ? 'https://preview.nexus.unraid.net' : 'https://nexus.unraid.net'),
+    };
+}
+
+export const UNRAID_PREVIEW =
+    ['1', 'true', 'yes'].includes(process.env.UNRAID_PREVIEW ?? '') ||
+    fileExistsSync('/boot/config/preview/enabled');
+
+export const {
+    CONNECT_CONFIG_PATH,
+    CONNECT_LEGACY_PATH,
+    CONNECT_CERT_BUNDLE_PATH,
+    CONNECT_STATE_PATH,
+    CONNECT_CONTROL_PLANE_URL,
+} = resolveConnectEnvironment(process.env, UNRAID_PREVIEW, PATHS_CONFIG_MODULES);
 
 export const PATHS_LOCAL_SESSION_FILE =
     process.env.PATHS_LOCAL_SESSION_FILE ?? '/var/run/unraid-api/local-session';
