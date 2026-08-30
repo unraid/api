@@ -2,16 +2,6 @@
   "version": 1,
   "issuer": "https://account.unraid.net",
   "clientId": "CONNECT_SERVER_SSO",
-  "authorizationRuleMode": "and",
-  "authorizationRules": [
-    {
-      "claim": "groups",
-      "operator": "contains",
-      "value": [
-        "server-viewers"
-      ]
-    }
-  ],
   "oidcCallbackOrigin": "https://tun-parent.example.myunraid.net",
   "services": [
     {
