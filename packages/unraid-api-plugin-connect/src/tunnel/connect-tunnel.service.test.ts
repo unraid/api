@@ -435,6 +435,7 @@ describe('native connector host integration', () => {
     });
     it('defaults legacy settings to Account and rejects unknown or null authentication', async () => {
         expect(validateGatewayServices([appService])[0].auth).toBe('account');
+        expect(validateGatewayServices([{ ...appService, auth: 'unraid' }])[0].auth).toBe('account');
         expect(
             (await persister.validate({ gatewayServices: [appService] })).gatewayServices[0].auth
         ).toBe('account');

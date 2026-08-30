@@ -37,8 +37,8 @@ export class ConnectGatewayService {
     @IsBoolean()
     enabled = false;
     @Field(() => String, { defaultValue: 'account' })
-    @IsIn(['account', 'upstream', 'oidc'])
-    auth?: 'account' | 'upstream' | 'oidc' = 'account';
+    @IsIn(['account', 'unraid', 'upstream', 'oidc'])
+    auth?: 'account' | 'unraid' | 'upstream' | 'oidc' = 'account';
     @Field(() => String, { defaultValue: '' })
     @IsString()
     @MaxLength(128)
@@ -95,9 +95,17 @@ export function validateGatewayServices(services: ConnectGatewayService[]): Conn
             typeof service.enabled !== 'boolean'
         )
             throw new Error('A service needs a name and an enabled state');
-        const auth = service.auth === undefined ? 'account' : service.auth;
-        if (auth !== 'account' && auth !== 'upstream' && auth !== 'oidc')
+        const requestedAuth = service.auth === undefined ? 'account' : service.auth;
+        if (
+            requestedAuth !== 'account' &&
+            requestedAuth !== 'unraid' &&
+            requestedAuth !== 'upstream' &&
+            requestedAuth !== 'oidc'
+        )
             throw new Error('Invalid authentication mode');
+        // Core persists its first-party issuer mode as "unraid". Legacy API
+        // releases use the Unraid Account issuer for the equivalent route.
+        const auth = requestedAuth === 'unraid' ? 'account' : requestedAuth;
         const providerId = service.providerId === undefined ? '' : service.providerId;
         const subjects = service.subjects === undefined ? [] : service.subjects;
         if (
