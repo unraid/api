@@ -353,7 +353,7 @@ describe('native connector host integration', () => {
             services: [
                 {
                     purpose: 'webgui',
-                    upstream: 'https://192.168.1.2:443',
+                    upstream: 'https://127.0.0.1:443',
                     tlsServerName: '192-168-1-2.example.myunraid.net',
                     auth: 'upstream',
                 },
@@ -625,6 +625,7 @@ setInterval(()=>{},1000);
             await setFeatures({ certificateManagementEnabled: true });
             await tunnel.start();
             await vi.waitFor(() => expect(tunnel.status().certificate).toBe('installed'));
+            expect(nginx.reload).toHaveBeenCalledOnce();
             const cloud = new CloudService(tunnel);
             const resolver = new CloudResolver(
                 cloud,
@@ -882,6 +883,7 @@ emit({event:'cert_migration_result', request_id:request.request_id, outcome:'fai
             TARGET_ADDR: '127.0.0.1:1',
             STATE_FILE: tunnel.statePath,
         });
+        expect(await tunnel.processEnvironment()).not.toHaveProperty('RELOAD_CMD');
         await vi.waitFor(() => expect(tunnel.status().presence).toBe('connected'));
         expect(await settings.getAllValues()).not.toHaveProperty('connect');
         expect(JSON.stringify(await page.connectTunnelSettings())).not.toContain('test-key');
@@ -924,7 +926,7 @@ emit({event:'cert_migration_result', request_id:request.request_id, outcome:'fai
             );
             expect(nginx.reload).toHaveBeenCalledOnce();
             expect(await tunnel.processEnvironment()).toMatchObject({
-                TARGET_ADDR: '192.168.1.2:443',
+                TARGET_ADDR: '127.0.0.1:443',
                 CERT_ENABLED: 'true',
             });
             await tunnel.update({ tunnelRemoteAccessEnabled: false });
@@ -940,7 +942,7 @@ emit({event:'cert_migration_result', request_id:request.request_id, outcome:'fai
         config.set('store.emhttp.nginx.sslMode', 'yes');
         await tunnel.update({ certificateManagementEnabled: true, tunnelRemoteAccessEnabled: true });
         expect(await tunnel.processEnvironment()).toMatchObject({
-            TARGET_ADDR: '192.168.1.2:443',
+            TARGET_ADDR: '127.0.0.1:443',
             CERT_ENABLED: 'true',
         });
     });
@@ -962,7 +964,7 @@ emit({event:'cert_migration_result', request_id:request.request_id, outcome:'fai
         });
         expect(await tunnel.processEnvironment()).toMatchObject({
             CERT_ENABLED: 'true',
-            TARGET_ADDR: '192.168.1.2:443',
+            TARGET_ADDR: '127.0.0.1:443',
         });
     });
     it('refuses certificate ownership until the legacy writer patch is installed', async () => {

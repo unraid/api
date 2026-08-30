@@ -3,8 +3,8 @@ import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
 export async function validateConnectConnector(sourceRoot: string): Promise<void> {
-    const directory = join(sourceRoot, 'dynamix.unraid.net/usr/local/libexec/unraid-connect');
-    const path = join(directory, 'presence-connector');
+    const directory = join(sourceRoot, 'dynamix.unraid.net/usr/local/bin');
+    const path = join(directory, 'unraid-connect-connector');
     const manifest = JSON.parse(await readFile(`${path}.json`, 'utf8'));
     const binary = await readFile(path);
     if (

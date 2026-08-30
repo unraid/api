@@ -3,8 +3,8 @@ set -euo pipefail
 
 source_repo="${1:?Usage: vendor-connect-connector.sh /path/to/local/connect-tunnel}"
 plugin_dir="$(cd "$(dirname "$0")/.." && pwd)"
-destination="$plugin_dir/source/dynamix.unraid.net/usr/local/libexec/unraid-connect"
-manifest="$destination/presence-connector.json"
+destination="$plugin_dir/source/dynamix.unraid.net/usr/local/bin"
+manifest="$destination/unraid-connect-connector.json"
 revision="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["revision"])' "$manifest")"
 toolchain="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["go"])' "$manifest")"
 
@@ -46,4 +46,4 @@ for path in sys.argv[2:]:
     if hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest() != expected:
         raise SystemExit("OIDC configuration contract differs from the pinned connector contract")
 PYCONTRACT
-install -m 755 "$output/presence-connector" "$destination/presence-connector"
+install -m 755 "$output/presence-connector" "$destination/unraid-connect-connector"

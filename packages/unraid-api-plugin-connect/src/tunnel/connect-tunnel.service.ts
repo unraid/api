@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { createHmac, randomBytes, X509Certificate } from 'node:crypto';
 import { readFile, rm } from 'node:fs/promises';
-import { isIP } from 'node:net';
 import { uptime } from 'node:os';
 import { join } from 'node:path';
 
@@ -574,9 +573,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
             const port = this.config.get<number>('store.emhttp.nginx.httpsPort');
             if (!Number.isInteger(port) || !port || port < 1 || port > 65535)
                 throw new Error('HTTPS port unavailable');
-            const address = this.config.get<string>('store.emhttp.nginx.lanIp');
-            if (!address || !isIP(address)) throw new Error('Local HTTPS address unavailable');
-            target = `${isIP(address) === 6 ? `[${address}]` : address}:${port}`;
+            target = `127.0.0.1:${port}`;
         }
         let gatewayPath: string | undefined;
         if (
@@ -646,7 +643,6 @@ export class ConnectTunnelService implements OnModuleDestroy {
             CERT_ONLY: String(certificateOnly),
             CERT_ENABLED: String(cert),
             BUNDLE_PATH: this.bundlePath(),
-            RELOAD_CMD: '/etc/rc.d/rc.nginx reload',
             IDLE_TIMEOUT: '90s',
             ...(certificateOnly ? {} : { TARGET_ADDR: target }),
             ...(gatewayPath ? { GATEWAY_CONFIG: gatewayPath } : {}),
@@ -744,7 +740,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
         }
         const executable =
             this.config.get<string>('CONNECT_CONNECTOR_PATH') ??
-            '/usr/local/libexec/unraid-connect/presence-connector';
+            '/usr/local/bin/unraid-connect-connector';
         const child = execa(executable, [], {
             env,
             extendEnv: false,
@@ -926,9 +922,12 @@ export class ConnectTunnelService implements OnModuleDestroy {
         } else if (
             typeof event === 'string' &&
             /^cert_(checking|provisioning|retrying|refused|valid|installed)$/.test(event)
-        )
+        ) {
             this.current.certificate = event.slice(5);
-        else if (
+            if (event === 'cert_installed') {
+                void this.nginx.reload().catch(() => this.logger.warn('Connect HTTPS refresh failed'));
+            }
+        } else if (
             typeof event === 'string' &&
             /^(connected|disconnected|tunnel_connecting|tunnel_retrying|tunnel_blocked|tunnel_down|tunnel_idle)$/.test(
                 event

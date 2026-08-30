@@ -64,13 +64,19 @@ Default runtime paths are:
 
 | Purpose            | Path                                                                   |
 | ------------------ | ---------------------------------------------------------------------- |
-| Executable         | `/usr/local/libexec/unraid-connect/presence-connector`                 |
+| Executable         | `/usr/local/bin/unraid-connect-connector`                              |
 | Certificate bundle | `/boot/config/ssl/certs/certificate_bundle.pem`                        |
 | Overview file      | `/boot/config/plugins/dynamix.my.servers/configs/server-state-v1.json` |
 
 For isolated local testing, the API accepts `CONNECT_CONNECTOR_PATH`,
 `CONNECT_CERT_BUNDLE_PATH`, `CONNECT_STATE_PATH`, and `CONNECT_CERT_PROVISIONER_PATH`.
-The certificate reload command is fixed to `/etc/rc.d/rc.nginx reload`.
+The API refreshes nginx when the shared connector reports that it installed a certificate.
+
+The executable contains a root-only local multiplexer. Core and the Node API can
+both attach to the same connector runtime, send commands, and receive the same
+status stream without opening duplicate tunnels. Core's local Unraid OIDC policy
+is authoritative while Core is attached; the multiplexer retains this API's
+Account policy as the legacy fallback and restores it if Core disconnects.
 
 ## Installation patches
 
