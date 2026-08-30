@@ -31,6 +31,7 @@ vi.mock('~/components/Auth.standalone.vue', () => ({
 type State = ConnectTunnelPageQuery['connectTunnelSettings'];
 const state = (): State => ({
   gateway: { revision: 0, available: true, pending: false, services: [] },
+  previewMode: false,
   signedIn: true,
   certificateManagementEnabled: true,
   tunnelRemoteAccessEnabled: false,
@@ -324,6 +325,20 @@ describe('Connect page save handler', () => {
     ]);
     const remoteHeading = wrapper.findAll('h2').find((heading) => heading.text() === 'Remote access')!;
     expect(remoteHeading.element.closest('section')?.textContent).toContain('Services');
+  });
+
+  it('shows the preview environment disclaimer only in preview mode', async () => {
+    const { wrapper, result } = renderPage();
+    expect(wrapper.text()).not.toContain('Preview mode:');
+
+    result.value = {
+      connectTunnelSettings: { ...state(), previewMode: true },
+    };
+    await flushPromises();
+
+    expect(wrapper.get('[role="status"]').text()).toContain(
+      'Preview mode: licensing, Unraid Connect, and certificates use the preview environment, not production.'
+    );
   });
 
   it('keeps a gateway loader visible until the restarted connector reports ready or idle', async () => {

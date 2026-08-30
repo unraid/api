@@ -7,6 +7,7 @@ export const connectTunnelPageQuery = graphql(/* GraphQL */ `
       name
     }
     connectTunnelSettings {
+      previewMode
       signedIn
       certificateManagementEnabled
       tunnelRemoteAccessEnabled

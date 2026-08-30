@@ -3789,6 +3789,7 @@ type ConnectTunnelStatus {
 
 type ConnectTunnelSettings {
   gateway: ConnectGatewaySettings!
+  previewMode: Boolean!
   signedIn: Boolean!
   certificateManagementEnabled: Boolean!
   tunnelRemoteAccessEnabled: Boolean!

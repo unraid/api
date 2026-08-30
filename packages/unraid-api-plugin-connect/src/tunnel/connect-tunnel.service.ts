@@ -98,6 +98,9 @@ export class ConnectTunnelService implements OnModuleDestroy {
     settings(): MyServersConfig {
         return this.persistence.getConfig();
     }
+    previewMode(): boolean {
+        return this.config.get<boolean>('UNRAID_PREVIEW', false);
+    }
     status() {
         return { ...this.current };
     }

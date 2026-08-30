@@ -107,6 +107,9 @@ export class ConnectTunnelSettings {
     gateway!: ConnectGatewaySettings;
 
     @Field(() => Boolean)
+    previewMode!: boolean;
+
+    @Field(() => Boolean)
     signedIn!: boolean;
 
     @Field(() => Boolean)

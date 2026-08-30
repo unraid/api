@@ -147,6 +147,14 @@ async function migrate(confirmationToken: string) {
         </a>
       </div>
     </header>
+    <UAlert
+      v-if="state?.previewMode"
+      color="warning"
+      variant="subtle"
+      icon="i-lucide-flask-conical"
+      :description="t('connectTunnel.previewMode')"
+      role="status"
+    />
     <section
       class="border-border bg-muted/10 flex items-start gap-4 rounded-xl border p-5"
       :aria-labelledby="accountHeadingId"

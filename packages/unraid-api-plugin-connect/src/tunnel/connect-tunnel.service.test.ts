@@ -183,6 +183,7 @@ describe('native connector host integration', () => {
             'Certificate provisioning and renewal are owned by the installed Connect plugin.'
         );
         config = new ConfigService({
+            UNRAID_PREVIEW: true,
             PATHS_CONFIG_MODULES: directory,
             CONNECT_CONTROL_PLANE_URL: `http://127.0.0.1:${address.port}`,
             CONNECT_CONNECTOR_PATH: executable,
@@ -900,6 +901,7 @@ emit({event:'cert_migration_result', request_id:request.request_id, outcome:'fai
         await vi.waitFor(() => expect(tunnel.status().presence).toBe('connected'));
         expect(await settings.getAllValues()).not.toHaveProperty('connect');
         expect(JSON.stringify(await page.connectTunnelSettings())).not.toContain('test-key');
+        expect((await page.connectTunnelSettings()).previewMode).toBe(true);
         expect((await page.connectTunnelSettings()).overview).toHaveProperty(
             'info.os.hostname',
             'Tower'

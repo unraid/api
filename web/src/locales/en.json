@@ -994,6 +994,7 @@
   "wanIpCheck.unableToFetchClientWanIpv4": "Unable to fetch client WAN IPv4",
   "connectTunnel.title": "Unraid Connect",
   "connectTunnel.description": "Manage secure remote access, your myunraid.net certificate, and the server data you share.",
+  "connectTunnel.previewMode": "Preview mode: licensing, Unraid Connect, and certificates use the preview environment, not production.",
   "connectTunnel.apiSettings": "API settings, manual forwarding, and UPnP",
   "connectTunnel.loading": "Loading Connect settings…",
   "connectTunnel.loadFailed": "Connect settings could not be loaded. Retry to reconnect.",

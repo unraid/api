@@ -21,6 +21,7 @@ export class ConnectTunnelSettingsResolver {
         const config = this.tunnel.settings();
         return {
             gateway: this.tunnel.gatewaySettings(),
+            previewMode: this.tunnel.previewMode(),
             signedIn: Boolean(config.apikey),
             certificateManagementEnabled: config.certificateManagementEnabled,
             tunnelRemoteAccessEnabled: config.tunnelRemoteAccessEnabled,
