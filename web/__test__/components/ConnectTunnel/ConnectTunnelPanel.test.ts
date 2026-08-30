@@ -641,6 +641,18 @@ describe('service editor', () => {
     expect(wrapper.text()).toContain('Application controls access');
     expect(wrapper.text()).not.toContain('Account sign-in required');
   });
+  it('keeps confirmed services available while the on-demand tunnel is initially idle', () => {
+    const value = state();
+    value.tunnelRemoteAccessEnabled = true;
+    value.gateway.services = [app];
+    value.status.gateway = 'ready';
+    value.status.routeState = 'ready';
+    value.status.tunnel = 'idle';
+    const wrapper = services(value);
+    expect(wrapper.text()).toContain('Account sign-in required');
+    expect(wrapper.text()).not.toContain('Gateway unavailable');
+    expect(wrapper.get('a').attributes('href')).toBe(app.url);
+  });
   it('preserves drafts during polling but blocks a stale revision', async () => {
     const wrapper = services();
     await action(wrapper, 'Add service').trigger('click');

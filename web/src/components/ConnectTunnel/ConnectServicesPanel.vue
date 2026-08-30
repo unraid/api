@@ -217,7 +217,7 @@ const ready = computed(
     state.tunnelRemoteAccessEnabled &&
     state.status.gateway === 'ready' &&
     state.status.routeState === 'ready' &&
-    ['connected', 'tunnel_idle'].includes(state.status.tunnel)
+    ['idle', 'connected', 'tunnel_idle'].includes(state.status.tunnel)
 );
 const blocked = computed(() => saving || unavailable || !state.signedIn);
 const stale = computed(() => draft.value !== null && editingRevision.value !== state.gateway.revision);
