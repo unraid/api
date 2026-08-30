@@ -25,10 +25,73 @@ import { UrlResolverService } from '../network/url-resolver.service.js';
 import { RemoteAccessService } from '../remote-access/remote-access.service.js';
 import { ConnectSettingsService } from '../unraid-connect/connect-settings.service.js';
 import { ConnectTunnelSettingsResolver } from './connect-tunnel-settings.resolver.js';
-import { ConnectTunnelService } from './connect-tunnel.service.js';
+import { ConnectTunnelService, parseEntitlement } from './connect-tunnel.service.js';
 import { ConnectGatewayService, validateGatewayServices } from './gateway-settings.js';
 
 const hostname = `tun-${'a'.repeat(32)}.example.myunraid.net`;
+
+const validEntitlement = (overrides: Record<string, unknown> = {}) => ({
+    schema_version: 1,
+    tier: 'starter',
+    access_state: 'available',
+    reason: null,
+    status: 'active',
+    rate_mode: 'limited',
+    rate_bytes_per_second: 500000,
+    quota_mode: 'limited',
+    bytes_used: 125,
+    quota_bytes: 1000,
+    bytes_remaining: 875,
+    policy_revision: 1,
+    period_start: 1785542400,
+    period_end: 1788220800,
+    usage_updated_at: 1787523507131,
+    ...overrides,
+});
+
+describe('parseEntitlement', () => {
+    it.each([
+        validEntitlement({ status: 'inactive' }),
+        validEntitlement({ access_state: 'unknown' }),
+        validEntitlement({ access_state: 'blocked', reason: 'entitlement_inactive' }),
+        validEntitlement({
+            bytes_used: 1000,
+            bytes_remaining: 0,
+            access_state: 'available',
+            reason: null,
+        }),
+        validEntitlement({ tier: '' }),
+        validEntitlement({ policy_revision: -1 }),
+    ])('rejects an impossible or incomplete v1 snapshot', (snapshot) => {
+        expect(parseEntitlement(snapshot)).toBeNull();
+    });
+
+    it.each([
+        validEntitlement(),
+        validEntitlement({
+            rate_mode: 'unlimited',
+            rate_bytes_per_second: 0,
+            quota_mode: 'unlimited',
+            quota_bytes: 0,
+            bytes_remaining: null,
+        }),
+        validEntitlement({
+            bytes_used: 1000,
+            bytes_remaining: 0,
+            access_state: 'blocked',
+            reason: 'quota_exhausted',
+        }),
+        validEntitlement({
+            status: 'inactive',
+            access_state: 'blocked',
+            reason: 'entitlement_inactive',
+        }),
+        validEntitlement({ status: 'unknown', access_state: 'unknown' }),
+    ])('accepts a valid connector v1 snapshot', (snapshot) => {
+        expect(parseEntitlement(snapshot)).not.toBeNull();
+    });
+});
+
 describe('native connector host integration', () => {
     let directory: string;
     let config: ConfigService;
@@ -595,6 +658,7 @@ setInterval(()=>{},1000);
         async (outcome) => {
             const snapshot = {
                 schema_version: 1,
+                tier: 'starter',
                 access_state: 'blocked',
                 reason: 'quota_exhausted',
                 status: 'unknown',
@@ -604,6 +668,7 @@ setInterval(()=>{},1000);
                 bytes_used: 9745244848,
                 quota_bytes: 1000000000,
                 bytes_remaining: 0,
+                policy_revision: 1,
                 period_start: 1785542400,
                 period_end: 1788220800,
                 usage_updated_at: 1787523507131,

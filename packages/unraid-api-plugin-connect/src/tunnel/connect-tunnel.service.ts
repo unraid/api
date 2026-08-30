@@ -994,15 +994,23 @@ export function parseEntitlement(value: unknown): ConnectTunnelEntitlement | nul
         typeof data[key] === 'number' && Number.isSafeInteger(data[key]) && Number(data[key]) >= 0;
     if (
         data.schema_version !== 1 ||
+        typeof data.tier !== 'string' ||
+        data.tier.length === 0 ||
+        data.tier.length > 80 ||
         !['available', 'blocked', 'unknown'].includes(String(data.access_state)) ||
         !['active', 'trial', 'past_due', 'canceled', 'expired', 'inactive', 'unknown'].includes(
             String(data.status)
         ) ||
         !['limited', 'unlimited'].includes(String(data.rate_mode)) ||
         !['limited', 'unlimited'].includes(String(data.quota_mode)) ||
-        !['rate_bytes_per_second', 'bytes_used', 'quota_bytes', 'period_start', 'period_end'].every(
-            count
-        ) ||
+        ![
+            'rate_bytes_per_second',
+            'policy_revision',
+            'bytes_used',
+            'quota_bytes',
+            'period_start',
+            'period_end',
+        ].every(count) ||
         !(data.usage_updated_at === null || count('usage_updated_at')) ||
         !(data.bytes_remaining === null || count('bytes_remaining'))
     )
@@ -1010,9 +1018,17 @@ export function parseEntitlement(value: unknown): ConnectTunnelEntitlement | nul
     const quota = Number(data.quota_bytes);
     const used = Number(data.bytes_used);
     const reason = data.reason;
+    const expectedAccess = ['canceled', 'expired', 'inactive'].includes(String(data.status))
+        ? ['blocked', 'entitlement_inactive']
+        : quota > 0 && used >= quota
+          ? ['blocked', 'quota_exhausted']
+          : data.status === 'unknown'
+            ? ['unknown', null]
+            : ['available', null];
     if (
         (reason !== null && reason !== 'quota_exhausted' && reason !== 'entitlement_inactive') ||
-        (data.access_state === 'blocked') !== (reason !== null) ||
+        data.access_state !== expectedAccess[0] ||
+        reason !== expectedAccess[1] ||
         (data.rate_mode === 'limited') !== Number(data.rate_bytes_per_second) > 0 ||
         (data.quota_mode === 'limited') !== quota > 0 ||
         Number(data.period_end) <= Number(data.period_start) ||
