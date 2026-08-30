@@ -305,7 +305,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
     async onOidcProvidersPersisted(): Promise<void> {
         if (
             !this.settings().gatewayServices.some(
-                (service) => service.enabled && service.auth === 'oidc'
+                (service) => service.enabled && service.auth !== 'upstream'
             )
         )
             return;
@@ -539,11 +539,8 @@ export class ConnectTunnelService implements OnModuleDestroy {
         );
     }
     private async assertHttps(): Promise<void> {
-        if (
-            !this.config.get('store.emhttp.nginx.sslEnabled') ||
-            this.config.get('store.emhttp.nginx.sslMode') !== 'auto'
-        ) {
-            throw new Error('Remote access requires strict HTTPS');
+        if (!this.config.get('store.emhttp.nginx.sslEnabled')) {
+            throw new Error('Remote access requires HTTPS');
         }
         const cert = new X509Certificate(await readFile(this.bundlePath()));
         if (
@@ -571,11 +568,8 @@ export class ConnectTunnelService implements OnModuleDestroy {
         const certificateOnly = cert && !tunnel && !sharing;
         let target = '127.0.0.1:1';
         if (tunnel) {
-            if (
-                !this.config.get('store.emhttp.nginx.sslEnabled') ||
-                this.config.get('store.emhttp.nginx.sslMode') !== 'auto'
-            ) {
-                throw new Error('Remote access requires strict HTTPS');
+            if (!this.config.get('store.emhttp.nginx.sslEnabled')) {
+                throw new Error('Remote access requires HTTPS');
             }
             const port = this.config.get<number>('store.emhttp.nginx.httpsPort');
             if (!Number.isInteger(port) || !port || port < 1 || port > 65535)
@@ -603,7 +597,8 @@ export class ConnectTunnelService implements OnModuleDestroy {
                 !/^[a-z0-9.-]+\.(?:preview\.)?myunraid\.net$/.test(hostname)
             )
                 throw new Error('Gateway requires the local nginx HTTPS hostname');
-            const delegated = settings.gatewayServices.some((s) => s.enabled && s.auth === 'oidc');
+            const enabledServices = settings.gatewayServices.filter((service) => service.enabled);
+            const delegated = enabledServices.some((service) => service.auth === 'oidc');
             const callbackOrigin = this.delegatedCallbackOrigin();
             if (delegated && !callbackOrigin)
                 throw new Error('Configured provider sign-in requires the parent tunnel route');

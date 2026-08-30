@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ConnectServiceTargetsQuery, ConnectTunnelPageQuery } from '~/composables/gql/graphql';
 
 import Auth from '~/components/Auth.standalone.vue';
+import BrandMark from '~/components/Brand/Mark.vue';
 import ConnectSettings from '~/components/ConnectSettings/ConnectSettings.standalone.vue';
 import ConnectServicesPanel from '~/components/ConnectTunnel/ConnectServicesPanel.vue';
 import ConnectTunnelPage from '~/components/ConnectTunnel/ConnectTunnel.standalone.vue';
@@ -79,6 +80,8 @@ const visibleText = (wrapper: ReturnType<typeof render>, text: string) => {
   const paragraph = wrapper.findAll('p').find((p) => p.text().includes(text))!;
   expect(paragraph.element.closest('details')).toBeNull();
 };
+const featureSwitch = (wrapper: ReturnType<typeof mount>, key: string) =>
+  wrapper.get(`[role="switch"][aria-describedby*="-${key}-description"]`);
 
 describe('dedicated Connect controls', () => {
   it('collapses secondary details and preserves expansion and confirmation through polling', async () => {
@@ -167,7 +170,7 @@ describe('dedicated Connect controls', () => {
     });
     expect(wrapper.text()).toContain('last reported values');
     expect(wrapper.text()).toContain('9.75 GB used of 1 GB');
-    expect(wrapper.text()).toContain('Current status: Retrying');
+    expect(wrapper.text()).toContain('Connection status Retrying');
     expect(wrapper.text()).not.toContain('allowance is exhausted');
     visibleText(wrapper, 'local HTTPS listener is not serving its certificate');
     visibleText(wrapper, 'last reported values');
@@ -196,7 +199,7 @@ describe('dedicated Connect controls', () => {
   });
   it('blocks migration with unsaved settings and shows native partial-install status', async () => {
     const wrapper = render();
-    await wrapper.findAll('[role="switch"]')[2]!.trigger('click');
+    await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
     expect(button(wrapper, 'Migrate certificate now').attributes('aria-disabled')).toBe('true');
     await wrapper.setProps({
       state: {
@@ -222,12 +225,12 @@ describe('dedicated Connect controls', () => {
   });
   it('saves only the three explicit feature flags and keeps drafts through status polling', async () => {
     const wrapper = render();
-    await wrapper.findAll('[role="switch"]')[2]!.trigger('click');
+    await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
     expect(wrapper.emitted('save')).toBeUndefined();
     await wrapper.setProps({
       state: { ...state(), status: { ...state().status, certificate: 'checking' } },
     });
-    expect(wrapper.findAll('[role="switch"]')[2]!.attributes('aria-checked')).toBe('true');
+    expect(featureSwitch(wrapper, 'serverDataReportingEnabled').attributes('aria-checked')).toBe('true');
     await button(wrapper, 'Apply changes').trigger('click');
     expect(wrapper.emitted('save')).toEqual([
       [
@@ -244,17 +247,21 @@ describe('dedicated Connect controls', () => {
   });
   it('requires certificates for remote access and supports discarding pending changes', async () => {
     const wrapper = render({ ...state(), certificateManagementEnabled: false });
-    expect(wrapper.findAll('[role="switch"]')[1]!.attributes('aria-disabled')).toBe('true');
-    await wrapper.findAll('[role="switch"]')[0]!.trigger('click');
-    await wrapper.findAll('[role="switch"]')[1]!.trigger('click');
-    expect(wrapper.findAll('[role="switch"]')[0]!.attributes('aria-disabled')).toBe('true');
+    expect(featureSwitch(wrapper, 'tunnelRemoteAccessEnabled').attributes('aria-disabled')).toBe('true');
+    await featureSwitch(wrapper, 'certificateManagementEnabled').trigger('click');
+    await featureSwitch(wrapper, 'tunnelRemoteAccessEnabled').trigger('click');
+    expect(featureSwitch(wrapper, 'certificateManagementEnabled').attributes('aria-disabled')).toBe(
+      'true'
+    );
     await button(wrapper, 'Discard changes').trigger('click');
-    expect(wrapper.findAll('[role="switch"]')[0]!.attributes('aria-checked')).toBe('false');
+    expect(featureSwitch(wrapper, 'certificateManagementEnabled').attributes('aria-checked')).toBe(
+      'false'
+    );
     expect(wrapper.emitted('save')).toBeUndefined();
   });
   it('prevents saving while signed out, busy, or disconnected and exposes save failures', async () => {
     const wrapper = render();
-    await wrapper.findAll('[role="switch"]')[2]!.trigger('click');
+    await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
     await wrapper.setProps({ saving: true });
     expect(button(wrapper, 'Applying…').attributes('aria-disabled')).toBe('true');
     await wrapper.setProps({ saving: false, unavailable: true, error: 'Request refused (403)' });
@@ -303,13 +310,52 @@ describe('Connect page save handler', () => {
     wrappers.push(wrapper);
     return { wrapper, mutate, refetch, stopPolling, startPolling, result, loading, error };
   }
+
+  it('keeps remote access last and places services inside it', () => {
+    const { wrapper } = renderPage();
+    expect(wrapper.findComponent(BrandMark).exists()).toBe(true);
+    const headings = wrapper.findAll('h2').map((heading) => heading.text());
+    expect(headings).toEqual([
+      'Account Status:',
+      'Certificate management',
+      'Server overview',
+      'Remote access',
+      'Services',
+    ]);
+    const remoteHeading = wrapper.findAll('h2').find((heading) => heading.text() === 'Remote access')!;
+    expect(remoteHeading.element.closest('section')?.textContent).toContain('Services');
+  });
+
+  it('keeps a gateway loader visible until the restarted connector reports ready or idle', async () => {
+    const { wrapper, result } = renderPage();
+    wrapper.getComponent(ConnectServicesPanel).vm.$emit('save', {
+      expectedRevision: 0,
+      services: [],
+    });
+    await flushPromises();
+    expect(wrapper.text()).toContain('Applying gateway changes');
+    expect(wrapper.text()).not.toContain('Gateway unavailable');
+    expect(wrapper.getComponent(ConnectServicesPanel).props('applying')).toBe(true);
+
+    const ready = state();
+    ready.tunnelRemoteAccessEnabled = true;
+    ready.gateway.revision = 1;
+    ready.status.gateway = 'ready';
+    ready.status.routeState = 'ready';
+    ready.status.tunnel = 'idle';
+    result.value = { connectTunnelSettings: ready };
+    await flushPromises();
+    expect(wrapper.getComponent(ConnectServicesPanel).props('applying')).toBe(false);
+    expect(wrapper.text()).not.toContain('Applying gateway changes');
+  });
+
   it.each(['loading', 'failed'])(
     'keeps account actions on Connect when tunnel settings are %s',
     async (status) => {
       const { wrapper, result, loading, error, refetch } = renderPage();
       expect(wrapper.findAllComponents(Auth)).toHaveLength(1);
       expect(wrapper.getComponent(Auth).props('allowSignOut')).toBe(true);
-      expect(wrapper.get('form').findComponent(Auth).exists()).toBe(false);
+      expect(wrapper.getComponent(Auth).element.closest('form')).toBeNull();
       result.value = undefined;
       loading.value = status === 'loading';
       error.value = status === 'failed' ? new Error('Unavailable') : null;
@@ -356,7 +402,7 @@ describe('Connect page save handler', () => {
   });
   it.each([false, true])('resumes observable polling after save (failure=%s)', async (fail) => {
     const { wrapper, mutate, refetch, stopPolling, startPolling } = renderPage(fail);
-    await wrapper.findAll('[role="switch"]')[2]!.trigger('click');
+    await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
     await wrapper
       .findAll('[role="button"]')
       .find((b) => b.text() === 'Apply changes')!
@@ -372,7 +418,7 @@ describe('Connect page save handler', () => {
     expect(stopPolling).toHaveBeenCalledOnce();
     expect(refetch).toHaveBeenCalledOnce();
     expect(startPolling).toHaveBeenCalledWith(5000);
-    expect(wrapper.get('form').attributes('aria-busy')).toBe('false');
+    expect(wrapper.getComponent(ConnectTunnelPanel).attributes('aria-busy')).toBe('false');
     if (fail) expect(wrapper.get('[role="alert"]').text()).toContain('Save refused');
     else expect(wrapper.text()).toContain('Connect settings saved.');
   });
@@ -517,13 +563,13 @@ describe('service editor', () => {
     await flushPromises();
     expect(empty.text()).toContain('No running containers with published TCP ports');
   });
-  it('starts disabled, requires explicit save and emits only the local settings contract', async () => {
+  it('publishes a new service when saved and emits only the local settings contract', async () => {
     const wrapper = services();
     await action(wrapper, 'Add service').trigger('click');
-    expect(wrapper.get('[role="switch"]').attributes('aria-checked')).toBe('false');
-    expect(wrapper.get('details').element.open).toBe(false);
-    expect(wrapper.text()).toContain('Only the server owner');
-    expect(wrapper.text()).toContain('Native media clients');
+    expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('Enable remote access to this service');
+    expect(wrapper.text()).toContain('configured Unraid Account access rules');
+    expect(wrapper.text()).toContain('limited to the server owner');
     await wrapper.get('input[autocomplete="off"]').setValue('Media');
     await wrapper.get('input[type="url"]').setValue('http://127.0.0.1:32400');
     expect(wrapper.emitted('save')).toBeUndefined();
@@ -537,7 +583,7 @@ describe('service editor', () => {
             name: 'Media',
             upstream: 'http://127.0.0.1:32400',
             tlsServerName: '',
-            enabled: false,
+            enabled: true,
             auth: 'account',
             providerId: '',
             subjects: [],
@@ -652,6 +698,21 @@ describe('service editor', () => {
     expect(wrapper.text()).toContain('Account sign-in required');
     expect(wrapper.text()).not.toContain('Gateway unavailable');
     expect(wrapper.get('a').attributes('href')).toBe(app.url);
+  });
+  it('shows a loader instead of an unavailable service while gateway changes apply', async () => {
+    const value = state();
+    value.tunnelRemoteAccessEnabled = true;
+    value.gateway.services = [app];
+    value.status.gateway = 'unavailable';
+    value.status.routeState = 'unavailable';
+    const wrapper = services(value);
+    await wrapper.setProps({ applying: true });
+    expect(wrapper.attributes('aria-busy')).toBe('true');
+    expect(wrapper.text()).toContain('Applying gateway changes');
+    expect(wrapper.text()).toContain('restarting the gateway');
+    expect(wrapper.text()).not.toContain('Gateway unavailable');
+    expect(wrapper.find('a').exists()).toBe(false);
+    expect(action(wrapper, 'Add service').attributes('aria-disabled')).toBe('true');
   });
   it('preserves drafts during polling but blocks a stale revision', async () => {
     const wrapper = services();

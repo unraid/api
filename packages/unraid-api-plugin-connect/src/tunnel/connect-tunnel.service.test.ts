@@ -390,6 +390,7 @@ describe('native connector host integration', () => {
             upstream: appService.upstream,
             auth: 'account',
         });
+        expect(env.OIDC_CONFIG_PATH).toBe(join(directory, 'oidc.json'));
         expect(tunnel.settings().tunnelHostnames).toHaveLength(2);
         await expect(
             tunnel.updateGatewayServices({ expectedRevision: 0, services: [] })
@@ -869,6 +870,20 @@ emit({event:'cert_migration_result', request_id:request.request_id, outcome:'fai
             ]);
         }
     );
+    it('allows tunnel access when HTTPS is enabled without strict mode', async () => {
+        config.set('store.emhttp.nginx.sslMode', 'yes');
+        await tunnel.update({ certificateManagementEnabled: true, tunnelRemoteAccessEnabled: true });
+        expect(await tunnel.processEnvironment()).toMatchObject({
+            TARGET_ADDR: '192.168.1.2:443',
+            CERT_ENABLED: 'true',
+        });
+    });
+    it('rejects tunnel access when HTTPS is disabled', async () => {
+        config.set('store.emhttp.nginx.sslEnabled', false);
+        await expect(
+            tunnel.update({ certificateManagementEnabled: true, tunnelRemoteAccessEnabled: true })
+        ).rejects.toThrow('Remote access requires HTTPS');
+    });
     it('permits Go to renew a missing certificate after restart but requires a valid cert for initial tunnel opt-in', async () => {
         await rm(join(directory, 'bundle.pem'));
         await expect(

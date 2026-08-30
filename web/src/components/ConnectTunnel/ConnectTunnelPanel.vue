@@ -2,6 +2,16 @@
 import { computed, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import {
+  ArrowTopRightOnSquareIcon,
+  BoltIcon,
+  ChartBarIcon,
+  ChartBarSquareIcon,
+  CloudIcon,
+  LockClosedIcon,
+  ShieldCheckIcon,
+  SignalIcon,
+} from '@heroicons/vue/24/outline';
 import { Button, Switch } from '@unraid/ui';
 
 import type { ConnectTunnelPageQuery, ConnectTunnelSettingsInput } from '~/composables/gql/graphql';
@@ -67,9 +77,14 @@ watch(
 );
 const features = [
   'certificateManagementEnabled',
-  'tunnelRemoteAccessEnabled',
   'serverDataReportingEnabled',
+  'tunnelRemoteAccessEnabled',
 ] as const;
+const featureIcons = {
+  certificateManagementEnabled: LockClosedIcon,
+  tunnelRemoteAccessEnabled: CloudIcon,
+  serverDataReportingEnabled: ChartBarSquareIcon,
+};
 const featureStatus = (key: (typeof features)[number]) =>
   key === 'certificateManagementEnabled'
     ? state.status.certificate
@@ -120,204 +135,262 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
 </script>
 
 <template>
-  <form class="space-y-8" :aria-busy="saving" @submit.prevent="submit">
+  <div class="space-y-5" :aria-busy="saving">
     <p v-if="!state.signedIn" role="status">{{ t('connectTunnel.signIn') }}</p>
-    <section
-      v-for="key in features"
-      :key="key"
-      class="border-border border-t pt-6"
-      :aria-labelledby="`${id}-${key}-label`"
-    >
-      <div class="flex items-start justify-between gap-6">
-        <div class="min-w-0 space-y-2">
-          <h2 :id="`${id}-${key}-label`" class="text-lg font-semibold">
-            {{ t(`connectTunnel.features.${key}.title`) }}
-          </h2>
-          <p :id="`${id}-${key}-description`" class="text-muted-foreground max-w-prose">
-            {{ t(`connectTunnel.features.${key}.description`) }}
-          </p>
-        </div>
-        <Switch
-          v-model="draft[key]"
-          :disabled="blocked(key)"
-          :aria-disabled="blocked(key)"
-          :aria-labelledby="`${id}-${key}-label`"
-          :aria-describedby="`${id}-${key}-description`"
-        />
-      </div>
-      <p class="mt-3 text-sm" role="status">
-        {{ t('connectTunnel.currentStatus', { status: statusLabel(featureStatus(key)) }) }}
-      </p>
-      <div v-if="key === 'certificateManagementEnabled'" class="mt-4 space-y-3">
-        <p v-if="state.certificateMigration.status !== 'idle'" role="status" class="text-sm">
-          {{ t(`connectTunnel.migration.${state.certificateMigration.status}`) }}
-          <span v-if="state.certificateMigration.reason">
-            {{
-              state.certificateMigration.reason === 'domain_changed'
-                ? t('connectTunnel.migration.domainChanged')
-                : `(${state.certificateMigration.reason})`
-            }}
-          </span>
-        </p>
-        <details>
-          <summary
-            class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
-          >
-            {{ t('connectTunnel.certificateDetails') }}
-          </summary>
-          <div class="mt-3 space-y-3 text-sm">
-            <p v-if="state.certificateMigration.managed">
-              {{ t('connectTunnel.migration.managed') }}
-            </p>
-            <p v-if="state.certificateMigration.domain" class="break-all">
-              {{ t('connectTunnel.certificateDomain', { domain: state.certificateMigration.domain }) }}
-            </p>
-            <p v-if="state.certificateMigration.fingerprint" class="text-muted-foreground break-all">
-              {{
-                t('connectTunnel.migration.fingerprint', {
-                  fingerprint: state.certificateMigration.fingerprint,
-                })
-              }}
-            </p>
-            <template v-if="confirmation">
-              <p>{{ t('connectTunnel.migration.confirmDescription') }}</p>
-              <div class="flex flex-wrap gap-3">
-                <Button :disabled="disabled || dirty" @click="confirmMigration">{{
-                  t('connectTunnel.migration.confirm')
-                }}</Button>
-                <Button variant="outline" @click="confirmation = null">{{
-                  t('connectTunnel.migration.cancel')
-                }}</Button>
-              </div>
-            </template>
-            <Button
-              v-else-if="state.certificateMigration.confirmationToken"
-              variant="outline"
-              :disabled="disabled || dirty"
-              @click="confirmation = { ...state.certificateMigration }"
-              >{{ t('connectTunnel.migration.action') }}</Button
-            >
+    <div class="@container grid gap-5 @3xl:grid-cols-2">
+      <section
+        v-for="key in features"
+        :key="key"
+        class="border-border bg-muted/10 @container rounded-xl border p-5 @md:p-6"
+        :class="key === 'tunnelRemoteAccessEnabled' ? '@3xl:col-span-2' : ''"
+        :aria-labelledby="`${id}-${key}-label`"
+      >
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex min-w-0 items-center gap-3">
+            <div class="bg-primary/10 text-primary rounded-lg p-2" aria-hidden="true">
+              <component :is="featureIcons[key]" class="h-5 w-5" />
+            </div>
+            <h2 :id="`${id}-${key}-label`" class="text-lg font-semibold">
+              {{ t(`connectTunnel.features.${key}.title`) }}
+            </h2>
           </div>
-        </details>
-      </div>
-      <p
-        v-if="key === 'certificateManagementEnabled' && draft.tunnelRemoteAccessEnabled"
-        class="text-muted-foreground mt-2 text-sm"
-      >
-        {{ t('connectTunnel.certificateRequired') }}
-      </p>
-      <p
-        v-if="key === 'tunnelRemoteAccessEnabled' && !draft.certificateManagementEnabled"
-        class="text-muted-foreground mt-2 text-sm"
-      >
-        {{ t('connectTunnel.enableCertificate') }}
-      </p>
-      <div v-if="key === 'tunnelRemoteAccessEnabled'" class="mt-3 space-y-2 text-sm">
-        <p v-if="state.tunnelRemoteAccessEnabled && tunnelExplanation" role="status">
-          {{ tunnelExplanation }}
-        </p>
-        <p
-          v-if="
-            state.status.entitlementState !== 'current' &&
-            (state.tunnelRemoteAccessEnabled || state.serverDataReportingEnabled)
-          "
+          <Switch
+            v-model="draft[key]"
+            :disabled="blocked(key)"
+            :aria-disabled="blocked(key)"
+            :aria-labelledby="`${id}-${key}-label`"
+            :aria-describedby="`${id}-${key}-description`"
+          />
+        </div>
+        <div
+          v-if="key !== 'tunnelRemoteAccessEnabled'"
+          class="bg-primary/10 text-primary mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium"
           role="status"
         >
-          {{ t(usage ? 'connectTunnel.usage.stale' : 'connectTunnel.usage.unavailable') }}
+          <span class="bg-primary h-2 w-2 rounded-full" aria-hidden="true" />
+          <span>{{
+            t('connectTunnel.currentStatus', { status: statusLabel(featureStatus(key)) })
+          }}</span>
+        </div>
+        <p
+          :id="`${id}-${key}-description`"
+          class="text-muted-foreground mt-3 max-w-prose text-sm leading-6"
+        >
+          {{ t(`connectTunnel.features.${key}.description`) }}
         </p>
-        <template v-if="usage">
-          <p class="font-medium tabular-nums">
-            {{
-              t('connectTunnel.usage.used', {
-                used: usageBytes(usage.bytesUsed),
-                allowance:
-                  usage.quotaBytes === 0
-                    ? t('connectTunnel.usage.unlimited')
-                    : usageBytes(usage.quotaBytes),
-              })
-            }}
-          </p>
-          <p>
-            {{ t('connectTunnel.usage.speed') }}:
-            <span class="font-medium tabular-nums">
+        <div v-if="key === 'certificateManagementEnabled'" class="mt-4 space-y-3">
+          <p v-if="state.certificateMigration.status !== 'idle'" role="status" class="text-sm">
+            {{ t(`connectTunnel.migration.${state.certificateMigration.status}`) }}
+            <span v-if="state.certificateMigration.reason">
               {{
-                usage.rateMode === 'unlimited'
-                  ? t('connectTunnel.usage.unlimitedSpeed')
-                  : t('connectTunnel.usage.speedValue', {
-                      speed: (usage.rateBytesPerSecond * 8) / 1_000_000,
-                    })
+                state.certificateMigration.reason === 'domain_changed'
+                  ? t('connectTunnel.migration.domainChanged')
+                  : `(${state.certificateMigration.reason})`
               }}
             </span>
           </p>
-          <p v-if="usage.status === 'unknown'">{{ t('connectTunnel.usage.unknownPolicy') }}</p>
           <details>
             <summary
               class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
             >
-              {{ t('connectTunnel.usage.details') }}
+              {{ t('connectTunnel.certificateDetails') }}
             </summary>
-            <div class="mt-3 space-y-2">
-              <p v-if="typeof usage.bytesRemaining === 'number'">
-                {{ t('connectTunnel.usage.remaining', { remaining: usageBytes(usage.bytesRemaining) }) }}
+            <div class="mt-3 space-y-3 text-sm">
+              <p v-if="state.certificateMigration.managed">
+                {{ t('connectTunnel.migration.managed') }}
               </p>
-              <p>
+              <p v-if="state.certificateMigration.domain" class="break-all">
+                {{ t('connectTunnel.certificateDomain', { domain: state.certificateMigration.domain }) }}
+              </p>
+              <p v-if="state.certificateMigration.fingerprint" class="text-muted-foreground break-all">
                 {{
-                  t('connectTunnel.usage.period', {
-                    start: usageDate(usage.periodStart),
-                    end: usageDate(usage.periodEnd),
+                  t('connectTunnel.migration.fingerprint', {
+                    fingerprint: state.certificateMigration.fingerprint,
                   })
                 }}
               </p>
-              <p class="text-muted-foreground">{{ t('connectTunnel.usage.delay') }}</p>
+              <template v-if="confirmation">
+                <p>{{ t('connectTunnel.migration.confirmDescription') }}</p>
+                <div class="flex flex-wrap gap-3">
+                  <Button :disabled="disabled || dirty" @click="confirmMigration">{{
+                    t('connectTunnel.migration.confirm')
+                  }}</Button>
+                  <Button variant="outline" @click="confirmation = null">{{
+                    t('connectTunnel.migration.cancel')
+                  }}</Button>
+                </div>
+              </template>
+              <Button
+                v-else-if="state.certificateMigration.confirmationToken"
+                variant="outline"
+                :disabled="disabled || dirty"
+                @click="confirmation = { ...state.certificateMigration }"
+                >{{ t('connectTunnel.migration.action') }}</Button
+              >
             </div>
           </details>
-        </template>
-      </div>
-      <div v-if="key === 'tunnelRemoteAccessEnabled'" class="mt-4 space-y-3 text-sm">
-        <p>{{ t('connectTunnel.security.encrypted') }}</p>
-        <a
-          v-if="state.tunnelUrl"
-          class="text-primary inline-block underline"
-          :href="state.tunnelUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-          >{{ t('connectTunnel.openRemoteAccess') }}</a
+        </div>
+        <p
+          v-if="key === 'certificateManagementEnabled' && draft.tunnelRemoteAccessEnabled"
+          class="text-muted-foreground mt-2 text-sm"
         >
-        <details>
-          <summary
-            class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
-          >
-            {{ t('connectTunnel.security.details') }}
-          </summary>
-          <div class="mt-3 max-w-prose space-y-3">
-            <p>{{ t('connectTunnel.security.relay') }}</p>
-            <p>{{ t('connectTunnel.security.metadata') }}</p>
-            <p>{{ t('connectTunnel.security.authentication') }}</p>
-            <p>{{ t('connectTunnel.security.requirements') }}</p>
-            <p v-if="state.tunnelUrl" class="break-all">
-              {{ t('connectTunnel.remoteAddress', { url: state.tunnelUrl }) }}
-            </p>
-          </div>
-        </details>
-      </div>
-      <template v-if="key === 'serverDataReportingEnabled'">
-        <p v-if="state.overviewCleanupPending" class="mt-2 text-sm">
-          {{ t('connectTunnel.cleanupPending') }}
+          {{ t('connectTunnel.certificateRequired') }}
         </p>
-        <details class="mt-4">
-          <summary
-            class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
+        <p
+          v-if="key === 'tunnelRemoteAccessEnabled' && !draft.certificateManagementEnabled"
+          class="text-muted-foreground mt-2 text-sm"
+        >
+          {{ t('connectTunnel.enableCertificate') }}
+        </p>
+        <div v-if="key === 'tunnelRemoteAccessEnabled'" class="mt-5 space-y-4 text-sm">
+          <p v-if="state.tunnelRemoteAccessEnabled && tunnelExplanation" role="status">
+            {{ tunnelExplanation }}
+          </p>
+          <p
+            v-if="
+              state.status.entitlementState !== 'current' &&
+              (state.tunnelRemoteAccessEnabled || state.serverDataReportingEnabled)
+            "
+            role="status"
           >
-            {{ t('connectTunnel.previewData') }}
-          </summary>
-          <p class="text-muted-foreground my-3 text-sm">{{ t('connectTunnel.previewDescription') }}</p>
-          <pre
-            class="bg-muted max-h-96 overflow-auto rounded-md p-4 text-xs break-all whitespace-pre-wrap"
-            >{{ overview }}</pre
+            {{ t(usage ? 'connectTunnel.usage.stale' : 'connectTunnel.usage.unavailable') }}
+          </p>
+          <div class="grid gap-3 @md:grid-cols-3">
+            <div class="border-border bg-background/60 rounded-lg border p-4">
+              <div class="text-muted-foreground flex items-center gap-2">
+                <SignalIcon class="h-4 w-4" aria-hidden="true" />
+                <span>{{ t('connectTunnel.summary.connection') }}</span>
+              </div>
+              <p class="mt-2 flex items-center gap-2 text-base font-semibold" role="status">
+                <span class="bg-primary h-2 w-2 rounded-full" aria-hidden="true" />
+                {{ statusLabel(featureStatus(key)) }}
+              </p>
+            </div>
+            <div class="border-border bg-background/60 rounded-lg border p-4">
+              <div class="text-muted-foreground flex items-center gap-2">
+                <ChartBarIcon class="h-4 w-4" aria-hidden="true" />
+                <span>{{ t('connectTunnel.summary.usage') }}</span>
+              </div>
+              <p class="mt-2 text-base font-semibold tabular-nums">
+                {{
+                  usage
+                    ? t('connectTunnel.usage.used', {
+                        used: usageBytes(usage.bytesUsed),
+                        allowance:
+                          usage.quotaBytes === 0
+                            ? t('connectTunnel.usage.unlimited')
+                            : usageBytes(usage.quotaBytes),
+                      })
+                    : t('connectTunnel.summary.unavailable')
+                }}
+              </p>
+            </div>
+            <div class="border-border bg-background/60 rounded-lg border p-4">
+              <div class="text-muted-foreground flex items-center gap-2">
+                <BoltIcon class="h-4 w-4" aria-hidden="true" />
+                <span>{{ t('connectTunnel.usage.speed') }}</span>
+              </div>
+              <p class="mt-2 text-base font-semibold tabular-nums">
+                {{
+                  usage
+                    ? usage.rateMode === 'unlimited'
+                      ? t('connectTunnel.usage.unlimitedSpeed')
+                      : t('connectTunnel.usage.speedValue', {
+                          speed: (usage.rateBytesPerSecond * 8) / 1_000_000,
+                        })
+                    : t('connectTunnel.summary.unavailable')
+                }}
+              </p>
+            </div>
+          </div>
+          <template v-if="usage">
+            <p v-if="usage.status === 'unknown'">{{ t('connectTunnel.usage.unknownPolicy') }}</p>
+            <details class="border-border rounded-lg border px-4 py-3">
+              <summary
+                class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
+              >
+                {{ t('connectTunnel.usage.details') }}
+              </summary>
+              <div class="mt-3 space-y-2">
+                <p v-if="typeof usage.bytesRemaining === 'number'">
+                  {{
+                    t('connectTunnel.usage.remaining', { remaining: usageBytes(usage.bytesRemaining) })
+                  }}
+                </p>
+                <p>
+                  {{
+                    t('connectTunnel.usage.period', {
+                      start: usageDate(usage.periodStart),
+                      end: usageDate(usage.periodEnd),
+                    })
+                  }}
+                </p>
+                <p class="text-muted-foreground">{{ t('connectTunnel.usage.delay') }}</p>
+              </div>
+            </details>
+          </template>
+        </div>
+        <div v-if="key === 'tunnelRemoteAccessEnabled'" class="mt-4 space-y-3 text-sm">
+          <div
+            class="border-primary/30 bg-primary/5 flex flex-col gap-4 rounded-lg border p-4 @md:flex-row @md:items-center @md:justify-between"
           >
-        </details>
-      </template>
-    </section>
+            <div class="flex min-w-0 items-start gap-3">
+              <ShieldCheckIcon class="text-primary h-6 w-6 shrink-0" aria-hidden="true" />
+              <div class="space-y-1">
+                <p class="font-semibold">{{ t('connectTunnel.security.encryptedTitle') }}</p>
+                <p class="text-muted-foreground max-w-prose">
+                  {{ t('connectTunnel.security.encrypted') }}
+                </p>
+              </div>
+            </div>
+            <a
+              v-if="state.tunnelUrl"
+              class="bg-primary text-primary-foreground focus-visible:outline-ring inline-flex shrink-0 items-center justify-center gap-2 rounded-md px-4 py-2 font-medium hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2"
+              :href="state.tunnelUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ t('connectTunnel.openRemoteAccess') }}
+              <ArrowTopRightOnSquareIcon class="h-4 w-4" aria-hidden="true" />
+            </a>
+          </div>
+          <details class="px-1">
+            <summary
+              class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
+            >
+              {{ t('connectTunnel.security.details') }}
+            </summary>
+            <div class="mt-3 max-w-prose space-y-3">
+              <p>{{ t('connectTunnel.security.relay') }}</p>
+              <p>{{ t('connectTunnel.security.metadata') }}</p>
+              <p>{{ t('connectTunnel.security.authentication') }}</p>
+              <p>{{ t('connectTunnel.security.requirements') }}</p>
+              <p v-if="state.tunnelUrl" class="break-all">
+                {{ t('connectTunnel.remoteAddress', { url: state.tunnelUrl }) }}
+              </p>
+            </div>
+          </details>
+        </div>
+        <slot v-if="key === 'tunnelRemoteAccessEnabled'" name="services" />
+        <template v-if="key === 'serverDataReportingEnabled'">
+          <p v-if="state.overviewCleanupPending" class="mt-2 text-sm">
+            {{ t('connectTunnel.cleanupPending') }}
+          </p>
+          <details class="mt-4">
+            <summary
+              class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
+            >
+              {{ t('connectTunnel.previewData') }}
+            </summary>
+            <p class="text-muted-foreground my-3 text-sm">{{ t('connectTunnel.previewDescription') }}</p>
+            <pre
+              class="bg-muted max-h-96 overflow-auto rounded-md p-4 text-xs break-all whitespace-pre-wrap"
+              >{{ overview }}</pre
+            >
+          </details>
+        </template>
+      </section>
+    </div>
     <p v-if="state.status.reason" role="status" class="text-sm">
       {{ t('connectTunnel.connectorReason', { reason: state.status.reason }) }}
     </p>
@@ -331,5 +404,5 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
         t('connectTunnel.cancel')
       }}</Button>
     </div>
-  </form>
+  </div>
 </template>

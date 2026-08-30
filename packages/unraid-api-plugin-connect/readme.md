@@ -12,7 +12,7 @@ The dedicated **Unraid Connect** page at `/Settings/ConnectTunnel` exposes three
 - **Manage myunraid.net certificate** defaults on only when a myunraid.net certificate
   already exists. An explicit saved opt-out takes precedence.
 - **Allow tunneled remote access** defaults off and requires certificate management,
-  strict HTTPS, and a valid certificate when first enabled. The tunnel does not use port forwarding.
+  HTTPS, and a valid certificate when first enabled. The tunnel does not use port forwarding.
 - **Share server overview** defaults off. A collapsed preview shows the data that would be shared.
 
 The page uses `connectTunnelSettings` and `updateConnectTunnelSettings` with typed
