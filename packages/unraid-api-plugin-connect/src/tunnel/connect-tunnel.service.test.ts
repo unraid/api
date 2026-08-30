@@ -271,7 +271,7 @@ describe('native connector host integration', () => {
     it('generates an opt-in gateway config and preserves both webgui aliases', async () => {
         config.set('CONNECT_GATEWAY_ENABLED', 'true');
         await Promise.all(
-            ['connect-gateway-v1.json', 'connect-gateway-v2.json'].map((name) =>
+            ['connect-gateway-v2.json', 'connect-gateway-v3.json'].map((name) =>
                 writeFile(join(directory, name), 'legacy gateway config')
             )
         );
@@ -284,7 +284,7 @@ describe('native connector host integration', () => {
         const path = env?.GATEWAY_CONFIG;
         expect(path).toBeTruthy();
         expect(JSON.parse(await readFile(path!, 'utf8'))).toEqual({
-            version: 3,
+            version: 1,
             issuer: 'https://account.unraid.net',
             clientId: 'CONNECT_SERVER_SSO',
             services: [
@@ -296,8 +296,8 @@ describe('native connector host integration', () => {
                 },
             ],
         });
-        await expect(readFile(join(directory, 'connect-gateway-v1.json'))).rejects.toThrow();
         await expect(readFile(join(directory, 'connect-gateway-v2.json'))).rejects.toThrow();
+        await expect(readFile(join(directory, 'connect-gateway-v3.json'))).rejects.toThrow();
         await tunnel.update({ tunnelRemoteAccessEnabled: false });
         expect(tunnel.settings().tunnelHostnames).toEqual([]);
         expect((await tunnel.processEnvironment())?.GATEWAY_CONFIG).toBeUndefined();

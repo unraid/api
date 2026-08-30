@@ -559,7 +559,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
     async processEnvironment(): Promise<NodeJS.ProcessEnv | null> {
         const configDirectory = this.config.getOrThrow<string>('PATHS_CONFIG_MODULES');
         await Promise.all(
-            ['connect-gateway-v1.json', 'connect-gateway-v2.json'].map((name) =>
+            ['connect-gateway-v2.json', 'connect-gateway-v3.json'].map((name) =>
                 rm(join(configDirectory, name), { force: true })
             )
         );
@@ -607,11 +607,11 @@ export class ConnectTunnelService implements OnModuleDestroy {
             const callbackOrigin = this.delegatedCallbackOrigin();
             if (delegated && !callbackOrigin)
                 throw new Error('Configured provider sign-in requires the parent tunnel route');
-            gatewayPath = join(configDirectory, 'connect-gateway-v3.json');
+            gatewayPath = join(configDirectory, 'connect-gateway-v1.json');
             await writePrivateJson(
                 gatewayPath,
                 JSON.stringify({
-                    version: 3,
+                    version: 1,
                     issuer: new URL(
                         controlPlaneOrigin(this.config.get<string>('CONNECT_CONTROL_PLANE_URL'))
                     ).hostname.startsWith('preview.')

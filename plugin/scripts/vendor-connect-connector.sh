@@ -39,7 +39,7 @@ for path in sys.argv[3:]:
     if hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest() != contract_hash:
         raise SystemExit("Overview contract differs from the pinned connector contract")
 PY
-python3 - "$manifest" "$source_repo/relay/internal/gateway/testdata/gateway-legacy-oidc-v3.json" "$plugin_dir/../packages/unraid-api-plugin-connect/src/tunnel/fixtures/gateway-legacy-oidc-v3.json" <<'PYCONTRACT'
+python3 - "$manifest" "$source_repo/relay/internal/gateway/testdata/gateway-legacy-oidc-v1.json" "$plugin_dir/../packages/unraid-api-plugin-connect/src/tunnel/fixtures/gateway-legacy-oidc-v1.json" <<'PYCONTRACT'
 import hashlib, json, pathlib, sys
 expected = json.loads(pathlib.Path(sys.argv[1]).read_text())["oidcConfigContractSha256"]
 for path in sys.argv[2:]:
