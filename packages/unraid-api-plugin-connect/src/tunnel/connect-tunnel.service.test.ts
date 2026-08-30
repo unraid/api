@@ -155,26 +155,7 @@ describe('native connector host integration', () => {
             persister,
             new UrlResolverService(config),
             new EventEmitter2(),
-            nginx,
-            {
-                getProviders: async () => [
-                    {
-                        id: 'configured',
-                        name: 'Configured',
-                        issuer: 'https://identity.example',
-                        clientId: 'service-client',
-                        clientSecret: 'service-secret',
-                        scopes: ['openid', 'email'],
-                        authorizationRules: [
-                            {
-                                claim: 'sub',
-                                operator: 'equals' as const,
-                                value: ['viewer'],
-                            },
-                        ],
-                    },
-                ],
-            }
+            nginx
         );
     });
     afterEach(async () => {
@@ -289,6 +270,11 @@ describe('native connector host integration', () => {
     });
     it('generates an opt-in gateway config and preserves both webgui aliases', async () => {
         config.set('CONNECT_GATEWAY_ENABLED', 'true');
+        await Promise.all(
+            ['connect-gateway-v1.json', 'connect-gateway-v2.json'].map((name) =>
+                writeFile(join(directory, name), 'legacy gateway config')
+            )
+        );
         await tunnel.update({ certificateManagementEnabled: true, tunnelRemoteAccessEnabled: true });
         expect(tunnel.settings().tunnelHostnames).toEqual([
             hostname,
@@ -298,7 +284,7 @@ describe('native connector host integration', () => {
         const path = env?.GATEWAY_CONFIG;
         expect(path).toBeTruthy();
         expect(JSON.parse(await readFile(path!, 'utf8'))).toEqual({
-            version: 1,
+            version: 3,
             issuer: 'https://account.unraid.net',
             clientId: 'CONNECT_SERVER_SSO',
             services: [
@@ -310,6 +296,8 @@ describe('native connector host integration', () => {
                 },
             ],
         });
+        await expect(readFile(join(directory, 'connect-gateway-v1.json'))).rejects.toThrow();
+        await expect(readFile(join(directory, 'connect-gateway-v2.json'))).rejects.toThrow();
         await tunnel.update({ tunnelRemoteAccessEnabled: false });
         expect(tunnel.settings().tunnelHostnames).toEqual([]);
         expect((await tunnel.processEnvironment())?.GATEWAY_CONFIG).toBeUndefined();
@@ -334,17 +322,8 @@ describe('native connector host integration', () => {
         const env = await tunnel.processEnvironment();
         const generated = JSON.parse(await readFile(env!.GATEWAY_CONFIG!, 'utf8'));
         expect(generated.oidcCallbackOrigin).toBe(`https://${tunnel.settings().tunnelHostname}`);
-        expect(generated.oidcProviders).toEqual([
-            {
-                id: 'configured',
-                issuer: 'https://identity.example',
-                clientId: 'service-client',
-                clientSecret: 'service-secret',
-                scopes: ['openid', 'email'],
-                authorizationRuleMode: 'or',
-                authorizationRules: [{ claim: 'sub', operator: 'equals', value: ['viewer'] }],
-            },
-        ]);
+        expect(generated.oidcProviders).toBeUndefined();
+        expect(env?.OIDC_CONFIG_PATH).toBe(join(directory, 'oidc.json'));
         expect(generated.services).toContainEqual({
             purpose: service.id,
             upstream: service.upstream,

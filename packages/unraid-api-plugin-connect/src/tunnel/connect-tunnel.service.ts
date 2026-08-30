@@ -3,7 +3,7 @@ import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { createHmac, randomBytes, X509Certificate } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { readFile, rm } from 'node:fs/promises';
 import { isIP } from 'node:net';
 import { uptime } from 'node:os';
 import { join } from 'node:path';
@@ -11,7 +11,6 @@ import { join } from 'node:path';
 import type { CanonicalInternalClientService } from '@unraid/shared';
 import type { NginxService } from '@unraid/shared/services/nginx.js';
 import type { ResultPromise } from 'execa';
-import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { CANONICAL_INTERNAL_CLIENT_TOKEN, NGINX_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 import { execa } from 'execa';
 import { parse } from 'graphql';
@@ -36,30 +35,6 @@ export type ConnectFeatures = Pick<
     MyServersConfig,
     'certificateManagementEnabled' | 'tunnelRemoteAccessEnabled' | 'serverDataReportingEnabled'
 >;
-interface OidcProviderSource {
-    getProviders(): Promise<
-        Array<{
-            id: string;
-            issuer?: string;
-            clientId: string;
-            clientSecret?: string;
-            authorizationEndpoint?: string;
-            tokenEndpoint?: string;
-            jwksUri?: string;
-            scopes: string[];
-            authorizationRuleMode?: 'or' | 'and';
-            authorizationRules?: Array<{
-                claim: string;
-                operator: 'equals' | 'contains' | 'endsWith' | 'startsWith';
-                value: string[];
-            }>;
-        }>
-    >;
-}
-
-// This matches the stable provider exported by the host API without coupling
-// the plugin to the host's installed @unraid/shared build.
-const OIDC_PROVIDER_SOURCE_TOKEN = 'OidcProviderSource';
 const DOCKER_STATES_QUERY = parse('query ConnectDockerStates { docker { containers { state } } }');
 const VM_STATES_QUERY = parse('query ConnectVmStates { vms { domains { state } } }');
 const fields = [
@@ -116,7 +91,6 @@ export class ConnectTunnelService implements OnModuleDestroy {
         private readonly urls: UrlResolverService,
         private readonly events: EventEmitter2,
         @Inject(NGINX_SERVICE_TOKEN) private readonly nginx: NginxService,
-        @Inject(OIDC_PROVIDER_SOURCE_TOKEN) private readonly oidc: OidcProviderSource,
         @Optional()
         @Inject(CANONICAL_INTERNAL_CLIENT_TOKEN)
         private readonly internalClient?: CanonicalInternalClientService
@@ -583,6 +557,12 @@ export class ConnectTunnelService implements OnModuleDestroy {
         }
     }
     async processEnvironment(): Promise<NodeJS.ProcessEnv | null> {
+        const configDirectory = this.config.getOrThrow<string>('PATHS_CONFIG_MODULES');
+        await Promise.all(
+            ['connect-gateway-v1.json', 'connect-gateway-v2.json'].map((name) =>
+                rm(join(configDirectory, name), { force: true })
+            )
+        );
         const settings = this.settings();
         const cert = settings.certificateManagementEnabled;
         const tunnel = settings.tunnelRemoteAccessEnabled;
@@ -627,46 +607,11 @@ export class ConnectTunnelService implements OnModuleDestroy {
             const callbackOrigin = this.delegatedCallbackOrigin();
             if (delegated && !callbackOrigin)
                 throw new Error('Configured provider sign-in requires the parent tunnel route');
-            const scalar = new PrefixedID();
-            const selected = new Map(
-                settings.gatewayServices
-                    .filter((service) => service.enabled && service.auth === 'oidc')
-                    .map((service) => [scalar.parseValue(service.providerId), service.providerId])
-            );
-            const providers = delegated
-                ? (await this.oidc.getProviders())
-                      .filter((provider) => selected.has(provider.id))
-                      .map((provider) => {
-                          if (!provider.issuer || !provider.authorizationRules?.length)
-                              throw new Error(
-                                  'Configured provider is incomplete or has no access rules'
-                              );
-                          return {
-                              id: selected.get(provider.id),
-                              issuer: provider.issuer,
-                              clientId: provider.clientId,
-                              ...(provider.clientSecret && { clientSecret: provider.clientSecret }),
-                              ...(provider.authorizationEndpoint && {
-                                  authorizationEndpoint: provider.authorizationEndpoint,
-                              }),
-                              ...(provider.tokenEndpoint && { tokenEndpoint: provider.tokenEndpoint }),
-                              ...(provider.jwksUri && { jwksUri: provider.jwksUri }),
-                              scopes: provider.scopes,
-                              authorizationRuleMode: provider.authorizationRuleMode ?? 'or',
-                              authorizationRules: provider.authorizationRules,
-                          };
-                      })
-                : [];
-            if (providers.length !== selected.size)
-                throw new Error('A selected configured provider is unavailable');
-            gatewayPath = join(
-                this.config.getOrThrow<string>('PATHS_CONFIG_MODULES'),
-                'connect-gateway-v1.json'
-            );
+            gatewayPath = join(configDirectory, 'connect-gateway-v3.json');
             await writePrivateJson(
                 gatewayPath,
                 JSON.stringify({
-                    version: 1,
+                    version: 3,
                     issuer: new URL(
                         controlPlaneOrigin(this.config.get<string>('CONNECT_CONTROL_PLANE_URL'))
                     ).hostname.startsWith('preview.')
@@ -675,7 +620,6 @@ export class ConnectTunnelService implements OnModuleDestroy {
                     clientId: 'CONNECT_SERVER_SSO',
                     ...(delegated && {
                         oidcCallbackOrigin: callbackOrigin,
-                        oidcProviders: providers,
                     }),
                     services: [
                         {
@@ -711,6 +655,12 @@ export class ConnectTunnelService implements OnModuleDestroy {
             IDLE_TIMEOUT: '90s',
             ...(certificateOnly ? {} : { TARGET_ADDR: target }),
             ...(gatewayPath ? { GATEWAY_CONFIG: gatewayPath } : {}),
+            ...(gatewayPath
+                ? {
+                      OIDC_CONFIG_PATH:
+                          process.env.PATHS_OIDC_JSON ?? join(configDirectory, 'oidc.json'),
+                  }
+                : {}),
             ...(sharing ? { STATE_FILE: this.statePath } : {}),
             PRESENCE_EVENT_PUBLIC_KEYS:
                 this.config.get<string>('CONNECT_PRESENCE_EVENT_PUBLIC_KEYS') ?? '',
@@ -1067,7 +1017,7 @@ export function parseEntitlement(value: unknown): ConnectTunnelEntitlement | nul
     if (
         (reason !== null && reason !== 'quota_exhausted' && reason !== 'entitlement_inactive') ||
         (data.access_state === 'blocked') !== (reason !== null) ||
-        (data.rate_mode === 'limited') !== (Number(data.rate_bytes_per_second) > 0) ||
+        (data.rate_mode === 'limited') !== Number(data.rate_bytes_per_second) > 0 ||
         Number(data.period_end) <= Number(data.period_start) ||
         data.bytes_remaining !== (quota === 0 ? null : Math.max(0, quota - used))
     )
