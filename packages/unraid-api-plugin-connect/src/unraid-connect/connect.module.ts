@@ -10,6 +10,9 @@ import { ConnectConfigService } from '../config/connect.config.service.js';
 import { CloudResolver } from '../connection-status/cloud.resolver.js';
 import { CloudService } from '../connection-status/cloud.service.js';
 import { ConnectStatusWriterService } from '../connection-status/connect-status-writer.service.js';
+import { ManagedBackupController } from '../managed-backup/managed-backup.controller.js';
+import { ManagedBackupService } from '../managed-backup/managed-backup.service.js';
+import { ManagedBackupStore } from '../managed-backup/managed-backup.store.js';
 import { NetworkModule } from '../network/network.module.js';
 import { RemoteAccessService } from '../remote-access/remote-access.service.js';
 import { ConnectTunnelSettingsResolver } from '../tunnel/connect-tunnel-settings.resolver.js';
@@ -20,6 +23,7 @@ import { ConnectResolver } from './connect.resolver.js';
 
 @Module({
     imports: [NetworkModule, ConfigModule.forFeature(configFeature), UserSettingsModule],
+    controllers: [ManagedBackupController],
     providers: [
         RemoteAccessService,
         ConnectConfigPersister,
@@ -33,6 +37,8 @@ import { ConnectResolver } from './connect.resolver.js';
         ConnectSettingsResolver,
         ConnectResolver,
         ConnectConfigService,
+        ManagedBackupStore,
+        ManagedBackupService,
     ],
     exports: [
         ConnectSettingsService,

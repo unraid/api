@@ -13,17 +13,10 @@ Tag="globe"
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-require_once "$docroot/plugins/dynamix.my.servers/include/state.php";
 require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
 require_once "$docroot/plugins/dynamix.my.servers/include/connect-config.php";
 require_once "$docroot/webGui/include/Wrappers.php";
-$serverState = new ServerState();
-
-$keyfile = $serverState->keyfileBase64;
-
-$isRegistered = $serverState->registered;
 $isConnectPluginInstalled = ApiConfig::isConnectPluginEnabled();
-$flashbackup_status = $serverState->flashbackupStatus;
 $shade="shade-".($display['theme']??'unk');
 ?>
 <style>
@@ -33,127 +26,187 @@ div.shade-azure{background-color:#edeaef;margin-top:10px;padding:8px 0 3px 0}
 div.shade-gray{background-color:#121510;margin-top:10px;padding:8px 0 3px 0}
 </style>
 <script>
-function checkFlashBackup() {
-    $.post("https://keys.lime-technology.com/backup/flash/check",{keyfile:"<?=$keyfile?>"}, function(data) {
-      if (data && data.size) {
-        $("#deletecloudbackup").prop("disabled", false);
-      }
+const managedBackupApi = '/graphql/api/connect/managed-backup';
+let managedBackupRecoveryPhrase = '';
+let managedBackupPhraseMode = 'generated';
+let managedBackupIsRotation = false;
+let managedBackupPoll = null;
+
+function generateManagedBackupPhrase() {
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz234567';
+  const bytes = new Uint8Array(40);
+  window.crypto.getRandomValues(bytes);
+  const characters = Array.from(bytes, byte => alphabet[byte & 31]);
+  const groups = [];
+  for (let offset = 0; offset < characters.length; offset += 5) {
+    groups.push(characters.slice(offset, offset + 5).join(''));
+  }
+  return groups.join('-');
+}
+
+function managedBackupPhraseIsUsable(phrase) {
+  const byteLength = new TextEncoder().encode(phrase).byteLength;
+  return byteLength >= 1 && byteLength <= 256 && phrase === phrase.trim() && !/[\p{Cc}\p{Cf}\p{Cs}\p{Co}\p{Cn}]/u.test(phrase);
+}
+
+async function managedBackupRequest(path, options) {
+  const response = await fetch(managedBackupApi + path, {
+    credentials: 'same-origin',
+    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+    ...options,
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(typeof body.message === 'string' ? body.message : _('Request failed'));
+  return body;
+}
+
+function formatManagedBackupBytes(value) {
+  if (!Number.isFinite(value) || value < 0) return _('Unavailable');
+  const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+  let amount = value;
+  let unit = 0;
+  while (amount >= 1024 && unit < units.length - 1) {
+    amount /= 1024;
+    unit += 1;
+  }
+  return (unit === 0 ? amount.toFixed(0) : amount.toFixed(1)) + ' ' + units[unit];
+}
+
+function renderManagedBackupStatus(status) {
+  $('#managed-backup-loading,#managed-backup-signed-out,#managed-backup-setup,#managed-backup-phrase,#managed-backup-ready,#managed-backup-error').hide();
+  if (!status.signedIn) {
+    $('#managed-backup-state').text(_('Sign in required')).removeClass('green').addClass('orange');
+    $('#managed-backup-signed-out').show();
+    return;
+  }
+  if (!status.configured) {
+    $('#managed-backup-state').text(status.setupPending ? _('Finishing setup') : _('Not configured')).removeClass('green').addClass('orange');
+    $('#managed-backup-setup').show();
+    return;
+  }
+
+  $('#managed-backup-state').text(status.running ? _('Backing up') : _('Ready')).removeClass('orange').addClass('green');
+  $('#managed-backup-ready').show();
+  $('#managed-backup-run').prop('disabled', Boolean(status.running));
+  const job = status.job || {};
+  $('#managed-backup-last-run').text(job.lastRunAt ? new Date(job.lastRunAt).toLocaleString() : _('Never'));
+  $('#managed-backup-last-result').text(status.running ? _('Running') : (job.lastRunStatus || _('Not run')));
+  if (status.usage && status.usage.state === 'current') {
+    $('#managed-backup-usage').text(formatManagedBackupBytes(status.usage.value.usedBytes) + ' / ' + formatManagedBackupBytes(status.usage.value.quotaBytes));
+  } else {
+    $('#managed-backup-usage').text(_('Unavailable'));
+  }
+}
+
+async function loadManagedBackupStatus() {
+  try {
+    renderManagedBackupStatus(await managedBackupRequest('/status', { method: 'GET' }));
+  } catch (error) {
+    $('#managed-backup-loading,#managed-backup-signed-out,#managed-backup-setup,#managed-backup-phrase,#managed-backup-ready').hide();
+    $('#managed-backup-state').text(_('Unavailable')).removeClass('green').addClass('orange');
+    $('#managed-backup-error-text').text(error.message || _('Managed backup is unavailable'));
+    $('#managed-backup-error').show();
+  }
+}
+
+function prepareManagedBackup(rotation = false) {
+  managedBackupIsRotation = rotation;
+  managedBackupPhraseMode = 'generated';
+  managedBackupRecoveryPhrase = generateManagedBackupPhrase();
+  $('#managed-backup-recovery-phrase').val(managedBackupRecoveryPhrase);
+  $('#managed-backup-custom-phrase,#managed-backup-custom-confirmation').val('');
+  $('#managed-backup-generated-option').prop('checked', true);
+  $('#managed-backup-generated-fields').show();
+  $('#managed-backup-custom-fields').hide();
+  $('#managed-backup-phrase-title').text(rotation ? _('Change recovery phrase') : _('Create recovery phrase'));
+  $('#managed-backup-rotation-note').toggle(rotation);
+  $('#managed-backup-activate').text(rotation ? _('Add new recovery key') : _('Create encrypted backup'));
+  $('#managed-backup-phrase-saved').prop('checked', false);
+  $('#managed-backup-activate').prop('disabled', true);
+  $('#managed-backup-phrase-error').hide();
+  $('#managed-backup-setup').hide();
+  $('#managed-backup-ready').hide();
+  $('#managed-backup-phrase').show();
+}
+
+function selectManagedBackupPhraseMode(mode) {
+  managedBackupPhraseMode = mode;
+  if (mode === 'generated') {
+    managedBackupRecoveryPhrase = generateManagedBackupPhrase();
+    $('#managed-backup-recovery-phrase').val(managedBackupRecoveryPhrase);
+  } else {
+    managedBackupRecoveryPhrase = '';
+  }
+  $('#managed-backup-generated-fields').toggle(mode === 'generated');
+  $('#managed-backup-custom-fields').toggle(mode === 'custom');
+  $('#managed-backup-phrase-saved').prop('checked', false);
+  $('#managed-backup-activate').prop('disabled', true);
+  $('#managed-backup-phrase-error').hide();
+}
+
+function cancelManagedBackupPhrase() {
+  managedBackupRecoveryPhrase = '';
+  $('#managed-backup-recovery-phrase,#managed-backup-custom-phrase,#managed-backup-custom-confirmation').val('');
+  $('#managed-backup-phrase').hide();
+  if (managedBackupIsRotation) $('#managed-backup-ready').show();
+  else $('#managed-backup-setup').show();
+}
+
+async function copyManagedBackupPhrase() {
+  const input = document.getElementById('managed-backup-recovery-phrase');
+  try {
+    await navigator.clipboard.writeText(managedBackupRecoveryPhrase);
+  } catch (_error) {
+    input.focus();
+    input.select();
+    document.execCommand('copy');
+  }
+  $('#managed-backup-copy').text(_('Copied'));
+}
+
+async function activateManagedBackup() {
+  const phrase = managedBackupPhraseMode === 'generated' ? managedBackupRecoveryPhrase : $('#managed-backup-custom-phrase').val();
+  const confirmation = managedBackupPhraseMode === 'generated' ? phrase : $('#managed-backup-custom-confirmation').val();
+  if (!$('#managed-backup-phrase-saved').is(':checked')) return;
+  if (!managedBackupPhraseIsUsable(phrase)) {
+    $('#managed-backup-phrase-error').text(_('Enter a recovery phrase without leading or trailing whitespace.')).show();
+    return;
+  }
+  if (phrase !== confirmation) {
+    $('#managed-backup-phrase-error').text(_('The recovery phrases do not match.')).show();
+    return;
+  }
+  const button = $('#managed-backup-activate');
+  button.prop('disabled', true).text(_('Preparing backup'));
+  try {
+    await managedBackupRequest('/setup', {
+      method: 'POST',
+      body: JSON.stringify({ recoveryPhrase: phrase }),
     });
+    managedBackupRecoveryPhrase = '';
+    $('#managed-backup-recovery-phrase,#managed-backup-custom-phrase,#managed-backup-custom-confirmation').val('');
+    await loadManagedBackupStatus();
+  } catch (error) {
+    $('#managed-backup-phrase-error').text(error.message || _('Backup setup failed')).show();
+    button.prop('disabled', false).text(managedBackupIsRotation ? _('Add new recovery key') : _('Create encrypted backup'));
+  }
 }
 
-function enableFlashBackup(button) {
-    var oldlabel = $.trim($(button).text());
-
-    var failure = function(data) {
-        var status = data.status;
-        var obj = data.responseJSON;
-        var msg = "_(Sorry, an error occurred)_<br>_(The error is)_: " + obj.error + ".";
-        $(button).prop("disabled", false).html(oldlabel);
-        swal({
-          title: "",
-          text: msg,
-          type: "error",
-          allowEscapeKey: false,
-          html: true,
-          confirmButtonText: "_(Ok)_"
-        },function(){button.form.submit();});
-    };
-
-    var success = function(data) {
-        $(button).prop("disabled", false).html(oldlabel);
-        button.form.submit();
-    };
-
-    if (oldlabel == "_(Activate)_") {
-        $(button).prop("disabled", true).html("_(Activating)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
-        $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"activate"},success).fail(failure);
-    }
-    if (oldlabel == "_(Deactivate)_") {
-        swal({
-            title:_("Deactivate"),
-            showCancelButton:true,
-            confirmButtonText:_('Deactivate'),
-            cancelButtonText:_('Cancel'),
-            text:_("Are you sure you want to delete your local flash backup?")+"<br><br><label style='font-weight:bold;color:red;'><input type='checkbox' id='remove_remote_backups'> "+_("Also delete cloud backup. Restore from backup will be unavailable.")+"</label>",
-            html:true,
-        },function(confirm){
-            if (!confirm) return;
-            $(button).prop("disabled", true).html("_(Deactivating)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
-            $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"deactivate"},success).fail(failure);
-            if ($('#remove_remote_backups').is(':checked')) {
-                // post to key-server to remove remote backup
-                $.post("https://keys.lime-technology.com/backup/flash/delete",{keyfile:"<?=$keyfile?>"}).fail(failure);
-            }
-        });
-    }
-    if (oldlabel == "_(Delete Cloud Backup)_") {
-        swal({
-            title:_("Delete Cloud Backup"),
-            showCancelButton:true,
-            confirmButtonText:_('Delete'),
-            cancelButtonText:_('Cancel'),
-            text:_("Are you sure you want to delete your cloud backup? Restore from backup will be unavailable."),
-            html:true,
-        },function(confirm){
-            if (!confirm) return;
-            // post to key-server to remove remote backup
-            $.post("https://keys.lime-technology.com/backup/flash/delete",{keyfile:"<?=$keyfile?>"},success).fail(failure);
-        });
-    }
-    if (oldlabel == "_(Update)_") {
-        $(button).prop("disabled", true).html("_(Updating)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
-        $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"flush"},success).fail(failure);
-    }
-    if (oldlabel == "_(Changes)_") {
-        openBox("/webGui/include/gitstatus.php", "_(Changes)_", 600,600, false);
-    }
+async function runManagedBackup() {
+  const button = $('#managed-backup-run');
+  button.prop('disabled', true).text(_('Starting'));
+  try {
+    await managedBackupRequest('/run', { method: 'POST', body: '{}' });
+    await loadManagedBackupStatus();
+    if (managedBackupPoll) window.clearInterval(managedBackupPoll);
+    managedBackupPoll = window.setInterval(loadManagedBackupStatus, 3000);
+  } catch (error) {
+    $('#managed-backup-error-text').text(error.message || _('Backup could not be started'));
+    $('#managed-backup-error').show();
+  } finally {
+    button.text(_('Back up now'));
+  }
 }
-
-function buttonStateReset(newstate) {
-    $('#inactivespanel,#activepanel,#changespanel,#uptodatepanel,#errorpanel,#remoteerrorpanel').hide();
-
-    if (newstate['loading'] && newstate['loading']!='') {
-      if (newstate['activated'] == 'true' || newstate['activated'] == 'yes') {
-        $('#flashbackuptext').html('<span class="green p0">_(Activated)_:</span> <span class="blue p0">' + newstate['loading'] + ' <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>');
-      } else {
-        $('#flashbackuptext').html('<span class="orange p0">_(Not activated)_:</span> <span class="blue p0">' + newstate['loading'] + ' <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>');
-      }
-      $('#uptodatepanel').show();
-      return;
-    }
-
-    if (newstate['error'] && newstate['error']!='') {
-      $('#flashbackuperror').html('<i class="fa fa-warning icon warning" aria-hidden="true"></i> ' + newstate['error']);
-      $('#errorpanel').show();
-    }
-
-    if (newstate['remoteerror'] && newstate['remoteerror']!='') {
-      $('#flashbackupremoteerror').html('<i class="fa fa-warning icon warning" aria-hidden="true"></i> ' + newstate['remoteerror']);
-      $('#remoteerrorpanel').show();
-
-      // if rate limited, disable the Update button
-      if (newstate['remoteerror'].includes('Rate limited')) {
-        $('#changespanel button').first().prop("disabled",true);
-      }
-    }
-
-    if (newstate['activated'] == 'true' || newstate['activated'] == 'yes') {
-        $('#activepanel').show();
-
-        if (newstate['uptodate'] == 'true' || newstate['uptodate'] == 'yes') {
-            $('#flashbackuptext').html('<span class="green p0">_(Activated)_:</span> <span class="green p0">_(up-to-date)_</span>');
-            $('#uptodatepanel').show();
-        } else {
-            $('#flashbackuptext').html('<span class="green p0">_(Activated)_:</span> <span class="orange p0">_(Not up-to-date)_</span>');
-            $('#changespanel').show();
-        }
-    } else {
-        $('#flashbackuptext').html('<span class="orange p0">_(Not activated)_</span>');
-        $('#inactivespanel').show();
-        checkFlashBackup();
-    }
-}
-$.post('/plugins/dynamix.my.servers/include/UpdateFlashBackup.php',{command:"status"});
 
 function applyExtraOrigins(button) {
   const postobj = {
@@ -232,117 +285,101 @@ $('body').on('click', '.js-setCurrentHostExtraOrigins', function(e) {
 
 <?if($isConnectPluginInstalled):?>
 <div markdown="1" class="<?=$shade?>"><!-- begin Flash Backup section -->
-<?if(!$isRegistered):?>
-_(Flash backup)_:
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
-<?else: // begin show flash backup form ?>
-_(Flash backup)_:
-: <span id='flashbackuptext'><span class='blue p0'>_(Loading)_ <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span></span>
+_(Encrypted flash backup)_:
+: <span id="managed-backup-state" class="blue p0">_(Loading)_ <i id="managed-backup-loading" class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>
 
-<form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
-
-<div markdown="1" id="errorpanel" style="display:none">
+<div markdown="1" id="managed-backup-signed-out" style="display:none">
 &nbsp;
-: <span id="flashbackuperror"></span>
-
+: <span><i class="fa fa-warning icon warning" aria-hidden="true"></i> _(Sign in to Unraid Connect to use managed backup storage.)_</span>
 </div>
-<div markdown="1" id="remoteerrorpanel" style="display:none">
-&nbsp;
-: <span id="flashbackupremoteerror"></span>
 
+<div markdown="1" id="managed-backup-setup" style="display:none">
+&nbsp;
+: <span class="buttons-spaced">
+    <button type="button" onclick="prepareManagedBackup()">_(Prepare encrypted backup)_</button>
+    <span>_(Creates a daily flash backup using your Connect storage plan.)_</span>
+  </span>
 </div>
-<div markdown="1" id="inactivespanel" style="display:none">
-<?if(disk_free_space('/boot') > 1024*1000*1000):?>
-&nbsp;
-: <span class="buttons-spaced">
-    <button type="button" onclick="enableFlashBackup(this)">_(Activate)_</button>
-    <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://docs.unraid.net/go/connect-flash-backup/" target="_blank">_(More information.)_</a></span>
+
+<div markdown="1" id="managed-backup-phrase" style="display:none">
+<span id="managed-backup-phrase-title" style="font-weight:bold">_(Create recovery phrase)_</span>:
+: <span class="buttons-spaced" role="radiogroup" aria-label="_(Recovery phrase source)_">
+    <label><input id="managed-backup-generated-option" type="radio" name="managed-backup-phrase-mode" value="generated" onchange="selectManagedBackupPhraseMode('generated')" checked> _(Generate for me)_</label>
+    <label><input type="radio" name="managed-backup-phrase-mode" value="custom" onchange="selectManagedBackupPhraseMode('custom')"> _(Use my own phrase)_</label>
   </span>
-<?else:?>
+
 &nbsp;
-: <span class="buttons-spaced">
-    <button type="button" disabled>_(Activate)_</button>
-    <span><i class="fa fa-warning icon warning"></i> _(In order to activate Flash Backup there must be at least 1GB of free space on your flash drive.)_</span>
+: <span id="managed-backup-rotation-note" style="display:none"><i class="fa fa-info-circle icon" aria-hidden="true"></i> _(A new Restic key is added first. Your previous phrase remains valid and existing snapshots stay recoverable.)_</span>
+
+<span id="managed-backup-generated-fields">
+_(Recovery phrase)_:
+: <span>
+    <input id="managed-backup-recovery-phrase" type="text" readonly autocomplete="off" spellcheck="false" aria-describedby="managed-backup-phrase-warning" style="width:min(42em,90%);font-family:monospace">
+    <button id="managed-backup-copy" type="button" onclick="copyManagedBackupPhrase()">_(Copy)_</button>
   </span>
-<?endif?>
+</span>
+
+<span id="managed-backup-custom-fields" style="display:none">
+_(Recovery phrase)_:
+: <span><input id="managed-backup-custom-phrase" type="password" autocomplete="new-password" maxlength="256" style="width:min(42em,90%)"></span>
+
+_(Confirm recovery phrase)_:
+: <span><input id="managed-backup-custom-confirmation" type="password" autocomplete="new-password" maxlength="256" style="width:min(42em,90%)"></span>
+
+&nbsp;
+: <span>_(Short or common phrases are easier to guess. Unraid will not require a strength score, but a longer unique phrase is safer.)_</span>
+</span>
+
+&nbsp;
+: <span id="managed-backup-phrase-warning"><i class="fa fa-warning icon warning" aria-hidden="true"></i> <strong>_(Save this recovery phrase now.)_</strong> _(It is the only way to restore this backup if the server is lost. Unraid cannot recover it for you.)_</span>
+
+&nbsp;
+: <label><input id="managed-backup-phrase-saved" type="checkbox"> _(I saved my recovery phrase somewhere separate from this server.)_</label>
 
 &nbsp;
 : <span class="buttons-spaced">
-    <button type="button" onclick="enableFlashBackup(this)" id="deletecloudbackup" disabled>_(Delete Cloud Backup)_</button>
+    <button id="managed-backup-activate" type="button" onclick="activateManagedBackup()" disabled>_(Create encrypted backup)_</button>
+    <button type="button" onclick="cancelManagedBackupPhrase()">_(Cancel)_</button>
   </span>
 
-:unraidnet_inactivespanel_help:
-
+&nbsp;
+: <span id="managed-backup-phrase-error" class="red-text" role="alert" style="display:none"></span>
 </div>
-<div markdown="1" id="changespanel" style="display:none">
+
+<div markdown="1" id="managed-backup-ready" style="display:none">
+_(Last backup)_:
+: <span id="managed-backup-last-run">_(Never)_</span>
+
+_(Last result)_:
+: <span id="managed-backup-last-result">_(Not run)_</span>
+
+_(Storage usage)_:
+: <span id="managed-backup-usage">_(Unavailable)_</span>
+
 &nbsp;
 : <span class="buttons-spaced">
-    <button type="button" onclick="enableFlashBackup(this)">_(Update)_</button>
-    <button type="button" onclick="enableFlashBackup(this)">_(Changes)_</button>
+    <button id="managed-backup-run" type="button" onclick="runManagedBackup()">_(Back up now)_</button>
+    <button type="button" onclick="prepareManagedBackup(true)">_(Change recovery phrase)_</button>
+    <span>_(This job is stored in the Unraid backup configuration and will appear automatically after upgrading to Core.)_</span>
   </span>
-
-:unraidnet_changespanel_help:
-
 </div>
-<div markdown="1" id="uptodatepanel" style="display:none">
+
+<div markdown="1" id="managed-backup-error" style="display:none">
 &nbsp;
-: <span class="buttons-spaced">
-    <button type="button" disabled>_(Update)_</button>
-  </span>
-
-:unraidnet_uptodatepanel_help:
-
+: <span><i class="fa fa-warning icon warning" aria-hidden="true"></i> <span id="managed-backup-error-text" role="alert">_(Managed backup is unavailable.)_</span> <button type="button" onclick="loadManagedBackupStatus()">_(Retry)_</button></span>
 </div>
-<div markdown="1" id="activepanel" style="display:none">
-&nbsp;
-: <span class="buttons-spaced">
-    <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button>
-    <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://docs.unraid.net/go/connect-flash-backup/" target="_blank">_(More information.)_</a></span>
-  </span>
 
-<?if (in_array($_COOKIE['UPC_ENV']??'', ['development','staging']) && file_exists("/var/log/gitflash") && filesize("/var/log/gitflash")):?>
-&nbsp;
-: <span class="buttons-spaced">
-    <button type="button" onclick="openBox('/plugins/dynamix.my.servers/scripts/gitflash_log', 'Flash Backup Error Log', 800, 800);">_(View Flash Backup Error Log)_</button>
-    <span><em>_(Transient errors in this log can be ignored unless you are having issues)_</em></span>
-  </span>
-<?endif?>
-
-</div>
-</form>
 <script>
-var flashbackupsub = new NchanSubscriber('/sub/flashbackup');
-var initialFlashBackupState = <?=
-    json_encode(
-        $flashbackup_status ?: [],
-        JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
-    )
-?> || {};
-
-if (Object.keys(initialFlashBackupState).length === 0) {
-  initialFlashBackupState = {
-    activated: 'no',
-    uptodate: 'no',
-    loading: '',
-    error: '',
-    remoteerror: ''
-  };
-}
-
-flashbackupsub.on('message', function(data) {
-  var ini = parseINI(data);
-
-  buttonStateReset(ini['flashbackup']);
-});
 $(function() {
-  buttonStateReset(initialFlashBackupState);
-  flashbackupsub.start();
+  $('#managed-backup-phrase-saved').on('change', function() {
+    $('#managed-backup-activate').prop('disabled', !this.checked);
+  });
+  loadManagedBackupStatus();
   if ( typeof caPluginUpdateCheck === "function" ) {
     caPluginUpdateCheck("dynamix.unraid.net.plg",{name:"Unraid Connect"});
   }
 });
 </script>
-<?endif // end show flash backup form ?>
 </div><!-- end Flash Backup section -->
 <?endif // end connect plugin check ?>
 

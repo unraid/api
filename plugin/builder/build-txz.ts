@@ -5,6 +5,7 @@ import { readdir } from "node:fs/promises";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
 import { validateConnectConnector } from "./utils/connect-connector";
 import { ensureNodeJs } from "./utils/nodejs-helper";
+import { ensureRestic } from "./utils/restic-helper";
 
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
 import { cleanupTxzFiles } from "./utils/cleanup";
@@ -201,6 +202,7 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   
   await Promise.all([
     ensureNodeJs(),
+    ensureRestic(),
   ]);
 
   // Create package - must be run from within the pre-pack directory
