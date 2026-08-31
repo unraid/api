@@ -318,6 +318,13 @@ export class ManagedBackupService {
         );
     }
 
+    private migrationCompleteMarkerPath(): string {
+        return (
+            this.config.get<string>('CONNECT_MANAGED_BACKUP_MIGRATION_COMPLETE_MARKER') ??
+            '/boot/config/plugins/dynamix.my.servers/managed-backup-migration-complete'
+        );
+    }
+
     private async legacyMigrationPending(): Promise<boolean> {
         return access(this.migrationMarkerPath()).then(
             () => true,
@@ -333,6 +340,8 @@ export class ManagedBackupService {
                 '/etc/rc.d/rc.flash_backup',
             ['retire']
         );
+        await writeFile(this.migrationCompleteMarkerPath(), '', { mode: 0o600 });
+        await chmod(this.migrationCompleteMarkerPath(), 0o600);
         await unlink(this.migrationMarkerPath());
     }
 

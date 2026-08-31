@@ -20,6 +20,7 @@ describe('managed backup service', () => {
     let requests: Array<{ path: string; method: string; body: unknown }>;
     let resticRepositoryId: string;
     let migrationMarker: string;
+    let migrationCompleteMarker: string;
     let resticKeys: Array<{ id: string; user: string; current: boolean }>;
     let resticKeySequence: number;
     let legacyRetirementFailures: number;
@@ -37,12 +38,14 @@ describe('managed backup service', () => {
         recoveryKeyRemovalFailures = 0;
         recoveryPhrases = new Map();
         migrationMarker = join(directory, 'migration-pending');
+        migrationCompleteMarker = join(directory, 'migration-complete');
         const config = new ConfigService({
             CONNECT_MANAGED_BACKUP_CONFIG_DIR: backupDir,
             CONNECT_MANAGED_BACKUP_SECRET_KEY_PATH: join(directory, 'secret_key_base'),
             CONNECT_CONTROL_PLANE_URL: 'https://connect.example',
             CONNECT_RESTIC_PATH: '/usr/local/bin/restic',
             CONNECT_MANAGED_BACKUP_MIGRATION_MARKER: migrationMarker,
+            CONNECT_MANAGED_BACKUP_MIGRATION_COMPLETE_MARKER: migrationCompleteMarker,
             CONNECT_LEGACY_FLASH_BACKUP_SERVICE: '/test/rc.flash_backup',
         });
         store = new ManagedBackupStore(config);
@@ -204,11 +207,13 @@ describe('managed backup service', () => {
         await service.reconcileAfterStartup();
         expect(execaMock).not.toHaveBeenCalledWith('/test/rc.flash_backup', ['retire']);
         expect((await service.status()).legacyMigrationPending).toBe(true);
+        await expect(access(migrationCompleteMarker)).rejects.toThrow();
 
         await service.setup('migration phrase');
 
         expect(execaMock).toHaveBeenCalledWith('/test/rc.flash_backup', ['retire']);
         await expect(access(migrationMarker)).rejects.toThrow();
+        await expect(access(migrationCompleteMarker)).resolves.toBeUndefined();
         expect((await service.status()).legacyMigrationPending).toBe(false);
     });
 
@@ -219,11 +224,13 @@ describe('managed backup service', () => {
         await service.setup('migration phrase');
 
         await expect(access(migrationMarker)).resolves.toBeUndefined();
+        await expect(access(migrationCompleteMarker)).rejects.toThrow();
         expect((await service.status()).configured).toBe(true);
 
         await service.reconcileAfterStartup();
 
         await expect(access(migrationMarker)).rejects.toThrow();
+        await expect(access(migrationCompleteMarker)).resolves.toBeUndefined();
     });
 
     it('verifies a replacement key before removing the previous recovery key', async () => {

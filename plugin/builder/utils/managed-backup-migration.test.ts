@@ -11,8 +11,6 @@ const helper = resolve(
     import.meta.dirname,
     '../../source/dynamix.unraid.net/usr/local/share/dynamix.unraid.net/scripts/managed_backup.sh'
 );
-const targetId = '8ca41aac-f15c-4eca-a1bd-5d55bf80322c';
-
 describe('legacy Flash Backup migration lifecycle', () => {
     let directory: string;
     let backupDir: string;
@@ -58,11 +56,10 @@ describe('legacy Flash Backup migration lifecycle', () => {
         expect(notifications[0]).toContain('/Settings/ManagementAccess/Connect');
     });
 
-    it('does not mark an incomplete state as Core-ready', async () => {
+    it('keeps the migration pending even when an incomplete managed state exists', async () => {
         await writeFile(legacyState, 'activated=yes\n');
         await writeFile(join(backupDir, 'managed-flash.json'), '{"setup_complete":true}');
 
-        await expect(runHelper('managed_backup_is_ready')).rejects.toThrow();
         await runHelper('notify_legacy_flash_backup_migration');
 
         await expect(
@@ -88,16 +85,17 @@ describe('legacy Flash Backup migration lifecycle', () => {
         ).rejects.toThrow();
     });
 
-    it('recognizes the canonical Core state and keeps retirement retryable', async () => {
+    it('does not recreate migration work after retirement completed', async () => {
         await writeFile(legacyState, 'activated=yes\n');
-        await writeCoreReadyState();
+        await mkdir(pluginDir, { recursive: true });
+        await writeFile(join(pluginDir, 'managed-backup-migration-complete'), '');
+        await writeFile(join(pluginDir, 'managed-backup-migration-pending'), '');
 
-        await runHelper('managed_backup_is_ready');
         await runHelper('notify_legacy_flash_backup_migration');
 
         await expect(
             readFile(join(pluginDir, 'managed-backup-migration-pending'), 'utf8')
-        ).resolves.toBe('');
+        ).rejects.toThrow();
         await expect(readFile(notifyLog, 'utf8')).rejects.toThrow();
     });
 
@@ -115,40 +113,4 @@ describe('legacy Flash Backup migration lifecycle', () => {
         });
     }
 
-    async function writeCoreReadyState() {
-        const repositoryUrl = 'https://backup.example/repository/server/';
-        await writeFile(
-            join(backupDir, 'managed-flash.json'),
-            JSON.stringify({
-                schema_version: 1,
-                setup_complete: true,
-                target_id: targetId,
-                target_name: 'Unraid Connect Backup Storage',
-                repository_id: 'repository-1',
-                repository_url: repositoryUrl,
-                restic_repository_id: 'restic-repository-1',
-                recovery_key_id: 'recovery-key-1',
-            })
-        );
-        await writeFile(
-            join(backupDir, 'targets.json'),
-            JSON.stringify([
-                {
-                    id: targetId,
-                    name: 'Unraid Connect Backup Storage',
-                    type: 'rest',
-                    uri: `rest:${repositoryUrl}`,
-                    auto_init: true,
-                    auto_unlock: true,
-                },
-            ])
-        );
-        const credentialsDir = join(backupDir, '.credentials');
-        await mkdir(credentialsDir, { recursive: true });
-        await Promise.all(
-            ['pass', 'enc', 'transport.enc'].map((suffix) =>
-                writeFile(join(credentialsDir, `${targetId}.${suffix}`), 'credential')
-            )
-        );
-    }
 });
