@@ -1,25 +1,8 @@
 {
   "disposition": "PATCH",
-  "expected_structural_delta": "Remove one dead GraphQL feature root; add one install-time migration notification and one successful-setup transition; keep the legacy runtime only for users who have not completed manual migration.",
-  "minimum_design": "Keep the existing managed-backup REST service and Core-compatible job files, notify users with an active legacy backup, continue that backup until managed setup succeeds, then stop its watcher without deleting the old cloud backup.",
-  "outcome": "The Connect page offers encrypted managed flash-backup setup, existing legacy backups continue until manual migration, and affected users receive a migration notification after installation.",
-  "reuse_decisions": [
-    {
-      "decision": "reuse",
-      "name": "ManagedBackupService and ManagedBackupStore",
-      "rationale": "They already own provisioning, Restic execution, and the Core-compatible backup contract."
-    },
-    {
-      "decision": "extend",
-      "name": "flashBackupActivated server-state field",
-      "rationale": "Keep the existing Update OS consumer while changing its source from legacy flashbackup.ini to the managed Restic job."
-    },
-    {
-      "decision": "retain during migration",
-      "name": "Git/PHP flash backup runtime",
-      "rationale": "Existing users keep protection until the managed Restic setup succeeds; the runtime stops after that explicit migration point."
-    }
-  ],
+  "forecast_commit": "e6239d1023f3d33870183925f46a5ad34056e68b",
+  "reviewed_sha": "15efde1d4562e61bd7c5594996eb1d5d6990a26d",
   "schema": "limetech.ai-review-marker.v2",
-  "stage": "forecast"
+  "stage": "final",
+  "unresolved_proportionality_findings": []
 }
