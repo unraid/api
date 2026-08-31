@@ -20,12 +20,22 @@ describe('managed backup service', () => {
     let requests: Array<{ path: string; method: string; body: unknown }>;
     let resticRepositoryId: string;
     let migrationMarker: string;
+    let resticKeys: Array<{ id: string; user: string; current: boolean }>;
+    let resticKeySequence: number;
+    let legacyRetirementFailures: number;
+    let recoveryKeyRemovalFailures: number;
+    let recoveryPhrases: Map<string, string>;
 
     beforeEach(async () => {
         directory = await mkdtemp(join(tmpdir(), 'managed-backup-service-'));
         backupDir = join(directory, 'backup');
         requests = [];
         resticRepositoryId = 'restic-repository-1';
+        resticKeys = [{ id: 'machine-key', user: 'root', current: true }];
+        resticKeySequence = 0;
+        legacyRetirementFailures = 0;
+        recoveryKeyRemovalFailures = 0;
+        recoveryPhrases = new Map();
         migrationMarker = join(directory, 'migration-pending');
         const config = new ConfigService({
             CONNECT_MANAGED_BACKUP_CONFIG_DIR: backupDir,
@@ -40,9 +50,64 @@ describe('managed backup service', () => {
             getConfig: () => ({ apikey: 'server-key' }),
         } as ConnectConfigPersister;
         service = new ManagedBackupService(config, connect, store);
-        execaMock.mockImplementation(async (_path, args: string[]) => ({
-            stdout: args[0] === 'cat' ? JSON.stringify({ id: resticRepositoryId, version: 2 }) : '',
-        }));
+        execaMock.mockImplementation(
+            async (_path, args: string[], options?: { env?: Record<string, string> }) => {
+                if (_path === '/test/rc.flash_backup' && legacyRetirementFailures > 0) {
+                    legacyRetirementFailures -= 1;
+                    throw new Error('retirement failed');
+                }
+                if (args[0] === 'cat') {
+                    const passwordPath = options?.env?.RESTIC_PASSWORD_FILE;
+                    if (passwordPath?.includes('/recovery-')) {
+                        const phrase = await readFile(passwordPath, 'utf8');
+                        if (![...recoveryPhrases.values()].includes(phrase)) {
+                            throw new Error('wrong password');
+                        }
+                    }
+                    return { stdout: JSON.stringify({ id: resticRepositoryId, version: 2 }) };
+                }
+                if (args[0] === 'key' && args[1] === 'list') {
+                    const passwordPath = options?.env?.RESTIC_PASSWORD_FILE;
+                    if (passwordPath?.includes('/recovery-')) {
+                        const phrase = await readFile(passwordPath, 'utf8');
+                        const currentId = [...recoveryPhrases.entries()].find(
+                            ([, candidate]) => candidate === phrase
+                        )?.[0];
+                        if (!currentId) throw new Error('wrong password');
+                        return {
+                            stdout: JSON.stringify(
+                                resticKeys.map((key) => ({
+                                    ...key,
+                                    current: key.id === currentId,
+                                }))
+                            ),
+                        };
+                    }
+                    return { stdout: JSON.stringify(resticKeys) };
+                }
+                if (args[0] === 'key' && args[1] === 'add') {
+                    const userIndex = args.indexOf('--user');
+                    resticKeySequence += 1;
+                    const passwordFileIndex = args.indexOf('--new-password-file');
+                    const keyId = `recovery-key-${resticKeySequence}`;
+                    resticKeys.push({
+                        id: keyId,
+                        user: userIndex >= 0 ? args[userIndex + 1] : '',
+                        current: false,
+                    });
+                    recoveryPhrases.set(keyId, await readFile(args[passwordFileIndex + 1], 'utf8'));
+                }
+                if (args[0] === 'key' && args[1] === 'remove') {
+                    if (recoveryKeyRemovalFailures > 0) {
+                        recoveryKeyRemovalFailures -= 1;
+                        throw new Error('key removal failed');
+                    }
+                    resticKeys = resticKeys.filter((key) => key.id !== args[2]);
+                    recoveryPhrases.delete(args[2]);
+                }
+                return { stdout: '' };
+            }
+        );
         vi.stubGlobal(
             'fetch',
             vi.fn(async (input: URL | RequestInfo, init?: RequestInit) => {
@@ -64,6 +129,9 @@ describe('managed backup service', () => {
                     });
                 }
                 if (url.pathname === '/backup/v1/provision/confirm') {
+                    return Response.json({ ok: true });
+                }
+                if (url.pathname === '/backup/v1/provision/finalize') {
                     return Response.json({ ok: true });
                 }
                 if (url.pathname === '/backup/v1/usage') {
@@ -96,8 +164,15 @@ describe('managed backup service', () => {
         expect(requests.map((request) => request.path)).toEqual([
             '/backup/v1/provision',
             '/backup/v1/provision/confirm',
+            '/backup/v1/provision/finalize',
         ]);
-        expect(execaMock.mock.calls.map((call) => call[1][0])).toEqual(['cat', 'key', 'cat']);
+        expect(requests[1].body).toEqual({
+            repositoryId: 'repository-1',
+            username: 'transport-user',
+            generation: 1,
+        });
+        expect(requests[2].body).toEqual(requests[1].body);
+        expect(execaMock.mock.calls.some((call) => call[1][0] === 'key')).toBe(true);
         expect(execaMock.mock.calls.some((call) => call[1].includes('backup'))).toBe(false);
 
         const contents = await readTree(backupDir);
@@ -106,9 +181,14 @@ describe('managed backup service', () => {
         expect(await store.loadState()).toMatchObject({
             setup_complete: true,
             initial_job_created: true,
+            target_id: '8ca41aac-f15c-4eca-a1bd-5d55bf80322c',
+            target_name: 'Unraid Connect Backup Storage',
             repository_id: 'repository-1',
             restic_repository_id: 'restic-repository-1',
+            recovery_key_id: 'recovery-key-1',
         });
+        expect(contents).not.toContain('recovery_key_fingerprint');
+        expect(await store.isCoreReady()).toBe(true);
     });
 
     it('rejects unusable phrases before contacting Connect or Restic', async () => {
@@ -132,7 +212,21 @@ describe('managed backup service', () => {
         expect((await service.status()).legacyMigrationPending).toBe(false);
     });
 
-    it('adds a replacement key without removing the previous Restic key', async () => {
+    it('keeps the migration marker and retries a failed retirement on startup', async () => {
+        await writeFile(migrationMarker, '');
+        legacyRetirementFailures = 1;
+
+        await service.setup('migration phrase');
+
+        await expect(access(migrationMarker)).resolves.toBeUndefined();
+        expect((await service.status()).configured).toBe(true);
+
+        await service.reconcileAfterStartup();
+
+        await expect(access(migrationMarker)).rejects.toThrow();
+    });
+
+    it('verifies a replacement key before removing the previous recovery key', async () => {
         const first = 'apple-bravo-cabin-delta-ember-fable-grove-harbor';
         const replacement = 'iris juniper kestrel lantern maple nimbus';
         await service.setup(first);
@@ -141,12 +235,38 @@ describe('managed backup service', () => {
         await service.setup(replacement);
 
         const keyCalls = execaMock.mock.calls.filter((call) => call[1][0] === 'key');
-        expect(keyCalls).toHaveLength(1);
-        expect(keyCalls[0][1][1]).toBe('add');
-        expect(execaMock.mock.calls.some((call) => call[1][1] === 'remove')).toBe(false);
+        const addIndex = keyCalls.findIndex((call) => call[1][1] === 'add');
+        const removeIndex = keyCalls.findIndex((call) => call[1][1] === 'remove');
+        expect(addIndex).toBeGreaterThanOrEqual(0);
+        expect(removeIndex).toBeGreaterThan(addIndex);
+        expect(resticKeys.map((key) => key.id)).toEqual(['machine-key', 'recovery-key-2']);
         const contents = await readTree(backupDir);
         expect(contents).not.toContain(first);
         expect(contents).not.toContain(replacement);
+    });
+
+    it('resumes a verified key rotation after old-key removal is interrupted', async () => {
+        const first = 'apple-bravo-cabin-delta-ember-fable-grove-harbor';
+        const replacement = 'iris juniper kestrel lantern maple nimbus';
+        await service.setup(first);
+        recoveryKeyRemovalFailures = 1;
+
+        await expect(service.setup(replacement)).rejects.toThrow('Restic operation failed');
+        await expect(store.loadState()).resolves.toMatchObject({
+            recovery_key_id: 'recovery-key-1',
+            pending_recovery_key: {
+                old_key_id: 'recovery-key-1',
+                new_key_id: 'recovery-key-2',
+                stage: 'verified',
+            },
+        });
+
+        await service.setup(replacement);
+
+        expect(resticKeys.map((key) => key.id)).toEqual(['machine-key', 'recovery-key-2']);
+        const state = await store.loadState();
+        expect(state).toMatchObject({ recovery_key_id: 'recovery-key-2' });
+        expect(state).not.toHaveProperty('pending_recovery_key');
     });
 
     it('adds the phrase when the provider id points at a different Restic repository', async () => {
@@ -154,10 +274,14 @@ describe('managed backup service', () => {
         await service.setup(phrase);
         execaMock.mockClear();
         resticRepositoryId = 'restic-repository-2';
+        resticKeys = [{ id: 'machine-key-2', user: 'root', current: true }];
+        recoveryPhrases.clear();
 
         await service.setup(phrase);
 
-        expect(execaMock.mock.calls.filter((call) => call[1][0] === 'key')).toHaveLength(1);
+        expect(
+            execaMock.mock.calls.filter((call) => call[1][0] === 'key' && call[1][1] === 'add')
+        ).toHaveLength(1);
         expect(await store.loadState()).toMatchObject({
             repository_id: 'repository-1',
             restic_repository_id: 'restic-repository-2',

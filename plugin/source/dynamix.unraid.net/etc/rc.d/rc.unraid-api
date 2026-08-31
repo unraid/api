@@ -4,6 +4,8 @@
 unraid_binary_path="/usr/local/bin/unraid-api"
 api_base_dir="/usr/local/unraid-api"
 scripts_dir="/usr/local/share/dynamix.unraid.net/scripts"
+managed_backup_helpers="$scripts_dir/managed_backup.sh"
+managed_backup_is_ready() { return 1; }
 
 # Ensure script permissions
 if [ -d "$scripts_dir" ]; then
@@ -42,12 +44,11 @@ start() {
 
   # Keep an existing legacy backup running until managed backup setup succeeds.
   if [ -x "/etc/rc.d/rc.flash_backup" ]; then
-    managed_backup_state="/boot/config/unraid/backup/managed-flash.json"
-    managed_backup_ready="false"
-    if [ -f "$managed_backup_state" ] && command -v jq >/dev/null 2>&1; then
-      managed_backup_ready="$(jq -r '.setup_complete // false' "$managed_backup_state" 2>/dev/null)"
+    if [ -r "$managed_backup_helpers" ]; then
+      # shellcheck source=../usr/local/share/dynamix.unraid.net/scripts/managed_backup.sh
+      source "$managed_backup_helpers"
     fi
-    if [ "$managed_backup_ready" != "true" ] && [ -x "$scripts_dir/api_utils.sh" ] && "$scripts_dir/api_utils.sh" is_api_plugin_enabled "unraid-api-plugin-connect"; then
+    if ! managed_backup_is_ready && [ -x "$scripts_dir/api_utils.sh" ] && "$scripts_dir/api_utils.sh" is_api_plugin_enabled "unraid-api-plugin-connect"; then
       echo "Starting flash backup service..."
       /etc/rc.d/rc.flash_backup start
     fi

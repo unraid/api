@@ -7,16 +7,20 @@ import { dirname, join } from 'node:path';
 export const MANAGED_BACKUP_TARGET_ID = '8ca41aac-f15c-4eca-a1bd-5d55bf80322c';
 export const MANAGED_BACKUP_JOB_ID = 'f3a9d870-146c-4f9e-b078-5bb0d9f20d0c';
 export const MANAGED_BACKUP_STAGING_ID = 'b4afdd5b-cc20-4276-a37f-0d86b064ff44';
+export const MANAGED_BACKUP_TARGET_NAME = 'Unraid Connect Backup Storage';
 
 export type JsonObject = Record<string, unknown>;
 
 export interface ManagedBackupState extends JsonObject {
     schema_version?: 1;
+    target_id?: string;
+    target_name?: string;
     repository_id?: string;
     repository_url?: string;
     restic_repository_id?: string;
-    recovery_key_fingerprint?: string;
+    recovery_key_id?: string;
     recovery_key_added_at?: string;
+    pending_recovery_key?: JsonObject;
     setup_complete?: boolean;
     pending_generation?: number;
     pending_repository_id?: string;
@@ -60,7 +64,9 @@ export interface ManagedBackupJob extends JsonObject {
 }
 
 export interface StagedManagedBackup extends JsonObject {
-    schema_version: 1;
+    schema_version: 2;
+    provider_module: 'Elixir.ConnectPlugin.ManagedBackupProvider';
+    repository_spec: JsonObject;
     generation: number;
     repository_id: string;
     quota_bytes: number;
@@ -151,7 +157,7 @@ export class ManagedBackupStore {
             created: !existing,
             target: {
                 id: MANAGED_BACKUP_TARGET_ID,
-                name: 'Unraid Connect Backup Storage',
+                name: MANAGED_BACKUP_TARGET_NAME,
                 type: 'rest',
                 uri: `rest:${repositoryUrl}`,
                 password_file: this.passwordPath,
@@ -197,6 +203,35 @@ export class ManagedBackupStore {
         const transport: unknown = JSON.parse(transportJson);
         if (!isObject(transport) || typeof transport.RESTIC_REST_PASSWORD !== 'string') return null;
         return { target, machinePassword, transportPassword: transport.RESTIC_REST_PASSWORD };
+    }
+
+    async isCoreReady(): Promise<boolean> {
+        const state = await this.loadState();
+        if (
+            state.setup_complete !== true ||
+            state.target_id !== MANAGED_BACKUP_TARGET_ID ||
+            state.target_name !== MANAGED_BACKUP_TARGET_NAME ||
+            typeof state.repository_id !== 'string' ||
+            !state.repository_id ||
+            typeof state.repository_url !== 'string' ||
+            !state.repository_url ||
+            typeof state.restic_repository_id !== 'string' ||
+            !state.restic_repository_id ||
+            typeof state.recovery_key_id !== 'string' ||
+            !state.recovery_key_id
+        ) {
+            return false;
+        }
+        const loaded = await this.loadManagedTarget();
+        return Boolean(
+            loaded &&
+                loaded.target.name === MANAGED_BACKUP_TARGET_NAME &&
+                loaded.target.uri === `rest:${state.repository_url}` &&
+                loaded.target.auto_init === true &&
+                loaded.target.auto_unlock === true &&
+                loaded.machinePassword &&
+                loaded.transportPassword
+        );
     }
 
     async saveStaging(staged: StagedManagedBackup): Promise<void> {
@@ -398,7 +433,9 @@ function isManagedBackupJob(value: unknown): value is ManagedBackupJob {
 function isStagedManagedBackup(value: unknown): value is StagedManagedBackup {
     return (
         isObject(value) &&
-        value.schema_version === 1 &&
+        value.schema_version === 2 &&
+        value.provider_module === 'Elixir.ConnectPlugin.ManagedBackupProvider' &&
+        isObject(value.repository_spec) &&
         Number.isSafeInteger(value.generation) &&
         Number(value.generation) > 0 &&
         typeof value.repository_id === 'string' &&

@@ -6,44 +6,11 @@ backup_file_if_exists() {
   fi
 }
 
-notify_legacy_flash_backup_migration() {
-  managed_state="/boot/config/unraid/backup/managed-flash.json"
-  migration_pending="/boot/config/plugins/dynamix.my.servers/managed-backup-migration-pending"
-  migration_notified="/boot/config/plugins/dynamix.my.servers/managed-backup-migration-notified"
-  legacy_remote="$(git -C /boot config --get remote.origin.url 2>/dev/null || true)"
-  legacy_active="false"
-  managed_ready="false"
-
-  case "$legacy_remote" in
-    *backup.unraid.net*) legacy_active="true" ;;
-  esac
-  if [ "$legacy_active" != "true" ] && grep -Eq '^activated=(yes|true)$' /var/local/emhttp/flashbackup.ini 2>/dev/null; then
-    legacy_active="true"
-  fi
-  if [ -f "$managed_state" ] && command -v jq >/dev/null 2>&1; then
-    managed_ready="$(jq -r '.setup_complete // false' "$managed_state" 2>/dev/null)"
-  fi
-
-  if [ "$legacy_active" = "true" ] && [ "$managed_ready" != "true" ]; then
-    mkdir -p "$(dirname "$migration_pending")"
-    install -m 600 /dev/null "$migration_pending"
-    if [ ! -e "$migration_notified" ] && [ -x /usr/local/emhttp/webGui/scripts/notify ]; then
-      if /usr/local/emhttp/webGui/scripts/notify \
-        -e "Unraid Connect" \
-        -s "Set up encrypted Flash Backup" \
-        -d "Your existing Flash Backup will continue to run. Open the Connect page to set up its encrypted replacement." \
-        -i normal \
-        -l "/Settings/ManagementAccess/Connect" \
-        -x; then
-        install -m 600 /dev/null "$migration_notified"
-      fi
-    fi
-  else
-    rm -f "$migration_pending"
-  fi
-}
-
-notify_legacy_flash_backup_migration
+managed_backup_helpers="/usr/local/share/dynamix.unraid.net/scripts/managed_backup.sh"
+if [ -r "$managed_backup_helpers" ]; then
+  . "$managed_backup_helpers"
+  notify_legacy_flash_backup_migration
+fi
 
 for f in etc/rc.d/rc6.d/K*unraid-api etc/rc.d/rc6.d/K*flash-backup; do
   [ -e "$f" ] && chmod 755 "$f"

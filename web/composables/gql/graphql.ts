@@ -778,14 +778,6 @@ export type Flash = Node & {
   vendor: Scalars['String']['output'];
 };
 
-export type FlashBackupStatus = {
-  __typename?: 'FlashBackupStatus';
-  /** Job ID if available, can be used to check job status. */
-  jobId?: Maybe<Scalars['String']['output']>;
-  /** Status message indicating the outcome of the backup initiation. */
-  status: Scalars['String']['output'];
-};
-
 export type FormSchema = {
   /** The data schema for the form */
   dataSchema: Scalars['JSON']['output'];
@@ -1075,17 +1067,6 @@ export type InfoVersions = Node & {
   packages?: Maybe<PackageVersions>;
 };
 
-export type InitiateFlashBackupInput = {
-  /** Destination path on the remote. */
-  destinationPath: Scalars['String']['input'];
-  /** Additional options for the backup operation, such as --dry-run or --transfers. */
-  options?: InputMaybe<Scalars['JSON']['input']>;
-  /** The name of the remote configuration to use for the backup. */
-  remoteName: Scalars['String']['input'];
-  /** Source path to backup (typically the flash drive). */
-  sourcePath: Scalars['String']['input'];
-};
-
 export type KeyFile = {
   __typename?: 'KeyFile';
   contents?: Maybe<Scalars['String']['output']>;
@@ -1218,8 +1199,6 @@ export type Mutation = {
   deleteNotification: NotificationOverview;
   docker: DockerMutations;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
-  /** Initiates a flash drive backup using a configured remote. */
-  initiateFlashBackup: FlashBackupStatus;
   moveDockerEntriesToFolder: ResolvedOrganizerV1;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
@@ -1294,11 +1273,6 @@ export type MutationDeleteNotificationArgs = {
 
 export type MutationEnableDynamicRemoteAccessArgs = {
   input: EnableDynamicRemoteAccessInput;
-};
-
-
-export type MutationInitiateFlashBackupArgs = {
-  input: InitiateFlashBackupInput;
 };
 
 

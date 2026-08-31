@@ -46,11 +46,7 @@ describe('Core-compatible managed backup store', () => {
                 id: MANAGED_BACKUP_TARGET_ID,
                 type: 'rest',
                 uri: 'rest:https://backup.example/backup/v1/repository/server/',
-                password_file: join(
-                    backupDir,
-                    '.credentials',
-                    `${MANAGED_BACKUP_TARGET_ID}.pass`
-                ),
+                password_file: join(backupDir, '.credentials', `${MANAGED_BACKUP_TARGET_ID}.pass`),
                 env: { RESTIC_REST_USERNAME: 'transport-user' },
                 auto_init: true,
                 auto_unlock: true,
@@ -82,8 +78,7 @@ describe('Core-compatible managed backup store', () => {
 
         expect((await stat(join(directory, 'secret_key_base'))).mode & 0o777).toBe(0o600);
         expect(
-            (await stat(join(backupDir, '.credentials', `${MANAGED_BACKUP_TARGET_ID}.enc`))).mode &
-                0o777
+            (await stat(join(backupDir, '.credentials', `${MANAGED_BACKUP_TARGET_ID}.enc`))).mode & 0o777
         ).toBe(0o600);
         await expect(store.loadManagedTarget()).resolves.toMatchObject({
             machinePassword: password,
@@ -119,5 +114,11 @@ describe('Core-compatible managed backup store', () => {
             id: 'user-job',
             name: 'Appdata',
         });
+    });
+
+    it('does not treat setup_complete alone as a Core-ready backup', async () => {
+        await store.saveState({ setup_complete: true });
+
+        await expect(store.isCoreReady()).resolves.toBe(false);
     });
 });

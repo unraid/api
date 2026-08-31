@@ -295,7 +295,7 @@ _(Encrypted flash backup)_:
 </div>
 
 <div markdown="1" id="managed-backup-setup" style="display:none">
-<span id="managed-backup-migration-note" style="display:none">
+<span id="managed-backup-migration-note" role="status" aria-live="polite" style="display:none">
 &nbsp;
 : <span><i class="fa fa-info-circle icon" aria-hidden="true"></i> _(Your existing Flash Backup will continue until this encrypted backup is ready.)_</span>
 </span>

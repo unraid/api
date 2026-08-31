@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Cron } from '@nestjs/schedule';
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { access, chmod, unlink, writeFile } from 'node:fs/promises';
 
 import { execa } from 'execa';
@@ -12,6 +12,8 @@ import { EVENTS } from '../helper/nest-tokens.js';
 import { requestControlPlane } from '../tunnel/control-plane.js';
 import {
     MANAGED_BACKUP_JOB_ID,
+    MANAGED_BACKUP_TARGET_ID,
+    MANAGED_BACKUP_TARGET_NAME,
     ManagedBackupJob,
     ManagedBackupState,
     ManagedBackupStore,
@@ -38,6 +40,24 @@ interface UsageResponse {
     objectCount: number;
     updatedAt: string;
 }
+
+interface ResticKey {
+    id: string;
+    user: string | null;
+    current: boolean;
+}
+
+interface PendingRecoveryKey extends Record<string, unknown> {
+    operation_id: string;
+    repository_id: string;
+    restic_repository_id: string;
+    old_key_id: string | null;
+    new_key_id: string | null;
+    stage: 'prepared' | 'verified';
+}
+
+const managedBackupProvider = 'Elixir.ConnectPlugin.ManagedBackupProvider';
+const recoveryKeyLabelPrefix = 'unraid-managed-recovery:';
 
 const flashExcludePresets: Record<string, string[]> = {
     system_images: ['bzimage', 'bzroot', 'bzroot-gui', 'bzfirmware', 'bzmodules'],
@@ -94,17 +114,18 @@ export class ManagedBackupService {
 
     async status() {
         await this.serial(() => this.reconcilePending()).catch(() => undefined);
-        const [state, job, usage, legacyMigrationPending] = await Promise.all([
+        const [state, job, usage, legacyMigrationPending, configured] = await Promise.all([
             this.store.loadState(),
             this.store.loadInitialJob(),
             this.loadUsage(),
             this.legacyMigrationPending(),
+            this.store.isCoreReady(),
         ]);
         const signedIn = Boolean(this.connect.getConfig().apikey);
         return {
             schemaVersion: 1,
             signedIn,
-            configured: state.setup_complete === true,
+            configured,
             setupPending: Number.isSafeInteger(state.pending_generation),
             legacyMigrationPending,
             running: this.running,
@@ -142,37 +163,32 @@ export class ManagedBackupService {
             );
             const resticRepositoryId = await this.ensureRepository(target, repository.password);
 
-            const fingerprint = createHash('sha256').update(phrase).digest('hex');
             const state = await this.store.loadState();
-            const recordMatches =
-                state.repository_id === repository.repositoryId &&
-                state.restic_repository_id === resticRepositoryId &&
-                state.recovery_key_fingerprint === fingerprint;
-            const unlocksRecordedRepository =
-                recordMatches &&
-                (await this.recoveryKeyRepositoryId(target, repository.password, phrase).catch(
-                    () => null
-                )) === resticRepositoryId;
-            if (!unlocksRecordedRepository) {
-                await this.addRecoveryKey(target, repository.password, phrase);
-                const verified = await this.recoveryKeyRepositoryId(target, repository.password, phrase);
-                if (verified !== resticRepositoryId) {
-                    throw new Error('Managed backup recovery key verification failed');
-                }
-            }
+            const recoveryKeyId = await this.ensureRecoveryKey(
+                target,
+                repository,
+                resticRepositoryId,
+                phrase,
+                state
+            );
             await this.store.saveState({
-                ...state,
+                ...(await this.store.loadState()),
                 schema_version: 1,
+                target_id: target.id,
+                target_name: MANAGED_BACKUP_TARGET_NAME,
                 repository_id: repository.repositoryId,
                 repository_url: repository.repositoryUrl,
                 restic_repository_id: resticRepositoryId,
-                recovery_key_fingerprint: fingerprint,
+                recovery_key_id: recoveryKeyId,
                 recovery_key_added_at: new Date().toISOString(),
                 setup_complete: false,
+                pending_recovery_key: undefined,
             });
 
             const staged: StagedManagedBackup = {
-                schema_version: 1,
+                schema_version: 2,
+                provider_module: managedBackupProvider,
+                repository_spec: this.repositorySpec(),
                 generation: repository.generation,
                 repository_id: repository.repositoryId,
                 quota_bytes: repository.quotaBytes,
@@ -245,9 +261,16 @@ export class ManagedBackupService {
         ) {
             throw new Error('Managed backup setup is incomplete');
         }
-        const confirmation = await this.request('/backup/v1/provision/confirm', 'POST', {
+        const credentialReference = {
+            repositoryId: staged.repository_id,
+            username: staged.transport_username,
             generation: staged.generation,
-        });
+        };
+        const confirmation = await this.request(
+            '/backup/v1/provision/confirm',
+            'POST',
+            credentialReference
+        );
         if (!isObject(confirmation) || confirmation.ok !== true) {
             throw new Error('Connect returned an invalid backup confirmation');
         }
@@ -256,12 +279,22 @@ export class ManagedBackupService {
             staged.machine_password,
             staged.transport_password
         );
+        const finalization = await this.request(
+            '/backup/v1/provision/finalize',
+            'POST',
+            credentialReference
+        );
+        if (!isObject(finalization) || finalization.ok !== true) {
+            throw new Error('Connect returned an invalid backup finalization');
+        }
         await this.store.ensureInitialJob();
         const current = await this.store.loadState();
         if (
             current.repository_id !== staged.repository_id ||
             typeof current.restic_repository_id !== 'string' ||
-            typeof current.recovery_key_fingerprint !== 'string'
+            typeof current.recovery_key_id !== 'string' ||
+            current.target_id !== MANAGED_BACKUP_TARGET_ID ||
+            current.target_name !== MANAGED_BACKUP_TARGET_NAME
         ) {
             throw new Error('Managed backup recovery key was not recorded');
         }
@@ -294,8 +327,7 @@ export class ManagedBackupService {
 
     private async retireLegacyFlashBackup(): Promise<void> {
         if (!(await this.legacyMigrationPending())) return;
-        const state = await this.store.loadState();
-        if (state.setup_complete !== true) return;
+        if (!(await this.store.isCoreReady())) return;
         await execa(
             this.config.get<string>('CONNECT_LEGACY_FLASH_BACKUP_SERVICE') ??
                 '/etc/rc.d/rc.flash_backup',
@@ -308,7 +340,7 @@ export class ManagedBackupService {
         const state = await this.store.loadState();
         const job = await this.store.loadInitialJob();
         const loaded = await this.store.loadManagedTarget();
-        if (state.setup_complete !== true || !job?.enabled || !loaded) {
+        if (!(await this.store.isCoreReady()) || !job?.enabled || !loaded) {
             throw new Error('Managed flash backup is not configured');
         }
         await this.store.recordJobRun('running');
@@ -360,17 +392,226 @@ export class ManagedBackupService {
         return config.id;
     }
 
+    private repositorySpec(): Record<string, unknown> {
+        return {
+            target_id: MANAGED_BACKUP_TARGET_ID,
+            target_name: MANAGED_BACKUP_TARGET_NAME,
+            initial_job: {
+                id: MANAGED_BACKUP_JOB_ID,
+                name: 'Flash Backup',
+                source_type: 'flash',
+                source_config: {
+                    path: '/boot',
+                    exclude_presets: [
+                        'system_images',
+                        'plugin_archives',
+                        'docker_cache',
+                        'old_plugins',
+                        'logs',
+                        'temp_files',
+                    ],
+                },
+                schedule: '0 3 * * *',
+                enabled: true,
+                retention: { keep_last: 7, keep_daily: 7, keep_weekly: 4, keep_monthly: 6 },
+            },
+        };
+    }
+
+    private async ensureRecoveryKey(
+        target: ManagedBackupTarget,
+        repository: ProvisionedRepository,
+        resticRepositoryId: string,
+        phrase: string,
+        state: ManagedBackupState
+    ): Promise<string> {
+        const currentKeyId =
+            typeof state.recovery_key_id === 'string' && state.recovery_key_id
+                ? state.recovery_key_id
+                : null;
+        const pending = this.pendingRecoveryKey(state, repository.repositoryId, resticRepositoryId);
+        const phraseKeyId = await this.recoveryPhraseKeyId(target, repository.password, phrase).catch(
+            () => null
+        );
+        if (
+            pending?.stage === 'verified' &&
+            pending.new_key_id &&
+            phraseKeyId === pending.new_key_id &&
+            (await this.recoveryKeyPresent(target, repository.password, pending.new_key_id))
+        ) {
+            if (pending.old_key_id && pending.old_key_id !== pending.new_key_id) {
+                await this.removeRecoveryKeyIfPresent(target, repository.password, pending.old_key_id);
+            }
+            return pending.new_key_id;
+        }
+        const recorded =
+            state.repository_id === repository.repositoryId &&
+            state.restic_repository_id === resticRepositoryId &&
+            currentKeyId !== null;
+        if (
+            recorded &&
+            phraseKeyId === currentKeyId &&
+            (await this.recoveryKeyPresent(target, repository.password, currentKeyId))
+        ) {
+            return currentKeyId;
+        }
+
+        const operation = this.recoveryKeyOperation(state, repository.repositoryId, resticRepositoryId);
+        const label = recoveryKeyLabelPrefix + operation.operation_id;
+        await this.store.saveState({ ...state, pending_recovery_key: operation });
+        await this.removeKeysWithLabel(target, repository.password, label);
+        const newKeyId = await this.addRecoveryKey(target, repository.password, phrase, label);
+        if (
+            (await this.recoveryKeyRepositoryId(target, repository.password, phrase)) !==
+                resticRepositoryId ||
+            (await this.recoveryPhraseKeyId(target, repository.password, phrase)) !== newKeyId
+        ) {
+            throw new Error('Managed backup recovery key verification failed');
+        }
+        await this.store.saveState({
+            ...(await this.store.loadState()),
+            pending_recovery_key: { ...operation, new_key_id: newKeyId, stage: 'verified' },
+        });
+        if (operation.old_key_id && operation.old_key_id !== newKeyId) {
+            await this.removeRecoveryKeyIfPresent(target, repository.password, operation.old_key_id);
+        }
+        return newKeyId;
+    }
+
+    private pendingRecoveryKey(
+        state: ManagedBackupState,
+        repositoryId: string,
+        resticRepositoryId: string
+    ): PendingRecoveryKey | null {
+        const pending = state.pending_recovery_key;
+        if (
+            !isObject(pending) ||
+            typeof pending.operation_id !== 'string' ||
+            !pending.operation_id ||
+            pending.repository_id !== repositoryId ||
+            pending.restic_repository_id !== resticRepositoryId
+        ) {
+            return null;
+        }
+        return {
+            operation_id: pending.operation_id,
+            repository_id: repositoryId,
+            restic_repository_id: resticRepositoryId,
+            old_key_id: typeof pending.old_key_id === 'string' ? pending.old_key_id : null,
+            new_key_id: typeof pending.new_key_id === 'string' ? pending.new_key_id : null,
+            stage: pending.stage === 'verified' ? 'verified' : 'prepared',
+        };
+    }
+
+    private recoveryKeyOperation(
+        state: ManagedBackupState,
+        repositoryId: string,
+        resticRepositoryId: string
+    ): PendingRecoveryKey {
+        const pending = this.pendingRecoveryKey(state, repositoryId, resticRepositoryId);
+        if (pending) return pending;
+        return {
+            operation_id: randomUUID(),
+            repository_id: repositoryId,
+            restic_repository_id: resticRepositoryId,
+            old_key_id: typeof state.recovery_key_id === 'string' ? state.recovery_key_id : null,
+            new_key_id: null,
+            stage: 'prepared',
+        };
+    }
+
+    private async listRecoveryKeys(
+        target: ManagedBackupTarget,
+        transportPassword: string
+    ): Promise<ResticKey[]> {
+        const output = await this.runRestic(
+            ['key', 'list', '--json', '--repo', target.uri],
+            this.resticEnv(target, transportPassword)
+        );
+        const value: unknown = JSON.parse(output);
+        if (!Array.isArray(value)) throw new Error('Restic returned an invalid key list');
+        return value.map((key) => {
+            if (!isObject(key) || typeof key.id !== 'string' || !key.id) {
+                throw new Error('Restic returned an invalid key list');
+            }
+            return {
+                id: key.id,
+                user: typeof key.user === 'string' ? key.user : null,
+                current: key.current === true,
+            };
+        });
+    }
+
+    private async recoveryKeyPresent(
+        target: ManagedBackupTarget,
+        transportPassword: string,
+        keyId: string
+    ): Promise<boolean> {
+        return (await this.listRecoveryKeys(target, transportPassword)).some((key) => key.id === keyId);
+    }
+
+    private async removeKeysWithLabel(
+        target: ManagedBackupTarget,
+        transportPassword: string,
+        label: string
+    ): Promise<void> {
+        const keys = await this.listRecoveryKeys(target, transportPassword);
+        for (const key of keys) {
+            if (key.user === label) await this.removeRecoveryKey(target, transportPassword, key.id);
+        }
+    }
+
+    private async removeRecoveryKey(
+        target: ManagedBackupTarget,
+        transportPassword: string,
+        keyId: string
+    ): Promise<void> {
+        await this.runRestic(
+            ['key', 'remove', keyId, '--repo', target.uri],
+            this.resticEnv(target, transportPassword)
+        );
+    }
+
+    private async removeRecoveryKeyIfPresent(
+        target: ManagedBackupTarget,
+        transportPassword: string,
+        keyId: string
+    ): Promise<void> {
+        if (await this.recoveryKeyPresent(target, transportPassword, keyId)) {
+            await this.removeRecoveryKey(target, transportPassword, keyId);
+        }
+    }
+
     private async addRecoveryKey(
         target: ManagedBackupTarget,
         transportPassword: string,
-        phrase: string
-    ): Promise<void> {
-        await this.withRecoveryPhraseFile(phrase, async (phrasePath) => {
-            await this.runRestic(
-                ['key', 'add', '--repo', target.uri, '--new-password-file', phrasePath],
+        phrase: string,
+        label: string
+    ): Promise<string> {
+        const before = await this.listRecoveryKeys(target, transportPassword);
+        await this.withRecoveryPhraseFile(phrase, (phrasePath) =>
+            this.runRestic(
+                [
+                    'key',
+                    'add',
+                    '--repo',
+                    target.uri,
+                    '--new-password-file',
+                    phrasePath,
+                    '--user',
+                    label,
+                    '--host',
+                    'unraid',
+                ],
                 this.resticEnv(target, transportPassword)
-            );
-        });
+            )
+        );
+        const beforeIds = new Set(before.map((key) => key.id));
+        const added = (await this.listRecoveryKeys(target, transportPassword)).filter(
+            (key) => key.user === label && !beforeIds.has(key.id)
+        );
+        if (added.length !== 1) throw new Error('Managed backup recovery key was not observed');
+        return added[0].id;
     }
 
     private async recoveryKeyRepositoryId(
@@ -384,6 +625,26 @@ export class ManagedBackupService {
                 RESTIC_PASSWORD_FILE: phrasePath,
             })
         );
+    }
+
+    private async recoveryPhraseKeyId(
+        target: ManagedBackupTarget,
+        transportPassword: string,
+        phrase: string
+    ): Promise<string> {
+        return this.withRecoveryPhraseFile(phrase, async (phrasePath) => {
+            const output = await this.runRestic(['key', 'list', '--json', '--repo', target.uri], {
+                ...this.resticEnv(target, transportPassword),
+                RESTIC_PASSWORD_FILE: phrasePath,
+            });
+            const value: unknown = JSON.parse(output);
+            if (!Array.isArray(value)) throw new Error('Restic returned an invalid key list');
+            const current = value.filter((key) => isObject(key) && key.current === true);
+            if (current.length !== 1 || typeof current[0].id !== 'string' || !current[0].id) {
+                throw new Error('Restic did not identify the recovery key');
+            }
+            return current[0].id;
+        });
     }
 
     private async withRecoveryPhraseFile<T>(
