@@ -594,6 +594,9 @@ export class ConnectTunnelService implements OnModuleDestroy {
                 !/^[a-z0-9.-]+\.(?:preview\.)?myunraid\.net$/.test(hostname)
             )
                 throw new Error('Gateway requires the local nginx HTTPS hostname');
+            const httpPort = this.config.get<number>('store.emhttp.nginx.httpPort');
+            if (!Number.isInteger(httpPort) || !httpPort || httpPort < 1 || httpPort > 65535)
+                throw new Error('HTTP port unavailable');
             const enabledServices = settings.gatewayServices.filter((service) => service.enabled);
             const delegated = enabledServices.some((service) => service.auth === 'oidc');
             const callbackOrigin = this.delegatedCallbackOrigin();
@@ -616,8 +619,10 @@ export class ConnectTunnelService implements OnModuleDestroy {
                     services: [
                         {
                             purpose: 'webgui',
-                            upstream: `https://${target}`,
-                            tlsServerName: hostname,
+                            // The gateway terminates public TLS itself. In Unraid's
+                            // SSL layouts, its internal nginx hop uses the configured
+                            // plain-HTTP listener.
+                            upstream: `http://127.0.0.1:${httpPort}`,
                             auth: 'upstream',
                         },
                         ...settings.gatewayServices

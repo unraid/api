@@ -354,8 +354,7 @@ describe('native connector host integration', () => {
             services: [
                 {
                     purpose: 'webgui',
-                    upstream: 'https://127.0.0.1:443',
-                    tlsServerName: '192-168-1-2.example.myunraid.net',
+                    upstream: 'http://127.0.0.1:80',
                     auth: 'upstream',
                 },
             ],
