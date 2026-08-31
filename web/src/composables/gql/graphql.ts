@@ -1192,14 +1192,6 @@ export type Flash = Node & {
   vendor: Scalars['String']['output'];
 };
 
-export type FlashBackupStatus = {
-  __typename?: 'FlashBackupStatus';
-  /** Job ID if available, can be used to check job status. */
-  jobId?: Maybe<Scalars['String']['output']>;
-  /** Status message indicating the outcome of the backup initiation. */
-  status: Scalars['String']['output'];
-};
-
 export type FlatOrganizerEntry = {
   __typename?: 'FlatOrganizerEntry';
   childrenIds: Array<Scalars['String']['output']>;
@@ -1579,17 +1571,6 @@ export type InfoVersions = Node & {
   packages?: Maybe<PackageVersions>;
 };
 
-export type InitiateFlashBackupInput = {
-  /** Destination path on the remote. */
-  destinationPath: Scalars['String']['input'];
-  /** Additional options for the backup operation, such as --dry-run or --transfers. */
-  options?: InputMaybe<Scalars['JSON']['input']>;
-  /** The name of the remote configuration to use for the backup. */
-  remoteName: Scalars['String']['input'];
-  /** Source path to backup (typically the flash drive). */
-  sourcePath: Scalars['String']['input'];
-};
-
 /** Input payload for installing a plugin */
 export type InstallPluginInput = {
   /** Force installation even when plugin is already present. Defaults to true to mirror the existing UI behaviour. */
@@ -1770,8 +1751,6 @@ export type Mutation = {
   deleteNotification: NotificationOverview;
   docker: DockerMutations;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
-  /** Initiates a flash drive backup using a configured remote. */
-  initiateFlashBackup: FlashBackupStatus;
   migrateConnectCertificate: ConnectCertificateMigration;
   moveDockerEntriesToFolder: ResolvedOrganizerV1;
   moveDockerItemsToPosition: ResolvedOrganizerV1;
@@ -1874,11 +1853,6 @@ export type MutationDeleteNotificationArgs = {
 
 export type MutationEnableDynamicRemoteAccessArgs = {
   input: EnableDynamicRemoteAccessInput;
-};
-
-
-export type MutationInitiateFlashBackupArgs = {
-  input: InitiateFlashBackupInput;
 };
 
 

@@ -12,7 +12,6 @@ import { CustomizationModule } from '@app/unraid-api/graph/resolvers/customizati
 import { DisksModule } from '@app/unraid-api/graph/resolvers/disks/disks.module.js';
 import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
-import { FlashBackupModule } from '@app/unraid-api/graph/resolvers/flash-backup/flash-backup.module.js';
 import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resolver.js';
 import { InfoModule } from '@app/unraid-api/graph/resolvers/info/info.module.js';
 import { LogsModule } from '@app/unraid-api/graph/resolvers/logs/logs.module.js';
@@ -54,7 +53,6 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         CustomizationModule,
         DockerModule,
         DisksModule,
-        FlashBackupModule,
         InfoModule,
         LogsModule,
         OnboardingOverrideModule,

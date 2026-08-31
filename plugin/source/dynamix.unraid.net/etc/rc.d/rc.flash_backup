@@ -54,6 +54,11 @@ stop() {
   _stop
   exit 0
 }
+retire() {
+  _stop
+  _removequeue
+  exit 0
+}
 reload() {
   _start
   sleep 1
@@ -214,6 +219,9 @@ case "$1" in
 'stop')
   stop
   ;;
+'retire')
+  retire
+  ;;
 'reload')
   reload
   ;;
@@ -224,6 +232,6 @@ case "$1" in
   _watch
   ;;
 *)
-  echo "usage $0 status|start|stop|reload|flush"
+  echo "usage $0 status|start|stop|retire|reload|flush"
   ;;
 esac

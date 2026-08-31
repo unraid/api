@@ -164,6 +164,17 @@ class ServerState
 
     private function getFlashBackupStatus()
     {
+        $jobsPath = '/boot/config/unraid/backup/jobs.json';
+        $jobs = file_exists($jobsPath) ? @json_decode(file_get_contents($jobsPath), true) : [];
+        if (is_array($jobs)) {
+            foreach ($jobs as $job) {
+                if (is_array($job) && ($job['source_type'] ?? '') === 'flash' && !empty($job['enabled'])) {
+                    $this->flashBackupActivated = 'true';
+                    return;
+                }
+            }
+        }
+
         $flashbackupCfg = '/var/local/emhttp/flashbackup.ini';
         $this->flashbackupStatus = (file_exists($flashbackupCfg)) ? @parse_ini_file($flashbackupCfg) : [];
         $this->flashBackupActivated = empty($this->flashbackupStatus['activated']) ? '' : 'true';

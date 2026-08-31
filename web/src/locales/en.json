@@ -406,6 +406,8 @@
   "composables.dateTime.year": "{n} year | {n} years",
   "connect.flashBackup.goToToolsManagementAccessTo": "Go to Tools > Management Access to activate the Flash Backup feature and ensure your backup is up-to-date.",
   "connect.flashBackup.goToToolsManagementAccessTo2": "Go to Tools > Management Access to ensure your backup is up-to-date.",
+  "connect.flashBackup.openConnectToReview": "Open the Connect page to review your encrypted Flash Backup.",
+  "connect.flashBackup.openConnectToSetUp": "Open the Connect page to set up encrypted Flash Backup.",
   "connect.general.goToConnect": "Go to Connect",
   "connectSettings.accountStatusLabel": "Account Status:",
   "connectSettings.apiRestartingToastDescription": "The API is restarting...",

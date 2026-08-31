@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Cron } from '@nestjs/schedule';
 import { createHash, randomUUID } from 'node:crypto';
-import { chmod, unlink, writeFile } from 'node:fs/promises';
+import { access, chmod, unlink, writeFile } from 'node:fs/promises';
 
 import { execa } from 'execa';
 
@@ -94,10 +94,11 @@ export class ManagedBackupService {
 
     async status() {
         await this.serial(() => this.reconcilePending()).catch(() => undefined);
-        const [state, job, usage] = await Promise.all([
+        const [state, job, usage, legacyMigrationPending] = await Promise.all([
             this.store.loadState(),
             this.store.loadInitialJob(),
             this.loadUsage(),
+            this.legacyMigrationPending(),
         ]);
         const signedIn = Boolean(this.connect.getConfig().apikey);
         return {
@@ -105,6 +106,7 @@ export class ManagedBackupService {
             signedIn,
             configured: state.setup_complete === true,
             setupPending: Number.isSafeInteger(state.pending_generation),
+            legacyMigrationPending,
             running: this.running,
             job: job
                 ? {
@@ -221,6 +223,7 @@ export class ManagedBackupService {
     @OnEvent(EVENTS.LOGIN, { async: true })
     async reconcileAfterStartup(): Promise<void> {
         await this.serial(() => this.reconcilePending()).catch(() => undefined);
+        await this.retireLegacyFlashBackup().catch(() => undefined);
         const job = await this.store.loadInitialJob().catch(() => null);
         if (job?.last_run_status === 'running') await this.store.recordJobRun('failed');
     }
@@ -272,6 +275,33 @@ export class ManagedBackupService {
         delete complete.pending_repository_id;
         await this.store.saveState(complete);
         await this.store.deleteStaging();
+        await this.retireLegacyFlashBackup().catch(() => undefined);
+    }
+
+    private migrationMarkerPath(): string {
+        return (
+            this.config.get<string>('CONNECT_MANAGED_BACKUP_MIGRATION_MARKER') ??
+            '/boot/config/plugins/dynamix.my.servers/managed-backup-migration-pending'
+        );
+    }
+
+    private async legacyMigrationPending(): Promise<boolean> {
+        return access(this.migrationMarkerPath()).then(
+            () => true,
+            () => false
+        );
+    }
+
+    private async retireLegacyFlashBackup(): Promise<void> {
+        if (!(await this.legacyMigrationPending())) return;
+        const state = await this.store.loadState();
+        if (state.setup_complete !== true) return;
+        await execa(
+            this.config.get<string>('CONNECT_LEGACY_FLASH_BACKUP_SERVICE') ??
+                '/etc/rc.d/rc.flash_backup',
+            ['retire']
+        );
+        await unlink(this.migrationMarkerPath());
     }
 
     private async runBackup(): Promise<void> {

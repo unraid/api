@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { access, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -19,17 +19,21 @@ describe('managed backup service', () => {
     let service: ManagedBackupService;
     let requests: Array<{ path: string; method: string; body: unknown }>;
     let resticRepositoryId: string;
+    let migrationMarker: string;
 
     beforeEach(async () => {
         directory = await mkdtemp(join(tmpdir(), 'managed-backup-service-'));
         backupDir = join(directory, 'backup');
         requests = [];
         resticRepositoryId = 'restic-repository-1';
+        migrationMarker = join(directory, 'migration-pending');
         const config = new ConfigService({
             CONNECT_MANAGED_BACKUP_CONFIG_DIR: backupDir,
             CONNECT_MANAGED_BACKUP_SECRET_KEY_PATH: join(directory, 'secret_key_base'),
             CONNECT_CONTROL_PLANE_URL: 'https://connect.example',
             CONNECT_RESTIC_PATH: '/usr/local/bin/restic',
+            CONNECT_MANAGED_BACKUP_MIGRATION_MARKER: migrationMarker,
+            CONNECT_LEGACY_FLASH_BACKUP_SERVICE: '/test/rc.flash_backup',
         });
         store = new ManagedBackupStore(config);
         const connect = {
@@ -111,6 +115,21 @@ describe('managed backup service', () => {
         await expect(service.setup('')).rejects.toThrow();
         expect(requests).toEqual([]);
         expect(execaMock).not.toHaveBeenCalled();
+    });
+
+    it('retires the legacy backup only after managed setup succeeds', async () => {
+        await writeFile(migrationMarker, '');
+        expect((await service.status()).legacyMigrationPending).toBe(true);
+
+        await service.reconcileAfterStartup();
+        expect(execaMock).not.toHaveBeenCalledWith('/test/rc.flash_backup', ['retire']);
+        expect((await service.status()).legacyMigrationPending).toBe(true);
+
+        await service.setup('migration phrase');
+
+        expect(execaMock).toHaveBeenCalledWith('/test/rc.flash_backup', ['retire']);
+        await expect(access(migrationMarker)).rejects.toThrow();
+        expect((await service.status()).legacyMigrationPending).toBe(false);
     });
 
     it('adds a replacement key without removing the previous Restic key', async () => {

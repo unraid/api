@@ -65,14 +65,14 @@ const flashBackupCopy = computed(() => {
   if (connectPluginInstalled.value && flashBackupActivated.value) {
     return `${base}
       ${t('updateOs.update.youHaveAlreadyActivatedTheFlash')}
-      ${t('connect.flashBackup.goToToolsManagementAccessTo2')}
+      ${t('connect.flashBackup.openConnectToReview')}
       ${t('updateOs.update.youCanAlsoManuallyCreateA')}
     `;
   }
   if (connectPluginInstalled.value && !flashBackupActivated.value) {
     return `${base}
       ${t('updateOs.update.youHaveNotActivatedTheFlash')}
-      ${t('connect.flashBackup.goToToolsManagementAccessTo')}
+      ${t('connect.flashBackup.openConnectToSetUp')}
       ${t('updateOs.update.youCanAlsoManuallyCreateA')}
     `;
   }

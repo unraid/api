@@ -121,6 +121,8 @@ perform_full_cleanup() {
   rm -f /var/log/gitratelimit
   rm -f /usr/local/emhttp/state/flashbackup.ini
   rm -f /usr/local/emhttp/state/myservers.cfg
+  rm -f /boot/config/plugins/dynamix.my.servers/managed-backup-migration-pending
+  rm -f /boot/config/plugins/dynamix.my.servers/managed-backup-migration-notified
   
   # Delete any legacy files that may exist
   rm -rf /boot/config/plugins/dynamix.my.servers/libvirt.node

@@ -523,6 +523,55 @@ export type Connect = Node & {
   settings: ConnectSettings;
 };
 
+export type ConnectCertificateMigration = {
+  __typename?: 'ConnectCertificateMigration';
+  confirmationToken?: Maybe<Scalars['String']['output']>;
+  domain?: Maybe<Scalars['String']['output']>;
+  fingerprint?: Maybe<Scalars['String']['output']>;
+  managed: Scalars['Boolean']['output'];
+  reason: Scalars['String']['output'];
+  requestId?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+};
+
+export type ConnectGatewayServiceInput = {
+  auth?: Scalars['String']['input'];
+  enabled?: Scalars['Boolean']['input'];
+  id: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  providerId?: Scalars['String']['input'];
+  subjects?: Array<Scalars['String']['input']>;
+  tlsServerName?: Scalars['String']['input'];
+  upstream: Scalars['String']['input'];
+};
+
+export type ConnectGatewayServiceStatus = {
+  __typename?: 'ConnectGatewayServiceStatus';
+  auth: Scalars['String']['output'];
+  enabled: Scalars['Boolean']['output'];
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  providerId: Scalars['String']['output'];
+  subjects: Array<Scalars['String']['output']>;
+  tlsServerName: Scalars['String']['output'];
+  upstream: Scalars['String']['output'];
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export type ConnectGatewaySettings = {
+  __typename?: 'ConnectGatewaySettings';
+  available: Scalars['Boolean']['output'];
+  callbackUrl?: Maybe<Scalars['String']['output']>;
+  pending: Scalars['Boolean']['output'];
+  revision: Scalars['Int']['output'];
+  services: Array<ConnectGatewayServiceStatus>;
+};
+
+export type ConnectGatewaySettingsInput = {
+  expectedRevision: Scalars['Int']['input'];
+  services: Array<ConnectGatewayServiceInput>;
+};
+
 export type ConnectSettings = Node & {
   __typename?: 'ConnectSettings';
   /** The data schema for the Connect settings */
@@ -558,6 +607,56 @@ export type ConnectSignInInput = {
   apiKey: Scalars['String']['input'];
   /** User information for the sign-in */
   userInfo?: InputMaybe<ConnectUserInfoInput>;
+};
+
+export type ConnectTunnelEntitlement = {
+  __typename?: 'ConnectTunnelEntitlement';
+  accessState: Scalars['String']['output'];
+  bytesRemaining?: Maybe<Scalars['Float']['output']>;
+  bytesUsed: Scalars['Float']['output'];
+  periodEnd: Scalars['Float']['output'];
+  periodStart: Scalars['Float']['output'];
+  quotaBytes: Scalars['Float']['output'];
+  rateBytesPerSecond: Scalars['Float']['output'];
+  rateMode: Scalars['String']['output'];
+  reason?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  updatedAt?: Maybe<Scalars['Float']['output']>;
+};
+
+export type ConnectTunnelSettings = {
+  __typename?: 'ConnectTunnelSettings';
+  certificateManagementEnabled: Scalars['Boolean']['output'];
+  certificateMigration: ConnectCertificateMigration;
+  gateway: ConnectGatewaySettings;
+  overview: Scalars['JSON']['output'];
+  overviewCleanupPending: Scalars['Boolean']['output'];
+  previewMode: Scalars['Boolean']['output'];
+  serverDataReportingEnabled: Scalars['Boolean']['output'];
+  signedIn: Scalars['Boolean']['output'];
+  status: ConnectTunnelStatus;
+  tunnelRemoteAccessEnabled: Scalars['Boolean']['output'];
+  tunnelUrl?: Maybe<Scalars['String']['output']>;
+};
+
+export type ConnectTunnelSettingsInput = {
+  certificateManagementEnabled: Scalars['Boolean']['input'];
+  serverDataReportingEnabled: Scalars['Boolean']['input'];
+  tunnelRemoteAccessEnabled: Scalars['Boolean']['input'];
+};
+
+export type ConnectTunnelStatus = {
+  __typename?: 'ConnectTunnelStatus';
+  certificate: Scalars['String']['output'];
+  entitlement?: Maybe<ConnectTunnelEntitlement>;
+  entitlementState: Scalars['String']['output'];
+  gateway: Scalars['String']['output'];
+  gatewayReason: Scalars['String']['output'];
+  presence: Scalars['String']['output'];
+  reason: Scalars['String']['output'];
+  routeState: Scalars['String']['output'];
+  tunnel: Scalars['String']['output'];
+  tunnelReason: Scalars['String']['output'];
 };
 
 export type ConnectUserInfoInput = {
@@ -1086,14 +1185,6 @@ export type Flash = Node & {
   vendor: Scalars['String']['output'];
 };
 
-export type FlashBackupStatus = {
-  __typename?: 'FlashBackupStatus';
-  /** Job ID if available, can be used to check job status. */
-  jobId?: Maybe<Scalars['String']['output']>;
-  /** Status message indicating the outcome of the backup initiation. */
-  status: Scalars['String']['output'];
-};
-
 export type FlatOrganizerEntry = {
   __typename?: 'FlatOrganizerEntry';
   childrenIds: Array<Scalars['String']['output']>;
@@ -1473,17 +1564,6 @@ export type InfoVersions = Node & {
   packages?: Maybe<PackageVersions>;
 };
 
-export type InitiateFlashBackupInput = {
-  /** Destination path on the remote. */
-  destinationPath: Scalars['String']['input'];
-  /** Additional options for the backup operation, such as --dry-run or --transfers. */
-  options?: InputMaybe<Scalars['JSON']['input']>;
-  /** The name of the remote configuration to use for the backup. */
-  remoteName: Scalars['String']['input'];
-  /** Source path to backup (typically the flash drive). */
-  sourcePath: Scalars['String']['input'];
-};
-
 /** Input payload for installing a plugin */
 export type InstallPluginInput = {
   /** Force installation even when plugin is already present. Defaults to true to mirror the existing UI behaviour. */
@@ -1664,8 +1744,7 @@ export type Mutation = {
   deleteNotification: NotificationOverview;
   docker: DockerMutations;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
-  /** Initiates a flash drive backup using a configured remote. */
-  initiateFlashBackup: FlashBackupStatus;
+  migrateConnectCertificate: ConnectCertificateMigration;
   moveDockerEntriesToFolder: ResolvedOrganizerV1;
   moveDockerItemsToPosition: ResolvedOrganizerV1;
   /** Creates a notification if an equivalent unread notification does not already exist. */
@@ -1690,6 +1769,8 @@ export type Mutation = {
   /** Marks a notification as unread. */
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
+  updateConnectGatewayServices: ConnectTunnelSettings;
+  updateConnectTunnelSettings: ConnectTunnelSettings;
   updateDockerViewPreferences: ResolvedOrganizerV1;
   /** Update server name, comment, and model */
   updateServerIdentity: Server;
@@ -1768,8 +1849,8 @@ export type MutationEnableDynamicRemoteAccessArgs = {
 };
 
 
-export type MutationInitiateFlashBackupArgs = {
-  input: InitiateFlashBackupInput;
+export type MutationMigrateConnectCertificateArgs = {
+  confirmationToken: Scalars['String']['input'];
 };
 
 
@@ -1830,6 +1911,16 @@ export type MutationUnreadNotificationArgs = {
 
 export type MutationUpdateApiSettingsArgs = {
   input: ConnectSettingsInput;
+};
+
+
+export type MutationUpdateConnectGatewayServicesArgs = {
+  input: ConnectGatewaySettingsInput;
+};
+
+
+export type MutationUpdateConnectTunnelSettingsArgs = {
+  input: ConnectTunnelSettingsInput;
 };
 
 
@@ -2379,6 +2470,7 @@ export type Query = {
   cloud: Cloud;
   config: Config;
   connect: Connect;
+  connectTunnelSettings: ConnectTunnelSettings;
   customization?: Maybe<Customization>;
   disk: Disk;
   disks: Array<Disk>;

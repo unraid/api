@@ -40,10 +40,14 @@ start() {
     cp "${api_base_dir}/.env.production" "${api_base_dir}/.env"
   fi
 
-  # Start the flash backup service if available and connect plugin is enabled
+  # Keep an existing legacy backup running until managed backup setup succeeds.
   if [ -x "/etc/rc.d/rc.flash_backup" ]; then
-    # Check if connect plugin is enabled before starting flash backup
-    if [ -x "$scripts_dir/api_utils.sh" ] && "$scripts_dir/api_utils.sh" is_api_plugin_enabled "unraid-api-plugin-connect"; then
+    managed_backup_state="/boot/config/unraid/backup/managed-flash.json"
+    managed_backup_ready="false"
+    if [ -f "$managed_backup_state" ] && command -v jq >/dev/null 2>&1; then
+      managed_backup_ready="$(jq -r '.setup_complete // false' "$managed_backup_state" 2>/dev/null)"
+    fi
+    if [ "$managed_backup_ready" != "true" ] && [ -x "$scripts_dir/api_utils.sh" ] && "$scripts_dir/api_utils.sh" is_api_plugin_enabled "unraid-api-plugin-connect"; then
       echo "Starting flash backup service..."
       /etc/rc.d/rc.flash_backup start
     fi

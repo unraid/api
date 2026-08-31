@@ -2479,14 +2479,6 @@ type FlatOrganizerEntry {
   meta: DockerContainer
 }
 
-type FlashBackupStatus {
-  """Status message indicating the outcome of the backup initiation."""
-  status: String!
-
-  """Job ID if available, can be used to check job status."""
-  jobId: String
-}
-
 type Flash implements Node {
   id: PrefixedID!
   guid: String!
@@ -3433,8 +3425,6 @@ type Mutation {
   resetDockerTemplateMappings: Boolean!
   refreshDockerDigests: Boolean!
 
-  """Initiates a flash drive backup using a configured remote."""
-  initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   updateSettings(input: JSON!): UpdateSettingsResponse!
   updateTemperatureConfig(input: TemperatureConfigInput!): Boolean!
 
@@ -3474,22 +3464,6 @@ input UpdateSshInput {
 
   """SSH Port (default 22)"""
   port: Int!
-}
-
-input InitiateFlashBackupInput {
-  """The name of the remote configuration to use for the backup."""
-  remoteName: String!
-
-  """Source path to backup (typically the flash drive)."""
-  sourcePath: String!
-
-  """Destination path on the remote."""
-  destinationPath: String!
-
-  """
-  Additional options for the backup operation, such as --dry-run or --transfers.
-  """
-  options: JSON
 }
 
 input TemperatureConfigInput {
