@@ -51,8 +51,6 @@ import { useThemeStore } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
 import { getRegistrationDeviceLimit, normalizeRegistrationType } from '~/utils/registration';
 
-type ServerCallbackPayload = ServerData & Pick<Server, 'flashGuid' | 'tpmGuid'>;
-
 export const useServerStore = defineStore('server', () => {
   const { t } = useI18n();
   const accountStore = useAccountStore();
@@ -248,10 +246,8 @@ export const useServerStore = defineStore('server', () => {
     }
   };
 
-  const buildServerCallbackPayload = (
-    overrides: Partial<ServerCallbackPayload> = {}
-  ): ServerCallbackPayload => {
-    const payload: ServerCallbackPayload = {
+  const buildServerCallbackPayload = (overrides: Partial<ServerData> = {}): ServerData => {
+    const payload: ServerData = {
       connectPluginVersion: connectPluginVersion.value || undefined,
       connectState: getConnectState(),
       description: description.value,
@@ -300,12 +296,12 @@ export const useServerStore = defineStore('server', () => {
     };
   };
 
-  const serverPurchasePayload = computed((): ServerCallbackPayload => buildServerCallbackPayload());
+  const serverPurchasePayload = computed((): ServerData => buildServerCallbackPayload());
 
-  const serverAccountPayload = computed((): ServerCallbackPayload => buildServerCallbackPayload());
+  const serverAccountPayload = computed((): ServerData => buildServerCallbackPayload());
 
   const serverReplacePayload = computed(
-    (): ServerCallbackPayload => ({
+    (): ServerData => ({
       ...buildServerCallbackPayload({
         guid: replaceFlashGuid.value,
       }),
