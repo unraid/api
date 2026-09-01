@@ -1139,8 +1139,8 @@ importers:
         specifier: 8.21.3
         version: 8.21.3(vue@3.5.20(typescript@5.9.2))
       '@unraid/shared-callbacks':
-        specifier: 3.1.0
-        version: 3.1.0
+        specifier: 3.2.0
+        version: 3.2.0
       '@unraid/ui':
         specifier: link:../unraid-ui
         version: link:../unraid-ui
@@ -4943,8 +4943,8 @@ packages:
     cpu: [x64, arm64]
     os: [linux, darwin]
 
-  '@unraid/shared-callbacks@3.1.0':
-    resolution: {integrity: sha512-Zvz9nlvLSjbTstplvarbH2rwZrsl4ns7djpDmqPi4xH35PvYeK9ut1A/Hkd2Rbl/+nvAMF77d5ZzZkSTb4IoSg==}
+  '@unraid/shared-callbacks@3.2.0':
+    resolution: {integrity: sha512-MNkKkbjJLt9lkT5xk7ndBk1zQGHYwR+MxbWTcauc5jQpsEy4t2h8HLhOIFdU2ORgKT9q1f0KmPjCMSEnwT2hIA==}
 
   '@unraid/tailwind-rem-to-rem@2.0.0':
     resolution: {integrity: sha512-zccpQx5fvEBkAB0JkRwwtyRrT9l26LsjkozLy44LGv0NdZGaxgscniIqJRM+OQj5pSpsWDzExebAtUKdE98Flg==}
@@ -16218,7 +16218,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@unraid/shared-callbacks@3.1.0':
+  '@unraid/shared-callbacks@3.2.0':
     dependencies:
       crypto-js: 4.2.0
 
