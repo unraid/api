@@ -27,6 +27,15 @@ describe('managed backup service', () => {
     let recoveryKeyRemovalFailures: number;
     let recoveryPhrases: Map<string, string>;
     let backupGate: Promise<void> | null;
+    let resticLocks: Array<{
+        id: string;
+        time: string;
+        hostname: string;
+        username: string;
+        pid: number;
+        exclusive: boolean;
+        stale: boolean;
+    }>;
 
     beforeEach(async () => {
         directory = await mkdtemp(join(tmpdir(), 'managed-backup-service-'));
@@ -39,6 +48,7 @@ describe('managed backup service', () => {
         recoveryKeyRemovalFailures = 0;
         recoveryPhrases = new Map();
         backupGate = null;
+        resticLocks = [];
         migrationMarker = join(directory, 'migration-pending');
         migrationCompleteMarker = join(directory, 'migration-complete');
         const config = new ConfigService({
@@ -61,7 +71,7 @@ describe('managed backup service', () => {
                     legacyRetirementFailures -= 1;
                     throw new Error('retirement failed');
                 }
-                if (args[0] === 'cat') {
+                if (args[0] === 'cat' && args[1] === 'config') {
                     const passwordPath = options?.env?.RESTIC_PASSWORD_FILE;
                     if (passwordPath?.includes('/recovery-')) {
                         const phrase = await readFile(passwordPath, 'utf8');
@@ -70,6 +80,27 @@ describe('managed backup service', () => {
                         }
                     }
                     return { stdout: JSON.stringify({ id: resticRepositoryId, version: 2 }) };
+                }
+                if (args[0] === 'list' && args[1] === 'locks') {
+                    return { stdout: resticLocks.map((lock) => lock.id).join('\n') };
+                }
+                if (args[0] === 'cat' && args[1] === 'lock') {
+                    const lock = resticLocks.find((candidate) => candidate.id === args[2]);
+                    if (!lock) throw new Error('lock disappeared');
+                    return {
+                        stdout: JSON.stringify({
+                            time: lock.time,
+                            hostname: lock.hostname,
+                            username: lock.username,
+                            pid: lock.pid,
+                            exclusive: lock.exclusive,
+                        }),
+                    };
+                }
+                if (args[0] === 'unlock') {
+                    resticLocks = args.includes('--remove-all')
+                        ? []
+                        : resticLocks.filter((lock) => !lock.stale);
                 }
                 if (args[0] === 'key' && args[1] === 'list') {
                     const passwordPath = options?.env?.RESTIC_PASSWORD_FILE;
@@ -323,6 +354,91 @@ describe('managed backup service', () => {
         expect(backup?.[1]).toContain('/boot');
         expect(forget?.[1]).toContain('job:f3a9d870-146c-4f9e-b078-5bb0d9f20d0c');
         expect(forget?.[1]).toContain('--prune');
+        const unlock = execaMock.mock.calls.find((call) => call[1][0] === 'unlock');
+        expect(unlock?.[1]).not.toContain('--remove-all');
+        expect(execaMock.mock.calls.indexOf(unlock!)).toBeLessThan(
+            execaMock.mock.calls.indexOf(forget!)
+        );
+    });
+
+    it('lists repository lock metadata and removes only stale locks by default', async () => {
+        await service.setup('recovery phrase');
+        const staleId = 'a'.repeat(64);
+        const liveId = 'b'.repeat(64);
+        resticLocks = [
+            {
+                id: staleId,
+                time: '2026-09-01T12:00:00Z',
+                hostname: 'DEVGEN',
+                username: 'root',
+                pid: 101,
+                exclusive: false,
+                stale: true,
+            },
+            {
+                id: liveId,
+                time: '2026-09-01T12:01:00Z',
+                hostname: 'restore-client',
+                username: 'user',
+                pid: 202,
+                exclusive: true,
+                stale: false,
+            },
+        ];
+        execaMock.mockClear();
+
+        await expect(service.listLocks()).resolves.toMatchObject({
+            locks: [
+                { id: staleId, hostname: 'DEVGEN', pid: 101, exclusive: false },
+                { id: liveId, hostname: 'restore-client', pid: 202, exclusive: true },
+            ],
+        });
+        const result = await service.unlock();
+
+        expect(result).toMatchObject({ removedLocks: 1, remainingLocks: [{ id: liveId }] });
+        const unlock = execaMock.mock.calls.find((call) => call[1][0] === 'unlock');
+        expect(unlock?.[1]).not.toContain('--remove-all');
+    });
+
+    it('requires an explicit force unlock to remove live locks', async () => {
+        await service.setup('recovery phrase');
+        resticLocks = [
+            {
+                id: 'c'.repeat(64),
+                time: '2026-09-01T12:00:00Z',
+                hostname: 'restore-client',
+                username: 'user',
+                pid: 303,
+                exclusive: true,
+                stale: false,
+            },
+        ];
+        execaMock.mockClear();
+
+        const result = await service.unlock(true);
+
+        expect(result).toMatchObject({ removedLocks: 1, remainingLocks: [] });
+        const unlock = execaMock.mock.calls.find((call) => call[1][0] === 'unlock');
+        expect(unlock?.[1]).toContain('--remove-all');
+    });
+
+    it('does not unlock while a local backup is running', async () => {
+        await service.setup('recovery phrase');
+        let releaseBackup!: () => void;
+        backupGate = new Promise<void>((resolve) => {
+            releaseBackup = resolve;
+        });
+        service.startBackup();
+        await vi.waitFor(async () => {
+            expect((await store.loadInitialJob())?.last_run_status).toBe('running');
+        });
+
+        await expect(service.unlock()).rejects.toThrow();
+
+        releaseBackup();
+        await vi.waitFor(async () => {
+            expect((await store.loadInitialJob())?.last_run_status).toBe('success');
+        });
     });
 
     it('keeps status responsive while Restic is running', async () => {

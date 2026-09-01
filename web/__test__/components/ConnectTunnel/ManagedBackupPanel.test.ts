@@ -5,17 +5,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ManagedBackupStatus } from '~/components/ConnectTunnel/managed-backup.api';
 
 import {
+  getManagedBackupLocks,
   getManagedBackupStatus,
   runManagedBackup,
   setupManagedBackup,
+  unlockManagedBackup,
 } from '~/components/ConnectTunnel/managed-backup.api';
 import ManagedBackupPanel from '~/components/ConnectTunnel/ManagedBackupPanel.vue';
 import { createTestI18n } from '../../utils/i18n';
 
 vi.mock('~/components/ConnectTunnel/managed-backup.api', () => ({
   getManagedBackupStatus: vi.fn(),
+  getManagedBackupLocks: vi.fn(),
   setupManagedBackup: vi.fn(),
   runManagedBackup: vi.fn(),
+  unlockManagedBackup: vi.fn(),
 }));
 
 const unconfigured = (): ManagedBackupStatus => ({
@@ -54,6 +58,11 @@ async function render(value = unconfigured()) {
 
 const action = (wrapper: Awaited<ReturnType<typeof render>>, name: string) =>
   wrapper.findAll('[role="button"]').find((button) => button.text() === name)!;
+
+const bodyButton = (name: string) =>
+  [...document.body.querySelectorAll<HTMLElement>('[role="button"]')].find(
+    (button) => button.textContent?.replace(/\s+/g, ' ').trim() === name
+  )!;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -128,5 +137,80 @@ describe('managed flash backup', () => {
     const wrapper = await render(value);
     expect(wrapper.text()).toContain('Legacy flash backup found');
     expect(wrapper.text()).toContain('will keep running until this setup succeeds');
+  });
+
+  it('lists repository locks and removes stale locks through the safe action', async () => {
+    const value = unconfigured();
+    value.configured = true;
+    value.job = {
+      id: 'connect-managed-flash-backup',
+      name: 'Flash Backup',
+      enabled: true,
+      schedule: '0 3 * * *',
+      lastRunAt: '2026-09-01T12:00:00.000Z',
+      lastRunStatus: 'failed',
+    };
+    vi.mocked(getManagedBackupLocks).mockResolvedValue({
+      schemaVersion: 1,
+      locks: [
+        {
+          id: 'a'.repeat(64),
+          createdAt: '2026-09-01T12:00:00.000Z',
+          hostname: 'DEVGEN',
+          username: 'root',
+          pid: 4242,
+          exclusive: false,
+        },
+      ],
+    });
+    vi.mocked(unlockManagedBackup).mockResolvedValue({
+      schemaVersion: 1,
+      removedLocks: 1,
+      remainingLocks: [],
+    });
+    const wrapper = await render(value);
+
+    await action(wrapper, 'Repository locks').trigger('click');
+    await flushPromises();
+    expect(document.body.textContent).toContain('DEVGEN');
+    expect(document.body.textContent).toContain('PID 4242');
+
+    bodyButton('Remove stale locks').click();
+    await flushPromises();
+
+    expect(unlockManagedBackup).toHaveBeenCalledExactlyOnceWith(false);
+    expect(document.body.textContent).toContain('Repository unlocked. 1 lock(s) removed.');
+  });
+
+  it('requires confirmation before force-removing all locks', async () => {
+    const value = unconfigured();
+    value.configured = true;
+    value.job = {
+      id: 'connect-managed-flash-backup',
+      name: 'Flash Backup',
+      enabled: true,
+      schedule: '0 3 * * *',
+      lastRunAt: null,
+      lastRunStatus: 'failed',
+    };
+    vi.mocked(getManagedBackupLocks).mockResolvedValue({ schemaVersion: 1, locks: [] });
+    vi.mocked(unlockManagedBackup).mockResolvedValue({
+      schemaVersion: 1,
+      removedLocks: 0,
+      remainingLocks: [],
+    });
+    const wrapper = await render(value);
+
+    await action(wrapper, 'Repository locks').trigger('click');
+    await flushPromises();
+    bodyButton('Force unlock').click();
+    await flushPromises();
+
+    expect(unlockManagedBackup).not.toHaveBeenCalled();
+    expect(document.body.textContent).toContain('Force unlock repository?');
+    bodyButton('Force unlock (remove all)').click();
+    await flushPromises();
+
+    expect(unlockManagedBackup).toHaveBeenCalledExactlyOnceWith(true);
   });
 });

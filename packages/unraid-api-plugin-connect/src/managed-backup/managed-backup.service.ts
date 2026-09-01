@@ -47,6 +47,15 @@ interface ResticKey {
     current: boolean;
 }
 
+export interface ManagedBackupLock {
+    id: string;
+    createdAt: string | null;
+    hostname: string | null;
+    username: string | null;
+    pid: number | null;
+    exclusive: boolean;
+}
+
 interface PendingRecoveryKey extends Record<string, unknown> {
     operation_id: string;
     repository_id: string;
@@ -90,6 +99,7 @@ const flashExcludePresets: Record<string, string[]> = {
 };
 
 export class InvalidRecoveryPhraseError extends Error {}
+export class ManagedBackupBusyError extends Error {}
 
 export function recoveryPhraseIsUsable(phrase: string): boolean {
     const byteLength = new TextEncoder().encode(phrase).byteLength;
@@ -231,6 +241,46 @@ export class ManagedBackupService {
         return { started: true };
     }
 
+    async listLocks(): Promise<{ schemaVersion: 1; locks: ManagedBackupLock[] }> {
+        const loaded = await this.store.loadManagedTarget();
+        if (!(await this.store.isCoreReady()) || !loaded) {
+            throw new Error('Managed flash backup is not configured');
+        }
+        return {
+            schemaVersion: 1,
+            locks: await this.listRepositoryLocks(
+                loaded.target,
+                this.resticEnv(loaded.target, loaded.transportPassword)
+            ),
+        };
+    }
+
+    async unlock(removeAll = false): Promise<{
+        schemaVersion: 1;
+        removedLocks: number;
+        remainingLocks: ManagedBackupLock[];
+    }> {
+        if (this.running) throw new ManagedBackupBusyError();
+        return this.serial(async () => {
+            if (this.running) throw new ManagedBackupBusyError();
+            const loaded = await this.store.loadManagedTarget();
+            if (!(await this.store.isCoreReady()) || !loaded) {
+                throw new Error('Managed flash backup is not configured');
+            }
+            const env = this.resticEnv(loaded.target, loaded.transportPassword);
+            const before = await this.listRepositoryLocks(loaded.target, env);
+            const args = ['unlock', '--repo', loaded.target.uri];
+            if (removeAll) args.push('--remove-all');
+            await this.runRestic(args, env);
+            const remainingLocks = await this.listRepositoryLocks(loaded.target, env);
+            return {
+                schemaVersion: 1,
+                removedLocks: Math.max(0, before.length - remainingLocks.length),
+                remainingLocks,
+            };
+        });
+    }
+
     @Cron('* * * * *', { name: 'connect-managed-flash-backup' })
     async scheduledBackup(): Promise<void> {
         if (this.running) return;
@@ -368,6 +418,11 @@ export class ManagedBackupService {
             );
             await this.runRestic(backupArgs, env);
 
+            if (loaded.target.auto_unlock) {
+                await this.runRestic(['unlock', '--repo', loaded.target.uri], env).catch(
+                    () => undefined
+                );
+            }
             const retentionArgs = ['forget', '--repo', loaded.target.uri, '--json'];
             appendRetention(retentionArgs, job.retention);
             retentionArgs.push('--tag', `job:${job.id}`, '--prune');
@@ -682,6 +737,40 @@ export class ManagedBackupService {
                 this.config.get<string>('CONNECT_MANAGED_BACKUP_CACHE_DIR') ??
                 '/var/tmp/unraid-restic-cache',
         };
+    }
+
+    private async listRepositoryLocks(
+        target: ManagedBackupTarget,
+        env: Record<string, string>
+    ): Promise<ManagedBackupLock[]> {
+        const output = await this.runRestic(['list', 'locks', '--repo', target.uri, '--no-lock'], env);
+        const lockIds = output
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => /^[0-9a-f]{64}$/.test(line));
+        const locks = await Promise.all(
+            lockIds.map(async (id): Promise<ManagedBackupLock | null> => {
+                try {
+                    const lockOutput = await this.runRestic(
+                        ['cat', 'lock', id, '--repo', target.uri, '--no-lock'],
+                        env
+                    );
+                    const value: unknown = JSON.parse(lockOutput);
+                    if (!isObject(value)) return null;
+                    return {
+                        id,
+                        createdAt: typeof value.time === 'string' ? value.time : null,
+                        hostname: typeof value.hostname === 'string' ? value.hostname : null,
+                        username: typeof value.username === 'string' ? value.username : null,
+                        pid: Number.isSafeInteger(value.pid) ? Number(value.pid) : null,
+                        exclusive: value.exclusive === true,
+                    };
+                } catch {
+                    return null;
+                }
+            })
+        );
+        return locks.filter((lock): lock is ManagedBackupLock => lock !== null);
     }
 
     private async runRestic(args: string[], env: Record<string, string>): Promise<string> {

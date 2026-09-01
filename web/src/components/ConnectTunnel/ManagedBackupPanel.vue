@@ -7,17 +7,36 @@ import {
   CheckCircleIcon,
   ClipboardDocumentIcon,
   CloudArrowUpIcon,
+  CpuChipIcon,
   ExclamationTriangleIcon,
   KeyIcon,
+  LockClosedIcon,
+  LockOpenIcon,
+  ServerIcon,
+  UserIcon,
 } from '@heroicons/vue/24/outline';
-import { Button, Input } from '@unraid/ui';
+import {
+  Button,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogRoot,
+  DialogTitle,
+  Input,
+} from '@unraid/ui';
 
-import type { ManagedBackupStatus } from '~/components/ConnectTunnel/managed-backup.api';
+import type {
+  ManagedBackupLock,
+  ManagedBackupStatus,
+} from '~/components/ConnectTunnel/managed-backup.api';
 
 import {
+  getManagedBackupLocks,
   getManagedBackupStatus,
   runManagedBackup,
   setupManagedBackup,
+  unlockManagedBackup,
 } from '~/components/ConnectTunnel/managed-backup.api';
 import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
 
@@ -31,6 +50,13 @@ const useCustomPhrase = ref(false);
 const generatedPhrase = ref('');
 const customPhrase = ref('');
 const phraseSaved = ref(false);
+const locksOpen = ref(false);
+const forceUnlockOpen = ref(false);
+const locksLoading = ref(false);
+const locksBusy = ref(false);
+const locksError = ref('');
+const locksMessage = ref('');
+const locks = ref<ManagedBackupLock[]>([]);
 const { copyWithNotification, copied } = useClipboardWithToast();
 let poll: ReturnType<typeof setInterval> | undefined;
 
@@ -124,6 +150,41 @@ async function runNow() {
   }
 }
 
+async function loadLocks() {
+  locksLoading.value = true;
+  locksError.value = '';
+  locksMessage.value = '';
+  try {
+    locks.value = (await getManagedBackupLocks()).locks;
+  } catch {
+    locksError.value = t('connectBackup.locks.loadFailed');
+  } finally {
+    locksLoading.value = false;
+  }
+}
+
+function openLocks() {
+  locksOpen.value = true;
+  void loadLocks();
+}
+
+async function unlock(removeAll: boolean) {
+  if (locksBusy.value || status.value?.running) return;
+  locksBusy.value = true;
+  locksError.value = '';
+  locksMessage.value = '';
+  try {
+    const result = await unlockManagedBackup(removeAll);
+    locks.value = result.remainingLocks;
+    locksMessage.value = t('connectBackup.locks.unlocked', { count: result.removedLocks });
+    forceUnlockOpen.value = false;
+  } catch {
+    locksError.value = t('connectBackup.locks.unlockFailed');
+  } finally {
+    locksBusy.value = false;
+  }
+}
+
 async function copyPhrase() {
   if (!recoveryPhrase.value) return;
   await copyWithNotification(recoveryPhrase.value, t('connectBackup.copied'));
@@ -143,6 +204,7 @@ const formatDate = (value: string) =>
   new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(
     new Date(value)
   );
+const shortLockId = (value: string) => value.slice(0, 8);
 
 onMounted(() => {
   generateRecoveryPhrase();
@@ -252,6 +314,10 @@ onBeforeUnmount(() => {
         <Button :disabled="busy || status.running" @click="runNow">
           {{ t(status.running ? 'connectBackup.running' : 'connectBackup.runNow') }}
         </Button>
+        <Button variant="outline" :disabled="busy || status.running" @click="openLocks">
+          <LockClosedIcon class="mr-2 h-4 w-4" aria-hidden="true" />
+          {{ t('connectBackup.locks.action') }}
+        </Button>
         <p class="text-muted-foreground text-sm">
           {{ t(status.job?.enabled ? 'connectBackup.automatic' : 'connectBackup.automaticDisabled') }}
         </p>
@@ -355,4 +421,110 @@ onBeforeUnmount(() => {
       </Button>
     </div>
   </section>
+
+  <DialogRoot v-model:open="locksOpen">
+    <DialogContent class="max-w-2xl">
+      <DialogHeader>
+        <DialogTitle class="flex items-center gap-2">
+          <LockClosedIcon class="text-warning h-5 w-5" aria-hidden="true" />
+          {{ t('connectBackup.locks.title') }}
+        </DialogTitle>
+        <DialogDescription>
+          {{ t('connectBackup.locks.description') }}
+        </DialogDescription>
+      </DialogHeader>
+
+      <div class="space-y-4 py-2">
+        <p v-if="locksLoading" role="status">{{ t('connectBackup.locks.loading') }}</p>
+        <p v-else-if="locksError" class="text-destructive" role="alert">{{ locksError }}</p>
+        <p v-if="locksMessage" class="text-success flex items-center gap-2" role="status">
+          <LockOpenIcon class="h-5 w-5" aria-hidden="true" />
+          {{ locksMessage }}
+        </p>
+        <p
+          v-if="!locksLoading && !locksError && locks.length === 0 && !locksMessage"
+          class="text-muted-foreground flex items-center gap-2"
+          role="status"
+        >
+          <LockOpenIcon class="text-success h-5 w-5" aria-hidden="true" />
+          {{ t('connectBackup.locks.empty') }}
+        </p>
+
+        <ul v-if="locks.length" class="space-y-2" :aria-label="t('connectBackup.locks.active')">
+          <li v-for="lock in locks" :key="lock.id" class="bg-muted/40 space-y-2 rounded-lg p-3 text-sm">
+            <div class="flex flex-wrap items-center gap-2">
+              <code class="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">
+                {{ shortLockId(lock.id) }}
+              </code>
+              <span v-if="lock.exclusive" class="text-warning font-medium">
+                {{ t('connectBackup.locks.exclusive') }}
+              </span>
+            </div>
+            <div class="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+              <span v-if="lock.createdAt">{{ formatDate(lock.createdAt) }}</span>
+              <span class="inline-flex items-center gap-1">
+                <ServerIcon class="h-4 w-4" aria-hidden="true" />
+                {{ lock.hostname || t('connectBackup.locks.unknown') }}
+              </span>
+              <span class="inline-flex items-center gap-1">
+                <UserIcon class="h-4 w-4" aria-hidden="true" />
+                {{ lock.username || t('connectBackup.locks.unknown') }}
+              </span>
+              <span class="inline-flex items-center gap-1">
+                <CpuChipIcon class="h-4 w-4" aria-hidden="true" />
+                {{ t('connectBackup.locks.pid', { pid: lock.pid ?? '—' }) }}
+              </span>
+            </div>
+          </li>
+        </ul>
+
+        <p class="text-warning flex items-start gap-2 text-sm">
+          <ExclamationTriangleIcon class="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          {{ t('connectBackup.locks.warning') }}
+        </p>
+      </div>
+
+      <DialogFooter>
+        <div class="flex w-full flex-wrap justify-end gap-2">
+          <Button variant="secondary" :disabled="locksBusy" @click="locksOpen = false">
+            {{ t('connectBackup.locks.close') }}
+          </Button>
+          <Button
+            variant="outline"
+            :disabled="locksLoading || locksBusy || status?.running"
+            @click="unlock(false)"
+          >
+            <LockOpenIcon class="mr-2 h-4 w-4" aria-hidden="true" />
+            {{ t(locksBusy ? 'connectBackup.locks.removing' : 'connectBackup.locks.removeStale') }}
+          </Button>
+          <Button
+            variant="destructive"
+            :disabled="locksLoading || locksBusy || status?.running"
+            @click="forceUnlockOpen = true"
+          >
+            {{ t('connectBackup.locks.force') }}
+          </Button>
+        </div>
+      </DialogFooter>
+    </DialogContent>
+  </DialogRoot>
+
+  <DialogRoot v-model:open="forceUnlockOpen">
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>{{ t('connectBackup.locks.forceTitle') }}</DialogTitle>
+        <DialogDescription>{{ t('connectBackup.locks.forceDescription') }}</DialogDescription>
+      </DialogHeader>
+      <DialogFooter>
+        <div class="flex w-full justify-end gap-2">
+          <Button variant="outline" :disabled="locksBusy" @click="forceUnlockOpen = false">
+            {{ t('connectBackup.locks.cancel') }}
+          </Button>
+          <Button variant="destructive" :disabled="locksBusy" @click="unlock(true)">
+            {{ t(locksBusy ? 'connectBackup.locks.unlocking' : 'connectBackup.locks.forceConfirm') }}
+          </Button>
+        </div>
+      </DialogFooter>
+    </DialogContent>
+  </DialogRoot>
 </template>

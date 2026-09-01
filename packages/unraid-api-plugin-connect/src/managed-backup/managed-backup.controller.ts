@@ -1,6 +1,7 @@
 import {
     BadRequestException,
     Body,
+    ConflictException,
     Controller,
     Get,
     Post,
@@ -11,14 +12,24 @@ import {
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
-import { IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 
-import { InvalidRecoveryPhraseError, ManagedBackupService } from './managed-backup.service.js';
+import {
+    InvalidRecoveryPhraseError,
+    ManagedBackupBusyError,
+    ManagedBackupService,
+} from './managed-backup.service.js';
 
 class ManagedBackupSetupInput {
     @IsString()
     @MaxLength(256)
     recoveryPhrase!: string;
+}
+
+class ManagedBackupUnlockInput {
+    @IsOptional()
+    @IsBoolean()
+    removeAll = false;
 }
 
 @Controller('/graphql/api/connect/managed-backup')
@@ -64,5 +75,36 @@ export class ManagedBackupController {
     @UsePermissions({ action: AuthAction.UPDATE_ANY, resource: Resource.FLASH })
     run() {
         return this.backup.startBackup();
+    }
+
+    @Get('/locks')
+    @UsePermissions({ action: AuthAction.READ_ANY, resource: Resource.FLASH })
+    async locks(): Promise<unknown> {
+        try {
+            return await this.backup.listLocks();
+        } catch {
+            throw new ServiceUnavailableException('Repository locks could not be loaded');
+        }
+    }
+
+    @Post('/unlock')
+    @UsePermissions({ action: AuthAction.UPDATE_ANY, resource: Resource.FLASH })
+    @UsePipes(
+        new ValidationPipe({
+            transform: true,
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            validationError: { target: false, value: false },
+        })
+    )
+    async unlock(@Body() input: ManagedBackupUnlockInput): Promise<unknown> {
+        try {
+            return await this.backup.unlock(input.removeAll);
+        } catch (error) {
+            if (error instanceof ManagedBackupBusyError) {
+                throw new ConflictException('Wait for the current backup to finish before unlocking');
+            }
+            throw new ServiceUnavailableException('Repository locks could not be removed');
+        }
     }
 }

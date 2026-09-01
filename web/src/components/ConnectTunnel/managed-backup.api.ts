@@ -30,6 +30,15 @@ export interface ManagedBackupStatus {
   usage: { state: 'current'; value: ManagedBackupUsage } | { state: 'unavailable' };
 }
 
+export interface ManagedBackupLock {
+  id: string;
+  createdAt: string | null;
+  hostname: string | null;
+  username: string | null;
+  pid: number | null;
+  exclusive: boolean;
+}
+
 const endpoint = '/graphql/api/connect/managed-backup';
 
 export const getManagedBackupStatus = () =>
@@ -39,3 +48,13 @@ export const setupManagedBackup = (recoveryPhrase: string) =>
   request.url(`${endpoint}/setup`).json({ recoveryPhrase }).post().res();
 
 export const runManagedBackup = () => request.url(`${endpoint}/run`).post().json<{ started: boolean }>();
+
+export const getManagedBackupLocks = () =>
+  request.url(`${endpoint}/locks`).get().json<{ schemaVersion: 1; locks: ManagedBackupLock[] }>();
+
+export const unlockManagedBackup = (removeAll = false) =>
+  request
+    .url(`${endpoint}/unlock`)
+    .json({ removeAll })
+    .post()
+    .json<{ schemaVersion: 1; removedLocks: number; remainingLocks: ManagedBackupLock[] }>();
