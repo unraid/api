@@ -142,7 +142,7 @@ try {
     await $`rm -rf ../release/*`;
 
     // Copy other files to release directory
-    await $`cp -r ./* ../release/`;
+    await $`cp -r ./* ./.env.* ../release/`;
 
     // chmod the cli
     await $`chmod +x ./dist/cli.js`;
