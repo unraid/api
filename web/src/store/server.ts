@@ -246,8 +246,8 @@ export const useServerStore = defineStore('server', () => {
     }
   };
 
-  const buildServerCallbackPayload = (overrides: Partial<ServerData> = {}): ServerData => {
-    const payload: ServerData = {
+  const buildServerCallbackPayload = (overrides: Partial<ServerData> = {}) => {
+    const payload = {
       connectPluginVersion: connectPluginVersion.value || undefined,
       connectState: getConnectState(),
       description: description.value,
@@ -296,17 +296,15 @@ export const useServerStore = defineStore('server', () => {
     };
   };
 
-  const serverPurchasePayload = computed((): ServerData => buildServerCallbackPayload());
+  const serverPurchasePayload = computed(() => buildServerCallbackPayload());
 
-  const serverAccountPayload = computed((): ServerData => buildServerCallbackPayload());
+  const serverAccountPayload = computed(() => buildServerCallbackPayload());
 
-  const serverReplacePayload = computed(
-    (): ServerData => ({
-      ...buildServerCallbackPayload({
-        guid: replaceFlashGuid.value,
-      }),
-    })
-  );
+  const serverReplacePayload = computed(() => ({
+    ...buildServerCallbackPayload({
+      guid: replaceFlashGuid.value,
+    }),
+  }));
 
   const serverDebugPayload = computed((): Server => {
     const payload = {
