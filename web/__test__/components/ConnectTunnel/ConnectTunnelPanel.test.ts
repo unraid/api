@@ -33,6 +33,7 @@ vi.mock('~/components/ConnectTunnel/managed-backup.api', () => ({
     schemaVersion: 1,
     signedIn: true,
     configured: false,
+    repositoryConfigured: false,
     setupPending: false,
     legacyMigrationPending: false,
     running: false,

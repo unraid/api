@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { access, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -21,6 +21,9 @@ describe('managed backup service', () => {
     let resticRepositoryId: string;
     let migrationMarker: string;
     let migrationCompleteMarker: string;
+    let unraidVersionPath: string;
+    let unraidPluginDir: string;
+    let managedBackupRuntimeDir: string;
     let resticKeys: Array<{ id: string; user: string; current: boolean }>;
     let resticKeySequence: number;
     let legacyRetirementFailures: number;
@@ -51,6 +54,10 @@ describe('managed backup service', () => {
         resticLocks = [];
         migrationMarker = join(directory, 'migration-pending');
         migrationCompleteMarker = join(directory, 'migration-complete');
+        unraidVersionPath = join(directory, 'unraid-version');
+        unraidPluginDir = join(directory, 'plugins');
+        managedBackupRuntimeDir = join(directory, 'runtime');
+        await mkdir(unraidPluginDir);
         const config = new ConfigService({
             CONNECT_MANAGED_BACKUP_CONFIG_DIR: backupDir,
             CONNECT_MANAGED_BACKUP_SECRET_KEY_PATH: join(directory, 'secret_key_base'),
@@ -59,6 +66,9 @@ describe('managed backup service', () => {
             CONNECT_MANAGED_BACKUP_MIGRATION_MARKER: migrationMarker,
             CONNECT_MANAGED_BACKUP_MIGRATION_COMPLETE_MARKER: migrationCompleteMarker,
             CONNECT_LEGACY_FLASH_BACKUP_SERVICE: '/test/rc.flash_backup',
+            CONNECT_UNRAID_VERSION_PATH: unraidVersionPath,
+            CONNECT_UNRAID_PLUGIN_DIR: unraidPluginDir,
+            CONNECT_MANAGED_BACKUP_RUNTIME_DIR: managedBackupRuntimeDir,
         });
         store = new ManagedBackupStore(config);
         const connect = {
@@ -222,6 +232,9 @@ describe('managed backup service', () => {
         expect(requests[2].body).toEqual(requests[1].body);
         expect(execaMock.mock.calls.some((call) => call[1][0] === 'key')).toBe(true);
         expect(execaMock.mock.calls.some((call) => call[1].includes('backup'))).toBe(false);
+        const keyAdd = execaMock.mock.calls.find((call) => call[1][0] === 'key' && call[1][1] === 'add');
+        const phrasePath = keyAdd?.[1][keyAdd[1].indexOf('--new-password-file') + 1];
+        expect(phrasePath).toMatch(new RegExp(`^${managedBackupRuntimeDir}/recovery-`));
 
         const contents = await readTree(backupDir);
         expect(contents).not.toContain(phrase);
@@ -350,6 +363,9 @@ describe('managed backup service', () => {
         const backup = execaMock.mock.calls.find((call) => call[1][0] === 'backup');
         const forget = execaMock.mock.calls.find((call) => call[1][0] === 'forget');
         expect(backup?.[1]).toContain('job:f3a9d870-146c-4f9e-b078-5bb0d9f20d0c');
+        expect(backup?.[1]).toContain(
+            `backup-name:${Buffer.from('Flash Backup', 'utf8').toString('base64url')}`
+        );
         expect(backup?.[1]).toContain('source:flash');
         expect(backup?.[1]).toContain('/boot');
         expect(forget?.[1]).toContain('job:f3a9d870-146c-4f9e-b078-5bb0d9f20d0c');
@@ -359,6 +375,142 @@ describe('managed backup service', () => {
         expect(execaMock.mock.calls.indexOf(unlock!)).toBeLessThan(
             execaMock.mock.calls.indexOf(forget!)
         );
+    });
+
+    it('leaves scheduled backups to Core on Unraid 8 but keeps manual backup available', async () => {
+        await service.setup('recovery phrase');
+        const jobsPath = join(backupDir, 'jobs.json');
+        const jobs = JSON.parse(await readFile(jobsPath, 'utf8'));
+        await writeFile(jobsPath, JSON.stringify([{ ...jobs[0], schedule: '* * * * *' }]));
+        await writeFile(unraidVersionPath, 'version="8.0.0-beta.1"\n');
+        const start = vi.spyOn(service, 'startBackup');
+        const recordJobRun = vi.spyOn(store, 'recordJobRun');
+
+        await service.scheduledBackup();
+
+        expect(start).not.toHaveBeenCalled();
+        expect(service.startBackup()).toEqual({ started: true });
+        await vi.waitFor(() => {
+            expect(execaMock.mock.calls.some((call) => call[1][0] === 'forget')).toBe(true);
+        });
+        expect(recordJobRun).not.toHaveBeenCalled();
+    });
+
+    it('leaves scheduled backups to an installed Core plugin on Unraid 7', async () => {
+        await service.setup('recovery phrase');
+        const jobsPath = join(backupDir, 'jobs.json');
+        const jobs = JSON.parse(await readFile(jobsPath, 'utf8'));
+        await writeFile(jobsPath, JSON.stringify([{ ...jobs[0], schedule: '* * * * *' }]));
+        await writeFile(unraidVersionPath, 'version="7.4.0"\n');
+        await writeFile(join(unraidPluginDir, 'unraid.core.dev.plg'), '');
+        const start = vi.spyOn(service, 'startBackup');
+
+        await service.scheduledBackup();
+
+        expect(start).not.toHaveBeenCalled();
+        expect(service.startBackup()).toEqual({ started: true });
+        await vi.waitFor(() => {
+            expect(execaMock.mock.calls.some((call) => call[1][0] === 'forget')).toBe(true);
+        });
+    });
+
+    it('initializes only the missing flash job when Core already owns the repository', async () => {
+        await service.setup('recovery phrase');
+        await writeFile(
+            join(backupDir, 'jobs.json'),
+            JSON.stringify([{ id: 'u8-job', name: 'Appdata', source_type: 'shares' }])
+        );
+        await writeFile(unraidVersionPath, 'version="8.0.0"\n');
+        requests = [];
+
+        await expect(service.status()).resolves.toMatchObject({
+            configured: false,
+            repositoryConfigured: true,
+            job: null,
+        });
+        const initialized = await service.setup();
+        const jobs = JSON.parse(await readFile(join(backupDir, 'jobs.json'), 'utf8'));
+
+        expect(initialized).toMatchObject({ targetCreated: false });
+        expect(requests.map((request) => request.path)).toEqual([
+            '/backup/v1/usage',
+            '/backup/v1/usage',
+        ]);
+        expect(jobs[0]).toEqual({ id: 'u8-job', name: 'Appdata', source_type: 'shares' });
+        expect(jobs[1]).toMatchObject({ source_type: 'flash', source_config: { path: '/boot' } });
+        await expect(service.status()).resolves.toMatchObject({
+            configured: true,
+            repositoryConfigured: true,
+        });
+    });
+
+    it('does not create credentials or overwrite an incompatible managed target id', async () => {
+        await mkdir(backupDir, { recursive: true });
+        const existing = {
+            id: '8ca41aac-f15c-4eca-a1bd-5d55bf80322c',
+            name: 'User S3 target',
+            type: 's3',
+            uri: 's3:s3.example/user-bucket',
+        };
+        await writeFile(join(backupDir, 'targets.json'), JSON.stringify([existing]));
+
+        await expect(service.setup('recovery phrase')).rejects.toThrow('already in use');
+
+        expect(JSON.parse(await readFile(join(backupDir, 'targets.json'), 'utf8'))).toEqual([existing]);
+        await expect(access(store.passwordPath)).rejects.toThrow();
+    });
+
+    it('rechecks Core ownership when a queued scheduled backup starts', async () => {
+        await service.setup('recovery phrase');
+        await writeFile(join(unraidPluginDir, 'unraid.core.plg'), '');
+        execaMock.mockClear();
+
+        await (
+            service as unknown as {
+                runBackup(mode: 'manual' | 'scheduled'): Promise<void>;
+            }
+        ).runBackup('scheduled');
+
+        expect(execaMock).not.toHaveBeenCalled();
+    });
+
+    it('leaves pending setup and job status untouched after Core takes ownership', async () => {
+        await service.setup('recovery phrase');
+        await store.saveState({
+            ...(await store.loadState()),
+            setup_complete: false,
+            pending_generation: 2,
+            pending_repository_id: 'repository-2',
+        });
+        await store.recordJobRun('running');
+        await writeFile(unraidVersionPath, 'version="8.0.0"\n');
+        const reconcilePending = vi.spyOn(service as never, 'reconcilePending' as never);
+        const recordJobRun = vi.spyOn(store, 'recordJobRun');
+
+        await expect(service.status()).resolves.toMatchObject({
+            setupPending: true,
+            job: { lastRunStatus: 'running' },
+        });
+        await service.reconcileAfterStartup();
+
+        expect(reconcilePending).not.toHaveBeenCalled();
+        expect(recordJobRun).not.toHaveBeenCalled();
+    });
+
+    it('removes stale recovery phrase files from the private runtime directory', async () => {
+        await mkdir(managedBackupRuntimeDir, { recursive: true });
+        const stalePhrase = join(
+            managedBackupRuntimeDir,
+            'recovery-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.pass'
+        );
+        const unrelated = join(managedBackupRuntimeDir, 'keep.txt');
+        await writeFile(stalePhrase, 'customer phrase');
+        await writeFile(unrelated, 'keep');
+
+        await service.reconcileAfterStartup();
+
+        await expect(access(stalePhrase)).rejects.toThrow();
+        await expect(access(unrelated)).resolves.toBeUndefined();
     });
 
     it('lists repository lock metadata and removes only stale locks by default', async () => {
@@ -429,8 +581,8 @@ describe('managed backup service', () => {
             releaseBackup = resolve;
         });
         service.startBackup();
-        await vi.waitFor(async () => {
-            expect((await store.loadInitialJob())?.last_run_status).toBe('running');
+        await vi.waitFor(() => {
+            expect(execaMock.mock.calls.some((call) => call[1][0] === 'backup')).toBe(true);
         });
 
         await expect(service.unlock()).rejects.toThrow();
@@ -449,8 +601,8 @@ describe('managed backup service', () => {
         });
 
         expect(service.startBackup()).toEqual({ started: true });
-        await vi.waitFor(async () => {
-            expect((await store.loadInitialJob())?.last_run_status).toBe('running');
+        await vi.waitFor(() => {
+            expect(execaMock.mock.calls.some((call) => call[1][0] === 'backup')).toBe(true);
         });
 
         const response = await Promise.race([

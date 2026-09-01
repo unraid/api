@@ -121,6 +121,19 @@ async function refresh() {
   }
 }
 
+async function initializeFlashJob() {
+  busy.value = true;
+  error.value = '';
+  try {
+    await setupManagedBackup();
+    await refresh();
+  } catch {
+    error.value = t('connectBackup.initializeFailed');
+  } finally {
+    busy.value = false;
+  }
+}
+
 async function setUp() {
   if (!canSetUp.value) return;
   busy.value = true;
@@ -327,6 +340,18 @@ onBeforeUnmount(() => {
     <div v-else-if="status?.setupPending" class="mt-5" role="status">
       <p class="font-medium">{{ t('connectBackup.setupPending.title') }}</p>
       <p class="text-muted-foreground mt-1 text-sm">{{ t('connectBackup.setupPending.description') }}</p>
+    </div>
+
+    <div v-else-if="status?.signedIn && status.repositoryConfigured" class="mt-5 space-y-4">
+      <div class="border-warning/50 bg-warning/5 rounded-lg border p-4" role="status">
+        <p class="font-medium">{{ t('connectBackup.uninitialized.title') }}</p>
+        <p class="text-muted-foreground mt-1 text-sm leading-6">
+          {{ t('connectBackup.uninitialized.description') }}
+        </p>
+      </div>
+      <Button :disabled="busy" @click="initializeFlashJob">
+        {{ t(busy ? 'connectBackup.initializing' : 'connectBackup.initialize') }}
+      </Button>
     </div>
 
     <div v-else-if="status?.signedIn && status.usage.state === 'unavailable'" class="mt-5" role="status">

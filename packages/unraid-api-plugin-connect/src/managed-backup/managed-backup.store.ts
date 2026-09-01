@@ -28,6 +28,7 @@ export interface ManagedBackupState extends JsonObject {
     setup_completed_at?: string;
     initial_job_created?: boolean;
     initial_job_created_at?: string;
+    initial_job_id?: string;
 }
 
 export interface ManagedBackupTarget extends JsonObject {
@@ -152,14 +153,28 @@ export class ManagedBackupStore {
     ): Promise<{ target: ManagedBackupTarget; created: boolean }> {
         const targets = await this.readArray(join(this.configDir, 'targets.json'));
         const existing = targets.find((target) => target.id === MANAGED_BACKUP_TARGET_ID);
+        const uri = `rest:${repositoryUrl}`;
+        if (existing) {
+            if (!isReusableManagedTarget(existing, uri, this.passwordPath)) {
+                throw new Error('Managed backup target id is already in use');
+            }
+            return {
+                created: false,
+                target: {
+                    ...existing,
+                    env: { ...existing.env, RESTIC_REST_USERNAME: username },
+                    updated_at: new Date().toISOString(),
+                },
+            };
+        }
         const now = new Date().toISOString();
         return {
-            created: !existing,
+            created: true,
             target: {
                 id: MANAGED_BACKUP_TARGET_ID,
                 name: MANAGED_BACKUP_TARGET_NAME,
                 type: 'rest',
-                uri: `rest:${repositoryUrl}`,
+                uri,
                 password_file: this.passwordPath,
                 env: { RESTIC_REST_USERNAME: username },
                 flags: [],
@@ -167,7 +182,7 @@ export class ManagedBackupStore {
                 auto_init: true,
                 prune_policy: null,
                 check_policy: null,
-                created_at: typeof existing?.created_at === 'string' ? existing.created_at : now,
+                created_at: now,
                 updated_at: now,
             },
         };
@@ -180,6 +195,10 @@ export class ManagedBackupStore {
     ): Promise<void> {
         const targetsPath = join(this.configDir, 'targets.json');
         const targets = await this.readArray(targetsPath);
+        const existing = targets.find((candidate) => candidate.id === target.id);
+        if (existing && !isReusableManagedTarget(existing, target.uri, target.password_file)) {
+            throw new Error('Managed backup target id is already in use');
+        }
         await this.writeEncrypted(this.credentialPath(target.id), machinePassword);
         await this.writePrivate(this.passwordPath, machinePassword);
         await this.writeEncrypted(
@@ -256,15 +275,20 @@ export class ManagedBackupStore {
         );
     }
 
-    async ensureInitialJob(): Promise<void> {
+    async ensureInitialJob(): Promise<ManagedBackupJob> {
         const state = await this.loadState();
-        if (state.initial_job_created === true) return;
         const jobsPath = join(this.configDir, 'jobs.json');
         const jobs = await this.readArray(jobsPath);
-        if (!jobs.some((job) => job.id === MANAGED_BACKUP_JOB_ID)) {
+        const existing = findManagedFlashJob(jobs, state.initial_job_id);
+        let job = existing;
+
+        if (!job) {
             const now = new Date().toISOString();
-            const job: ManagedBackupJob = {
-                id: MANAGED_BACKUP_JOB_ID,
+            const id = jobs.some((candidate) => candidate.id === MANAGED_BACKUP_JOB_ID)
+                ? randomUUID()
+                : MANAGED_BACKUP_JOB_ID;
+            job = {
+                id,
                 name: 'Flash Backup',
                 target_id: MANAGED_BACKUP_TARGET_ID,
                 source_type: 'flash',
@@ -284,20 +308,24 @@ export class ManagedBackupStore {
         await this.saveState({
             ...(await this.loadState()),
             initial_job_created: true,
-            initial_job_created_at: new Date().toISOString(),
+            initial_job_created_at: state.initial_job_created_at ?? new Date().toISOString(),
+            initial_job_id: job.id,
         });
+        return job;
     }
 
     async loadInitialJob(): Promise<ManagedBackupJob | null> {
+        const state = await this.loadState();
         const jobs = await this.readArray(join(this.configDir, 'jobs.json'));
-        const job = jobs.find((candidate) => candidate.id === MANAGED_BACKUP_JOB_ID);
-        return isManagedBackupJob(job) ? job : null;
+        return findManagedFlashJob(jobs, state.initial_job_id);
     }
 
     async recordJobRun(status: 'success' | 'failed' | 'running'): Promise<void> {
         const path = join(this.configDir, 'jobs.json');
         const jobs = await this.readArray(path);
-        const index = jobs.findIndex((candidate) => candidate.id === MANAGED_BACKUP_JOB_ID);
+        const state = await this.loadState();
+        const job = findManagedFlashJob(jobs, state.initial_job_id);
+        const index = job ? jobs.findIndex((candidate) => candidate.id === job.id) : -1;
         if (index < 0) return;
         const now = new Date().toISOString();
         jobs[index] = { ...jobs[index], last_run_at: now, last_run_status: status, updated_at: now };
@@ -420,14 +448,47 @@ function isManagedTarget(value: unknown): value is ManagedBackupTarget {
     );
 }
 
+function isReusableManagedTarget(
+    value: unknown,
+    uri: string,
+    passwordPath: string
+): value is ManagedBackupTarget {
+    return (
+        isManagedTarget(value) &&
+        value.name === MANAGED_BACKUP_TARGET_NAME &&
+        value.uri === uri &&
+        value.password_file === passwordPath &&
+        value.auto_init === true &&
+        value.auto_unlock === true
+    );
+}
+
 function isManagedBackupJob(value: unknown): value is ManagedBackupJob {
     return (
         isObject(value) &&
-        value.id === MANAGED_BACKUP_JOB_ID &&
+        typeof value.id === 'string' &&
+        value.id.length > 0 &&
         value.target_id === MANAGED_BACKUP_TARGET_ID &&
         value.source_type === 'flash' &&
+        isObject(value.source_config) &&
+        value.source_config.path === '/boot' &&
         typeof value.enabled === 'boolean'
     );
+}
+
+function findManagedFlashJob(
+    jobs: JsonObject[],
+    recordedId: string | undefined
+): ManagedBackupJob | null {
+    const preferredIds = [recordedId, MANAGED_BACKUP_JOB_ID].filter(
+        (id): id is string => typeof id === 'string' && id.length > 0
+    );
+    for (const id of preferredIds) {
+        const candidate = jobs.find((job) => job.id === id);
+        if (isManagedBackupJob(candidate)) return candidate;
+    }
+    const compatible = jobs.filter(isManagedBackupJob);
+    return compatible.length === 1 ? compatible[0] : null;
 }
 
 function isStagedManagedBackup(value: unknown): value is StagedManagedBackup {

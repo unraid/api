@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Cron } from '@nestjs/schedule';
 import { randomUUID } from 'node:crypto';
-import { access, chmod, unlink, writeFile } from 'node:fs/promises';
+import { access, chmod, mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 
 import { execa } from 'execa';
 
@@ -123,11 +123,12 @@ export class ManagedBackupService {
     ) {}
 
     async status() {
+        const coreOwnsBackup = await this.unraidCoreOwnsBackup();
         const pendingState = await this.store.loadState();
-        if (Number.isSafeInteger(pendingState.pending_generation)) {
+        if (!coreOwnsBackup && Number.isSafeInteger(pendingState.pending_generation)) {
             await this.serial(() => this.reconcilePending()).catch(() => undefined);
         }
-        const [state, job, usage, legacyMigrationPending, configured] = await Promise.all([
+        const [state, job, usage, legacyMigrationPending, repositoryConfigured] = await Promise.all([
             this.store.loadState(),
             this.store.loadInitialJob(),
             this.loadUsage(),
@@ -138,7 +139,8 @@ export class ManagedBackupService {
         return {
             schemaVersion: 1,
             signedIn,
-            configured,
+            configured: repositoryConfigured && Boolean(job),
+            repositoryConfigured,
             setupPending: Number.isSafeInteger(state.pending_generation),
             legacyMigrationPending,
             running: this.running,
@@ -150,7 +152,7 @@ export class ManagedBackupService {
                       schedule: job.schedule,
                       lastRunAt: job.last_run_at,
                       lastRunStatus:
-                          this.running || job.last_run_status !== 'running'
+                          this.running || coreOwnsBackup || job.last_run_status !== 'running'
                               ? this.running
                                   ? 'running'
                                   : job.last_run_status
@@ -161,19 +163,33 @@ export class ManagedBackupService {
         };
     }
 
-    async setup(recoveryPhrase: string) {
-        const phrase = recoveryPhrase;
-        if (!recoveryPhraseIsUsable(phrase)) throw new InvalidRecoveryPhraseError();
+    async setup(recoveryPhrase?: string) {
         return this.serial(async () => {
+            if (recoveryPhrase === undefined && (await this.store.isCoreReady())) {
+                const job = await this.store.ensureInitialJob();
+                const state = await this.store.loadState();
+                const usage = await this.loadUsage();
+                return {
+                    schemaVersion: 1,
+                    targetId: state.target_id,
+                    jobId: job.id,
+                    repositoryId: state.repository_id,
+                    quotaBytes: usage.state === 'current' ? usage.value.quotaBytes : null,
+                    targetCreated: false,
+                };
+            }
+
+            const phrase = recoveryPhrase ?? '';
+            if (!recoveryPhraseIsUsable(phrase)) throw new InvalidRecoveryPhraseError();
             await this.reconcilePending();
             const repository = validateProvisionedRepository(
                 await this.request('/backup/v1/provision', 'POST')
             );
-            const machinePassword = await this.store.loadOrCreateMachinePassword();
             const { target, created } = await this.store.buildTarget(
                 repository.repositoryUrl,
                 repository.username
             );
+            const machinePassword = await this.store.loadOrCreateMachinePassword();
             const resticRepositoryId = await this.ensureRepository(target, repository.password);
 
             const state = await this.store.loadState();
@@ -219,10 +235,12 @@ export class ManagedBackupService {
                 pending_repository_id: repository.repositoryId,
             });
             await this.reconcilePending();
+            const job = await this.store.loadInitialJob();
+            if (!job) throw new Error('Managed flash backup job was not created');
             return {
                 schemaVersion: 1,
                 targetId: target.id,
-                jobId: MANAGED_BACKUP_JOB_ID,
+                jobId: job.id,
                 repositoryId: repository.repositoryId,
                 quotaBytes: repository.quotaBytes,
                 targetCreated: created,
@@ -230,10 +248,10 @@ export class ManagedBackupService {
         });
     }
 
-    startBackup(): { started: boolean } {
+    startBackup(mode: 'manual' | 'scheduled' = 'manual'): { started: boolean } {
         if (this.running) return { started: false };
         this.running = true;
-        void this.serial(() => this.runBackup())
+        void this.serial(() => this.runBackup(mode))
             .catch(() => undefined)
             .finally(() => {
                 this.running = false;
@@ -283,18 +301,42 @@ export class ManagedBackupService {
 
     @Cron('* * * * *', { name: 'connect-managed-flash-backup' })
     async scheduledBackup(): Promise<void> {
-        if (this.running) return;
+        if (this.running || (await this.unraidCoreOwnsBackup())) return;
         const job = await this.store.loadInitialJob().catch(() => null);
-        if (job?.enabled && job.schedule && cronMatches(job.schedule, new Date())) this.startBackup();
+        if (job?.enabled && job.schedule && cronMatches(job.schedule, new Date())) {
+            this.startBackup('scheduled');
+        }
+    }
+
+    private async unraidCoreOwnsBackup(): Promise<boolean> {
+        const versionPath =
+            this.config.get<string>('CONNECT_UNRAID_VERSION_PATH') ?? '/etc/unraid-version';
+        const version = await readFile(versionPath, 'utf8').catch(() => '');
+        const major = Number(version.match(/^version\s*=\s*"?(\d+)/m)?.[1]);
+        if (Number.isSafeInteger(major) && major >= 8) return true;
+
+        const pluginDir = this.config.get<string>('CONNECT_UNRAID_PLUGIN_DIR') ?? '/boot/config/plugins';
+        const plugins = await readdir(pluginDir).catch(() => []);
+        return plugins.some((plugin) => /^unraid\.core(?:\.[A-Za-z0-9_-]+)*\.plg$/.test(plugin));
     }
 
     @OnEvent('app.ready', { async: true })
     @OnEvent(EVENTS.LOGIN, { async: true })
     async reconcileAfterStartup(): Promise<void> {
-        await this.serial(() => this.reconcilePending()).catch(() => undefined);
+        await this.cleanupRecoveryPhraseFiles();
+        const coreOwnsBackup = await this.unraidCoreOwnsBackup();
+        if (!coreOwnsBackup) {
+            await this.serial(() => this.reconcilePending()).catch(() => undefined);
+        }
         await this.retireLegacyFlashBackup().catch(() => undefined);
         const job = await this.store.loadInitialJob().catch(() => null);
-        if (job?.last_run_status === 'running') await this.store.recordJobRun('failed');
+        if (
+            !coreOwnsBackup &&
+            job?.last_run_status === 'running' &&
+            !(await this.unraidCoreOwnsBackup())
+        ) {
+            await this.store.recordJobRun('failed');
+        }
     }
 
     private serial<T>(work: () => Promise<T>): Promise<T> {
@@ -398,17 +440,23 @@ export class ManagedBackupService {
         await unlink(this.migrationMarkerPath());
     }
 
-    private async runBackup(): Promise<void> {
-        const state = await this.store.loadState();
+    private async runBackup(mode: 'manual' | 'scheduled'): Promise<void> {
+        if (mode === 'scheduled' && (await this.unraidCoreOwnsBackup())) return;
         const job = await this.store.loadInitialJob();
         const loaded = await this.store.loadManagedTarget();
         if (!(await this.store.isCoreReady()) || !job?.enabled || !loaded) {
             throw new Error('Managed flash backup is not configured');
         }
-        await this.store.recordJobRun('running');
         try {
             const env = this.resticEnv(loaded.target, loaded.transportPassword);
             const tags = [`job:${job.id}`, 'source:flash'];
+            if (
+                typeof job.name === 'string' &&
+                job.name.trim() &&
+                Buffer.byteLength(job.name, 'utf8') <= 256
+            ) {
+                tags.splice(1, 0, `backup-name:${Buffer.from(job.name, 'utf8').toString('base64url')}`);
+            }
             const backupArgs = ['backup', '--repo', loaded.target.uri, '--json'];
             for (const tag of tags) backupArgs.push('--tag', tag);
             for (const pattern of jobExcludePatterns(job)) backupArgs.push('--exclude', pattern);
@@ -427,9 +475,9 @@ export class ManagedBackupService {
             appendRetention(retentionArgs, job.retention);
             retentionArgs.push('--tag', `job:${job.id}`, '--prune');
             await this.runRestic(retentionArgs, env);
-            await this.store.recordJobRun('success');
+            if (!(await this.unraidCoreOwnsBackup())) await this.store.recordJobRun('success');
         } catch {
-            await this.store.recordJobRun('failed');
+            if (!(await this.unraidCoreOwnsBackup())) await this.store.recordJobRun('failed');
             throw new Error('Managed flash backup failed');
         }
     }
@@ -718,7 +766,10 @@ export class ManagedBackupService {
         phrase: string,
         operation: (phrasePath: string) => Promise<T>
     ): Promise<T> {
-        const phrasePath = `${this.store.configDir}/.credentials/recovery-${randomUUID()}.pass`;
+        const runtimeDir = this.recoveryPhraseRuntimeDir();
+        await mkdir(runtimeDir, { recursive: true, mode: 0o700 });
+        await chmod(runtimeDir, 0o700);
+        const phrasePath = `${runtimeDir}/recovery-${randomUUID()}.pass`;
         try {
             await writeFile(phrasePath, phrase, { mode: 0o600, flag: 'wx' });
             await chmod(phrasePath, 0o600);
@@ -726,6 +777,23 @@ export class ManagedBackupService {
         } finally {
             await unlink(phrasePath).catch(() => undefined);
         }
+    }
+
+    private recoveryPhraseRuntimeDir(): string {
+        return (
+            this.config.get<string>('CONNECT_MANAGED_BACKUP_RUNTIME_DIR') ??
+            '/run/unraid-connect/managed-backup'
+        );
+    }
+
+    private async cleanupRecoveryPhraseFiles(): Promise<void> {
+        const runtimeDir = this.recoveryPhraseRuntimeDir();
+        const entries = await readdir(runtimeDir).catch(() => []);
+        await Promise.all(
+            entries
+                .filter((entry) => /^recovery-[0-9a-f-]+\.pass$/.test(entry))
+                .map((entry) => unlink(`${runtimeDir}/${entry}`).catch(() => undefined))
+        );
     }
 
     private resticEnv(target: ManagedBackupTarget, transportPassword: string): Record<string, string> {

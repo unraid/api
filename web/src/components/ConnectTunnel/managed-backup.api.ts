@@ -23,6 +23,7 @@ export interface ManagedBackupStatus {
   schemaVersion: 1;
   signedIn: boolean;
   configured: boolean;
+  repositoryConfigured: boolean;
   setupPending: boolean;
   legacyMigrationPending: boolean;
   running: boolean;
@@ -44,8 +45,12 @@ const endpoint = '/graphql/api/connect/managed-backup';
 export const getManagedBackupStatus = () =>
   request.url(`${endpoint}/status`).get().json<ManagedBackupStatus>();
 
-export const setupManagedBackup = (recoveryPhrase: string) =>
-  request.url(`${endpoint}/setup`).json({ recoveryPhrase }).post().res();
+export const setupManagedBackup = (recoveryPhrase?: string) =>
+  request
+    .url(`${endpoint}/setup`)
+    .json(recoveryPhrase === undefined ? {} : { recoveryPhrase })
+    .post()
+    .res();
 
 export const runManagedBackup = () => request.url(`${endpoint}/run`).post().json<{ started: boolean }>();
 

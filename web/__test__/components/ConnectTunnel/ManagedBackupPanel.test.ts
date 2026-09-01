@@ -26,6 +26,7 @@ const unconfigured = (): ManagedBackupStatus => ({
   schemaVersion: 1,
   signedIn: true,
   configured: false,
+  repositoryConfigured: false,
   setupPending: false,
   legacyMigrationPending: false,
   running: false,
@@ -129,6 +130,20 @@ describe('managed flash backup', () => {
     await action(wrapper, 'Back up now').trigger('click');
     await flushPromises();
     expect(runManagedBackup).toHaveBeenCalledOnce();
+  });
+
+  it('shows an additive initializer when storage exists without a compatible flash job', async () => {
+    const value = unconfigured();
+    value.repositoryConfigured = true;
+    vi.mocked(setupManagedBackup).mockResolvedValue(new Response());
+    const wrapper = await render(value);
+
+    expect(wrapper.text()).toContain('Flash backup is uninitialized');
+    expect(wrapper.text()).toContain('without changing your existing backup targets or jobs');
+    await action(wrapper, 'Initialize flash backup').trigger('click');
+    await flushPromises();
+
+    expect(setupManagedBackup).toHaveBeenCalledExactlyOnceWith();
   });
 
   it('keeps the legacy job running until managed setup succeeds', async () => {

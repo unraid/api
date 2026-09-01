@@ -21,9 +21,10 @@ import {
 } from './managed-backup.service.js';
 
 class ManagedBackupSetupInput {
+    @IsOptional()
     @IsString()
     @MaxLength(256)
-    recoveryPhrase!: string;
+    recoveryPhrase?: string;
 }
 
 class ManagedBackupUnlockInput {
