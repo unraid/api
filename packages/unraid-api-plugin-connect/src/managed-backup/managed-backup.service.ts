@@ -545,7 +545,7 @@ export class ManagedBackupService {
             }
             return {
                 id: key.id,
-                user: typeof key.user === 'string' ? key.user : null,
+                user: typeof key.userName === 'string' ? key.userName : null,
                 current: key.current === true,
             };
         });

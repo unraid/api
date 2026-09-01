@@ -80,13 +80,24 @@ describe('managed backup service', () => {
                         return {
                             stdout: JSON.stringify(
                                 resticKeys.map((key) => ({
-                                    ...key,
+                                    id: key.id,
+                                    userName: key.user,
+                                    hostName: 'unraid',
                                     current: key.id === currentId,
                                 }))
                             ),
                         };
                     }
-                    return { stdout: JSON.stringify(resticKeys) };
+                    return {
+                        stdout: JSON.stringify(
+                            resticKeys.map((key) => ({
+                                id: key.id,
+                                userName: key.user,
+                                hostName: 'unraid',
+                                current: key.current,
+                            }))
+                        ),
+                    };
                 }
                 if (args[0] === 'key' && args[1] === 'add') {
                     const userIndex = args.indexOf('--user');
