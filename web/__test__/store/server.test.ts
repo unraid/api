@@ -296,6 +296,14 @@ const getStore = () => {
   return store;
 };
 
+const getActualStore = () =>
+  useServerStore(
+    createTestingPinia({
+      createSpy: vi.fn,
+      stubActions: false,
+    })
+  );
+
 // Mock dependent stores
 vi.mock('~/store/account', () => ({
   useAccountStore: vi.fn(() => ({
@@ -802,6 +810,23 @@ describe('useServerStore', () => {
     expect(payload.state).toBe('PLUS');
     expect(payload.tpmGuid).toBe('01-TPM-GUID-1');
     expect(payload.wanFQDN).toBe('test.myunraid.net');
+  });
+
+  it('should include physical identities in the actual callback payloads', () => {
+    const store = getActualStore();
+
+    store.setServer({
+      flashGuid: '058F-6387-0000-0000F1F1E1C6',
+      guid: '058F-6387-0000-0000F1F1E1C6',
+      tpmGuid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
+    } as Server);
+
+    expect(store.serverPurchasePayload.flashGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverPurchasePayload.tpmGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(store.serverAccountPayload.flashGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverAccountPayload.tpmGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(store.serverReplacePayload.flashGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverReplacePayload.tpmGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
   });
 
   it('should create serverReplacePayload with TPM guid when available on flash boot', () => {
