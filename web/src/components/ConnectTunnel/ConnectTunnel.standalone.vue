@@ -19,6 +19,7 @@ import {
   updateConnectTunnelPageMutation,
 } from '~/components/ConnectTunnel/graphql/connect-tunnel.mutation';
 import { connectTunnelPageQuery } from '~/components/ConnectTunnel/graphql/connect-tunnel.query';
+import ManagedBackupPanel from '~/components/ConnectTunnel/ManagedBackupPanel.vue';
 
 const { t } = useI18n();
 const accountHeadingId = useId();
@@ -201,6 +202,7 @@ async function migrate(confirmationToken: string) {
         />
       </template>
     </ConnectTunnelPanel>
+    <ManagedBackupPanel />
   </div>
 </template>
 

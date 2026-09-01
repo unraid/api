@@ -13,6 +13,7 @@ import ConnectSettings from '~/components/ConnectSettings/ConnectSettings.standa
 import ConnectServicesPanel from '~/components/ConnectTunnel/ConnectServicesPanel.vue';
 import ConnectTunnelPage from '~/components/ConnectTunnel/ConnectTunnel.standalone.vue';
 import ConnectTunnelPanel from '~/components/ConnectTunnel/ConnectTunnelPanel.vue';
+import ManagedBackupPanel from '~/components/ConnectTunnel/ManagedBackupPanel.vue';
 import { ContainerPortType, ContainerState } from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
@@ -26,6 +27,20 @@ vi.mock('~/components/Auth.standalone.vue', () => ({
     props: { allowSignOut: Boolean },
     template: '<button type="button">Sign in to Unraid</button>',
   },
+}));
+vi.mock('~/components/ConnectTunnel/managed-backup.api', () => ({
+  getManagedBackupStatus: vi.fn().mockResolvedValue({
+    schemaVersion: 1,
+    signedIn: true,
+    configured: false,
+    setupPending: false,
+    legacyMigrationPending: false,
+    running: false,
+    job: null,
+    usage: { state: 'unavailable' },
+  }),
+  setupManagedBackup: vi.fn(),
+  runManagedBackup: vi.fn(),
 }));
 
 type State = ConnectTunnelPageQuery['connectTunnelSettings'];
@@ -312,7 +327,7 @@ describe('Connect page save handler', () => {
     return { wrapper, mutate, refetch, stopPolling, startPolling, result, loading, error };
   }
 
-  it('keeps remote access last and places services inside it', () => {
+  it('keeps services inside remote access and flash backup on the same Connect page', () => {
     const { wrapper } = renderPage();
     expect(wrapper.findComponent(BrandMark).exists()).toBe(true);
     const headings = wrapper.findAll('h2').map((heading) => heading.text());
@@ -322,9 +337,11 @@ describe('Connect page save handler', () => {
       'Server overview',
       'Remote access',
       'Services',
+      'Flash backup',
     ]);
     const remoteHeading = wrapper.findAll('h2').find((heading) => heading.text() === 'Remote access')!;
     expect(remoteHeading.element.closest('section')?.textContent).toContain('Services');
+    expect(wrapper.getComponent(ManagedBackupPanel)).toBeDefined();
   });
 
   it('shows the preview environment disclaimer only in preview mode', async () => {

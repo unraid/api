@@ -1,0 +1,132 @@
+import { flushPromises, mount } from '@vue/test-utils';
+
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { ManagedBackupStatus } from '~/components/ConnectTunnel/managed-backup.api';
+
+import {
+  getManagedBackupStatus,
+  runManagedBackup,
+  setupManagedBackup,
+} from '~/components/ConnectTunnel/managed-backup.api';
+import ManagedBackupPanel from '~/components/ConnectTunnel/ManagedBackupPanel.vue';
+import { createTestI18n } from '../../utils/i18n';
+
+vi.mock('~/components/ConnectTunnel/managed-backup.api', () => ({
+  getManagedBackupStatus: vi.fn(),
+  setupManagedBackup: vi.fn(),
+  runManagedBackup: vi.fn(),
+}));
+
+const unconfigured = (): ManagedBackupStatus => ({
+  schemaVersion: 1,
+  signedIn: true,
+  configured: false,
+  setupPending: false,
+  legacyMigrationPending: false,
+  running: false,
+  job: null,
+  usage: {
+    state: 'current',
+    value: {
+      schemaVersion: 1,
+      tierId: 'included-10gb',
+      quotaBytes: 10_000_000_000,
+      usedBytes: 0,
+      remainingBytes: 10_000_000_000,
+      objectCount: 0,
+      updatedAt: '2026-09-01T12:00:00.000Z',
+    },
+  },
+});
+
+const wrappers: ReturnType<typeof mount>[] = [];
+
+async function render(value = unconfigured()) {
+  vi.mocked(getManagedBackupStatus).mockResolvedValue(value);
+  const wrapper = mount(ManagedBackupPanel, {
+    global: { plugins: [createTestI18n()] },
+  });
+  wrappers.push(wrapper);
+  await flushPromises();
+  return wrapper;
+}
+
+const action = (wrapper: Awaited<ReturnType<typeof render>>, name: string) =>
+  wrapper.findAll('[role="button"]').find((button) => button.text() === name)!;
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+afterEach(() => {
+  wrappers.splice(0).forEach((wrapper) => wrapper.unmount());
+});
+
+describe('managed flash backup', () => {
+  it('generates a phrase locally and requires the user to confirm it is saved', async () => {
+    const wrapper = await render();
+    const phrase = wrapper.get('code').text();
+    expect(phrase).toMatch(/^[a-f0-9]{4}(?:-[a-f0-9]{4}){7}$/);
+    expect(wrapper.text()).toContain('Unraid cannot recover your backup if you lose it');
+    expect(action(wrapper, 'Set up flash backup').attributes('aria-disabled')).toBe('true');
+
+    await wrapper.get('input[type="checkbox"]').setValue(true);
+    expect(action(wrapper, 'Set up flash backup').attributes('aria-disabled')).toBe('false');
+    await action(wrapper, 'Set up flash backup').trigger('click');
+    await flushPromises();
+
+    expect(setupManagedBackup).toHaveBeenCalledExactlyOnceWith(phrase);
+  });
+
+  it('allows a low-friction custom phrase while warning about short values', async () => {
+    const wrapper = await render();
+    await action(wrapper, 'Use my own phrase').trigger('click');
+    await wrapper.get('input[type="password"]').setValue('easy to remember');
+    expect(wrapper.text()).toContain('Short phrases are allowed, but are easier to guess');
+    await wrapper.get('input[type="checkbox"]').setValue(true);
+    await wrapper.get('input[type="password"]').setValue('another easy phrase');
+    expect(action(wrapper, 'Set up flash backup').attributes('aria-disabled')).toBe('true');
+    await wrapper.get('input[type="checkbox"]').setValue(true);
+    await action(wrapper, 'Set up flash backup').trigger('click');
+    await flushPromises();
+    expect(setupManagedBackup).toHaveBeenCalledExactlyOnceWith('another easy phrase');
+  });
+
+  it('shows configured backup state and storage metrics and starts a backup once', async () => {
+    const value = unconfigured();
+    value.configured = true;
+    const usage = value.usage.state === 'current' ? value.usage.value : undefined;
+    expect(usage).toBeDefined();
+    value.usage = {
+      state: 'current',
+      value: { ...usage!, usedBytes: 1_250_000_000, remainingBytes: 8_750_000_000 },
+    };
+    value.job = {
+      id: 'connect-managed-flash-backup',
+      name: 'Flash Backup',
+      enabled: true,
+      schedule: '0 3 * * *',
+      lastRunAt: '2026-09-01T12:00:00.000Z',
+      lastRunStatus: 'success',
+    };
+    vi.mocked(runManagedBackup).mockResolvedValue({ started: true });
+    const wrapper = await render(value);
+
+    expect(wrapper.text()).toContain('Last backup complete');
+    expect(wrapper.text()).toContain('1.3 GB');
+    expect(wrapper.text()).toContain('8.8 GB of 10 GB');
+    expect(wrapper.text()).toContain('Automatic backups are enabled');
+    await action(wrapper, 'Back up now').trigger('click');
+    await flushPromises();
+    expect(runManagedBackup).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the legacy job running until managed setup succeeds', async () => {
+    const value = unconfigured();
+    value.legacyMigrationPending = true;
+    const wrapper = await render(value);
+    expect(wrapper.text()).toContain('Legacy flash backup found');
+    expect(wrapper.text()).toContain('will keep running until this setup succeeds');
+  });
+});
