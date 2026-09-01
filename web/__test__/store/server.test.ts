@@ -188,6 +188,7 @@ const getStore = () => {
           description: store.description,
           deviceCount: store.deviceCount,
           expireTime: store.expireTime,
+          flashGuid: store.flashGuid || undefined,
           flashProduct: store.flashProduct,
           flashVendor: store.flashVendor,
           guid: store.guid,
@@ -203,6 +204,7 @@ const getStore = () => {
           regTy: store.regTy,
           regUpdatesExpired: store.regUpdatesExpired,
           state: store.state,
+          tpmGuid: store.tpmGuid || undefined,
           wanFQDN: store.wanFQDN,
         };
 
@@ -218,6 +220,7 @@ const getStore = () => {
           deviceCount: store.deviceCount,
           description: store.description,
           expireTime: store.expireTime,
+          flashGuid: store.flashGuid || undefined,
           flashProduct: store.flashProduct,
           flashVendor: store.flashVendor,
           guid: store.guid,
@@ -233,6 +236,7 @@ const getStore = () => {
           regTy: store.regTy,
           regUpdatesExpired: store.regUpdatesExpired,
           state: store.state,
+          tpmGuid: store.tpmGuid || undefined,
           wanFQDN: store.wanFQDN,
         };
 
@@ -651,6 +655,7 @@ describe('useServerStore', () => {
       deviceCount: 6,
       description: 'Test Server',
       expireTime: 123,
+      flashGuid: 'flash-guid-1',
       flashProduct: 'TestFlash',
       flashVendor: 'TestVendor',
       guid: '123456',
@@ -675,6 +680,7 @@ describe('useServerStore', () => {
     expect(payload.description).toBe('Test Server');
     expect(payload.deviceCount).toBe(6);
     expect(payload.expireTime).toBe(123);
+    expect(payload.flashGuid).toBe('flash-guid-1');
     expect(payload.flashProduct).toBe('TestFlash');
     expect(payload.flashVendor).toBe('TestVendor');
     expect(payload.guid).toBe('123456');
@@ -767,6 +773,7 @@ describe('useServerStore', () => {
       regGuid: 'reg-guid-1',
       regTy: 'Plus',
       state: 'PLUS' as ServerState,
+      tpmGuid: '01-TPM-GUID-1',
       wanFQDN: 'test.myunraid.net',
     });
 
@@ -777,6 +784,7 @@ describe('useServerStore', () => {
     expect(payload.deviceCount).toBe(6);
     expect(payload.description).toBe('Test Server');
     expect(payload.expireTime).toBe(123);
+    expect(payload.flashGuid).toBe('flash-guid-1');
     expect(payload.flashProduct).toBe('TestFlash');
     expect(payload.flashVendor).toBe('TestVendor');
     expect(payload.guid).toBe('123456');
@@ -792,6 +800,7 @@ describe('useServerStore', () => {
     expect(payload.regTy).toBe('Plus');
     expect(payload.regUpdatesExpired).toBe(true);
     expect(payload.state).toBe('PLUS');
+    expect(payload.tpmGuid).toBe('01-TPM-GUID-1');
     expect(payload.wanFQDN).toBe('test.myunraid.net');
   });
 
