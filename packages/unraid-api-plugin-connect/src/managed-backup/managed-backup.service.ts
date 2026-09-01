@@ -113,7 +113,10 @@ export class ManagedBackupService {
     ) {}
 
     async status() {
-        await this.serial(() => this.reconcilePending()).catch(() => undefined);
+        const pendingState = await this.store.loadState();
+        if (Number.isSafeInteger(pendingState.pending_generation)) {
+            await this.serial(() => this.reconcilePending()).catch(() => undefined);
+        }
         const [state, job, usage, legacyMigrationPending, configured] = await Promise.all([
             this.store.loadState(),
             this.store.loadInitialJob(),

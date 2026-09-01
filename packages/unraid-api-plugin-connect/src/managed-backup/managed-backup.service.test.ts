@@ -26,6 +26,7 @@ describe('managed backup service', () => {
     let legacyRetirementFailures: number;
     let recoveryKeyRemovalFailures: number;
     let recoveryPhrases: Map<string, string>;
+    let backupGate: Promise<void> | null;
 
     beforeEach(async () => {
         directory = await mkdtemp(join(tmpdir(), 'managed-backup-service-'));
@@ -37,6 +38,7 @@ describe('managed backup service', () => {
         legacyRetirementFailures = 0;
         recoveryKeyRemovalFailures = 0;
         recoveryPhrases = new Map();
+        backupGate = null;
         migrationMarker = join(directory, 'migration-pending');
         migrationCompleteMarker = join(directory, 'migration-complete');
         const config = new ConfigService({
@@ -119,6 +121,7 @@ describe('managed backup service', () => {
                     resticKeys = resticKeys.filter((key) => key.id !== args[2]);
                     recoveryPhrases.delete(args[2]);
                 }
+                if (args[0] === 'backup' && backupGate) await backupGate;
                 return { stdout: '' };
             }
         );
@@ -320,6 +323,33 @@ describe('managed backup service', () => {
         expect(backup?.[1]).toContain('/boot');
         expect(forget?.[1]).toContain('job:f3a9d870-146c-4f9e-b078-5bb0d9f20d0c');
         expect(forget?.[1]).toContain('--prune');
+    });
+
+    it('keeps status responsive while Restic is running', async () => {
+        await service.setup('abcde-fghij-klmno-pqrst-uvwxy-z2345-6789a');
+        let releaseBackup!: () => void;
+        backupGate = new Promise<void>((resolve) => {
+            releaseBackup = resolve;
+        });
+
+        expect(service.startBackup()).toEqual({ started: true });
+        await vi.waitFor(async () => {
+            expect((await store.loadInitialJob())?.last_run_status).toBe('running');
+        });
+
+        const response = await Promise.race([
+            service.status().then((status) => ({ state: 'resolved', status })),
+            new Promise<{ state: 'blocked'; status: null }>((resolve) =>
+                setTimeout(() => resolve({ state: 'blocked', status: null }), 100)
+            ),
+        ]);
+        expect(response.state).toBe('resolved');
+        expect(response.status).toMatchObject({ configured: true, running: true });
+
+        releaseBackup();
+        await vi.waitFor(async () => {
+            expect((await store.loadInitialJob())?.last_run_status).toBe('success');
+        });
     });
 });
 
