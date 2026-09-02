@@ -14,14 +14,19 @@ import {
 describe('Core-compatible managed backup store', () => {
     let directory: string;
     let backupDir: string;
+    let targetDir: string;
+    let legacyFlashDir: string;
     let store: ManagedBackupStore;
 
     beforeEach(async () => {
         directory = await mkdtemp(join(tmpdir(), 'managed-backup-store-'));
         backupDir = join(directory, 'backup');
+        targetDir = join(backupDir, 'managed-target');
+        legacyFlashDir = join(backupDir, 'legacy-flash');
         store = new ManagedBackupStore(
             new ConfigService({
-                CONNECT_MANAGED_BACKUP_CONFIG_DIR: backupDir,
+                CONNECT_MANAGED_BACKUP_TARGET_DIR: targetDir,
+                CONNECT_MANAGED_BACKUP_LEGACY_FLASH_DIR: legacyFlashDir,
                 CONNECT_MANAGED_BACKUP_SECRET_KEY_PATH: join(directory, 'secret_key_base'),
             })
         );
@@ -31,7 +36,7 @@ describe('Core-compatible managed backup store', () => {
         await rm(directory, { recursive: true, force: true });
     });
 
-    it('writes the exact target, credential, and job locations consumed by Core', async () => {
+    it('separates the Connect target from the legacy Flash Backup job', async () => {
         const password = await store.loadOrCreateMachinePassword();
         const { target } = await store.buildTarget(
             'https://backup.example/backup/v1/repository/server/',
@@ -40,13 +45,13 @@ describe('Core-compatible managed backup store', () => {
         await store.saveTargetWithPassword(target, password, 'transport-secret');
         await store.ensureInitialJob();
 
-        const targets = JSON.parse(await readFile(join(backupDir, 'targets.json'), 'utf8'));
+        const targets = JSON.parse(await readFile(join(targetDir, 'targets.json'), 'utf8'));
         expect(targets).toEqual([
             expect.objectContaining({
                 id: MANAGED_BACKUP_TARGET_ID,
                 type: 'rest',
                 uri: 'rest:https://backup.example/backup/v1/repository/server/',
-                password_file: join(backupDir, '.credentials', `${MANAGED_BACKUP_TARGET_ID}.pass`),
+                password_file: join(targetDir, '.credentials', `${MANAGED_BACKUP_TARGET_ID}.pass`),
                 env: { RESTIC_REST_USERNAME: 'transport-user' },
                 auto_init: true,
                 auto_unlock: true,
@@ -54,7 +59,7 @@ describe('Core-compatible managed backup store', () => {
         ]);
         expect(JSON.stringify(targets)).not.toContain('transport-secret');
 
-        const jobs = JSON.parse(await readFile(join(backupDir, 'jobs.json'), 'utf8'));
+        const jobs = JSON.parse(await readFile(join(legacyFlashDir, 'jobs.json'), 'utf8'));
         expect(jobs).toEqual([
             expect.objectContaining({
                 id: MANAGED_BACKUP_JOB_ID,
@@ -78,7 +83,7 @@ describe('Core-compatible managed backup store', () => {
 
         expect((await stat(join(directory, 'secret_key_base'))).mode & 0o777).toBe(0o600);
         expect(
-            (await stat(join(backupDir, '.credentials', `${MANAGED_BACKUP_TARGET_ID}.enc`))).mode & 0o777
+            (await stat(join(targetDir, '.credentials', `${MANAGED_BACKUP_TARGET_ID}.enc`))).mode & 0o777
         ).toBe(0o600);
         await expect(store.loadManagedTarget()).resolves.toMatchObject({
             machinePassword: password,
@@ -88,52 +93,53 @@ describe('Core-compatible managed backup store', () => {
 
     it('reports a removed flash job as absent and recreates it only on explicit initialization', async () => {
         await store.ensureInitialJob();
-        await writeFile(join(backupDir, 'jobs.json'), '[]');
+        await writeFile(join(legacyFlashDir, 'jobs.json'), '[]');
         await expect(store.loadInitialJob()).resolves.toBeNull();
 
         const initialized = await store.ensureInitialJob();
 
         expect(initialized).toMatchObject({ source_type: 'flash', source_config: { path: '/boot' } });
-        expect(JSON.parse(await readFile(join(backupDir, 'jobs.json'), 'utf8'))).toHaveLength(1);
+        expect(JSON.parse(await readFile(join(legacyFlashDir, 'jobs.json'), 'utf8'))).toHaveLength(1);
     });
 
-    it('preserves unrelated Core targets and jobs', async () => {
+    it('preserves unrelated entries in each Connect-owned store', async () => {
         await store.loadOrCreateMachinePassword();
+        await mkdir(legacyFlashDir, { recursive: true });
         await writeFile(
-            join(backupDir, 'targets.json'),
+            join(targetDir, 'targets.json'),
             JSON.stringify([{ id: 'user-target', name: 'NAS target' }])
         );
         await writeFile(
-            join(backupDir, 'jobs.json'),
+            join(legacyFlashDir, 'jobs.json'),
             JSON.stringify([{ id: 'user-job', name: 'Appdata' }])
         );
         const { target } = await store.buildTarget('https://backup.example/repo/', 'user');
         await store.saveTargetWithPassword(target, 'machine', 'transport');
         await store.ensureInitialJob();
-        expect(JSON.parse(await readFile(join(backupDir, 'targets.json'), 'utf8'))[0]).toEqual({
+        expect(JSON.parse(await readFile(join(targetDir, 'targets.json'), 'utf8'))[0]).toEqual({
             id: 'user-target',
             name: 'NAS target',
         });
-        expect(JSON.parse(await readFile(join(backupDir, 'jobs.json'), 'utf8'))[0]).toEqual({
+        expect(JSON.parse(await readFile(join(legacyFlashDir, 'jobs.json'), 'utf8'))[0]).toEqual({
             id: 'user-job',
             name: 'Appdata',
         });
     });
 
     it('refuses to overwrite an incompatible target that uses the managed target id', async () => {
-        await mkdir(backupDir, { recursive: true });
+        await mkdir(targetDir, { recursive: true });
         const existing = {
             id: MANAGED_BACKUP_TARGET_ID,
             name: 'User S3 target',
             type: 's3',
             uri: 's3:s3.example/bucket',
         };
-        await writeFile(join(backupDir, 'targets.json'), JSON.stringify([existing]));
+        await writeFile(join(targetDir, 'targets.json'), JSON.stringify([existing]));
 
         await expect(
             store.buildTarget('https://backup.example/repo/', 'transport-user')
         ).rejects.toThrow('already in use');
-        expect(JSON.parse(await readFile(join(backupDir, 'targets.json'), 'utf8'))).toEqual([existing]);
+        expect(JSON.parse(await readFile(join(targetDir, 'targets.json'), 'utf8'))).toEqual([existing]);
     });
 
     it('refreshes transport identity without replacing a compatible managed target', async () => {
@@ -153,9 +159,9 @@ describe('Core-compatible managed backup store', () => {
     it('preserves a target and credentials claimed after setup was staged', async () => {
         const staged = await store.buildTarget('https://backup.example/repo/', 'staged-user');
         await store.saveTargetWithPassword(staged.target, 'original-machine', 'original-transport');
-        const machinePath = join(backupDir, '.credentials', `${MANAGED_BACKUP_TARGET_ID}.enc`);
+        const machinePath = join(targetDir, '.credentials', `${MANAGED_BACKUP_TARGET_ID}.enc`);
         const transportPath = join(
-            backupDir,
+            targetDir,
             '.credentials',
             `${MANAGED_BACKUP_TARGET_ID}.transport.enc`
         );
@@ -167,21 +173,21 @@ describe('Core-compatible managed backup store', () => {
             type: 's3',
             uri: 's3:s3.example/user-bucket',
         };
-        await writeFile(join(backupDir, 'targets.json'), JSON.stringify([claimed]));
+        await writeFile(join(targetDir, 'targets.json'), JSON.stringify([claimed]));
 
         await expect(
             store.saveTargetWithPassword(staged.target, 'staged-machine', 'staged-transport')
         ).rejects.toThrow('already in use');
 
-        expect(JSON.parse(await readFile(join(backupDir, 'targets.json'), 'utf8'))).toEqual([claimed]);
+        expect(JSON.parse(await readFile(join(targetDir, 'targets.json'), 'utf8'))).toEqual([claimed]);
         expect(await readFile(machinePath)).toEqual(originalMachine);
         expect(await readFile(transportPath)).toEqual(originalTransport);
     });
 
     it('does not overwrite an incompatible job that uses the preferred flash job id', async () => {
-        await mkdir(backupDir, { recursive: true });
+        await mkdir(legacyFlashDir, { recursive: true });
         await writeFile(
-            join(backupDir, 'jobs.json'),
+            join(legacyFlashDir, 'jobs.json'),
             JSON.stringify([
                 { id: MANAGED_BACKUP_JOB_ID, name: 'Appdata', source_type: 'shares' },
                 { id: 'u8-job', name: 'VM backup', source_type: 'virtual_machines' },
@@ -190,7 +196,7 @@ describe('Core-compatible managed backup store', () => {
 
         await expect(store.loadInitialJob()).resolves.toBeNull();
         const initialized = await store.ensureInitialJob();
-        const jobs = JSON.parse(await readFile(join(backupDir, 'jobs.json'), 'utf8'));
+        const jobs = JSON.parse(await readFile(join(legacyFlashDir, 'jobs.json'), 'utf8'));
 
         expect(initialized.id).not.toBe(MANAGED_BACKUP_JOB_ID);
         expect(jobs).toHaveLength(3);
@@ -200,12 +206,12 @@ describe('Core-compatible managed backup store', () => {
             source_type: 'shares',
         });
         expect(jobs[1]).toEqual({ id: 'u8-job', name: 'VM backup', source_type: 'virtual_machines' });
-        expect(await store.loadState()).toMatchObject({ initial_job_id: initialized.id });
+        expect(await store.loadLegacyFlashState()).toMatchObject({ job_id: initialized.id });
         await expect(store.loadInitialJob()).resolves.toMatchObject({ id: initialized.id });
     });
 
     it('adopts one compatible UUID flash job without duplicating U8 jobs', async () => {
-        await mkdir(backupDir, { recursive: true });
+        await mkdir(legacyFlashDir, { recursive: true });
         const existingFlashId = '705372c2-c8ee-4199-8512-18dfa322617e';
         const existingJobs = [
             {
@@ -225,19 +231,21 @@ describe('Core-compatible managed backup store', () => {
                 enabled: true,
             },
         ];
-        await writeFile(join(backupDir, 'jobs.json'), JSON.stringify(existingJobs));
+        await writeFile(join(legacyFlashDir, 'jobs.json'), JSON.stringify(existingJobs));
 
         const initialized = await store.ensureInitialJob();
 
         expect(initialized.id).toBe(existingFlashId);
-        expect(JSON.parse(await readFile(join(backupDir, 'jobs.json'), 'utf8'))).toEqual(existingJobs);
-        expect(await store.loadState()).toMatchObject({ initial_job_id: existingFlashId });
+        expect(JSON.parse(await readFile(join(legacyFlashDir, 'jobs.json'), 'utf8'))).toEqual(
+            existingJobs
+        );
+        expect(await store.loadLegacyFlashState()).toMatchObject({ job_id: existingFlashId });
     });
 
     it('treats a job with the preferred id but the wrong source shape as uninitialized', async () => {
-        await mkdir(backupDir, { recursive: true });
+        await mkdir(legacyFlashDir, { recursive: true });
         await writeFile(
-            join(backupDir, 'jobs.json'),
+            join(legacyFlashDir, 'jobs.json'),
             JSON.stringify([
                 {
                     id: MANAGED_BACKUP_JOB_ID,

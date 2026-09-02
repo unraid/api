@@ -167,6 +167,7 @@ export class ManagedBackupService {
         return this.serial(async () => {
             if (recoveryPhrase === undefined && (await this.store.isCoreReady())) {
                 const job = await this.store.ensureInitialJob();
+                await this.retireLegacyFlashBackup().catch(() => undefined);
                 const state = await this.store.loadState();
                 const usage = await this.loadUsage();
                 return {
@@ -207,6 +208,7 @@ export class ManagedBackupService {
                 target_name: MANAGED_BACKUP_TARGET_NAME,
                 repository_id: repository.repositoryId,
                 repository_url: repository.repositoryUrl,
+                quota_bytes: repository.quotaBytes,
                 restic_repository_id: resticRepositoryId,
                 recovery_key_id: recoveryKeyId,
                 recovery_key_added_at: new Date().toISOString(),
@@ -235,8 +237,8 @@ export class ManagedBackupService {
                 pending_repository_id: repository.repositoryId,
             });
             await this.reconcilePending();
-            const job = await this.store.loadInitialJob();
-            if (!job) throw new Error('Managed flash backup job was not created');
+            const job = await this.store.ensureInitialJob();
+            await this.retireLegacyFlashBackup().catch(() => undefined);
             return {
                 schemaVersion: 1,
                 targetId: target.id,
@@ -382,7 +384,6 @@ export class ManagedBackupService {
         if (!isObject(finalization) || finalization.ok !== true) {
             throw new Error('Connect returned an invalid backup finalization');
         }
-        await this.store.ensureInitialJob();
         const current = await this.store.loadState();
         if (
             current.repository_id !== staged.repository_id ||
@@ -403,7 +404,6 @@ export class ManagedBackupService {
         delete complete.pending_repository_id;
         await this.store.saveState(complete);
         await this.store.deleteStaging();
-        await this.retireLegacyFlashBackup().catch(() => undefined);
     }
 
     private migrationMarkerPath(): string {
@@ -511,25 +511,7 @@ export class ManagedBackupService {
         return {
             target_id: MANAGED_BACKUP_TARGET_ID,
             target_name: MANAGED_BACKUP_TARGET_NAME,
-            initial_job: {
-                id: MANAGED_BACKUP_JOB_ID,
-                name: 'Flash Backup',
-                source_type: 'flash',
-                source_config: {
-                    path: '/boot',
-                    exclude_presets: [
-                        'system_images',
-                        'plugin_archives',
-                        'docker_cache',
-                        'old_plugins',
-                        'logs',
-                        'temp_files',
-                    ],
-                },
-                schedule: '0 3 * * *',
-                enabled: true,
-                retention: { keep_last: 7, keep_daily: 7, keep_weekly: 4, keep_monthly: 6 },
-            },
+            initial_job: null,
         };
     }
 

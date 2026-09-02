@@ -8,6 +8,10 @@ export const MANAGED_BACKUP_TARGET_ID = '8ca41aac-f15c-4eca-a1bd-5d55bf80322c';
 export const MANAGED_BACKUP_JOB_ID = 'f3a9d870-146c-4f9e-b078-5bb0d9f20d0c';
 export const MANAGED_BACKUP_STAGING_ID = 'b4afdd5b-cc20-4276-a37f-0d86b064ff44';
 export const MANAGED_BACKUP_TARGET_NAME = 'Unraid Connect Backup Storage';
+export const CONNECT_MANAGED_BACKUP_TARGET_DIR = '/boot/config/unraid/connect/backup/managed-target';
+export const CONNECT_LEGACY_FLASH_BACKUP_DIR =
+    '/boot/config/plugins/dynamix.my.servers/backup/legacy-flash';
+export const CONNECT_MANAGED_BACKUP_SECRET_KEY_PATH = '/boot/config/unraid/secret_key_base';
 
 export type JsonObject = Record<string, unknown>;
 
@@ -17,6 +21,7 @@ export interface ManagedBackupState extends JsonObject {
     target_name?: string;
     repository_id?: string;
     repository_url?: string;
+    quota_bytes?: number;
     restic_repository_id?: string;
     recovery_key_id?: string;
     recovery_key_added_at?: string;
@@ -26,9 +31,12 @@ export interface ManagedBackupState extends JsonObject {
     pending_repository_id?: string;
     published_generation?: number;
     setup_completed_at?: string;
-    initial_job_created?: boolean;
-    initial_job_created_at?: string;
-    initial_job_id?: string;
+}
+
+export interface LegacyFlashState extends JsonObject {
+    schema_version?: 1;
+    job_created_at?: string;
+    job_id?: string;
 }
 
 export interface ManagedBackupTarget extends JsonObject {
@@ -91,9 +99,17 @@ const recommendedExcludePresets = [
 export class ManagedBackupStore {
     constructor(private readonly config: ConfigService) {}
 
-    get configDir(): string {
+    get targetDir(): string {
         return (
-            this.config.get<string>('CONNECT_MANAGED_BACKUP_CONFIG_DIR') ?? '/boot/config/unraid/backup'
+            this.config.get<string>('CONNECT_MANAGED_BACKUP_TARGET_DIR') ??
+            CONNECT_MANAGED_BACKUP_TARGET_DIR
+        );
+    }
+
+    get legacyFlashDir(): string {
+        return (
+            this.config.get<string>('CONNECT_MANAGED_BACKUP_LEGACY_FLASH_DIR') ??
+            CONNECT_LEGACY_FLASH_BACKUP_DIR
         );
     }
 
@@ -102,13 +118,13 @@ export class ManagedBackupStore {
     }
 
     private get credentialsDir(): string {
-        return join(this.configDir, '.credentials');
+        return join(this.targetDir, '.credentials');
     }
 
     private get secretKeyPath(): string {
         return (
             this.config.get<string>('CONNECT_MANAGED_BACKUP_SECRET_KEY_PATH') ??
-            join(dirname(this.configDir), 'secret_key_base')
+            CONNECT_MANAGED_BACKUP_SECRET_KEY_PATH
         );
     }
 
@@ -121,11 +137,19 @@ export class ManagedBackupStore {
     }
 
     async loadState(): Promise<ManagedBackupState> {
-        return this.readObject(join(this.configDir, 'managed-flash.json'), {});
+        return this.readObject(join(this.targetDir, 'managed-flash.json'), {});
     }
 
     async saveState(state: ManagedBackupState): Promise<void> {
-        await this.writeJson(join(this.configDir, 'managed-flash.json'), state);
+        await this.writeJson(join(this.targetDir, 'managed-flash.json'), state);
+    }
+
+    async loadLegacyFlashState(): Promise<LegacyFlashState> {
+        return this.readObject(join(this.legacyFlashDir, 'state.json'), {});
+    }
+
+    async saveLegacyFlashState(state: LegacyFlashState): Promise<void> {
+        await this.writeJson(join(this.legacyFlashDir, 'state.json'), state);
     }
 
     async loadOrCreateMachinePassword(): Promise<string> {
@@ -151,7 +175,7 @@ export class ManagedBackupStore {
         repositoryUrl: string,
         username: string
     ): Promise<{ target: ManagedBackupTarget; created: boolean }> {
-        const targets = await this.readArray(join(this.configDir, 'targets.json'));
+        const targets = await this.readArray(join(this.targetDir, 'targets.json'));
         const existing = targets.find((target) => target.id === MANAGED_BACKUP_TARGET_ID);
         const uri = `rest:${repositoryUrl}`;
         if (existing) {
@@ -193,7 +217,7 @@ export class ManagedBackupStore {
         machinePassword: string,
         transportPassword: string
     ): Promise<void> {
-        const targetsPath = join(this.configDir, 'targets.json');
+        const targetsPath = join(this.targetDir, 'targets.json');
         const targets = await this.readArray(targetsPath);
         const existing = targets.find((candidate) => candidate.id === target.id);
         if (existing && !isReusableManagedTarget(existing, target.uri, target.password_file)) {
@@ -213,7 +237,7 @@ export class ManagedBackupStore {
         machinePassword: string;
         transportPassword: string;
     } | null> {
-        const targets = await this.readArray(join(this.configDir, 'targets.json'));
+        const targets = await this.readArray(join(this.targetDir, 'targets.json'));
         const target = targets.find((candidate) => candidate.id === MANAGED_BACKUP_TARGET_ID);
         if (!isManagedTarget(target)) return null;
         const machinePassword = await this.readEncrypted(this.credentialPath(target.id));
@@ -276,10 +300,10 @@ export class ManagedBackupStore {
     }
 
     async ensureInitialJob(): Promise<ManagedBackupJob> {
-        const state = await this.loadState();
-        const jobsPath = join(this.configDir, 'jobs.json');
+        const state = await this.loadLegacyFlashState();
+        const jobsPath = join(this.legacyFlashDir, 'jobs.json');
         const jobs = await this.readArray(jobsPath);
-        const existing = findManagedFlashJob(jobs, state.initial_job_id);
+        const existing = findManagedFlashJob(jobs, state.job_id);
         let job = existing;
 
         if (!job) {
@@ -305,26 +329,25 @@ export class ManagedBackupStore {
             };
             await this.writeJson(jobsPath, [...jobs, job]);
         }
-        await this.saveState({
-            ...(await this.loadState()),
-            initial_job_created: true,
-            initial_job_created_at: state.initial_job_created_at ?? new Date().toISOString(),
-            initial_job_id: job.id,
+        await this.saveLegacyFlashState({
+            schema_version: 1,
+            job_created_at: state.job_created_at ?? new Date().toISOString(),
+            job_id: job.id,
         });
         return job;
     }
 
     async loadInitialJob(): Promise<ManagedBackupJob | null> {
-        const state = await this.loadState();
-        const jobs = await this.readArray(join(this.configDir, 'jobs.json'));
-        return findManagedFlashJob(jobs, state.initial_job_id);
+        const state = await this.loadLegacyFlashState();
+        const jobs = await this.readArray(join(this.legacyFlashDir, 'jobs.json'));
+        return findManagedFlashJob(jobs, state.job_id);
     }
 
     async recordJobRun(status: 'success' | 'failed' | 'running'): Promise<void> {
-        const path = join(this.configDir, 'jobs.json');
+        const path = join(this.legacyFlashDir, 'jobs.json');
         const jobs = await this.readArray(path);
-        const state = await this.loadState();
-        const job = findManagedFlashJob(jobs, state.initial_job_id);
+        const state = await this.loadLegacyFlashState();
+        const job = findManagedFlashJob(jobs, state.job_id);
         const index = job ? jobs.findIndex((candidate) => candidate.id === job.id) : -1;
         if (index < 0) return;
         const now = new Date().toISOString();

@@ -15,6 +15,8 @@ vi.mock('execa', () => ({ execa: execaMock }));
 describe('managed backup service', () => {
     let directory: string;
     let backupDir: string;
+    let targetDir: string;
+    let legacyFlashDir: string;
     let store: ManagedBackupStore;
     let service: ManagedBackupService;
     let requests: Array<{ path: string; method: string; body: unknown }>;
@@ -43,6 +45,8 @@ describe('managed backup service', () => {
     beforeEach(async () => {
         directory = await mkdtemp(join(tmpdir(), 'managed-backup-service-'));
         backupDir = join(directory, 'backup');
+        targetDir = join(backupDir, 'managed-target');
+        legacyFlashDir = join(backupDir, 'legacy-flash');
         requests = [];
         resticRepositoryId = 'restic-repository-1';
         resticKeys = [{ id: 'machine-key', user: 'root', current: true }];
@@ -59,7 +63,8 @@ describe('managed backup service', () => {
         managedBackupRuntimeDir = join(directory, 'runtime');
         await mkdir(unraidPluginDir);
         const config = new ConfigService({
-            CONNECT_MANAGED_BACKUP_CONFIG_DIR: backupDir,
+            CONNECT_MANAGED_BACKUP_TARGET_DIR: targetDir,
+            CONNECT_MANAGED_BACKUP_LEGACY_FLASH_DIR: legacyFlashDir,
             CONNECT_MANAGED_BACKUP_SECRET_KEY_PATH: join(directory, 'secret_key_base'),
             CONNECT_CONTROL_PLANE_URL: 'https://connect.example',
             CONNECT_RESTIC_PATH: '/usr/local/bin/restic',
@@ -215,7 +220,7 @@ describe('managed backup service', () => {
         await rm(directory, { recursive: true, force: true });
     });
 
-    it('sets up the Core job without starting the first backup or persisting the phrase', async () => {
+    it('sets up the legacy Flash job without starting the first backup or persisting the phrase', async () => {
         const phrase = 'abcde-fghij-klmno-pqrst-uvwxy-z2345-6789a';
         const result = await service.setup(phrase);
         expect(result).toMatchObject({ repositoryId: 'repository-1', targetCreated: true });
@@ -241,15 +246,38 @@ describe('managed backup service', () => {
         expect(contents).not.toContain('transport-secret');
         expect(await store.loadState()).toMatchObject({
             setup_complete: true,
-            initial_job_created: true,
             target_id: '8ca41aac-f15c-4eca-a1bd-5d55bf80322c',
             target_name: 'Unraid Connect Backup Storage',
             repository_id: 'repository-1',
             restic_repository_id: 'restic-repository-1',
             recovery_key_id: 'recovery-key-1',
         });
+        expect(await store.loadLegacyFlashState()).toMatchObject({
+            schema_version: 1,
+            job_id: 'f3a9d870-146c-4f9e-b078-5bb0d9f20d0c',
+        });
         expect(contents).not.toContain('recovery_key_fingerprint');
         expect(await store.isCoreReady()).toBe(true);
+    });
+
+    it('keeps a completed target when legacy job creation fails and retries only the job', async () => {
+        const ensureInitialJob = vi
+            .spyOn(store, 'ensureInitialJob')
+            .mockRejectedValueOnce(new Error('job store unavailable'));
+
+        await expect(service.setup('recovery phrase')).rejects.toThrow('job store unavailable');
+        await expect(store.isCoreReady()).resolves.toBe(true);
+        await expect(store.loadInitialJob()).resolves.toBeNull();
+
+        ensureInitialJob.mockRestore();
+        requests = [];
+
+        await expect(service.setup()).resolves.toMatchObject({
+            repositoryId: 'repository-1',
+            targetCreated: false,
+        });
+        expect(requests.map((request) => request.path)).toEqual(['/backup/v1/usage']);
+        await expect(store.loadInitialJob()).resolves.toMatchObject({ source_type: 'flash' });
     });
 
     it('rejects unusable phrases before contacting Connect or Restic', async () => {
@@ -379,7 +407,7 @@ describe('managed backup service', () => {
 
     it('leaves scheduled backups to Core on Unraid 8 but keeps manual backup available', async () => {
         await service.setup('recovery phrase');
-        const jobsPath = join(backupDir, 'jobs.json');
+        const jobsPath = join(legacyFlashDir, 'jobs.json');
         const jobs = JSON.parse(await readFile(jobsPath, 'utf8'));
         await writeFile(jobsPath, JSON.stringify([{ ...jobs[0], schedule: '* * * * *' }]));
         await writeFile(unraidVersionPath, 'version="8.0.0-beta.1"\n');
@@ -398,7 +426,7 @@ describe('managed backup service', () => {
 
     it('leaves scheduled backups to an installed Core plugin on Unraid 7', async () => {
         await service.setup('recovery phrase');
-        const jobsPath = join(backupDir, 'jobs.json');
+        const jobsPath = join(legacyFlashDir, 'jobs.json');
         const jobs = JSON.parse(await readFile(jobsPath, 'utf8'));
         await writeFile(jobsPath, JSON.stringify([{ ...jobs[0], schedule: '* * * * *' }]));
         await writeFile(unraidVersionPath, 'version="7.4.0"\n');
@@ -417,7 +445,7 @@ describe('managed backup service', () => {
     it('initializes only the missing flash job when Core already owns the repository', async () => {
         await service.setup('recovery phrase');
         await writeFile(
-            join(backupDir, 'jobs.json'),
+            join(legacyFlashDir, 'jobs.json'),
             JSON.stringify([{ id: 'u8-job', name: 'Appdata', source_type: 'shares' }])
         );
         await writeFile(unraidVersionPath, 'version="8.0.0"\n');
@@ -429,7 +457,7 @@ describe('managed backup service', () => {
             job: null,
         });
         const initialized = await service.setup();
-        const jobs = JSON.parse(await readFile(join(backupDir, 'jobs.json'), 'utf8'));
+        const jobs = JSON.parse(await readFile(join(legacyFlashDir, 'jobs.json'), 'utf8'));
 
         expect(initialized).toMatchObject({ targetCreated: false });
         expect(requests.map((request) => request.path)).toEqual([
@@ -445,18 +473,18 @@ describe('managed backup service', () => {
     });
 
     it('does not create credentials or overwrite an incompatible managed target id', async () => {
-        await mkdir(backupDir, { recursive: true });
+        await mkdir(targetDir, { recursive: true });
         const existing = {
             id: '8ca41aac-f15c-4eca-a1bd-5d55bf80322c',
             name: 'User S3 target',
             type: 's3',
             uri: 's3:s3.example/user-bucket',
         };
-        await writeFile(join(backupDir, 'targets.json'), JSON.stringify([existing]));
+        await writeFile(join(targetDir, 'targets.json'), JSON.stringify([existing]));
 
         await expect(service.setup('recovery phrase')).rejects.toThrow('already in use');
 
-        expect(JSON.parse(await readFile(join(backupDir, 'targets.json'), 'utf8'))).toEqual([existing]);
+        expect(JSON.parse(await readFile(join(targetDir, 'targets.json'), 'utf8'))).toEqual([existing]);
         await expect(access(store.passwordPath)).rejects.toThrow();
     });
 

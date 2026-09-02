@@ -164,7 +164,7 @@ class ServerState
 
     private function getFlashBackupStatus()
     {
-        $jobsPath = '/boot/config/unraid/backup/jobs.json';
+        $jobsPath = '/boot/config/plugins/dynamix.my.servers/backup/legacy-flash/jobs.json';
         $jobs = file_exists($jobsPath) ? @json_decode(file_get_contents($jobsPath), true) : [];
         if (is_array($jobs)) {
             foreach ($jobs as $job) {
