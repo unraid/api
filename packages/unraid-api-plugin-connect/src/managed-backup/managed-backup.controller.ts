@@ -15,6 +15,7 @@ import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 
 import {
+    IncorrectRecoveryPhraseError,
     InvalidRecoveryPhraseError,
     ManagedBackupBusyError,
     ManagedBackupService,
@@ -65,6 +66,9 @@ export class ManagedBackupController {
                 throw new BadRequestException(
                     'Enter a recovery phrase without leading or trailing whitespace.'
                 );
+            }
+            if (error instanceof IncorrectRecoveryPhraseError) {
+                throw new BadRequestException('Recovery phrase is incorrect for the existing backup.');
             }
             throw new ServiceUnavailableException(
                 'Managed backup could not be prepared. Check your Connect plan and try again.'

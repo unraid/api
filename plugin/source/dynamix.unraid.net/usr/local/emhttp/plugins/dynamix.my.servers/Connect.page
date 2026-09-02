@@ -30,6 +30,7 @@ const managedBackupApi = '/graphql/api/connect/managed-backup';
 let managedBackupRecoveryPhrase = '';
 let managedBackupPhraseMode = 'generated';
 let managedBackupIsRotation = false;
+let managedBackupNeedsUnlock = false;
 let managedBackupPoll = null;
 
 function generateManagedBackupPhrase() {
@@ -80,7 +81,12 @@ function renderManagedBackupStatus(status) {
     return;
   }
   if (!status.configured) {
+    managedBackupNeedsUnlock = Boolean(status.repositoryInitialized);
     $('#managed-backup-state').text(status.setupPending ? _('Finishing setup') : _('Not configured')).removeClass('green').addClass('orange');
+    $('#managed-backup-setup-button').text(managedBackupNeedsUnlock ? _('Unlock existing backup') : _('Set up encrypted backup'));
+    $('#managed-backup-setup-description').text(managedBackupNeedsUnlock
+      ? _('Enter the recovery phrase for this server’s existing Connect backup. The phrase is used only to unlock it on this server.')
+      : _('Creates a daily flash backup using your Connect storage plan.'));
     $('#managed-backup-setup').show();
     $('#managed-backup-migration-note').toggle(Boolean(status.legacyMigrationPending));
     return;
@@ -112,18 +118,25 @@ async function loadManagedBackupStatus() {
 
 function prepareManagedBackup(rotation = false) {
   managedBackupIsRotation = rotation;
-  managedBackupPhraseMode = 'generated';
-  managedBackupRecoveryPhrase = generateManagedBackupPhrase();
+  const unlocking = managedBackupNeedsUnlock && !rotation;
+  managedBackupPhraseMode = unlocking ? 'custom' : 'generated';
+  managedBackupRecoveryPhrase = unlocking ? '' : generateManagedBackupPhrase();
   $('#managed-backup-recovery-phrase').val(managedBackupRecoveryPhrase);
   $('#managed-backup-custom-phrase,#managed-backup-custom-confirmation').val('');
-  $('#managed-backup-generated-option').prop('checked', true);
-  $('#managed-backup-generated-fields').show();
-  $('#managed-backup-custom-fields').hide();
-  $('#managed-backup-phrase-title').text(rotation ? _('Change recovery phrase') : _('Create recovery phrase'));
+  $('#managed-backup-generated-option').prop('checked', !unlocking);
+  $('#managed-backup-custom-option').prop('checked', unlocking);
+  $('#managed-backup-phrase-options').toggle(!unlocking);
+  $('#managed-backup-generated-fields').toggle(!unlocking);
+  $('#managed-backup-custom-fields').toggle(unlocking);
+  $('#managed-backup-custom-confirmation-row').toggle(!unlocking);
+  $('#managed-backup-phrase-title').text(unlocking ? _('Unlock existing backup') : (rotation ? _('Change recovery phrase') : _('Create recovery phrase')));
   $('#managed-backup-rotation-note').toggle(rotation);
-  $('#managed-backup-activate').text(rotation ? _('Add new recovery key') : _('Create encrypted backup'));
+  $('#managed-backup-phrase-warning').toggle(!unlocking);
+  $('#managed-backup-unlock-note').toggle(unlocking);
+  $('#managed-backup-phrase-saved-row').toggle(!unlocking);
+  $('#managed-backup-activate').text(unlocking ? _('Unlock backup') : (rotation ? _('Add new recovery key') : _('Create encrypted backup')));
   $('#managed-backup-phrase-saved').prop('checked', false);
-  $('#managed-backup-activate').prop('disabled', true);
+  $('#managed-backup-activate').prop('disabled', !unlocking);
   $('#managed-backup-phrase-error').hide();
   $('#managed-backup-setup').hide();
   $('#managed-backup-ready').hide();
@@ -166,9 +179,10 @@ async function copyManagedBackupPhrase() {
 }
 
 async function activateManagedBackup() {
+  const unlocking = managedBackupNeedsUnlock && !managedBackupIsRotation;
   const phrase = managedBackupPhraseMode === 'generated' ? managedBackupRecoveryPhrase : $('#managed-backup-custom-phrase').val();
-  const confirmation = managedBackupPhraseMode === 'generated' ? phrase : $('#managed-backup-custom-confirmation').val();
-  if (!$('#managed-backup-phrase-saved').is(':checked')) return;
+  const confirmation = unlocking || managedBackupPhraseMode === 'generated' ? phrase : $('#managed-backup-custom-confirmation').val();
+  if (!unlocking && !$('#managed-backup-phrase-saved').is(':checked')) return;
   if (!managedBackupPhraseIsUsable(phrase)) {
     $('#managed-backup-phrase-error').text(_('Enter a recovery phrase without leading or trailing whitespace.')).show();
     return;
@@ -189,7 +203,7 @@ async function activateManagedBackup() {
     await loadManagedBackupStatus();
   } catch (error) {
     $('#managed-backup-phrase-error').text(error.message || _('Backup setup failed')).show();
-    button.prop('disabled', false).text(managedBackupIsRotation ? _('Add new recovery key') : _('Create encrypted backup'));
+    button.prop('disabled', false).text(unlocking ? _('Unlock backup') : (managedBackupIsRotation ? _('Add new recovery key') : _('Create encrypted backup')));
   }
 }
 
@@ -302,16 +316,16 @@ _(Encrypted flash backup)_:
 
 &nbsp;
 : <span class="buttons-spaced">
-    <button type="button" onclick="prepareManagedBackup()">_(Set up encrypted backup)_</button>
-    <span>_(Creates a daily flash backup using your Connect storage plan.)_</span>
+    <button id="managed-backup-setup-button" type="button" onclick="prepareManagedBackup()">_(Set up encrypted backup)_</button>
+    <span id="managed-backup-setup-description">_(Creates a daily flash backup using your Connect storage plan.)_</span>
   </span>
 </div>
 
 <div markdown="1" id="managed-backup-phrase" style="display:none">
 <span id="managed-backup-phrase-title" style="font-weight:bold">_(Create recovery phrase)_</span>:
-: <span class="buttons-spaced" role="radiogroup" aria-label="_(Recovery phrase source)_">
+: <span id="managed-backup-phrase-options" class="buttons-spaced" role="radiogroup" aria-label="_(Recovery phrase source)_">
     <label><input id="managed-backup-generated-option" type="radio" name="managed-backup-phrase-mode" value="generated" onchange="selectManagedBackupPhraseMode('generated')" checked> _(Generate for me)_</label>
-    <label><input type="radio" name="managed-backup-phrase-mode" value="custom" onchange="selectManagedBackupPhraseMode('custom')"> _(Use my own phrase)_</label>
+    <label><input id="managed-backup-custom-option" type="radio" name="managed-backup-phrase-mode" value="custom" onchange="selectManagedBackupPhraseMode('custom')"> _(Use my own phrase)_</label>
   </span>
 
 &nbsp;
@@ -329,8 +343,10 @@ _(Recovery phrase)_:
 _(Recovery phrase)_:
 : <span><input id="managed-backup-custom-phrase" type="password" autocomplete="new-password" maxlength="256" style="width:min(42em,90%)"></span>
 
+<span id="managed-backup-custom-confirmation-row">
 _(Confirm recovery phrase)_:
 : <span><input id="managed-backup-custom-confirmation" type="password" autocomplete="new-password" maxlength="256" style="width:min(42em,90%)"></span>
+</span>
 
 &nbsp;
 : <span>_(Short or common phrases are easier to guess. Unraid will not require a strength score, but a longer unique phrase is safer.)_</span>
@@ -340,7 +356,12 @@ _(Confirm recovery phrase)_:
 : <span id="managed-backup-phrase-warning"><i class="fa fa-warning icon warning" aria-hidden="true"></i> <strong>_(Save this recovery phrase now.)_</strong> _(It is the only way to restore this backup if the server is lost. Unraid cannot recover it for you.)_</span>
 
 &nbsp;
+: <span id="managed-backup-unlock-note" style="display:none"><i class="fa fa-lock icon" aria-hidden="true"></i> _(Your recovery phrase is sent only to this server to add its local backup key. It is not saved.)_</span>
+
+<span id="managed-backup-phrase-saved-row">
+&nbsp;
 : <label><input id="managed-backup-phrase-saved" type="checkbox"> _(I saved my recovery phrase somewhere separate from this server.)_</label>
+</span>
 
 &nbsp;
 : <span class="buttons-spaced">

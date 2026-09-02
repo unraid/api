@@ -6,7 +6,12 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConnectConfigPersister } from '../config/config.persistence.js';
-import { cronMatches, ManagedBackupService, recoveryPhraseIsUsable } from './managed-backup.service.js';
+import {
+    cronMatches,
+    IncorrectRecoveryPhraseError,
+    ManagedBackupService,
+    recoveryPhraseIsUsable,
+} from './managed-backup.service.js';
 import { ManagedBackupStore } from './managed-backup.store.js';
 
 const execaMock = vi.hoisted(() => vi.fn());
@@ -21,6 +26,8 @@ describe('managed backup service', () => {
     let service: ManagedBackupService;
     let requests: Array<{ path: string; method: string; body: unknown }>;
     let resticRepositoryId: string;
+    let repositoryExists: boolean;
+    let machinePasswordWorks: boolean;
     let migrationMarker: string;
     let migrationCompleteMarker: string;
     let unraidVersionPath: string;
@@ -49,7 +56,9 @@ describe('managed backup service', () => {
         legacyFlashDir = join(backupDir, 'legacy-flash');
         requests = [];
         resticRepositoryId = 'restic-repository-1';
-        resticKeys = [{ id: 'machine-key', user: 'root', current: true }];
+        repositoryExists = false;
+        machinePasswordWorks = false;
+        resticKeys = [];
         resticKeySequence = 0;
         legacyRetirementFailures = 0;
         recoveryKeyRemovalFailures = 0;
@@ -87,14 +96,23 @@ describe('managed backup service', () => {
                     throw new Error('retirement failed');
                 }
                 if (args[0] === 'cat' && args[1] === 'config') {
+                    if (!repositoryExists) throw new Error('repository does not exist');
                     const passwordPath = options?.env?.RESTIC_PASSWORD_FILE;
                     if (passwordPath?.includes('/recovery-')) {
                         const phrase = await readFile(passwordPath, 'utf8');
                         if (![...recoveryPhrases.values()].includes(phrase)) {
                             throw new Error('wrong password');
                         }
+                    } else if (!machinePasswordWorks) {
+                        throw new Error('wrong password');
                     }
                     return { stdout: JSON.stringify({ id: resticRepositoryId, version: 2 }) };
+                }
+                if (args[0] === 'init') {
+                    if (repositoryExists) throw new Error('repository already initialized');
+                    repositoryExists = true;
+                    machinePasswordWorks = true;
+                    resticKeys = [{ id: 'machine-key', user: 'root', current: true }];
                 }
                 if (args[0] === 'list' && args[1] === 'locks') {
                     return { stdout: resticLocks.map((lock) => lock.id).join('\n') };
@@ -151,13 +169,18 @@ describe('managed backup service', () => {
                     const userIndex = args.indexOf('--user');
                     resticKeySequence += 1;
                     const passwordFileIndex = args.indexOf('--new-password-file');
-                    const keyId = `recovery-key-${resticKeySequence}`;
+                    const newPasswordPath = args[passwordFileIndex + 1];
+                    const addsMachineKey = newPasswordPath === store.passwordPath;
+                    const keyId = addsMachineKey
+                        ? `machine-key-${resticKeySequence}`
+                        : `recovery-key-${resticKeySequence}`;
                     resticKeys.push({
                         id: keyId,
                         user: userIndex >= 0 ? args[userIndex + 1] : '',
                         current: false,
                     });
-                    recoveryPhrases.set(keyId, await readFile(args[passwordFileIndex + 1], 'utf8'));
+                    if (addsMachineKey) machinePasswordWorks = true;
+                    else recoveryPhrases.set(keyId, await readFile(newPasswordPath, 'utf8'));
                 }
                 if (args[0] === 'key' && args[1] === 'remove') {
                     if (recoveryKeyRemovalFailures > 0) {
@@ -205,7 +228,7 @@ describe('managed backup service', () => {
                         quotaBytes: 10_000_000_000,
                         usedBytes: 100,
                         remainingBytes: 9_999_999_900,
-                        objectCount: 2,
+                        objectCount: repositoryExists ? 2 : 0,
                         updatedAt: new Date().toISOString(),
                     });
                 }
@@ -225,16 +248,17 @@ describe('managed backup service', () => {
         const result = await service.setup(phrase);
         expect(result).toMatchObject({ repositoryId: 'repository-1', targetCreated: true });
         expect(requests.map((request) => request.path)).toEqual([
+            '/backup/v1/usage',
             '/backup/v1/provision',
             '/backup/v1/provision/confirm',
             '/backup/v1/provision/finalize',
         ]);
-        expect(requests[1].body).toEqual({
+        expect(requests[2].body).toEqual({
             repositoryId: 'repository-1',
             username: 'transport-user',
             generation: 1,
         });
-        expect(requests[2].body).toEqual(requests[1].body);
+        expect(requests[3].body).toEqual(requests[2].body);
         expect(execaMock.mock.calls.some((call) => call[1][0] === 'key')).toBe(true);
         expect(execaMock.mock.calls.some((call) => call[1].includes('backup'))).toBe(false);
         const keyAdd = execaMock.mock.calls.find((call) => call[1][0] === 'key' && call[1][1] === 'add');
@@ -258,6 +282,47 @@ describe('managed backup service', () => {
         });
         expect(contents).not.toContain('recovery_key_fingerprint');
         expect(await store.isCoreReady()).toBe(true);
+    });
+
+    it('detects and unlocks an existing repository without replacing its recovery key', async () => {
+        const phrase = 'existing recovery phrase';
+        repositoryExists = true;
+        machinePasswordWorks = false;
+        resticKeys = [{ id: 'existing-recovery-key', user: 'recovery', current: true }];
+        recoveryPhrases.set('existing-recovery-key', phrase);
+
+        await expect(service.status()).resolves.toMatchObject({
+            configured: false,
+            repositoryInitialized: true,
+        });
+        await expect(service.setup(phrase)).resolves.toMatchObject({
+            repositoryId: 'repository-1',
+        });
+
+        expect(execaMock.mock.calls.some((call) => call[1][0] === 'init')).toBe(false);
+        const keyAdds = execaMock.mock.calls.filter(
+            (call) => call[1][0] === 'key' && call[1][1] === 'add'
+        );
+        expect(keyAdds).toHaveLength(1);
+        expect(keyAdds[0][1]).toContain(store.passwordPath);
+        expect(await store.loadState()).toMatchObject({
+            restic_repository_id: resticRepositoryId,
+            recovery_key_id: 'existing-recovery-key',
+            setup_complete: true,
+        });
+    });
+
+    it('rejects an incorrect phrase for an existing repository without initializing it', async () => {
+        repositoryExists = true;
+        machinePasswordWorks = false;
+        resticKeys = [{ id: 'existing-recovery-key', user: 'recovery', current: true }];
+        recoveryPhrases.set('existing-recovery-key', 'correct phrase');
+
+        await expect(service.setup('wrong phrase')).rejects.toBeInstanceOf(IncorrectRecoveryPhraseError);
+        expect(execaMock.mock.calls.some((call) => call[1][0] === 'init')).toBe(false);
+        expect(execaMock.mock.calls.some((call) => call[1][0] === 'key' && call[1][1] === 'add')).toBe(
+            false
+        );
     });
 
     it('keeps a completed target when legacy job creation fails and retries only the job', async () => {

@@ -67,6 +67,7 @@ interface PendingRecoveryKey extends Record<string, unknown> {
 
 const managedBackupProvider = 'Elixir.ConnectPlugin.ManagedBackupProvider';
 const recoveryKeyLabelPrefix = 'unraid-managed-recovery:';
+const machineKeyLabelPrefix = 'unraid-managed-machine:';
 
 const flashExcludePresets: Record<string, string[]> = {
     system_images: ['bzimage', 'bzroot', 'bzroot-gui', 'bzfirmware', 'bzmodules'],
@@ -99,6 +100,7 @@ const flashExcludePresets: Record<string, string[]> = {
 };
 
 export class InvalidRecoveryPhraseError extends Error {}
+export class IncorrectRecoveryPhraseError extends Error {}
 export class ManagedBackupBusyError extends Error {}
 
 export function recoveryPhraseIsUsable(phrase: string): boolean {
@@ -141,6 +143,8 @@ export class ManagedBackupService {
             signedIn,
             configured: repositoryConfigured && Boolean(job),
             repositoryConfigured,
+            repositoryInitialized:
+                repositoryConfigured || (usage.state === 'current' && usage.value.objectCount > 0),
             setupPending: Number.isSafeInteger(state.pending_generation),
             legacyMigrationPending,
             running: this.running,
@@ -183,6 +187,7 @@ export class ManagedBackupService {
             const phrase = recoveryPhrase ?? '';
             if (!recoveryPhraseIsUsable(phrase)) throw new InvalidRecoveryPhraseError();
             await this.reconcilePending();
+            const usage = await this.loadUsage();
             const repository = validateProvisionedRepository(
                 await this.request('/backup/v1/provision', 'POST')
             );
@@ -191,16 +196,20 @@ export class ManagedBackupService {
                 repository.username
             );
             const machinePassword = await this.store.loadOrCreateMachinePassword();
-            const resticRepositoryId = await this.ensureRepository(target, repository.password);
-
             const state = await this.store.loadState();
-            const recoveryKeyId = await this.ensureRecoveryKey(
+            const locallyConfigured = await this.store.isCoreReady();
+            const repositoryInitialized = usage.state === 'current' && usage.value.objectCount > 0;
+            const opened = await this.ensureRepository(
                 target,
-                repository,
-                resticRepositoryId,
+                repository.password,
                 phrase,
-                state
+                repositoryInitialized,
+                locallyConfigured
             );
+            const resticRepositoryId = opened.repositoryId;
+            const recoveryKeyId =
+                opened.recoveryKeyId ??
+                (await this.ensureRecoveryKey(target, repository, resticRepositoryId, phrase, state));
             await this.store.saveState({
                 ...(await this.store.loadState()),
                 schema_version: 1,
@@ -484,14 +493,95 @@ export class ManagedBackupService {
 
     private async ensureRepository(
         target: ManagedBackupTarget,
-        transportPassword: string
-    ): Promise<string> {
+        transportPassword: string,
+        phrase: string,
+        repositoryInitialized: boolean,
+        locallyConfigured: boolean
+    ): Promise<{ repositoryId: string; recoveryKeyId: string | null }> {
         const env = this.resticEnv(target, transportPassword);
         try {
-            return await this.readResticRepositoryId(target, env);
+            const repositoryId = await this.readResticRepositoryId(target, env);
+            if (!locallyConfigured && repositoryInitialized) {
+                const recoveryKeyId = await this.existingRecoveryKeyId(
+                    target,
+                    transportPassword,
+                    phrase,
+                    repositoryId
+                );
+                return { repositoryId, recoveryKeyId };
+            }
+            return { repositoryId, recoveryKeyId: null };
         } catch {
+            if (repositoryInitialized) {
+                return this.unlockExistingRepository(target, transportPassword, phrase);
+            }
             await this.runRestic(['init', '--repo', target.uri], env);
-            return this.readResticRepositoryId(target, env);
+            return {
+                repositoryId: await this.readResticRepositoryId(target, env),
+                recoveryKeyId: null,
+            };
+        }
+    }
+
+    private async unlockExistingRepository(
+        target: ManagedBackupTarget,
+        transportPassword: string,
+        phrase: string
+    ): Promise<{ repositoryId: string; recoveryKeyId: string }> {
+        let repositoryId: string;
+        let recoveryKeyId: string;
+        try {
+            repositoryId = await this.recoveryKeyRepositoryId(target, transportPassword, phrase);
+            recoveryKeyId = await this.recoveryPhraseKeyId(target, transportPassword, phrase);
+        } catch {
+            throw new IncorrectRecoveryPhraseError();
+        }
+
+        const label = machineKeyLabelPrefix + randomUUID();
+        await this.withRecoveryPhraseFile(phrase, async (phrasePath) => {
+            await this.runRestic(
+                [
+                    'key',
+                    'add',
+                    '--repo',
+                    target.uri,
+                    '--new-password-file',
+                    target.password_file,
+                    '--user',
+                    label,
+                    '--host',
+                    'unraid',
+                ],
+                {
+                    ...this.resticEnv(target, transportPassword),
+                    RESTIC_PASSWORD_FILE: phrasePath,
+                }
+            );
+        });
+        if (
+            (await this.readResticRepositoryId(target, this.resticEnv(target, transportPassword))) !==
+            repositoryId
+        ) {
+            throw new Error('Managed backup machine key verification failed');
+        }
+        return { repositoryId, recoveryKeyId };
+    }
+
+    private async existingRecoveryKeyId(
+        target: ManagedBackupTarget,
+        transportPassword: string,
+        phrase: string,
+        repositoryId: string
+    ): Promise<string> {
+        try {
+            if (
+                (await this.recoveryKeyRepositoryId(target, transportPassword, phrase)) !== repositoryId
+            ) {
+                throw new Error('Repository mismatch');
+            }
+            return await this.recoveryPhraseKeyId(target, transportPassword, phrase);
+        } catch {
+            throw new IncorrectRecoveryPhraseError();
         }
     }
 
