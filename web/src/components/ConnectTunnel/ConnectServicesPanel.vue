@@ -810,15 +810,20 @@ function status(service: (typeof state.gateway.services)[number]) {
       </section>
 
       <section v-else class="border-warning/50 bg-warning/5 space-y-3 rounded-lg border p-4 @md:p-5">
-        <h4 class="font-semibold">
-          {{
-            t(
-              tcpIngress === 'tls-sni'
-                ? 'connectServices.tlsTcpAccessTitle'
-                : 'connectServices.minecraftAccessTitle'
-            )
-          }}
-        </h4>
+        <div class="space-y-1">
+          <p class="text-primary text-xs font-semibold tracking-wide uppercase">
+            {{ t('connectServices.steps.access') }}
+          </p>
+          <h4 class="font-semibold">
+            {{
+              t(
+                tcpIngress === 'tls-sni'
+                  ? 'connectServices.tlsTcpAccessTitle'
+                  : 'connectServices.minecraftAccessTitle'
+              )
+            }}
+          </h4>
+        </div>
         <p class="max-w-prose text-sm">
           {{
             t(

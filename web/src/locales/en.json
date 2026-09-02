@@ -1170,12 +1170,12 @@
     "title": "Services",
     "description": "Reach web applications and TCP services through this tunnel. Each enabled service has its own address.",
     "add": "Add service",
-    "formDescription": "Set the destination, choose an access policy, then publish the address.",
+    "formDescription": "Set the destination and connection method, review access, then publish the address.",
     "steps": {
       "application": "Step 1",
       "applicationTitle": "Choose the local application",
       "access": "Step 2",
-      "accessTitle": "Choose who can open it"
+      "accessTitle": "Choose who can open the web application"
     },
     "edit": "Edit service",
     "editNamed": "Edit {name}",
