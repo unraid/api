@@ -103,8 +103,8 @@ export function validateGatewayServices(services: ConnectGatewayService[]): Conn
             requestedAuth !== 'oidc'
         )
             throw new Error('Invalid authentication mode');
-        // Core persists its first-party issuer mode as "unraid". Legacy API
-        // releases use the Unraid Account issuer for the equivalent route.
+        // Core can hand off its server-local OIDC mode as "unraid". Legacy
+        // Unraid cannot issue that login, so it must use the Unraid.net account mode.
         const auth = requestedAuth === 'unraid' ? 'account' : requestedAuth;
         const providerId = service.providerId === undefined ? '' : service.providerId;
         const subjects = service.subjects === undefined ? [] : service.subjects;

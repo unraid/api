@@ -603,8 +603,8 @@ describe('service editor', () => {
     await action(wrapper, 'Add service').trigger('click');
     expect(wrapper.find('[role="switch"]').exists()).toBe(false);
     expect(wrapper.text()).not.toContain('Enable remote access to this service');
-    expect(wrapper.text()).toContain('configured Unraid Account access rules');
-    expect(wrapper.text()).toContain('limited to the server owner');
+    expect(wrapper.text()).toContain('server owner’s Unraid.net account');
+    expect(wrapper.text()).toContain('does not use this server’s local sign-in');
     await wrapper.get('input[autocomplete="off"]').setValue('Media');
     await wrapper.get('input[type="url"]').setValue('http://127.0.0.1:32400');
     expect(wrapper.emitted('save')).toBeUndefined();
@@ -663,11 +663,11 @@ describe('service editor', () => {
     const optionLabels = (
       wrapper.vm as unknown as { authOptions: { value: string; label: string }[] }
     ).authOptions.map((option) => option.label);
-    expect(optionLabels.filter((label) => label === 'Unraid Account sign-in (default)')).toHaveLength(1);
-    expect(optionLabels).not.toContain('Unraid.net');
+    expect(optionLabels.filter((label) => label === 'Unraid.net sign-in (default)')).toHaveLength(1);
+    expect(optionLabels).not.toContain('Unraid sign-in');
     expect(optionLabels).toContain('Company sign-in');
   });
-  it('edits a legacy Unraid.net OIDC service as Unraid Account without losing its saved mode', async () => {
+  it('edits a legacy Unraid.net OIDC service as Unraid.net sign-in without losing its saved mode', async () => {
     const value = state();
     value.gateway.services = [
       { ...app, auth: 'oidc', providerId: 'provider:unraid.net', subjects: ['owner'] },
@@ -720,7 +720,7 @@ describe('service editor', () => {
     value.status.tunnel = 'connected';
     const wrapper = services(value);
     expect(wrapper.text()).toContain('Application controls access');
-    expect(wrapper.text()).not.toContain('Account sign-in required');
+    expect(wrapper.text()).not.toContain('Unraid.net sign-in required');
   });
   it('keeps confirmed services available while the on-demand tunnel is initially idle', () => {
     const value = state();
@@ -730,7 +730,7 @@ describe('service editor', () => {
     value.status.routeState = 'ready';
     value.status.tunnel = 'idle';
     const wrapper = services(value);
-    expect(wrapper.text()).toContain('Account sign-in required');
+    expect(wrapper.text()).toContain('Unraid.net sign-in required');
     expect(wrapper.text()).not.toContain('Gateway unavailable');
     expect(wrapper.get('a').attributes('href')).toBe(app.url);
   });
