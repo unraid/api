@@ -27,6 +27,7 @@ describe('managed backup service', () => {
     let requests: Array<{ path: string; method: string; body: unknown }>;
     let resticRepositoryId: string;
     let repositoryExists: boolean;
+    let currentRepositoryId: string;
     let machinePasswordWorks: boolean;
     let migrationMarker: string;
     let migrationCompleteMarker: string;
@@ -57,6 +58,7 @@ describe('managed backup service', () => {
         requests = [];
         resticRepositoryId = 'restic-repository-1';
         repositoryExists = false;
+        currentRepositoryId = 'repository-1';
         machinePasswordWorks = false;
         resticKeys = [];
         resticKeySequence = 0;
@@ -232,6 +234,22 @@ describe('managed backup service', () => {
                         updatedAt: new Date().toISOString(),
                     });
                 }
+                if (url.pathname === '/backup/v1/repository-state') {
+                    return Response.json({
+                        schemaVersion: 1,
+                        serverUuid: '705372c2-c8ee-4199-8512-18dfa322617e',
+                        current: {
+                            repositoryId: currentRepositoryId,
+                            generation: 1,
+                            state: 'current',
+                            archivedAt: null,
+                            deleteAfter: null,
+                            usedBytes: repositoryExists ? 100 : 0,
+                            objectCount: repositoryExists ? 2 : 0,
+                        },
+                        archived: null,
+                    });
+                }
                 return Response.json({}, { status: 404 });
             })
         );
@@ -310,6 +328,24 @@ describe('managed backup service', () => {
             recovery_key_id: 'existing-recovery-key',
             setup_complete: true,
         });
+    });
+
+    it('reports a reset Connect repository as uninitialized without changing local backup data', async () => {
+        await service.setup('recovery phrase');
+        const stateBeforeReset = await store.loadState();
+        const jobBeforeReset = await store.loadInitialJob();
+        currentRepositoryId = 'repository-2';
+        repositoryExists = false;
+
+        await expect(service.status()).resolves.toMatchObject({
+            configured: false,
+            repositoryConfigured: false,
+            repositoryInitialized: false,
+            job: { id: jobBeforeReset?.id },
+        });
+
+        await expect(store.loadState()).resolves.toEqual(stateBeforeReset);
+        await expect(store.loadInitialJob()).resolves.toEqual(jobBeforeReset);
     });
 
     it('rejects an incorrect phrase for an existing repository without initializing it', async () => {
@@ -527,6 +563,7 @@ describe('managed backup service', () => {
         expect(initialized).toMatchObject({ targetCreated: false });
         expect(requests.map((request) => request.path)).toEqual([
             '/backup/v1/usage',
+            '/backup/v1/repository-state',
             '/backup/v1/usage',
         ]);
         expect(jobs[0]).toEqual({ id: 'u8-job', name: 'Appdata', source_type: 'shares' });

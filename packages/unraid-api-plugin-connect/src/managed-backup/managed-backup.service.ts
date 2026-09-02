@@ -41,6 +41,20 @@ interface UsageResponse {
     updatedAt: string;
 }
 
+interface RepositoryStateResponse {
+    schemaVersion: 1;
+    serverUuid: string;
+    current: {
+        repositoryId: string;
+        generation: number;
+        state: 'current';
+        archivedAt: null;
+        deleteAfter: null;
+        usedBytes: number;
+        objectCount: number;
+    } | null;
+}
+
 interface ResticKey {
     id: string;
     user: string | null;
@@ -137,14 +151,19 @@ export class ManagedBackupService {
             this.legacyMigrationPending(),
             this.store.isCoreReady(),
         ]);
+        const repositoryState = repositoryConfigured ? await this.loadRepositoryState() : null;
+        const currentRepositoryMatches =
+            repositoryState === null || repositoryState.current?.repositoryId === state.repository_id;
+        const effectiveRepositoryConfigured = repositoryConfigured && currentRepositoryMatches;
         const signedIn = Boolean(this.connect.getConfig().apikey);
         return {
             schemaVersion: 1,
             signedIn,
-            configured: repositoryConfigured && Boolean(job),
-            repositoryConfigured,
+            configured: effectiveRepositoryConfigured && Boolean(job),
+            repositoryConfigured: effectiveRepositoryConfigured,
             repositoryInitialized:
-                repositoryConfigured || (usage.state === 'current' && usage.value.objectCount > 0),
+                effectiveRepositoryConfigured ||
+                (usage.state === 'current' && usage.value.objectCount > 0),
             setupPending: Number.isSafeInteger(state.pending_generation),
             legacyMigrationPending,
             running: this.running,
@@ -938,6 +957,15 @@ export class ManagedBackupService {
         }
     }
 
+    private async loadRepositoryState(): Promise<RepositoryStateResponse | null> {
+        if (!this.connect.getConfig().apikey) return null;
+        try {
+            return validateRepositoryState(await this.request('/backup/v1/repository-state', 'GET'));
+        } catch {
+            return null;
+        }
+    }
+
     private request(path: string, method: 'GET' | 'POST', body: object = {}): Promise<unknown> {
         return requestControlPlane(
             this.config.get<string>('CONNECT_CONTROL_PLANE_URL') ?? '',
@@ -969,6 +997,28 @@ function validateProvisionedRepository(value: unknown): ProvisionedRepository {
         throw new Error('Invalid backup response');
     }
     return value as unknown as ProvisionedRepository;
+}
+
+function validateRepositoryState(value: unknown): RepositoryStateResponse {
+    if (
+        !isObject(value) ||
+        value.schemaVersion !== 1 ||
+        typeof value.serverUuid !== 'string' ||
+        !value.serverUuid ||
+        (value.current !== null &&
+            (!isObject(value.current) ||
+                typeof value.current.repositoryId !== 'string' ||
+                !value.current.repositoryId ||
+                !Number.isSafeInteger(value.current.generation) ||
+                value.current.state !== 'current' ||
+                value.current.archivedAt !== null ||
+                value.current.deleteAfter !== null ||
+                !Number.isSafeInteger(value.current.usedBytes) ||
+                !Number.isSafeInteger(value.current.objectCount)))
+    ) {
+        throw new Error('Invalid backup repository state');
+    }
+    return value as unknown as RepositoryStateResponse;
 }
 
 function validateUsage(value: unknown): UsageResponse {
