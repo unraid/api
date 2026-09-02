@@ -29,6 +29,9 @@ export class ConnectGatewayService {
     @IsString()
     @MaxLength(300)
     upstream!: string;
+    @Field(() => String, { defaultValue: 'https' })
+    @IsIn(['https', 'minecraft-java'])
+    protocol?: 'https' | 'minecraft-java' = 'https';
     @Field(() => String)
     @IsString()
     @MaxLength(253)
@@ -96,6 +99,9 @@ export function validateGatewayServices(services: ConnectGatewayService[]): Conn
         )
             throw new Error('A service needs a name and an enabled state');
         const requestedAuth = service.auth === undefined ? 'account' : service.auth;
+        const protocol = service.protocol === undefined ? 'https' : service.protocol;
+        if (protocol !== 'https' && protocol !== 'minecraft-java')
+            throw new Error('Invalid service protocol');
         if (
             requestedAuth !== 'account' &&
             requestedAuth !== 'unraid' &&
@@ -106,6 +112,8 @@ export function validateGatewayServices(services: ConnectGatewayService[]): Conn
         // Core can hand off its server-local OIDC mode as "unraid". Legacy
         // Unraid cannot issue that login, so it must use the Unraid.net account mode.
         const auth = requestedAuth === 'unraid' ? 'account' : requestedAuth;
+        if (protocol === 'minecraft-java' && auth !== 'upstream')
+            throw new Error('Minecraft Java services must use application authentication');
         const providerId = service.providerId === undefined ? '' : service.providerId;
         const subjects = service.subjects === undefined ? [] : service.subjects;
         if (
@@ -132,21 +140,24 @@ export function validateGatewayServices(services: ConnectGatewayService[]): Conn
                 : isIP(host) === 6 && (host === '::1' || /^(fc|fd)/i.test(host));
         if (
             !privateAddress ||
-            !['http:', 'https:'].includes(url.protocol) ||
+            (protocol === 'minecraft-java'
+                ? url.protocol !== 'tcp:' || !url.port
+                : !['http:', 'https:'].includes(url.protocol)) ||
             url.username ||
             url.password ||
             url.search ||
             url.hash ||
-            url.pathname !== '/' ||
+            !['', '/'].includes(url.pathname) ||
             url.port === '0'
         )
             throw new Error(
-                'Use a private or loopback HTTP(S) IP address without credentials, a path, or query parameters'
+                'Use a private or loopback service address without credentials, a path, or query parameters'
             );
         const tlsServerName = service.tlsServerName.trim().toLowerCase();
         if (
             tlsServerName &&
-            (url.protocol !== 'https:' ||
+            (protocol !== 'https' ||
+                url.protocol !== 'https:' ||
                 tlsServerName.length > 253 ||
                 !tlsServerName
                     .split('.')
@@ -156,7 +167,8 @@ export function validateGatewayServices(services: ConnectGatewayService[]): Conn
         return {
             id: service.id,
             name: service.name.trim(),
-            upstream: url.origin,
+            upstream: protocol === 'minecraft-java' ? `${url.protocol}//${url.host}` : url.origin,
+            protocol,
             tlsServerName,
             enabled: service.enabled,
             auth,

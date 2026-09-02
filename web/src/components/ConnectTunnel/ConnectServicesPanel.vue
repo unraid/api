@@ -30,6 +30,7 @@ import type {
 type ServiceTarget = ConnectServiceTargetsQuery['docker']['containers'][number];
 type TargetMode = 'container' | 'manual';
 type TargetProtocol = 'http' | 'https';
+type ServiceKind = 'web' | 'minecraft-java';
 
 const {
   state,
@@ -70,6 +71,7 @@ const targetMode = ref<TargetMode>('manual');
 const selectedContainerId = ref('');
 const selectedPort = ref('');
 const selectedProtocol = ref<TargetProtocol>('http');
+const serviceKind = ref<ServiceKind>('web');
 watch(
   () => [draft.value?.auth, draft.value?.upstream, draft.value?.tlsServerName],
   () => {
@@ -136,7 +138,8 @@ function updateDiscoveredUpstream() {
   const binding = selectedPortDetails.value.ip?.trim();
   const host = !binding || binding === '0.0.0.0' || binding === '::' ? '127.0.0.1' : binding;
   const formattedHost = host.includes(':') ? `[${host}]` : host;
-  draft.value.upstream = `${selectedProtocol.value}://${formattedHost}:${selectedPort.value}`;
+  const protocol = serviceKind.value === 'minecraft-java' ? 'tcp' : selectedProtocol.value;
+  draft.value.upstream = `${protocol}://${formattedHost}:${selectedPort.value}`;
 }
 function selectContainer(value: unknown) {
   if (typeof value !== 'string' || !draft.value) return;
@@ -165,6 +168,19 @@ function selectProtocol(value: unknown) {
   selectedProtocol.value = value;
   updateDiscoveredUpstream();
 }
+function selectServiceKind(value: unknown) {
+  if (!draft.value || (value !== 'web' && value !== 'minecraft-java')) return;
+  serviceKind.value = value;
+  draft.value.protocol = value === 'minecraft-java' ? 'minecraft-java' : 'https';
+  if (value === 'minecraft-java') {
+    draft.value.auth = 'upstream';
+    draft.value.providerId = '';
+    draft.value.subjects = [];
+    draft.value.tlsServerName = '';
+  }
+  applicationAuthAcknowledged.value = false;
+  updateDiscoveredUpstream();
+}
 function selectTargetMode(value: unknown) {
   if (value !== 'container' && value !== 'manual') return;
   targetMode.value = value;
@@ -184,7 +200,9 @@ const authOptions = computed(() => [
   { value: 'upstream', label: t('connectServices.applicationAuth') },
 ]);
 const needsAcknowledgment = computed(
-  () => draft.value?.auth === 'upstream' && !applicationAuthAcknowledged.value
+  () =>
+    (serviceKind.value === 'minecraft-java' || draft.value?.auth === 'upstream') &&
+    !applicationAuthAcknowledged.value
 );
 const selectedAuth = computed(() =>
   draft.value?.auth === 'oidc'
@@ -215,6 +233,7 @@ const editable = (s: ConnectGatewayServiceInput): ConnectGatewayServiceInput => 
   id: s.id,
   name: s.name,
   upstream: s.upstream,
+  protocol: s.protocol ?? 'https',
   tlsServerName: s.tlsServerName,
   enabled: s.enabled,
   auth: s.auth ?? 'account',
@@ -260,6 +279,7 @@ function edit(service?: ConnectGatewayServiceInput) {
         id: `app-${token}`,
         name: '',
         upstream: '',
+        protocol: 'https',
         tlsServerName: '',
         enabled: true,
         auth: 'account',
@@ -273,7 +293,8 @@ function edit(service?: ConnectGatewayServiceInput) {
       : 'manual';
   selectedContainerId.value = '';
   selectedPort.value = '';
-  selectedProtocol.value = 'http';
+  serviceKind.value = service?.protocol === 'minecraft-java' ? 'minecraft-java' : 'web';
+  selectedProtocol.value = service?.upstream.startsWith('https:') ? 'https' : 'http';
   if (!service && discoveredTargets.value[0]) selectContainer(discoveredTargets.value[0].id);
   removing.value = null;
   applicationAuthAcknowledged.value = false;
@@ -329,6 +350,7 @@ function status(service: (typeof state.gateway.services)[number]) {
   if (applying) return t('connectServices.applying');
   if (state.gateway.pending || !service.url) return t('connectServices.pending');
   if (!ready.value) return t('connectServices.unavailable');
+  if (service.protocol === 'minecraft-java') return t('connectServices.minecraftReady');
   if (service.auth === 'oidc') return t('connectServices.providerProtected');
   return t(
     service.auth === 'upstream' ? 'connectServices.applicationAuth' : 'connectServices.protected'
@@ -418,12 +440,23 @@ function status(service: (typeof state.gateway.services)[number]) {
               <p class="text-muted-foreground text-sm break-all">{{ service.upstream }}</p>
               <p class="text-sm" role="status">{{ status(service) }}</p>
               <a
-                v-if="service.url && service.enabled && !applying && !state.gateway.pending && ready"
+                v-if="
+                  service.url?.startsWith('https://') &&
+                  service.enabled &&
+                  !applying &&
+                  !state.gateway.pending &&
+                  ready
+                "
                 class="text-primary inline-block text-sm break-all underline"
                 :href="service.url"
                 target="_blank"
                 rel="noopener noreferrer"
                 >{{ t('connectServices.open', { name: service.name }) }}</a
+              >
+              <code
+                v-else-if="service.protocol === 'minecraft-java' && service.url"
+                class="bg-muted inline-block rounded px-1.5 py-0.5 text-sm break-all select-all"
+                >{{ service.url }}</code
               >
             </div>
           </div>
@@ -488,6 +521,24 @@ function status(service: (typeof state.gateway.services)[number]) {
             {{ t('connectServices.steps.application') }}
           </p>
           <h4 class="font-semibold">{{ t('connectServices.steps.applicationTitle') }}</h4>
+        </div>
+        <div class="max-w-xl space-y-2">
+          <label :id="`${id}-service-kind-label`" class="font-medium">{{
+            t('connectServices.serviceType')
+          }}</label>
+          <SelectRoot
+            :model-value="serviceKind"
+            :disabled="saving"
+            @update:model-value="selectServiceKind"
+          >
+            <SelectTrigger :aria-labelledby="`${id}-service-kind-label`">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="web">{{ t('connectServices.webApplication') }}</SelectItem>
+              <SelectItem value="minecraft-java">{{ t('connectServices.minecraftJava') }}</SelectItem>
+            </SelectContent>
+          </SelectRoot>
         </div>
         <div class="max-w-xl space-y-2">
           <label :id="`${id}-target-mode-label`" class="font-medium">{{
@@ -586,7 +637,7 @@ function status(service: (typeof state.gateway.services)[number]) {
                 </SelectRoot>
               </div>
             </div>
-            <div class="max-w-xs space-y-2">
+            <div v-if="serviceKind === 'web'" class="max-w-xs space-y-2">
               <label :id="`${id}-protocol-label`" class="font-medium">{{
                 t('connectServices.discovery.protocol')
               }}</label>
@@ -631,12 +682,14 @@ function status(service: (typeof state.gateway.services)[number]) {
             <Input
               :id="`${id}-upstream`"
               v-model="draft.upstream"
-              type="url"
+              :type="serviceKind === 'minecraft-java' ? 'text' : 'url'"
               required
               maxlength="300"
               :disabled="saving"
               autocomplete="off"
-              placeholder="http://127.0.0.1:32400"
+              :placeholder="
+                serviceKind === 'minecraft-java' ? 'tcp://127.0.0.1:25565' : 'http://127.0.0.1:32400'
+              "
               :aria-describedby="`${id}-upstream-help`"
             />
             <p :id="`${id}-upstream-help`" class="text-muted-foreground text-sm">
@@ -646,7 +699,10 @@ function status(service: (typeof state.gateway.services)[number]) {
         </div>
       </section>
 
-      <section class="border-border space-y-4 rounded-lg border p-4 @md:p-5">
+      <section
+        v-if="serviceKind === 'web'"
+        class="border-border space-y-4 rounded-lg border p-4 @md:p-5"
+      >
         <div class="space-y-1">
           <p class="text-primary text-xs font-semibold tracking-wide uppercase">
             {{ t('connectServices.steps.access') }}
@@ -716,7 +772,23 @@ function status(service: (typeof state.gateway.services)[number]) {
         </div>
       </section>
 
-      <details class="border-border rounded-lg border p-4">
+      <section v-else class="border-warning/50 bg-warning/5 space-y-3 rounded-lg border p-4 @md:p-5">
+        <h4 class="font-semibold">{{ t('connectServices.minecraftAccessTitle') }}</h4>
+        <p class="max-w-prose text-sm">{{ t('connectServices.minecraftWarning') }}</p>
+        <div class="flex items-start gap-3">
+          <input
+            :id="`${id}-minecraft-ack`"
+            v-model="applicationAuthAcknowledged"
+            type="checkbox"
+            :disabled="saving"
+          />
+          <label :for="`${id}-minecraft-ack`" class="max-w-prose text-sm">{{
+            t('connectServices.minecraftAcknowledgment')
+          }}</label>
+        </div>
+      </section>
+
+      <details v-if="serviceKind === 'web'" class="border-border rounded-lg border p-4">
         <summary
           class="focus-visible:outline-ring cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-4"
         >

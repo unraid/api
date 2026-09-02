@@ -55,6 +55,7 @@ export const updateConnectGatewayServicesMutation = graphql(/* GraphQL */ `
           id
           name
           upstream
+          protocol
           tlsServerName
           auth
           providerId

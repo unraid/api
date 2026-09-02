@@ -410,6 +410,34 @@ describe('native connector host integration', () => {
             expect(() => validateGatewayServices([invalid as ConnectGatewayService])).toThrow();
         }
     });
+    it('writes Minecraft Java as an application-authenticated raw TCP route', async () => {
+        config.set('CONNECT_GATEWAY_ENABLED', 'true');
+        await tunnel.update({ certificateManagementEnabled: true, tunnelRemoteAccessEnabled: true });
+        const minecraft = {
+            ...appService,
+            name: 'Minecraft',
+            upstream: 'tcp://127.0.0.1:25565',
+            protocol: 'minecraft-java' as const,
+            auth: 'upstream' as const,
+        };
+        await tunnel.updateGatewayServices({ expectedRevision: 0, services: [minecraft] });
+        const env = await tunnel.processEnvironment();
+        const generated = JSON.parse(await readFile(env!.GATEWAY_CONFIG!, 'utf8'));
+        expect(generated.services).toContainEqual({
+            purpose: minecraft.id,
+            protocol: 'minecraft-java',
+            upstream: minecraft.upstream,
+            auth: 'upstream',
+        });
+        expect(tunnel.gatewaySettings().services[0]?.url).toMatch(/:25565$/);
+
+        for (const invalid of [
+            { ...minecraft, auth: 'account' },
+            { ...minecraft, upstream: 'http://127.0.0.1:25565' },
+        ]) {
+            expect(() => validateGatewayServices([invalid as ConnectGatewayService])).toThrow();
+        }
+    });
     it('isolates gateway state but keeps the server-owned OIDC configuration', async () => {
         const connectPath = join(directory, 'preview', 'connect.json');
         config.set('CONNECT_CONFIG_PATH', connectPath);

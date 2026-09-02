@@ -515,6 +515,7 @@ describe('service editor', () => {
     id: 'app-0123456789abcdef',
     name: 'Media',
     upstream: 'http://127.0.0.1:32400',
+    protocol: 'https',
     tlsServerName: '',
     enabled: true,
     url: 'https://media.example.test',
@@ -603,7 +604,10 @@ describe('service editor', () => {
 
     const empty = services();
     await action(empty, 'Add service').trigger('click');
-    empty.findAllComponents(SelectRoot)[0]!.vm.$emit('update:modelValue', 'container');
+    empty
+      .findAllComponents(SelectRoot)
+      .find((select) => select.props('modelValue') === 'manual')!
+      .vm.$emit('update:modelValue', 'container');
     await flushPromises();
     expect(empty.text()).toContain('No running containers with published TCP ports');
   });
@@ -626,6 +630,7 @@ describe('service editor', () => {
             id: expect.stringMatching(/^app-[a-f0-9]{16}$/),
             name: 'Media',
             upstream: 'http://127.0.0.1:32400',
+            protocol: 'https',
             tlsServerName: '',
             enabled: true,
             auth: 'account',
@@ -731,6 +736,50 @@ describe('service editor', () => {
     expect(wrapper.text()).toContain('Application controls access');
     expect(wrapper.text()).not.toContain('Unraid.net sign-in required');
   });
+  it('configures and displays a native Minecraft Java route', async () => {
+    const wrapper = services();
+    await action(wrapper, 'Add service').trigger('click');
+    wrapper.findAllComponents(SelectRoot)[0]!.vm.$emit('update:modelValue', 'minecraft-java');
+    await flushPromises();
+    expect(wrapper.text()).toContain('Minecraft controls player access');
+    expect(wrapper.text()).not.toContain('Unraid.net sign-in (default)');
+    await wrapper.get('input[autocomplete="off"]').setValue('Minecraft');
+    await wrapper.get(`input[id$="-upstream"]`).setValue('tcp://127.0.0.1:25565');
+    await wrapper.get('input[type="checkbox"]').setValue(true);
+    await action(wrapper, 'Save service').trigger('click');
+    expect(wrapper.emitted('save')?.[0]).toMatchObject([
+      {
+        services: [
+          {
+            name: 'Minecraft',
+            protocol: 'minecraft-java',
+            upstream: 'tcp://127.0.0.1:25565',
+            auth: 'upstream',
+          },
+        ],
+      },
+    ]);
+
+    const value = state();
+    value.tunnelRemoteAccessEnabled = true;
+    value.status.gateway = 'ready';
+    value.status.routeState = 'ready';
+    value.status.tunnel = 'connected';
+    value.gateway.services = [
+      {
+        ...app,
+        name: 'Minecraft',
+        protocol: 'minecraft-java',
+        upstream: 'tcp://127.0.0.1:25565',
+        auth: 'upstream',
+        url: 'game.example.test:25565',
+      },
+    ];
+    const ready = services(value);
+    expect(ready.text()).toContain('game.example.test:25565');
+    expect(ready.text()).toContain('Minecraft Java route ready');
+    expect(ready.find('a').exists()).toBe(false);
+  });
   it('keeps confirmed services available while the on-demand tunnel is initially idle', () => {
     const value = state();
     value.tunnelRemoteAccessEnabled = true;
@@ -792,6 +841,7 @@ describe('service editor', () => {
             id: app.id,
             name: app.name,
             upstream: app.upstream,
+            protocol: 'https',
             tlsServerName: '',
             enabled: true,
             auth: 'account',

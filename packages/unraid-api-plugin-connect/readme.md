@@ -85,6 +85,12 @@ Connect settings, and the multiplexer rereads that state before applying or
 retrying gateway policy. A caller cannot restore an older authentication policy
 after the other caller has saved a newer revision.
 
+Application services may use the existing HTTPS gateway or Java Edition
+Minecraft. Minecraft uses the service's generated Connect hostname on shared
+port 25565 and a private `tcp://` target on the server. It does not use browser
+authentication; the game server keeps responsibility for authentication and
+application encryption. Bedrock and other UDP protocols are not included.
+
 ## Installation patches
 
 When Connect is installed and the API starts, the API file modification service applies

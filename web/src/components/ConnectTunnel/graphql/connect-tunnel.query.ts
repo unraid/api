@@ -22,6 +22,7 @@ export const connectTunnelPageQuery = graphql(/* GraphQL */ `
           id
           name
           upstream
+          protocol
           tlsServerName
           auth
           providerId
