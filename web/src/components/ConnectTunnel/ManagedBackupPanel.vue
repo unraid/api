@@ -60,14 +60,18 @@ const locks = ref<ManagedBackupLock[]>([]);
 const { copyWithNotification, copied } = useClipboardWithToast();
 let poll: ReturnType<typeof setInterval> | undefined;
 
-const recoveryPhrase = computed(() =>
-  useCustomPhrase.value ? customPhrase.value : generatedPhrase.value
-);
+const recoveryPhrase = computed(() => {
+  if (status.value?.repositoryInitialized && !status.value.configured) return customPhrase.value;
+  return useCustomPhrase.value ? customPhrase.value : generatedPhrase.value;
+});
 const phraseIsUsable = computed(
   () =>
     recoveryPhrase.value.length > 0 &&
     recoveryPhrase.value.length <= 256 &&
     recoveryPhrase.value === recoveryPhrase.value.trim()
+);
+const needsRepositoryUnlock = computed(() =>
+  Boolean(status.value?.repositoryInitialized && !status.value.configured)
 );
 const canSetUp = computed(
   () =>
@@ -75,7 +79,7 @@ const canSetUp = computed(
     status.value?.usage.state === 'current' &&
     !status.value.configured &&
     !status.value.setupPending &&
-    phraseSaved.value &&
+    (needsRepositoryUnlock.value || phraseSaved.value) &&
     phraseIsUsable.value &&
     !busy.value
 );
@@ -143,7 +147,9 @@ async function setUp() {
     clearPhrase();
     await refresh();
   } catch {
-    error.value = t('connectBackup.setupFailed');
+    error.value = t(
+      needsRepositoryUnlock.value ? 'connectBackup.unlock.failed' : 'connectBackup.setupFailed'
+    );
   } finally {
     busy.value = false;
   }
@@ -340,6 +346,43 @@ onBeforeUnmount(() => {
     <div v-else-if="status?.setupPending" class="mt-5" role="status">
       <p class="font-medium">{{ t('connectBackup.setupPending.title') }}</p>
       <p class="text-muted-foreground mt-1 text-sm">{{ t('connectBackup.setupPending.description') }}</p>
+    </div>
+
+    <div v-else-if="status?.signedIn && needsRepositoryUnlock" class="mt-5 space-y-5">
+      <div class="border-warning/50 bg-warning/5 flex gap-3 rounded-lg border p-4" role="status">
+        <LockClosedIcon class="text-warning mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+        <div>
+          <p class="font-semibold">{{ t('connectBackup.unlock.title') }}</p>
+          <p class="text-muted-foreground mt-1 text-sm leading-6">
+            {{ t('connectBackup.unlock.description') }}
+          </p>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <label :for="`${id}-unlock-phrase`" class="font-medium">
+          {{ t('connectBackup.recovery.label') }}
+        </label>
+        <Input
+          :id="`${id}-unlock-phrase`"
+          v-model="customPhrase"
+          type="password"
+          maxlength="256"
+          autocomplete="current-password"
+          :disabled="busy"
+          :aria-describedby="`${id}-unlock-help`"
+        />
+        <p :id="`${id}-unlock-help`" class="text-muted-foreground text-sm">
+          {{ t('connectBackup.unlock.help') }}
+        </p>
+      </div>
+
+      <p v-if="customPhrase && !phraseIsUsable" class="text-destructive text-sm" role="alert">
+        {{ t('connectBackup.recovery.invalid') }}
+      </p>
+      <Button :disabled="!canSetUp" @click="setUp">
+        {{ t(busy ? 'connectBackup.unlock.unlocking' : 'connectBackup.unlock.action') }}
+      </Button>
     </div>
 
     <div v-else-if="status?.signedIn && status.repositoryConfigured" class="mt-5 space-y-4">

@@ -27,6 +27,7 @@ const unconfigured = (): ManagedBackupStatus => ({
   signedIn: true,
   configured: false,
   repositoryConfigured: false,
+  repositoryInitialized: false,
   setupPending: false,
   legacyMigrationPending: false,
   running: false,
@@ -101,6 +102,25 @@ describe('managed flash backup', () => {
     await action(wrapper, 'Set up flash backup').trigger('click');
     await flushPromises();
     expect(setupManagedBackup).toHaveBeenCalledExactlyOnceWith('another easy phrase');
+  });
+
+  it('prompts for the existing phrase instead of generating a new one when a repository exists', async () => {
+    const value = unconfigured();
+    value.repositoryInitialized = true;
+    const wrapper = await render(value);
+
+    expect(wrapper.text()).toContain('Unlock existing backup');
+    expect(wrapper.text()).toContain('continue using the same snapshots');
+    expect(wrapper.text()).not.toContain('Generate a phrase');
+    expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false);
+    expect(action(wrapper, 'Unlock backup').attributes('aria-disabled')).toBe('true');
+
+    await wrapper.get('input[type="password"]').setValue('existing recovery phrase');
+    expect(action(wrapper, 'Unlock backup').attributes('aria-disabled')).toBe('false');
+    await action(wrapper, 'Unlock backup').trigger('click');
+    await flushPromises();
+
+    expect(setupManagedBackup).toHaveBeenCalledExactlyOnceWith('existing recovery phrase');
   });
 
   it('shows configured backup state and storage metrics and starts a backup once', async () => {

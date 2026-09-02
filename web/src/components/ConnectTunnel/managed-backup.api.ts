@@ -24,6 +24,7 @@ export interface ManagedBackupStatus {
   signedIn: boolean;
   configured: boolean;
   repositoryConfigured: boolean;
+  repositoryInitialized: boolean;
   setupPending: boolean;
   legacyMigrationPending: boolean;
   running: boolean;
