@@ -491,9 +491,9 @@ export class ConnectTunnelService implements OnModuleDestroy {
                 JSON.stringify(services) !== JSON.stringify(old.gatewayServices)
             )
                 throw new Error('Retry the pending service save before making another change');
-            await this.save({
+            await this.persistence.updateIfGatewayRevision(input.expectedRevision, {
                 gatewayServices: services,
-                gatewayServicesRevision: old.gatewayServicesRevision + 1,
+                gatewayServicesRevision: input.expectedRevision + 1,
                 gatewayServicesPending: true,
             });
             await this.stopChild();
@@ -508,6 +508,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
         const settings = this.settings();
         if (!settings.gatewayServicesPending || !settings.tunnelRemoteAccessEnabled || !settings.apikey)
             return;
+        const revision = settings.gatewayServicesRevision;
         const serviceIds = settings.gatewayServices
             .filter((s) => s.enabled)
             .map((s) => s.id)
@@ -538,7 +539,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
             .sort();
         if (JSON.stringify(actual) !== JSON.stringify(serviceIds))
             throw new Error('Service routes have not been confirmed');
-        await this.save({
+        await this.persistence.updateIfGatewayRevision(revision, {
             gatewayServicesPending: false,
             gatewayServiceRoutes: Object.fromEntries(serviceRoutes),
         });

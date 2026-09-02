@@ -12,7 +12,7 @@ import { parse as parseIni } from 'ini';
 import type { MyServersConfig as LegacyConfig } from './my-servers.config.js';
 import { validateGatewayServices } from '../tunnel/gateway-settings.js';
 import { emptyMyServersConfig, MyServersConfig } from './connect.config.js';
-import { writePrivateJson } from './private-json-file.js';
+import { withPrivateJsonLock, writePrivateJson } from './private-json-file.js';
 
 @Injectable()
 export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig> {
@@ -93,16 +93,18 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
     }
 
     override async onModuleInit(): Promise<void> {
-        const config = existsSync(this.configPath())
-            ? await this.validate(JSON.parse(await readFile(this.configPath(), 'utf8')))
-            : existsSync(
-                    this.configService.get<string>('CONNECT_LEGACY_PATH') ??
-                        this.configService.get<string>('PATHS_MY_SERVERS_CONFIG') ??
-                        '/boot/config/plugins/dynamix.my.servers/myservers.cfg'
-                )
-              ? await this.migrateConfig()
-              : this.defaultConfig();
-        await this.save(config);
+        await withPrivateJsonLock(this.configPath(), async () => {
+            const config = existsSync(this.configPath())
+                ? await this.validate(JSON.parse(await readFile(this.configPath(), 'utf8')))
+                : existsSync(
+                        this.configService.get<string>('CONNECT_LEGACY_PATH') ??
+                            this.configService.get<string>('PATHS_MY_SERVERS_CONFIG') ??
+                            '/boot/config/plugins/dynamix.my.servers/myservers.cfg'
+                    )
+                  ? await this.migrateConfig()
+                  : this.defaultConfig();
+            await this.saveUnlocked(config);
+        });
     }
 
     override async onModuleDestroy(): Promise<void> {
@@ -113,19 +115,39 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
     private updates: Promise<void> = Promise.resolve();
 
     update(changes: Partial<MyServersConfig>): Promise<void> {
+        return this.updateCurrent((current) => ({ ...current, ...changes }));
+    }
+
+    updateIfGatewayRevision(expectedRevision: number, changes: Partial<MyServersConfig>): Promise<void> {
+        return this.updateCurrent((current) => {
+            if (current.gatewayServicesRevision !== expectedRevision)
+                throw new Error(
+                    `Service settings changed (expected ${expectedRevision}, current ${current.gatewayServicesRevision}). Reload before saving again.`
+                );
+            return { ...current, ...changes };
+        });
+    }
+
+    private updateCurrent(transform: (current: MyServersConfig) => object): Promise<void> {
         const update = this.updates
             .catch(() => undefined)
-            .then(async () => {
-                const current = existsSync(this.configPath())
-                    ? await this.validate(JSON.parse(await readFile(this.configPath(), 'utf8')))
-                    : this.getConfig(false);
-                await this.save({ ...current, ...changes });
-            });
+            .then(() =>
+                withPrivateJsonLock(this.configPath(), async () => {
+                    const current = existsSync(this.configPath())
+                        ? await this.validate(JSON.parse(await readFile(this.configPath(), 'utf8')))
+                        : this.getConfig(false);
+                    await this.saveUnlocked(transform(current));
+                })
+            );
         this.updates = update;
         return update;
     }
 
     async save(config: MyServersConfig): Promise<void> {
+        await withPrivateJsonLock(this.configPath(), () => this.saveUnlocked(config));
+    }
+
+    private async saveUnlocked(config: object): Promise<void> {
         const valid = await this.validate(config);
         await this.persist(valid);
         this.configService.set(this.configKey(), valid);

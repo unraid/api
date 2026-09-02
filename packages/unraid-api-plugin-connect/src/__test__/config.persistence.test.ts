@@ -2,10 +2,12 @@ import { ConfigService } from '@nestjs/config';
 import { chmod, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { setTimeout as delay } from 'node:timers/promises';
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { ConnectConfigPersister } from '../config/config.persistence.js';
+import { withPrivateJsonLock } from '../config/private-json-file.js';
 import { makeCertificate } from './certificate.fixture.js';
 
 describe('Connect configuration persistence', () => {
@@ -97,6 +99,104 @@ describe('Connect configuration persistence', () => {
         expect(JSON.parse(await readFile(persister.configPath(), 'utf8'))).toMatchObject({
             username: 'updated',
             gatewayServiceRoutes: external.gatewayServiceRoutes,
+        });
+    });
+    it('rechecks shared configuration after waiting for the startup writer lock', async () => {
+        let releaseLock!: () => void;
+        let reportLocked!: () => void;
+        const release = new Promise<void>((resolve) => (releaseLock = resolve));
+        const locked = new Promise<void>((resolve) => (reportLocked = resolve));
+        const holding = withPrivateJsonLock(persister.configPath(), async () => {
+            reportLocked();
+            await release;
+        });
+        await locked;
+        const starting = persister.onModuleInit();
+        await delay(25);
+        await writeFile(
+            persister.configPath(),
+            JSON.stringify({ apikey: 'newer-key', gatewayServicesRevision: 7 })
+        );
+        releaseLock();
+        await holding;
+
+        await starting;
+
+        expect(JSON.parse(await readFile(persister.configPath(), 'utf8'))).toMatchObject({
+            apikey: 'newer-key',
+            gatewayServicesRevision: 7,
+        });
+    });
+    it('allows only one concurrent writer into the critical section', async () => {
+        let releaseFirst!: () => void;
+        let reportFirstLocked!: () => void;
+        const release = new Promise<void>((resolve) => (releaseFirst = resolve));
+        const firstLocked = new Promise<void>((resolve) => (reportFirstLocked = resolve));
+        const entries: string[] = [];
+        const first = withPrivateJsonLock(persister.configPath(), async () => {
+            entries.push('first');
+            reportFirstLocked();
+            await release;
+        });
+        await firstLocked;
+        const second = withPrivateJsonLock(persister.configPath(), async () => {
+            entries.push('second');
+        });
+        await delay(25);
+        expect(entries).toEqual(['first']);
+        releaseFirst();
+        await Promise.all([first, second]);
+        expect(entries).toEqual(['first', 'second']);
+    });
+    it('rejects a gateway write based on a stale cached revision', async () => {
+        await persister.save(await persister.validate({ apikey: 'test-key' }));
+        const external = JSON.parse(await readFile(persister.configPath(), 'utf8'));
+        external.gatewayServicesRevision = 1;
+        external.gatewayServices = [
+            {
+                id: 'app-0123456789abcdef',
+                name: 'Plex',
+                upstream: 'http://127.0.0.1:32400',
+                tlsServerName: '',
+                enabled: true,
+                auth: 'upstream',
+                providerId: '',
+                subjects: [],
+            },
+        ];
+        await writeFile(persister.configPath(), JSON.stringify(external));
+
+        await expect(
+            persister.updateIfGatewayRevision(0, {
+                gatewayServicesRevision: 1,
+                gatewayServices: [],
+            })
+        ).rejects.toThrow('Service settings changed');
+
+        expect(JSON.parse(await readFile(persister.configPath(), 'utf8'))).toMatchObject({
+            gatewayServicesRevision: 1,
+            gatewayServices: external.gatewayServices,
+        });
+    });
+    it('does not finalize an older gateway request over a newer revision', async () => {
+        await persister.save(
+            await persister.validate({
+                apikey: 'test-key',
+                gatewayServicesRevision: 2,
+                gatewayServicesPending: true,
+            })
+        );
+
+        await expect(
+            persister.updateIfGatewayRevision(1, {
+                gatewayServicesPending: false,
+                gatewayServiceRoutes: {},
+            })
+        ).rejects.toThrow('Service settings changed');
+
+        expect(JSON.parse(await readFile(persister.configPath(), 'utf8'))).toMatchObject({
+            gatewayServicesRevision: 2,
+            gatewayServicesPending: true,
         });
     });
     it('does not rewrite shared configuration during shutdown', async () => {
