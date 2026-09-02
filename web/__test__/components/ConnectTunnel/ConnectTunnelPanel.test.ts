@@ -216,10 +216,19 @@ describe('dedicated Connect controls', () => {
     await button(wrapper, 'Confirm certificate migration').trigger('click');
     expect(wrapper.emitted('migrate')).toEqual([['changed']]);
   });
-  it('blocks migration with unsaved settings and shows native partial-install status', async () => {
+  it('saves feature changes immediately and shows native partial-install status', async () => {
     const wrapper = render();
     await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
-    expect(button(wrapper, 'Migrate certificate now').attributes('aria-disabled')).toBe('true');
+    expect(wrapper.emitted('save')).toEqual([
+      [
+        {
+          certificateManagementEnabled: true,
+          tunnelRemoteAccessEnabled: false,
+          serverDataReportingEnabled: true,
+        },
+      ],
+    ]);
+    expect(button(wrapper, 'Migrate certificate now').attributes('aria-disabled')).toBe('false');
     await wrapper.setProps({
       state: {
         ...state(),
@@ -240,17 +249,12 @@ describe('dedicated Connect controls', () => {
     expect(wrapper.findAll('[role="switch"]')).toHaveLength(3);
     expect(wrapper.text()).toContain('Certificate valid');
     expect(wrapper.text()).not.toContain('OIDC');
-    expect(button(wrapper, 'Apply changes').attributes('aria-disabled')).toBe('true');
+    expect(wrapper.text()).not.toContain('Apply changes');
+    expect(wrapper.text()).not.toContain('Discard changes');
   });
-  it('saves only the three explicit feature flags and keeps drafts through status polling', async () => {
+  it('saves only the three explicit feature flags when a switch changes', async () => {
     const wrapper = render();
     await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
-    expect(wrapper.emitted('save')).toBeUndefined();
-    await wrapper.setProps({
-      state: { ...state(), status: { ...state().status, certificate: 'checking' } },
-    });
-    expect(featureSwitch(wrapper, 'serverDataReportingEnabled').attributes('aria-checked')).toBe('true');
-    await button(wrapper, 'Apply changes').trigger('click');
     expect(wrapper.emitted('save')).toEqual([
       [
         {
@@ -262,30 +266,39 @@ describe('dedicated Connect controls', () => {
     ]);
     await wrapper.setProps({ state: { ...state(), serverDataReportingEnabled: true }, saved: true });
     expect(wrapper.text()).toContain('Connect settings saved.');
-    expect(button(wrapper, 'Apply changes').attributes('aria-disabled')).toBe('true');
   });
-  it('requires certificates for remote access and supports discarding pending changes', async () => {
+  it('requires certificates for remote access and saves each switch independently', async () => {
     const wrapper = render({ ...state(), certificateManagementEnabled: false });
     expect(featureSwitch(wrapper, 'tunnelRemoteAccessEnabled').attributes('aria-disabled')).toBe('true');
     await featureSwitch(wrapper, 'certificateManagementEnabled').trigger('click');
+    expect(wrapper.emitted('save')?.[0]).toEqual([
+      {
+        certificateManagementEnabled: true,
+        tunnelRemoteAccessEnabled: false,
+        serverDataReportingEnabled: false,
+      },
+    ]);
+    await wrapper.setProps({ state: { ...state(), certificateManagementEnabled: true } });
     await featureSwitch(wrapper, 'tunnelRemoteAccessEnabled').trigger('click');
-    expect(featureSwitch(wrapper, 'certificateManagementEnabled').attributes('aria-disabled')).toBe(
-      'true'
-    );
-    await button(wrapper, 'Discard changes').trigger('click');
-    expect(featureSwitch(wrapper, 'certificateManagementEnabled').attributes('aria-checked')).toBe(
-      'false'
-    );
-    expect(wrapper.emitted('save')).toBeUndefined();
+    expect(wrapper.emitted('save')?.[1]).toEqual([
+      {
+        certificateManagementEnabled: true,
+        tunnelRemoteAccessEnabled: true,
+        serverDataReportingEnabled: false,
+      },
+    ]);
   });
   it('prevents saving while signed out, busy, or disconnected and exposes save failures', async () => {
     const wrapper = render();
-    await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
     await wrapper.setProps({ saving: true });
-    expect(button(wrapper, 'Applying…').attributes('aria-disabled')).toBe('true');
+    expect(
+      wrapper.findAll('[role="switch"]').every((s) => s.attributes('aria-disabled') === 'true')
+    ).toBe(true);
     await wrapper.setProps({ saving: false, unavailable: true, error: 'Request refused (403)' });
     expect(wrapper.get('[role="alert"]').text()).toContain('Request refused (403)');
-    expect(button(wrapper, 'Apply changes').attributes('aria-disabled')).toBe('true');
+    expect(
+      wrapper.findAll('[role="switch"]').every((s) => s.attributes('aria-disabled') === 'true')
+    ).toBe(true);
     await wrapper.setProps({ unavailable: false, state: { ...state(), signedIn: false } });
     expect(
       wrapper.findAll('[role="switch"]').every((s) => s.attributes('aria-disabled') === 'true')
@@ -438,10 +451,6 @@ describe('Connect page save handler', () => {
   it.each([false, true])('resumes observable polling after save (failure=%s)', async (fail) => {
     const { wrapper, mutate, refetch, stopPolling, startPolling } = renderPage(fail);
     await featureSwitch(wrapper, 'serverDataReportingEnabled').trigger('click');
-    await wrapper
-      .findAll('[role="button"]')
-      .find((b) => b.text() === 'Apply changes')!
-      .trigger('click');
     await flushPromises();
     expect(mutate).toHaveBeenCalledWith({
       input: {

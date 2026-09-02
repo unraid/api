@@ -40,9 +40,6 @@ const editable = (value: typeof state): ConnectTunnelSettingsInput => ({
   tunnelRemoteAccessEnabled: value.tunnelRemoteAccessEnabled,
   serverDataReportingEnabled: value.serverDataReportingEnabled,
 });
-const baseline = ref(editable(state));
-const draft = ref(editable(state));
-const dirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(baseline.value));
 const disabled = computed(
   () => saving || unavailable || !state.signedIn || state.certificateMigration.status === 'running'
 );
@@ -55,26 +52,11 @@ watch(
 );
 function confirmMigration() {
   const token = confirmation.value?.confirmationToken;
-  if (
-    !disabled.value &&
-    !dirty.value &&
-    token &&
-    token === state.certificateMigration.confirmationToken
-  ) {
+  if (!disabled.value && token && token === state.certificateMigration.confirmationToken) {
     confirmation.value = null;
     emit('migrate', token);
   }
 }
-watch(
-  () => state,
-  (value) => {
-    const next = editable(value);
-    if (!dirty.value || !value.signedIn || JSON.stringify(next) === JSON.stringify(draft.value)) {
-      draft.value = next;
-      baseline.value = { ...next };
-    }
-  }
-);
 const features = [
   'certificateManagementEnabled',
   'serverDataReportingEnabled',
@@ -104,14 +86,11 @@ const statusLabel = (status: string) => {
 };
 const blocked = (key: (typeof features)[number]) =>
   disabled.value ||
-  (key === 'certificateManagementEnabled' && draft.value.tunnelRemoteAccessEnabled) ||
-  (key === 'tunnelRemoteAccessEnabled' && !draft.value.certificateManagementEnabled);
-function reset() {
-  baseline.value = editable(state);
-  draft.value = { ...baseline.value };
-}
-function submit() {
-  if (!disabled.value && dirty.value) emit('save', { ...draft.value });
+  (key === 'certificateManagementEnabled' && state.tunnelRemoteAccessEnabled) ||
+  (key === 'tunnelRemoteAccessEnabled' && !state.certificateManagementEnabled);
+function updateFeature(key: (typeof features)[number], enabled: boolean) {
+  if (blocked(key)) return;
+  emit('save', { ...editable(state), [key]: enabled });
 }
 const usage = computed(() => state.status.entitlement);
 const usageBytes = (bytes: number) =>
@@ -137,6 +116,8 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
 <template>
   <div class="space-y-5" :aria-busy="saving">
     <p v-if="!state.signedIn" role="status">{{ t('connectTunnel.signIn') }}</p>
+    <p v-if="error" role="alert" class="text-destructive">{{ error }}</p>
+    <p v-else-if="saved" role="status">{{ t('connectTunnel.saved') }}</p>
     <div class="@container grid gap-5 @3xl:grid-cols-2">
       <section
         v-for="key in features"
@@ -155,11 +136,12 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
             </h2>
           </div>
           <Switch
-            v-model="draft[key]"
+            :model-value="state[key]"
             :disabled="blocked(key)"
             :aria-disabled="blocked(key)"
             :aria-labelledby="`${id}-${key}-label`"
             :aria-describedby="`${id}-${key}-description`"
+            @update:model-value="updateFeature(key, $event)"
           />
         </div>
         <div
@@ -212,7 +194,7 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
               <template v-if="confirmation">
                 <p>{{ t('connectTunnel.migration.confirmDescription') }}</p>
                 <div class="flex flex-wrap gap-3">
-                  <Button :disabled="disabled || dirty" @click="confirmMigration">{{
+                  <Button :disabled="disabled" @click="confirmMigration">{{
                     t('connectTunnel.migration.confirm')
                   }}</Button>
                   <Button variant="outline" @click="confirmation = null">{{
@@ -223,7 +205,7 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
               <Button
                 v-else-if="state.certificateMigration.confirmationToken"
                 variant="outline"
-                :disabled="disabled || dirty"
+                :disabled="disabled"
                 @click="confirmation = { ...state.certificateMigration }"
                 >{{ t('connectTunnel.migration.action') }}</Button
               >
@@ -231,13 +213,13 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
           </details>
         </div>
         <p
-          v-if="key === 'certificateManagementEnabled' && draft.tunnelRemoteAccessEnabled"
+          v-if="key === 'certificateManagementEnabled' && state.tunnelRemoteAccessEnabled"
           class="text-muted-foreground mt-2 text-sm"
         >
           {{ t('connectTunnel.certificateRequired') }}
         </p>
         <p
-          v-if="key === 'tunnelRemoteAccessEnabled' && !draft.certificateManagementEnabled"
+          v-if="key === 'tunnelRemoteAccessEnabled' && !state.certificateManagementEnabled"
           class="text-muted-foreground mt-2 text-sm"
         >
           {{ t('connectTunnel.enableCertificate') }}
@@ -394,15 +376,5 @@ const overview = computed(() => JSON.stringify(state.overview, null, 2));
     <p v-if="state.status.reason" role="status" class="text-sm">
       {{ t('connectTunnel.connectorReason', { reason: state.status.reason }) }}
     </p>
-    <p v-if="error" role="alert" class="text-destructive">{{ error }}</p>
-    <p v-else-if="saved && !dirty" role="status">{{ t('connectTunnel.saved') }}</p>
-    <div class="flex flex-wrap items-center gap-3">
-      <Button :disabled="disabled || !dirty" @click="submit">{{
-        t(saving ? 'connectTunnel.saving' : 'connectTunnel.apply')
-      }}</Button>
-      <Button variant="outline" :disabled="saving || !dirty" @click="reset">{{
-        t('connectTunnel.cancel')
-      }}</Button>
-    </div>
   </div>
 </template>
