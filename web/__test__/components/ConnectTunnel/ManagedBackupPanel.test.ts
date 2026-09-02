@@ -31,6 +31,7 @@ const unconfigured = (): ManagedBackupStatus => ({
   setupPending: false,
   legacyMigrationPending: false,
   running: false,
+  browseUrl: null,
   job: null,
   usage: {
     state: 'current',
@@ -140,6 +141,8 @@ describe('managed flash backup', () => {
       lastRunAt: '2026-09-01T12:00:00.000Z',
       lastRunStatus: 'success',
     };
+    value.browseUrl =
+      'https://preview.account.unraid.net/servers/705372c2-c8ee-4199-8512-18dfa322617e/backup';
     vi.mocked(runManagedBackup).mockResolvedValue({ started: true });
     const wrapper = await render(value);
 
@@ -147,6 +150,9 @@ describe('managed flash backup', () => {
     expect(wrapper.text()).toContain('1.3 GB');
     expect(wrapper.text()).toContain('8.8 GB of 10 GB');
     expect(wrapper.text()).toContain('Automatic backups are enabled');
+    expect(wrapper.get('a[href*="/servers/705372c2-c8ee-4199-8512-18dfa322617e/backup"]').text()).toBe(
+      'Browse backups'
+    );
     await action(wrapper, 'Back up now').trigger('click');
     await flushPromises();
     expect(runManagedBackup).toHaveBeenCalledOnce();

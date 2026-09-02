@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 
 import {
   ArrowPathIcon,
+  ArrowTopRightOnSquareIcon,
   CheckCircleIcon,
   ClipboardDocumentIcon,
   CloudArrowUpIcon,
@@ -336,6 +337,17 @@ onBeforeUnmount(() => {
         <Button variant="outline" :disabled="busy || status.running" @click="openLocks">
           <LockClosedIcon class="mr-2 h-4 w-4" aria-hidden="true" />
           {{ t('connectBackup.locks.action') }}
+        </Button>
+        <Button
+          v-if="status.browseUrl"
+          as="a"
+          variant="outline"
+          :href="status.browseUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {{ t('connectBackup.browse') }}
+          <ArrowTopRightOnSquareIcon class="ml-2 h-4 w-4" aria-hidden="true" />
         </Button>
         <p class="text-muted-foreground text-sm">
           {{ t(status.job?.enabled ? 'connectBackup.automatic' : 'connectBackup.automaticDisabled') }}

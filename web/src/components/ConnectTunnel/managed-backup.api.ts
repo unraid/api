@@ -28,6 +28,7 @@ export interface ManagedBackupStatus {
   setupPending: boolean;
   legacyMigrationPending: boolean;
   running: boolean;
+  browseUrl: string | null;
   job: ManagedBackupJob | null;
   usage: { state: 'current'; value: ManagedBackupUsage } | { state: 'unavailable' };
 }

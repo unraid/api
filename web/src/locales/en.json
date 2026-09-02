@@ -1104,6 +1104,7 @@
   "connectBackup.status.never": "Not backed up yet",
   "connectBackup.usage.remaining": "{remaining} of {total}",
   "connectBackup.runNow": "Back up now",
+  "connectBackup.browse": "Browse backups",
   "connectBackup.running": "Backing up…",
   "connectBackup.automatic": "Automatic backups are enabled.",
   "connectBackup.automaticDisabled": "Automatic backups are disabled.",

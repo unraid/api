@@ -9,7 +9,7 @@ import { execa } from 'execa';
 
 import { ConnectConfigPersister } from '../config/config.persistence.js';
 import { EVENTS } from '../helper/nest-tokens.js';
-import { requestControlPlane } from '../tunnel/control-plane.js';
+import { controlPlaneOrigin, requestControlPlane } from '../tunnel/control-plane.js';
 import {
     MANAGED_BACKUP_JOB_ID,
     MANAGED_BACKUP_TARGET_ID,
@@ -156,6 +156,10 @@ export class ManagedBackupService {
             repositoryState === null || repositoryState.current?.repositoryId === state.repository_id;
         const effectiveRepositoryConfigured = repositoryConfigured && currentRepositoryMatches;
         const signedIn = Boolean(this.connect.getConfig().apikey);
+        const browseUrl =
+            effectiveRepositoryConfigured && repositoryState
+                ? this.backupBrowserUrl(repositoryState.serverUuid)
+                : null;
         return {
             schemaVersion: 1,
             signedIn,
@@ -167,6 +171,7 @@ export class ManagedBackupService {
             setupPending: Number.isSafeInteger(state.pending_generation),
             legacyMigrationPending,
             running: this.running,
+            browseUrl,
             job: job
                 ? {
                       id: job.id,
@@ -503,11 +508,23 @@ export class ManagedBackupService {
             appendRetention(retentionArgs, job.retention);
             retentionArgs.push('--tag', `job:${job.id}`, '--prune');
             await this.runRestic(retentionArgs, env);
-            if (!(await this.unraidCoreOwnsBackup())) await this.store.recordJobRun('success');
+            await this.store.recordJobRun('success');
         } catch {
-            if (!(await this.unraidCoreOwnsBackup())) await this.store.recordJobRun('failed');
+            await this.store.recordJobRun('failed');
             throw new Error('Managed flash backup failed');
         }
+    }
+
+    private backupBrowserUrl(serverUuid: string): string {
+        const controlPlane = controlPlaneOrigin(this.config.get<string>('CONNECT_CONTROL_PLANE_URL'));
+        const controlPlaneUrl = new URL(controlPlane);
+        const preview =
+            this.config.get<boolean>('UNRAID_PREVIEW', false) ||
+            controlPlaneUrl.hostname.startsWith('preview.');
+        const accountOrigin = preview
+            ? 'https://preview.account.unraid.net'
+            : 'https://account.unraid.net';
+        return new URL(`/servers/${encodeURIComponent(serverUuid)}/backup`, accountOrigin).href;
     }
 
     private async ensureRepository(

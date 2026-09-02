@@ -24,6 +24,7 @@ describe('managed backup service', () => {
     let legacyFlashDir: string;
     let store: ManagedBackupStore;
     let service: ManagedBackupService;
+    let config: ConfigService;
     let requests: Array<{ path: string; method: string; body: unknown }>;
     let resticRepositoryId: string;
     let repositoryExists: boolean;
@@ -73,11 +74,12 @@ describe('managed backup service', () => {
         unraidPluginDir = join(directory, 'plugins');
         managedBackupRuntimeDir = join(directory, 'runtime');
         await mkdir(unraidPluginDir);
-        const config = new ConfigService({
+        config = new ConfigService({
             CONNECT_MANAGED_BACKUP_TARGET_DIR: targetDir,
             CONNECT_MANAGED_BACKUP_LEGACY_FLASH_DIR: legacyFlashDir,
             CONNECT_MANAGED_BACKUP_SECRET_KEY_PATH: join(directory, 'secret_key_base'),
             CONNECT_CONTROL_PLANE_URL: 'https://connect.example',
+            UNRAID_PREVIEW: false,
             CONNECT_RESTIC_PATH: '/usr/local/bin/restic',
             CONNECT_MANAGED_BACKUP_MIGRATION_MARKER: migrationMarker,
             CONNECT_MANAGED_BACKUP_MIGRATION_COMPLETE_MARKER: migrationCompleteMarker,
@@ -330,6 +332,16 @@ describe('managed backup service', () => {
         });
     });
 
+    it('links preview servers to the preview backup browser', async () => {
+        config.set('UNRAID_PREVIEW', true);
+        await service.setup('recovery phrase');
+
+        await expect(service.status()).resolves.toMatchObject({
+            browseUrl:
+                'https://preview.account.unraid.net/servers/705372c2-c8ee-4199-8512-18dfa322617e/backup',
+        });
+    });
+
     it('reports a reset Connect repository as uninitialized without changing local backup data', async () => {
         await service.setup('recovery phrase');
         const stateBeforeReset = await store.loadState();
@@ -522,7 +534,12 @@ describe('managed backup service', () => {
         await vi.waitFor(() => {
             expect(execaMock.mock.calls.some((call) => call[1][0] === 'forget')).toBe(true);
         });
-        expect(recordJobRun).not.toHaveBeenCalled();
+        await vi.waitFor(() => expect(recordJobRun).toHaveBeenCalledWith('success'));
+        await vi.waitFor(async () => expect((await service.status()).running).toBe(false));
+        await expect(service.status()).resolves.toMatchObject({
+            browseUrl: 'https://account.unraid.net/servers/705372c2-c8ee-4199-8512-18dfa322617e/backup',
+            job: { lastRunStatus: 'success' },
+        });
     });
 
     it('leaves scheduled backups to an installed Core plugin on Unraid 7', async () => {
