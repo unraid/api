@@ -158,6 +158,62 @@ describe('managed flash backup', () => {
     expect(runManagedBackup).toHaveBeenCalledOnce();
   });
 
+  it('changes the recovery phrase for a configured backup', async () => {
+    const value = unconfigured();
+    value.configured = true;
+    value.repositoryConfigured = true;
+    value.repositoryInitialized = true;
+    value.job = {
+      id: 'connect-managed-flash-backup',
+      name: 'Flash Backup',
+      enabled: true,
+      schedule: '0 3 * * *',
+      lastRunAt: '2026-09-01T12:00:00.000Z',
+      lastRunStatus: 'success',
+    };
+    vi.mocked(setupManagedBackup).mockResolvedValue(new Response());
+    const wrapper = await render(value);
+
+    await action(wrapper, 'Change recovery phrase').trigger('click');
+    const phrase = wrapper.get('code').text();
+    expect(phrase).toMatch(/^[a-f0-9]{4}(?:-[a-f0-9]{4}){7}$/);
+    expect(wrapper.text()).toContain('the old phrase will not unlock the backup');
+    expect(action(wrapper, 'Change recovery phrase').attributes('aria-disabled')).toBe('true');
+
+    await wrapper.get('input[type="checkbox"]').setValue(true);
+    expect(action(wrapper, 'Change recovery phrase').attributes('aria-disabled')).toBe('false');
+    await action(wrapper, 'Change recovery phrase').trigger('click');
+    await flushPromises();
+
+    expect(setupManagedBackup).toHaveBeenCalledExactlyOnceWith(phrase);
+    expect(wrapper.text()).not.toContain('the old phrase will not unlock the backup');
+  });
+
+  it('keeps the recovery phrase editor open when key rotation fails', async () => {
+    const value = unconfigured();
+    value.configured = true;
+    value.repositoryConfigured = true;
+    value.repositoryInitialized = true;
+    value.job = {
+      id: 'connect-managed-flash-backup',
+      name: 'Flash Backup',
+      enabled: true,
+      schedule: '0 3 * * *',
+      lastRunAt: '2026-09-01T12:00:00.000Z',
+      lastRunStatus: 'success',
+    };
+    vi.mocked(setupManagedBackup).mockRejectedValue(new Error('request failed'));
+    const wrapper = await render(value);
+
+    await action(wrapper, 'Change recovery phrase').trigger('click');
+    await wrapper.get('input[type="checkbox"]').setValue(true);
+    await action(wrapper, 'Change recovery phrase').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.get('[role="alert"]').text()).toContain('The current recovery phrase still works');
+    expect(wrapper.text()).toContain('the old phrase will not unlock the backup');
+  });
+
   it('shows an additive initializer when storage exists without a compatible flash job', async () => {
     const value = unconfigured();
     value.repositoryConfigured = true;

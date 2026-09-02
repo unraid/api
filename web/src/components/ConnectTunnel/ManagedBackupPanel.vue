@@ -51,6 +51,8 @@ const useCustomPhrase = ref(false);
 const generatedPhrase = ref('');
 const customPhrase = ref('');
 const phraseSaved = ref(false);
+const changingPhrase = ref(false);
+const changePhraseError = ref('');
 const locksOpen = ref(false);
 const forceUnlockOpen = ref(false);
 const locksLoading = ref(false);
@@ -84,6 +86,14 @@ const canSetUp = computed(
     phraseIsUsable.value &&
     !busy.value
 );
+const canChangePhrase = computed(
+  () =>
+    Boolean(status.value?.signedIn && status.value.configured) &&
+    phraseSaved.value &&
+    phraseIsUsable.value &&
+    !busy.value &&
+    !status.value?.running
+);
 const currentUsage = computed(() =>
   status.value?.usage.state === 'current' ? status.value.usage.value : null
 );
@@ -113,6 +123,20 @@ function switchPhraseMode(custom: boolean) {
   useCustomPhrase.value = custom;
   phraseSaved.value = false;
   if (!custom && !generatedPhrase.value) generateRecoveryPhrase();
+}
+
+function openChangePhrase() {
+  clearPhrase();
+  useCustomPhrase.value = false;
+  generateRecoveryPhrase();
+  changePhraseError.value = '';
+  changingPhrase.value = true;
+}
+
+function cancelChangePhrase() {
+  changingPhrase.value = false;
+  changePhraseError.value = '';
+  clearPhrase();
 }
 
 async function refresh() {
@@ -151,6 +175,22 @@ async function setUp() {
     error.value = t(
       needsRepositoryUnlock.value ? 'connectBackup.unlock.failed' : 'connectBackup.setupFailed'
     );
+  } finally {
+    busy.value = false;
+  }
+}
+
+async function changeRecoveryPhrase() {
+  if (!canChangePhrase.value) return;
+  busy.value = true;
+  changePhraseError.value = '';
+  try {
+    await setupManagedBackup(recoveryPhrase.value);
+    changingPhrase.value = false;
+    clearPhrase();
+    await refresh();
+  } catch {
+    changePhraseError.value = t('connectBackup.change.failed');
   } finally {
     busy.value = false;
   }
@@ -339,6 +379,15 @@ onBeforeUnmount(() => {
           {{ t('connectBackup.locks.action') }}
         </Button>
         <Button
+          v-if="!changingPhrase"
+          variant="outline"
+          :disabled="busy || status.running"
+          @click="openChangePhrase"
+        >
+          <KeyIcon class="mr-2 h-4 w-4" aria-hidden="true" />
+          {{ t('connectBackup.change.action') }}
+        </Button>
+        <Button
           v-if="status.browseUrl"
           as="a"
           variant="outline"
@@ -352,6 +401,99 @@ onBeforeUnmount(() => {
         <p class="text-muted-foreground text-sm">
           {{ t(status.job?.enabled ? 'connectBackup.automatic' : 'connectBackup.automaticDisabled') }}
         </p>
+      </div>
+
+      <div v-if="changingPhrase" class="border-border bg-background/60 space-y-4 rounded-lg border p-4">
+        <div>
+          <h3 class="font-semibold">{{ t('connectBackup.change.title') }}</h3>
+          <p class="text-muted-foreground mt-1 text-sm leading-6">
+            {{ t('connectBackup.change.description') }}
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <Button
+            :variant="useCustomPhrase ? 'outline' : 'primary'"
+            :disabled="busy"
+            @click="switchPhraseMode(false)"
+          >
+            {{ t('connectBackup.recovery.generated') }}
+          </Button>
+          <Button
+            :variant="useCustomPhrase ? 'primary' : 'outline'"
+            :disabled="busy"
+            @click="switchPhraseMode(true)"
+          >
+            {{ t('connectBackup.recovery.custom') }}
+          </Button>
+        </div>
+
+        <div v-if="useCustomPhrase" class="space-y-2">
+          <label :for="`${id}-change-phrase`" class="font-medium">
+            {{ t('connectBackup.recovery.label') }}
+          </label>
+          <Input
+            :id="`${id}-change-phrase`"
+            v-model="customPhrase"
+            type="password"
+            maxlength="256"
+            autocomplete="new-password"
+            :disabled="busy"
+            :aria-describedby="`${id}-change-phrase-help`"
+          />
+          <p :id="`${id}-change-phrase-help`" class="text-muted-foreground text-sm">
+            {{ t('connectBackup.recovery.customHelp') }}
+          </p>
+        </div>
+        <div v-else class="space-y-2">
+          <p class="font-medium">{{ t('connectBackup.recovery.generatedLabel') }}</p>
+          <div class="flex items-start gap-2">
+            <code
+              class="bg-background border-border min-w-0 flex-1 rounded-lg border px-3 py-2 font-mono text-sm break-all select-all"
+            >
+              {{ generatedPhrase }}
+            </code>
+            <Button
+              variant="outline"
+              size="icon"
+              :aria-label="t('connectBackup.recovery.copy')"
+              @click="copyPhrase"
+            >
+              <ClipboardDocumentIcon class="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </div>
+          <p v-if="copied" class="text-muted-foreground flex items-center gap-1 text-sm" role="status">
+            <CheckCircleIcon class="h-4 w-4" aria-hidden="true" />
+            {{ t('connectBackup.copied') }}
+          </p>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <input
+            :id="`${id}-change-saved`"
+            v-model="phraseSaved"
+            type="checkbox"
+            class="accent-primary mt-0.5 h-4 w-4 rounded"
+            :disabled="busy || !phraseIsUsable"
+          />
+          <label :for="`${id}-change-saved`" class="max-w-prose text-sm">
+            {{ t('connectBackup.recovery.saved') }}
+          </label>
+        </div>
+        <p v-if="recoveryPhrase && !phraseIsUsable" class="text-destructive text-sm" role="alert">
+          {{ t('connectBackup.recovery.invalid') }}
+        </p>
+        <p v-if="changePhraseError" class="text-destructive text-sm" role="alert">
+          {{ changePhraseError }}
+        </p>
+        <div class="flex flex-wrap justify-end gap-2">
+          <Button variant="outline" :disabled="busy" @click="cancelChangePhrase">
+            {{ t('common.cancel') }}
+          </Button>
+          <Button :disabled="!canChangePhrase" @click="changeRecoveryPhrase">
+            {{ t(busy ? 'connectBackup.change.changing' : 'connectBackup.change.confirm') }}
+          </Button>
+        </div>
       </div>
     </div>
 
