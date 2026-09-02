@@ -516,6 +516,7 @@ describe('service editor', () => {
     name: 'Media',
     upstream: 'http://127.0.0.1:32400',
     protocol: 'https',
+    ingress: '',
     tlsServerName: '',
     enabled: true,
     url: 'https://media.example.test',
@@ -631,6 +632,7 @@ describe('service editor', () => {
             name: 'Media',
             upstream: 'http://127.0.0.1:32400',
             protocol: 'https',
+            ingress: '',
             tlsServerName: '',
             enabled: true,
             auth: 'account',
@@ -739,7 +741,9 @@ describe('service editor', () => {
   it('configures and displays a native Minecraft Java route', async () => {
     const wrapper = services();
     await action(wrapper, 'Add service').trigger('click');
-    wrapper.findAllComponents(SelectRoot)[0]!.vm.$emit('update:modelValue', 'minecraft-java');
+    wrapper.findAllComponents(SelectRoot)[0]!.vm.$emit('update:modelValue', 'tcp');
+    await flushPromises();
+    wrapper.findAllComponents(SelectRoot)[1]!.vm.$emit('update:modelValue', 'minecraft-java');
     await flushPromises();
     expect(wrapper.text()).toContain('Minecraft controls player access');
     expect(wrapper.text()).not.toContain('Unraid.net sign-in (default)');
@@ -752,7 +756,8 @@ describe('service editor', () => {
         services: [
           {
             name: 'Minecraft',
-            protocol: 'minecraft-java',
+            protocol: 'tcp',
+            ingress: 'minecraft-java',
             upstream: 'tcp://127.0.0.1:25565',
             auth: 'upstream',
           },
@@ -769,7 +774,8 @@ describe('service editor', () => {
       {
         ...app,
         name: 'Minecraft',
-        protocol: 'minecraft-java',
+        protocol: 'tcp',
+        ingress: 'minecraft-java',
         upstream: 'tcp://127.0.0.1:25565',
         auth: 'upstream',
         url: 'game.example.test:25565',
@@ -778,6 +784,53 @@ describe('service editor', () => {
     const ready = services(value);
     expect(ready.text()).toContain('game.example.test:25565');
     expect(ready.text()).toContain('Minecraft Java route ready');
+    expect(ready.find('a').exists()).toBe(false);
+  });
+  it('configures and displays a managed TLS TCP route', async () => {
+    const wrapper = services();
+    await action(wrapper, 'Add service').trigger('click');
+    wrapper.findAllComponents(SelectRoot)[0]!.vm.$emit('update:modelValue', 'tcp');
+    await flushPromises();
+    expect(wrapper.text()).toContain('The service controls access');
+    expect(wrapper.text()).toContain('Connect provides TLS on the public address');
+    expect(wrapper.text()).not.toContain('Unraid.net sign-in (default)');
+    await wrapper.get('input[autocomplete="off"]').setValue('MQTT');
+    await wrapper.get(`input[id$="-upstream"]`).setValue('tcp://127.0.0.1:1883');
+    await wrapper.get('input[type="checkbox"]').setValue(true);
+    await action(wrapper, 'Save service').trigger('click');
+    expect(wrapper.emitted('save')?.[0]).toMatchObject([
+      {
+        services: [
+          {
+            name: 'MQTT',
+            protocol: 'tcp',
+            ingress: 'tls-sni',
+            upstream: 'tcp://127.0.0.1:1883',
+            auth: 'upstream',
+          },
+        ],
+      },
+    ]);
+
+    const value = state();
+    value.tunnelRemoteAccessEnabled = true;
+    value.status.gateway = 'ready';
+    value.status.routeState = 'ready';
+    value.status.tunnel = 'connected';
+    value.gateway.services = [
+      {
+        ...app,
+        name: 'MQTT',
+        protocol: 'tcp',
+        ingress: 'tls-sni',
+        upstream: 'tcp://127.0.0.1:1883',
+        auth: 'upstream',
+        url: 'mqtt.example.test:443',
+      },
+    ];
+    const ready = services(value);
+    expect(ready.text()).toContain('mqtt.example.test:443');
+    expect(ready.text()).toContain('TLS TCP route ready');
     expect(ready.find('a').exists()).toBe(false);
   });
   it('keeps confirmed services available while the on-demand tunnel is initially idle', () => {
@@ -842,6 +895,7 @@ describe('service editor', () => {
             name: app.name,
             upstream: app.upstream,
             protocol: 'https',
+            ingress: '',
             tlsServerName: '',
             enabled: true,
             auth: 'account',

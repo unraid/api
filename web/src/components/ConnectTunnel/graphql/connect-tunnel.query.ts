@@ -23,6 +23,7 @@ export const connectTunnelPageQuery = graphql(/* GraphQL */ `
           name
           upstream
           protocol
+          ingress
           tlsServerName
           auth
           providerId

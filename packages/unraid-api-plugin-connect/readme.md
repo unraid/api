@@ -85,11 +85,13 @@ Connect settings, and the multiplexer rereads that state before applying or
 retrying gateway policy. A caller cannot restore an older authentication policy
 after the other caller has saved a newer revision.
 
-Application services may use the existing HTTPS gateway or Java Edition
-Minecraft. Minecraft uses the service's generated Connect hostname on shared
-port 25565 and a private `tcp://` target on the server. It does not use browser
-authentication; the game server keeps responsibility for authentication and
-application encryption. Bedrock and other UDP protocols are not included.
+Application services may use the HTTPS gateway or the generic TCP transport.
+TCP services use a private `tcp://` target and the existing connector session.
+Their ingress method can use managed TLS on shared port 443, or the Minecraft
+Java handshake on shared port 25565. Managed TLS terminates at the local gateway
+with the Connect certificate; it is not certificate passthrough. TCP services
+must control their own authentication. Minecraft Bedrock and other UDP protocols
+are not included.
 
 ## Installation patches
 

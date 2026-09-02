@@ -3733,6 +3733,7 @@ type ConnectGatewayServiceStatus {
   name: String!
   upstream: String!
   protocol: String!
+  ingress: String!
   tlsServerName: String!
   enabled: Boolean!
   auth: String!
@@ -3786,6 +3787,7 @@ input ConnectGatewayServiceInput {
   name: String!
   upstream: String!
   protocol: String! = "https"
+  ingress: String! = ""
   tlsServerName: String! = ""
   enabled: Boolean! = false
   auth: String! = "account"

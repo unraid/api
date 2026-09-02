@@ -30,7 +30,8 @@ import type {
 type ServiceTarget = ConnectServiceTargetsQuery['docker']['containers'][number];
 type TargetMode = 'container' | 'manual';
 type TargetProtocol = 'http' | 'https';
-type ServiceKind = 'web' | 'minecraft-java';
+type ServiceKind = 'web' | 'tcp';
+type TcpIngress = 'tls-sni' | 'minecraft-java';
 
 const {
   state,
@@ -72,6 +73,7 @@ const selectedContainerId = ref('');
 const selectedPort = ref('');
 const selectedProtocol = ref<TargetProtocol>('http');
 const serviceKind = ref<ServiceKind>('web');
+const tcpIngress = ref<TcpIngress>('tls-sni');
 watch(
   () => [draft.value?.auth, draft.value?.upstream, draft.value?.tlsServerName],
   () => {
@@ -138,7 +140,7 @@ function updateDiscoveredUpstream() {
   const binding = selectedPortDetails.value.ip?.trim();
   const host = !binding || binding === '0.0.0.0' || binding === '::' ? '127.0.0.1' : binding;
   const formattedHost = host.includes(':') ? `[${host}]` : host;
-  const protocol = serviceKind.value === 'minecraft-java' ? 'tcp' : selectedProtocol.value;
+  const protocol = serviceKind.value === 'web' ? selectedProtocol.value : 'tcp';
   draft.value.upstream = `${protocol}://${formattedHost}:${selectedPort.value}`;
 }
 function selectContainer(value: unknown) {
@@ -169,10 +171,11 @@ function selectProtocol(value: unknown) {
   updateDiscoveredUpstream();
 }
 function selectServiceKind(value: unknown) {
-  if (!draft.value || (value !== 'web' && value !== 'minecraft-java')) return;
+  if (!draft.value || (value !== 'web' && value !== 'tcp')) return;
   serviceKind.value = value;
-  draft.value.protocol = value === 'minecraft-java' ? 'minecraft-java' : 'https';
-  if (value === 'minecraft-java') {
+  draft.value.protocol = value === 'web' ? 'https' : 'tcp';
+  draft.value.ingress = value === 'web' ? '' : tcpIngress.value;
+  if (value === 'tcp') {
     draft.value.auth = 'upstream';
     draft.value.providerId = '';
     draft.value.subjects = [];
@@ -180,6 +183,12 @@ function selectServiceKind(value: unknown) {
   }
   applicationAuthAcknowledged.value = false;
   updateDiscoveredUpstream();
+}
+function selectTcpIngress(value: unknown) {
+  if (!draft.value || (value !== 'tls-sni' && value !== 'minecraft-java')) return;
+  tcpIngress.value = value;
+  draft.value.ingress = value;
+  applicationAuthAcknowledged.value = false;
 }
 function selectTargetMode(value: unknown) {
   if (value !== 'container' && value !== 'manual') return;
@@ -201,7 +210,7 @@ const authOptions = computed(() => [
 ]);
 const needsAcknowledgment = computed(
   () =>
-    (serviceKind.value === 'minecraft-java' || draft.value?.auth === 'upstream') &&
+    (serviceKind.value !== 'web' || draft.value?.auth === 'upstream') &&
     !applicationAuthAcknowledged.value
 );
 const selectedAuth = computed(() =>
@@ -234,6 +243,7 @@ const editable = (s: ConnectGatewayServiceInput): ConnectGatewayServiceInput => 
   name: s.name,
   upstream: s.upstream,
   protocol: s.protocol ?? 'https',
+  ingress: s.ingress ?? '',
   tlsServerName: s.tlsServerName,
   enabled: s.enabled,
   auth: s.auth ?? 'account',
@@ -280,6 +290,7 @@ function edit(service?: ConnectGatewayServiceInput) {
         name: '',
         upstream: '',
         protocol: 'https',
+        ingress: '',
         tlsServerName: '',
         enabled: true,
         auth: 'account',
@@ -293,7 +304,8 @@ function edit(service?: ConnectGatewayServiceInput) {
       : 'manual';
   selectedContainerId.value = '';
   selectedPort.value = '';
-  serviceKind.value = service?.protocol === 'minecraft-java' ? 'minecraft-java' : 'web';
+  serviceKind.value = service?.protocol === 'tcp' ? 'tcp' : 'web';
+  tcpIngress.value = service?.ingress === 'minecraft-java' ? 'minecraft-java' : 'tls-sni';
   selectedProtocol.value = service?.upstream.startsWith('https:') ? 'https' : 'http';
   if (!service && discoveredTargets.value[0]) selectContainer(discoveredTargets.value[0].id);
   removing.value = null;
@@ -350,7 +362,10 @@ function status(service: (typeof state.gateway.services)[number]) {
   if (applying) return t('connectServices.applying');
   if (state.gateway.pending || !service.url) return t('connectServices.pending');
   if (!ready.value) return t('connectServices.unavailable');
-  if (service.protocol === 'minecraft-java') return t('connectServices.minecraftReady');
+  if (service.protocol === 'tcp' && service.ingress === 'minecraft-java')
+    return t('connectServices.minecraftReady');
+  if (service.protocol === 'tcp' && service.ingress === 'tls-sni')
+    return t('connectServices.tlsTcpReady');
   if (service.auth === 'oidc') return t('connectServices.providerProtected');
   return t(
     service.auth === 'upstream' ? 'connectServices.applicationAuth' : 'connectServices.protected'
@@ -454,7 +469,7 @@ function status(service: (typeof state.gateway.services)[number]) {
                 >{{ t('connectServices.open', { name: service.name }) }}</a
               >
               <code
-                v-else-if="service.protocol === 'minecraft-java' && service.url"
+                v-else-if="service.protocol === 'tcp' && service.url"
                 class="bg-muted inline-block rounded px-1.5 py-0.5 text-sm break-all select-all"
                 >{{ service.url }}</code
               >
@@ -536,6 +551,24 @@ function status(service: (typeof state.gateway.services)[number]) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="web">{{ t('connectServices.webApplication') }}</SelectItem>
+              <SelectItem value="tcp">{{ t('connectServices.tcpService') }}</SelectItem>
+            </SelectContent>
+          </SelectRoot>
+        </div>
+        <div v-if="serviceKind === 'tcp'" class="max-w-xl space-y-2">
+          <label :id="`${id}-tcp-ingress-label`" class="font-medium">{{
+            t('connectServices.tcpConnectionMethod')
+          }}</label>
+          <SelectRoot
+            :model-value="tcpIngress"
+            :disabled="saving"
+            @update:model-value="selectTcpIngress"
+          >
+            <SelectTrigger :aria-labelledby="`${id}-tcp-ingress-label`">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="tls-sni">{{ t('connectServices.tlsTcp') }}</SelectItem>
               <SelectItem value="minecraft-java">{{ t('connectServices.minecraftJava') }}</SelectItem>
             </SelectContent>
           </SelectRoot>
@@ -682,13 +715,17 @@ function status(service: (typeof state.gateway.services)[number]) {
             <Input
               :id="`${id}-upstream`"
               v-model="draft.upstream"
-              :type="serviceKind === 'minecraft-java' ? 'text' : 'url'"
+              :type="serviceKind === 'web' ? 'url' : 'text'"
               required
               maxlength="300"
               :disabled="saving"
               autocomplete="off"
               :placeholder="
-                serviceKind === 'minecraft-java' ? 'tcp://127.0.0.1:25565' : 'http://127.0.0.1:32400'
+                serviceKind === 'tcp' && tcpIngress === 'minecraft-java'
+                  ? 'tcp://127.0.0.1:25565'
+                  : serviceKind === 'tcp'
+                    ? 'tcp://127.0.0.1:1883'
+                    : 'http://127.0.0.1:32400'
               "
               :aria-describedby="`${id}-upstream-help`"
             />
@@ -773,17 +810,37 @@ function status(service: (typeof state.gateway.services)[number]) {
       </section>
 
       <section v-else class="border-warning/50 bg-warning/5 space-y-3 rounded-lg border p-4 @md:p-5">
-        <h4 class="font-semibold">{{ t('connectServices.minecraftAccessTitle') }}</h4>
-        <p class="max-w-prose text-sm">{{ t('connectServices.minecraftWarning') }}</p>
+        <h4 class="font-semibold">
+          {{
+            t(
+              tcpIngress === 'tls-sni'
+                ? 'connectServices.tlsTcpAccessTitle'
+                : 'connectServices.minecraftAccessTitle'
+            )
+          }}
+        </h4>
+        <p class="max-w-prose text-sm">
+          {{
+            t(
+              tcpIngress === 'tls-sni'
+                ? 'connectServices.tlsTcpWarning'
+                : 'connectServices.minecraftWarning'
+            )
+          }}
+        </p>
         <div class="flex items-start gap-3">
           <input
-            :id="`${id}-minecraft-ack`"
+            :id="`${id}-native-ack`"
             v-model="applicationAuthAcknowledged"
             type="checkbox"
             :disabled="saving"
           />
-          <label :for="`${id}-minecraft-ack`" class="max-w-prose text-sm">{{
-            t('connectServices.minecraftAcknowledgment')
+          <label :for="`${id}-native-ack`" class="max-w-prose text-sm">{{
+            t(
+              tcpIngress === 'tls-sni'
+                ? 'connectServices.tlsTcpAcknowledgment'
+                : 'connectServices.minecraftAcknowledgment'
+            )
           }}</label>
         </div>
       </section>

@@ -417,7 +417,8 @@ describe('native connector host integration', () => {
             ...appService,
             name: 'Minecraft',
             upstream: 'tcp://127.0.0.1:25565',
-            protocol: 'minecraft-java' as const,
+            protocol: 'tcp' as const,
+            ingress: 'minecraft-java' as const,
             auth: 'upstream' as const,
         };
         await tunnel.updateGatewayServices({ expectedRevision: 0, services: [minecraft] });
@@ -425,7 +426,8 @@ describe('native connector host integration', () => {
         const generated = JSON.parse(await readFile(env!.GATEWAY_CONFIG!, 'utf8'));
         expect(generated.services).toContainEqual({
             purpose: minecraft.id,
-            protocol: 'minecraft-java',
+            protocol: 'tcp',
+            ingress: 'minecraft-java',
             upstream: minecraft.upstream,
             auth: 'upstream',
         });
@@ -434,6 +436,39 @@ describe('native connector host integration', () => {
         for (const invalid of [
             { ...minecraft, auth: 'account' },
             { ...minecraft, upstream: 'http://127.0.0.1:25565' },
+            { ...minecraft, protocol: 'minecraft-java' },
+            { ...minecraft, ingress: '' },
+        ]) {
+            expect(() => validateGatewayServices([invalid as ConnectGatewayService])).toThrow();
+        }
+    });
+    it('writes TLS TCP as a managed-TLS private TCP route', async () => {
+        config.set('CONNECT_GATEWAY_ENABLED', 'true');
+        await tunnel.update({ certificateManagementEnabled: true, tunnelRemoteAccessEnabled: true });
+        const mqtt = {
+            ...appService,
+            name: 'MQTT',
+            upstream: 'tcp://127.0.0.1:1883',
+            protocol: 'tcp' as const,
+            ingress: 'tls-sni' as const,
+            auth: 'upstream' as const,
+        };
+        await tunnel.updateGatewayServices({ expectedRevision: 0, services: [mqtt] });
+        const env = await tunnel.processEnvironment();
+        const generated = JSON.parse(await readFile(env!.GATEWAY_CONFIG!, 'utf8'));
+        expect(generated.services).toContainEqual({
+            purpose: mqtt.id,
+            protocol: 'tcp',
+            ingress: 'tls-sni',
+            upstream: mqtt.upstream,
+            auth: 'upstream',
+        });
+        expect(tunnel.gatewaySettings().services[0]?.url).toMatch(/:443$/);
+
+        for (const invalid of [
+            { ...mqtt, auth: 'account' },
+            { ...mqtt, upstream: 'https://127.0.0.1:1883' },
+            { ...mqtt, upstream: 'tcp://8.8.8.8:1883' },
         ]) {
             expect(() => validateGatewayServices([invalid as ConnectGatewayService])).toThrow();
         }

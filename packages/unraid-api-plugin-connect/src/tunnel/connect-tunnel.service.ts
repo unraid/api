@@ -466,9 +466,11 @@ export class ConnectTunnelService implements OnModuleDestroy {
                     settings.tunnelRemoteAccessEnabled &&
                     !settings.gatewayServicesPending &&
                     this.serviceRoutes.has(service.id)
-                        ? service.protocol === 'minecraft-java'
+                        ? service.protocol === 'tcp' && service.ingress === 'minecraft-java'
                             ? `${this.serviceRoutes.get(service.id)}:25565`
-                            : `https://${this.serviceRoutes.get(service.id)}`
+                            : service.protocol === 'tcp' && service.ingress === 'tls-sni'
+                              ? `${this.serviceRoutes.get(service.id)}:443`
+                              : `https://${this.serviceRoutes.get(service.id)}`
                         : null,
             })),
         };
@@ -644,8 +646,9 @@ export class ConnectTunnelService implements OnModuleDestroy {
                             .map((service) => ({
                                 purpose: service.id,
                                 upstream: service.upstream,
-                                ...(service.protocol === 'minecraft-java' && {
-                                    protocol: 'minecraft-java',
+                                ...(service.protocol !== 'https' && {
+                                    protocol: service.protocol,
+                                    ingress: service.ingress,
                                 }),
                                 ...(service.tlsServerName && { tlsServerName: service.tlsServerName }),
                                 auth: service.auth ?? 'account',

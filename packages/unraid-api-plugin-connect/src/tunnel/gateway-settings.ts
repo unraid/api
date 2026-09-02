@@ -30,8 +30,11 @@ export class ConnectGatewayService {
     @MaxLength(300)
     upstream!: string;
     @Field(() => String, { defaultValue: 'https' })
-    @IsIn(['https', 'minecraft-java'])
-    protocol?: 'https' | 'minecraft-java' = 'https';
+    @IsIn(['https', 'tcp'])
+    protocol?: 'https' | 'tcp' = 'https';
+    @Field(() => String, { defaultValue: '' })
+    @IsIn(['', 'minecraft-java', 'tls-sni'])
+    ingress?: '' | 'minecraft-java' | 'tls-sni' = '';
     @Field(() => String)
     @IsString()
     @MaxLength(253)
@@ -100,8 +103,13 @@ export function validateGatewayServices(services: ConnectGatewayService[]): Conn
             throw new Error('A service needs a name and an enabled state');
         const requestedAuth = service.auth === undefined ? 'account' : service.auth;
         const protocol = service.protocol === undefined ? 'https' : service.protocol;
-        if (protocol !== 'https' && protocol !== 'minecraft-java')
-            throw new Error('Invalid service protocol');
+        const ingress = service.ingress === undefined ? '' : service.ingress;
+        if (protocol !== 'https' && protocol !== 'tcp') throw new Error('Invalid service protocol');
+        if (
+            (protocol === 'https' && ingress !== '') ||
+            (protocol === 'tcp' && ingress !== 'minecraft-java' && ingress !== 'tls-sni')
+        )
+            throw new Error('Invalid service ingress');
         if (
             requestedAuth !== 'account' &&
             requestedAuth !== 'unraid' &&
@@ -112,8 +120,8 @@ export function validateGatewayServices(services: ConnectGatewayService[]): Conn
         // Core can hand off its server-local OIDC mode as "unraid". Legacy
         // Unraid cannot issue that login, so it must use the Unraid.net account mode.
         const auth = requestedAuth === 'unraid' ? 'account' : requestedAuth;
-        if (protocol === 'minecraft-java' && auth !== 'upstream')
-            throw new Error('Minecraft Java services must use application authentication');
+        if (protocol !== 'https' && auth !== 'upstream')
+            throw new Error('Native services must use application authentication');
         const providerId = service.providerId === undefined ? '' : service.providerId;
         const subjects = service.subjects === undefined ? [] : service.subjects;
         if (
@@ -140,7 +148,7 @@ export function validateGatewayServices(services: ConnectGatewayService[]): Conn
                 : isIP(host) === 6 && (host === '::1' || /^(fc|fd)/i.test(host));
         if (
             !privateAddress ||
-            (protocol === 'minecraft-java'
+            (protocol !== 'https'
                 ? url.protocol !== 'tcp:' || !url.port
                 : !['http:', 'https:'].includes(url.protocol)) ||
             url.username ||
@@ -167,8 +175,9 @@ export function validateGatewayServices(services: ConnectGatewayService[]): Conn
         return {
             id: service.id,
             name: service.name.trim(),
-            upstream: protocol === 'minecraft-java' ? `${url.protocol}//${url.host}` : url.origin,
+            upstream: protocol !== 'https' ? `${url.protocol}//${url.host}` : url.origin,
             protocol,
+            ingress,
             tlsServerName,
             enabled: service.enabled,
             auth,
