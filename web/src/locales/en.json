@@ -1168,7 +1168,7 @@
   "connectBackup.setupFailed": "Flash backup could not be prepared. Check your Connect plan and try again.",
   "connectServices": {
     "title": "Services",
-    "description": "Reach web applications and supported game servers through this tunnel. Each enabled service has its own address.",
+    "description": "Reach web applications and TCP services through this tunnel. Each enabled service has its own address.",
     "add": "Add service",
     "formDescription": "Set the destination, choose an access policy, then publish the address.",
     "steps": {
@@ -1204,12 +1204,12 @@
     "webApplication": "Web application",
     "tcpService": "TCP service",
     "tcpConnectionMethod": "Connection method",
-    "minecraftJava": "Minecraft Java server",
+    "minecraftJava": "Minecraft Java on port 25565",
     "minecraftReady": "Minecraft Java route ready",
     "minecraftAccessTitle": "Minecraft controls player access",
     "minecraftWarning": "Native Minecraft traffic cannot use Unraid.net or OIDC sign-in. Anyone who knows this address can reach the Minecraft listener. Use online mode, an allowlist, and the server's own access controls.",
     "minecraftAcknowledgment": "I understand that Minecraft controls access and have checked the server's authentication and allowlist settings.",
-    "tlsTcp": "TLS TCP service",
+    "tlsTcp": "Managed TLS on port 443",
     "tlsTcpReady": "TLS TCP route ready",
     "tlsTcpAccessTitle": "The service controls access",
     "tlsTcpWarning": "Connect provides TLS on the public address and forwards decrypted TCP traffic to this private address. Unraid.net and OIDC sign-in cannot protect the protocol. The service must require its own authentication.",
