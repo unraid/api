@@ -33,6 +33,7 @@ interface ProvisionedRepository {
 
 interface UsageResponse {
     schemaVersion: 1;
+    serverUuid: string;
     tierId: string | null;
     quotaBytes: number;
     usedBytes: number;
@@ -156,18 +157,18 @@ export class ManagedBackupService {
             repositoryState === null || repositoryState.current?.repositoryId === state.repository_id;
         const effectiveRepositoryConfigured = repositoryConfigured && currentRepositoryMatches;
         const signedIn = Boolean(this.connect.getConfig().apikey);
+        const repositoryInitialized =
+            effectiveRepositoryConfigured || (usage.state === 'current' && usage.value.objectCount > 0);
         const browseUrl =
-            effectiveRepositoryConfigured && repositoryState
-                ? this.backupBrowserUrl(repositoryState.serverUuid)
+            signedIn && repositoryInitialized && usage.state === 'current'
+                ? this.backupBrowserUrl(usage.value.serverUuid)
                 : null;
         return {
             schemaVersion: 1,
             signedIn,
             configured: effectiveRepositoryConfigured && Boolean(job),
             repositoryConfigured: effectiveRepositoryConfigured,
-            repositoryInitialized:
-                effectiveRepositoryConfigured ||
-                (usage.state === 'current' && usage.value.objectCount > 0),
+            repositoryInitialized,
             setupPending: Number.isSafeInteger(state.pending_generation),
             legacyMigrationPending,
             running: this.running,
@@ -524,7 +525,8 @@ export class ManagedBackupService {
         const accountOrigin = preview
             ? 'https://preview.account.unraid.net'
             : 'https://account.unraid.net';
-        return new URL(`/servers/${encodeURIComponent(serverUuid)}/backup`, accountOrigin).href;
+        return new URL(`/servers/${encodeURIComponent(serverUuid.toLowerCase())}/backup`, accountOrigin)
+            .href;
     }
 
     private async ensureRepository(
@@ -1020,6 +1022,8 @@ function validateRepositoryState(value: unknown): RepositoryStateResponse {
     if (
         !isObject(value) ||
         value.schemaVersion !== 1 ||
+        typeof value.serverUuid !== 'string' ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value.serverUuid) ||
         typeof value.serverUuid !== 'string' ||
         !value.serverUuid ||
         (value.current !== null &&

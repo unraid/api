@@ -227,6 +227,7 @@ describe('managed backup service', () => {
                 if (url.pathname === '/backup/v1/usage') {
                     return Response.json({
                         schemaVersion: 1,
+                        serverUuid: '705372c2-c8ee-4199-8512-18dfa322617e',
                         dnshash: 'server-hash',
                         tierId: 'connect-included',
                         quotaBytes: 10_000_000_000,
@@ -237,6 +238,9 @@ describe('managed backup service', () => {
                     });
                 }
                 if (url.pathname === '/backup/v1/repository-state') {
+                    if (currentRepositoryId === '__unavailable__') {
+                        return Response.json({}, { status: 404 });
+                    }
                     return Response.json({
                         schemaVersion: 1,
                         serverUuid: '705372c2-c8ee-4199-8512-18dfa322617e',
@@ -339,6 +343,16 @@ describe('managed backup service', () => {
         await expect(service.status()).resolves.toMatchObject({
             browseUrl:
                 'https://preview.account.unraid.net/servers/705372c2-c8ee-4199-8512-18dfa322617e/backup',
+        });
+    });
+
+    it('links an existing backup from usage when repository state is unavailable', async () => {
+        await service.setup('recovery phrase');
+        currentRepositoryId = '__unavailable__';
+
+        await expect(service.status()).resolves.toMatchObject({
+            repositoryInitialized: true,
+            browseUrl: 'https://account.unraid.net/servers/705372c2-c8ee-4199-8512-18dfa322617e/backup',
         });
     });
 
