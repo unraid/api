@@ -363,6 +363,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
                         tunnelRemoteAccessEnabled: false,
                         tunnelHostname: null,
                         tunnelHostnames: [],
+                        gatewayServiceRoutes: {},
                     });
                     if (!(await this.nginx.reload())) throw new Error('Nginx reload failed');
                 }
@@ -377,6 +378,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
                             old.gatewayServicesPending || old.gatewayServicesRevision > 0,
                         tunnelHostname: null,
                         tunnelHostnames: [],
+                        gatewayServiceRoutes: {},
                     });
                     try {
                         const body = object(await this.request('/tunnel/enable', 'POST'));
@@ -399,6 +401,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
                             tunnelRemoteAccessEnabled: false,
                             tunnelHostname: null,
                             tunnelHostnames: [],
+                            gatewayServiceRoutes: {},
                         });
                         throw error;
                     }
@@ -512,6 +515,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
             throw new Error('Invalid service route response');
         const certificate = new X509Certificate(await readFile(this.bundlePath()));
         const hostnames = new Set<string>();
+        const serviceRoutes = new Map<string, string>();
         for (const raw of result.routes) {
             const route = object(raw);
             if (
@@ -524,6 +528,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
             hostnames.add(route.hostname);
             if (route.purpose !== 'webgui' && (route.id !== route.purpose || route.kind !== 'service'))
                 throw new Error('Invalid service route identity');
+            if (route.purpose !== 'webgui') serviceRoutes.set(String(route.purpose), route.hostname);
         }
         const actual = result.routes
             .filter((r) => object(r).enabled === true && object(r).purpose !== 'webgui')
@@ -531,7 +536,10 @@ export class ConnectTunnelService implements OnModuleDestroy {
             .sort();
         if (JSON.stringify(actual) !== JSON.stringify(serviceIds))
             throw new Error('Service routes have not been confirmed');
-        await this.save({ gatewayServicesPending: false });
+        await this.save({
+            gatewayServicesPending: false,
+            gatewayServiceRoutes: Object.fromEntries(serviceRoutes),
+        });
     }
 
     private bundlePath() {
@@ -679,36 +687,49 @@ export class ConnectTunnelService implements OnModuleDestroy {
             const certificate = new X509Certificate(await readFile(this.bundlePath()));
             if (names.some((name) => !certificate.checkHost(name)))
                 throw new Error('Route certificate mismatch');
+            const serviceRoutes = new Map<string, string>();
+            for (const raw of body.routes) {
+                const entry = object(raw);
+                if (entry.enabled !== true || entry.purpose === 'webgui') continue;
+                if (
+                    typeof entry.purpose !== 'string' ||
+                    !/^app-[a-f0-9]{16}$/.test(entry.purpose) ||
+                    entry.id !== entry.purpose ||
+                    entry.kind !== 'service' ||
+                    typeof entry.hostname !== 'string' ||
+                    !certificate.checkHost(entry.hostname) ||
+                    serviceRoutes.has(entry.purpose)
+                )
+                    throw new Error('Invalid service route identity');
+                serviceRoutes.set(entry.purpose, entry.hostname);
+            }
             if (
                 !this.aliasesApplied ||
                 settings.tunnelHostname !== object(primary).hostname ||
-                JSON.stringify(settings.tunnelHostnames) !== JSON.stringify(names)
+                JSON.stringify(settings.tunnelHostnames) !== JSON.stringify(names) ||
+                JSON.stringify(settings.gatewayServiceRoutes) !==
+                    JSON.stringify(Object.fromEntries(serviceRoutes))
             ) {
                 this.aliasesApplied = false;
                 await this.save({
                     tunnelHostname: String(object(primary).hostname),
                     tunnelHostnames: names,
+                    gatewayServiceRoutes: Object.fromEntries(serviceRoutes),
                 });
                 if (!(await this.nginx.reload())) throw new Error('Nginx reload failed');
             }
             this.serviceRoutes.clear();
-            for (const raw of body.routes) {
-                const entry = object(raw);
-                if (
-                    entry.enabled === true &&
-                    typeof entry.purpose === 'string' &&
-                    /^app-[a-f0-9]{16}$/.test(entry.purpose) &&
-                    typeof entry.hostname === 'string' &&
-                    certificate.checkHost(entry.hostname)
-                )
-                    this.serviceRoutes.set(entry.purpose, entry.hostname);
-            }
+            for (const [purpose, hostname] of serviceRoutes) this.serviceRoutes.set(purpose, hostname);
             this.aliasesApplied = true;
             this.current.routeState = 'ready';
         } catch (error) {
             if (error instanceof ControlPlaneResponseError && [401, 403, 409].includes(error.status)) {
                 this.aliasesApplied = false;
-                await this.save({ tunnelHostname: null, tunnelHostnames: [] });
+                await this.save({
+                    tunnelHostname: null,
+                    tunnelHostnames: [],
+                    gatewayServiceRoutes: {},
+                });
                 if (!(await this.nginx.reload())) throw new Error('Nginx reload failed');
             }
             // A failed alias refresh does not change local certificate ownership or

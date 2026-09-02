@@ -468,6 +468,9 @@ describe('native connector host integration', () => {
         });
         expect(env.OIDC_CONFIG_PATH).toBe(join(directory, 'oidc.json'));
         expect(tunnel.settings().tunnelHostnames).toHaveLength(2);
+        expect(tunnel.settings().gatewayServiceRoutes).toEqual({
+            [appService.id]: `tun-${'c'.repeat(32)}-0123456789abcdef.example.myunraid.net`,
+        });
         await expect(
             tunnel.updateGatewayServices({ expectedRevision: 0, services: [] })
         ).rejects.toThrow();

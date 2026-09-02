@@ -12,6 +12,7 @@ import {
     IsEnum,
     IsInt,
     IsNumber,
+    IsObject,
     IsOptional,
     IsString,
     Matches,
@@ -50,6 +51,8 @@ export class MyServersConfig {
     gatewayServicesRevision = 0;
     @IsBoolean()
     gatewayServicesPending = false;
+    @IsObject()
+    gatewayServiceRoutes: Record<string, string> = {};
 
     @Field(() => Boolean)
     @IsBoolean()
@@ -235,6 +238,7 @@ export const emptyMyServersConfig = (): MyServersConfig => ({
     gatewayServices: [],
     gatewayServicesRevision: 0,
     gatewayServicesPending: false,
+    gatewayServiceRoutes: {},
     certificateManagementEnabled: false,
     tunnelRemoteAccessEnabled: false,
     serverDataReportingEnabled: false,

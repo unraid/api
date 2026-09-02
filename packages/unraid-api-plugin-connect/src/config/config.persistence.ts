@@ -61,6 +61,7 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
         });
         await validateOrReject(instance, { whitelist: true });
         instance.gatewayServices = validateGatewayServices(instance.gatewayServices);
+        instance.gatewayServiceRoutes = validateGatewayServiceRoutes(instance.gatewayServiceRoutes);
         if (!instance.certificateManagementEnabled) instance.tunnelRemoteAccessEnabled = false;
         return instance;
     }
@@ -198,4 +199,22 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
     public parseLegacyConfig(iniFileContent: string): LegacyConfig {
         return parseIni(iniFileContent) as LegacyConfig;
     }
+}
+
+function validateGatewayServiceRoutes(value: Record<string, string>): Record<string, string> {
+    if (!value || Array.isArray(value) || typeof value !== 'object') return {};
+    const entries = Object.entries(value);
+    if (entries.length > 31) throw new Error('Use at most 31 service routes');
+    for (const [id, hostname] of entries) {
+        const suffix = id.replace(/^app-/, '');
+        if (
+            !/^app-[a-f0-9]{16}$/.test(id) ||
+            typeof hostname !== 'string' ||
+            !new RegExp(
+                `^tun-[a-f0-9]{32}-${suffix}\\.[a-z0-9-]+\\.(?:preview\\.)?myunraid\\.net$`
+            ).test(hostname)
+        )
+            throw new Error('Invalid service route');
+    }
+    return Object.fromEntries(entries);
 }
