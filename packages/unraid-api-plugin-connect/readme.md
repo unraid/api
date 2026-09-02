@@ -80,9 +80,10 @@ that it installed a certificate.
 
 The executable contains a root-only local multiplexer. Core and the Node API can
 both attach to the same connector runtime, send commands, and receive the same
-status stream without opening duplicate tunnels. Core's local Unraid OIDC policy
-is authoritative while Core is attached; the multiplexer retains this API's
-Account policy as the legacy fallback and restores it if Core disconnects.
+status stream without opening duplicate tunnels. Both callers write the shared
+Connect settings, and the multiplexer rereads that state before applying or
+retrying gateway policy. A caller cannot restore an older authentication policy
+after the other caller has saved a newer revision.
 
 ## Installation patches
 

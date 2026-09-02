@@ -289,7 +289,6 @@ export class ConnectTunnelService implements OnModuleDestroy {
     @OnEvent(EVENTS.LOGOUT, { async: true })
     async signOut(): Promise<void> {
         await this.serial(async () => {
-            await this.stopChild();
             await this.save({
                 apikey: '',
                 localApiKey: '',
@@ -298,6 +297,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
                 email: null,
                 regWizTime: '',
             });
+            await this.stopChild();
             await this.writeState();
             await this.events.emitAsync(EVENTS.IDENTITY_CHANGED);
         });
@@ -476,7 +476,9 @@ export class ConnectTunnelService implements OnModuleDestroy {
             const old = this.settings();
             if (!old.apikey) throw new Error('Sign in to Unraid Connect first');
             if (input.expectedRevision !== old.gatewayServicesRevision)
-                throw new Error('Service settings changed. Reload before saving again.');
+                throw new Error(
+                    `Service settings changed (expected ${input.expectedRevision}, current ${old.gatewayServicesRevision}). Reload before saving again.`
+                );
             const services = validateGatewayServices(input.services);
             if (
                 this.config.get<string>('CONNECT_GATEWAY_ENABLED') !== 'true' &&
@@ -489,13 +491,13 @@ export class ConnectTunnelService implements OnModuleDestroy {
                 JSON.stringify(services) !== JSON.stringify(old.gatewayServices)
             )
                 throw new Error('Retry the pending service save before making another change');
+            await this.save({
+                gatewayServices: services,
+                gatewayServicesRevision: old.gatewayServicesRevision + 1,
+                gatewayServicesPending: true,
+            });
             await this.stopChild();
             try {
-                await this.save({
-                    gatewayServices: services,
-                    gatewayServicesRevision: old.gatewayServicesRevision + 1,
-                    gatewayServicesPending: true,
-                });
                 await this.syncGatewayServices();
             } finally {
                 await this.reload(false);
@@ -615,6 +617,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
                 gatewayPath,
                 JSON.stringify({
                     version: 1,
+                    gatewayServicesRevision: settings.gatewayServicesRevision,
                     issuer: new URL(
                         controlPlaneOrigin(this.config.get<string>('CONNECT_CONTROL_PLANE_URL'))
                     ).hostname.startsWith('preview.')
@@ -652,6 +655,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
         return {
             PATH: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
             CONTROL_PLANE_URL: controlPlaneOrigin(this.config.get<string>('CONNECT_CONTROL_PLANE_URL')),
+            CONNECT_CONFIG_PATH: this.persistence.configPath(),
             API_KEY: settings.apikey,
             CERT_ONLY: String(certificateOnly),
             CERT_ENABLED: String(cert),

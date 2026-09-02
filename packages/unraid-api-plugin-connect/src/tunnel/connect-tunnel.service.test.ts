@@ -213,6 +213,7 @@ describe('native connector host integration', () => {
             },
         });
         persister = new ConnectConfigPersister(config);
+        await persister.save(persister.getConfig());
         nginx = { reload: vi.fn().mockResolvedValue(true) };
         tunnel = new ConnectTunnelService(
             config,
@@ -231,7 +232,9 @@ describe('native connector host integration', () => {
         await rm(directory, { recursive: true, force: true });
     });
     const setFeatures = async (features: object) => {
-        config.set('connect.config', await persister.validate({ ...tunnel.settings(), ...features }));
+        const target = tunnel;
+        const store = persister;
+        await store.save(await store.validate({ ...target.settings(), ...features }));
     };
     it('collects only aggregate Docker and VM state for the shared overview', async () => {
         const query = vi
@@ -349,6 +352,7 @@ describe('native connector host integration', () => {
         expect(path).toBeTruthy();
         expect(JSON.parse(await readFile(path!, 'utf8'))).toEqual({
             version: 1,
+            gatewayServicesRevision: 0,
             issuer: 'https://account.unraid.net',
             clientId: 'CONNECT_SERVER_SSO',
             services: [

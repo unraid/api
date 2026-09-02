@@ -83,6 +83,37 @@ describe('Connect configuration persistence', () => {
         expect(config.get('connect.config')).toEqual(JSON.parse(file));
         await expect(stat(`${persister.configPath()}.tmp`)).rejects.toThrow();
     });
+    it('merges each update over the latest shared on-disk configuration', async () => {
+        await persister.save(await persister.validate({ apikey: 'test-key' }));
+        const external = JSON.parse(await readFile(persister.configPath(), 'utf8'));
+        external.gatewayServiceRoutes = {
+            'app-0123456789abcdef':
+                'tun-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-0123456789abcdef.example.preview.myunraid.net',
+        };
+        await writeFile(persister.configPath(), JSON.stringify(external));
+
+        await persister.update({ username: 'updated' });
+
+        expect(JSON.parse(await readFile(persister.configPath(), 'utf8'))).toMatchObject({
+            username: 'updated',
+            gatewayServiceRoutes: external.gatewayServiceRoutes,
+        });
+    });
+    it('does not rewrite shared configuration during shutdown', async () => {
+        await persister.save(await persister.validate({ apikey: 'test-key' }));
+        const external = JSON.parse(await readFile(persister.configPath(), 'utf8'));
+        external.gatewayServiceRoutes = {
+            'app-0123456789abcdef':
+                'tun-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-0123456789abcdef.example.preview.myunraid.net',
+        };
+        await writeFile(persister.configPath(), JSON.stringify(external));
+
+        await persister.onModuleDestroy();
+
+        expect(JSON.parse(await readFile(persister.configPath(), 'utf8'))).toMatchObject({
+            gatewayServiceRoutes: external.gatewayServiceRoutes,
+        });
+    });
     it('uses an isolated Connect path without moving other API configuration', async () => {
         const connectPath = join(directory, 'preview', 'connect.json');
         const isolatedConfig = new ConfigService({

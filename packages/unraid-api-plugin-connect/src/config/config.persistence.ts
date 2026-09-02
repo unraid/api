@@ -108,7 +108,6 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
     override async onModuleDestroy(): Promise<void> {
         await this.updates;
         await this.writes;
-        await this.persist();
     }
 
     private updates: Promise<void> = Promise.resolve();
@@ -116,7 +115,12 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
     update(changes: Partial<MyServersConfig>): Promise<void> {
         const update = this.updates
             .catch(() => undefined)
-            .then(() => this.save({ ...this.getConfig(), ...changes }));
+            .then(async () => {
+                const current = existsSync(this.configPath())
+                    ? await this.validate(JSON.parse(await readFile(this.configPath(), 'utf8')))
+                    : this.getConfig(false);
+                await this.save({ ...current, ...changes });
+            });
         this.updates = update;
         return update;
     }
