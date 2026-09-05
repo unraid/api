@@ -70,6 +70,8 @@ export class ConnectTunnelService implements OnModuleDestroy {
     private child?: ResultPromise;
     private queue: Promise<unknown> = Promise.resolve();
     private timer?: NodeJS.Timeout;
+    private restartTimer?: NodeJS.Timeout;
+    private restartAttempts = 0;
     private destroyed = false;
     private readonly bootTime = new Date(Date.now() - uptime() * 1000).toISOString();
     private current = blankStatus();
@@ -781,6 +783,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
         const executable =
             this.config.get<string>('CONNECT_CONNECTOR_PATH') ??
             '/usr/local/bin/unraid-connect-connector';
+        const startedAt = Date.now();
         const child = execa(executable, [], {
             env,
             extendEnv: false,
@@ -815,7 +818,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
                 }
             }
         });
-        void child.then(() => {
+        void child.then((result) => {
             if (this.child === child) {
                 this.child = undefined;
                 this.current.presence = 'disconnected';
@@ -833,10 +836,33 @@ export class ConnectTunnelService implements OnModuleDestroy {
                         .catch(() => this.logger.warn('Connect HTTPS refresh failed'));
                 }
                 this.publish();
+                if (result.exitCode !== 2) {
+                    if (Date.now() - startedAt >= 30_000) this.restartAttempts = 0;
+                    this.scheduleRestart();
+                }
             }
         });
     }
+    private scheduleRestart(): void {
+        if (this.destroyed || this.child || this.restartTimer) return;
+        const delay = Math.min(1000 * 2 ** Math.min(this.restartAttempts++, 5), 30_000);
+        const timer = setTimeout(() => {
+            void this.serial(async () => {
+                if (this.destroyed || this.child || this.restartTimer !== timer) return;
+                this.restartTimer = undefined;
+                await this.persistence.refresh();
+                await this.reload();
+            }).catch(() => {
+                this.logger.warn('Connect connector restart failed');
+                this.scheduleRestart();
+            });
+        }, delay);
+        this.restartTimer = timer;
+        timer.unref();
+    }
     private async stopChild(): Promise<void> {
+        clearTimeout(this.restartTimer);
+        this.restartTimer = undefined;
         const child = this.child;
         this.child = undefined;
         this.commandReady = false;

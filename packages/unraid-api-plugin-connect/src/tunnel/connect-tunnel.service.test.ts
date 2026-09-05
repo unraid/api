@@ -1070,10 +1070,66 @@ emit({event:'cert_migration_result', request_id:request.request_id, outcome:'fai
         expect(await readFile(tunnel.statePath, 'utf8')).not.toContain('Tower');
         expect(tunnel.status().presence).toBe('disconnected');
     });
-    it('does not restart the native connector after it exits', async () => {
+    it('reconnects after a shared connector handoff', async () => {
+        const starts = join(directory, 'starts');
         await writeFile(
             join(directory, 'connector'),
-            `#!${process.execPath}\nconsole.log(JSON.stringify({event:'connected'}));\nprocess.exit(2);\n`,
+            `#!${process.execPath}
+const fs = require('node:fs');
+const path = ${JSON.stringify(starts)};
+const count = fs.existsSync(path) ? Number(fs.readFileSync(path, 'utf8')) + 1 : 1;
+fs.writeFileSync(path, String(count));
+if (count === 1) process.exit(1);
+console.log(JSON.stringify({event:'presence_connected'}));
+setInterval(() => {}, 1000);
+`,
+            { mode: 0o755 }
+        );
+        await setFeatures({ serverDataReportingEnabled: true });
+        await tunnel.start();
+        await vi.waitFor(() => expect(tunnel.status().reason).toBe('connector_exited'));
+        await vi.waitFor(() => expect(tunnel.status().presence).toBe('connected'), { timeout: 3000 });
+        expect(await readFile(starts, 'utf8')).toBe('2');
+    });
+    it('rereads shared feature settings before a handoff retry', async () => {
+        const starts = join(directory, 'starts');
+        await writeFile(
+            join(directory, 'connector'),
+            `#!${process.execPath}\nrequire('node:fs').appendFileSync(${JSON.stringify(starts)}, 'start\\n');\nprocess.exit(1);\n`,
+            { mode: 0o755 }
+        );
+        await setFeatures({ serverDataReportingEnabled: true });
+        await tunnel.start();
+        await vi.waitFor(() => expect(tunnel.status().reason).toBe('connector_exited'));
+        await writeFile(
+            persister.configPath(),
+            JSON.stringify({ ...tunnel.settings(), serverDataReportingEnabled: false })
+        );
+        await vi.waitFor(() => expect(tunnel.settings().serverDataReportingEnabled).toBe(false), {
+            timeout: 3000,
+        });
+        expect(await readFile(starts, 'utf8')).toBe('start\n');
+        expect(tunnel.status().presence).toBe('disconnected');
+    });
+    it.each(['signOut', 'onModuleDestroy'] as const)('cancels a pending retry on %s', async (action) => {
+        const starts = join(directory, 'starts');
+        await writeFile(
+            join(directory, 'connector'),
+            `#!${process.execPath}\nrequire('node:fs').appendFileSync(${JSON.stringify(starts)}, 'start\\n');\nprocess.exit(1);\n`,
+            { mode: 0o755 }
+        );
+        await setFeatures({ serverDataReportingEnabled: true });
+        await tunnel.start();
+        await vi.waitFor(() => expect(tunnel.status().reason).toBe('connector_exited'));
+        await tunnel[action]();
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        expect(await readFile(starts, 'utf8')).toBe('start\n');
+    });
+    it('does not restart the native connector after a durable refusal', async () => {
+        const starts = join(directory, 'starts');
+        await writeFile(
+            join(directory, 'connector'),
+            `#!${process.execPath}\nrequire('node:fs').appendFileSync(${JSON.stringify(starts)}, 'start\\n');\nconsole.log(JSON.stringify({event:'connected'}));\nprocess.exit(2);\n`,
             { mode: 0o755 }
         );
         await setFeatures({ serverDataReportingEnabled: true });
@@ -1082,5 +1138,7 @@ emit({event:'cert_migration_result', request_id:request.request_id, outcome:'fai
         expect(tunnel.status().presence).toBe('disconnected');
         expect(tunnel.status().tunnel).not.toBe('connected');
         expect(new CloudService(tunnel).checkConnector().status).not.toBe('CONNECTED');
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        expect(await readFile(starts, 'utf8')).toBe('start\n');
     });
 });

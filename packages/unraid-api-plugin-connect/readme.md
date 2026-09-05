@@ -85,6 +85,11 @@ Connect settings, and the multiplexer rereads that state before applying or
 retrying gateway policy. A caller cannot restore an older authentication policy
 after the other caller has saved a newer revision.
 
+While Core is attached, it owns the gateway target, issuer, and server overview.
+The API remains connected as a client and can operate alone after Core unloads.
+Transient client exits retry with bounded backoff after rereading shared settings.
+Sign-out, shutdown, and durable connector refusals cancel retries.
+
 Application services may use the HTTPS gateway or the generic TCP transport.
 TCP services use a private `tcp://` target and the existing connector session.
 Their ingress method can use managed TLS on shared port 443, or the Minecraft

@@ -114,6 +114,13 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
 
     private updates: Promise<void> = Promise.resolve();
 
+    async refresh(): Promise<void> {
+        await withPrivateJsonLock(this.configPath(), async () => {
+            const current = await this.validate(JSON.parse(await readFile(this.configPath(), 'utf8')));
+            this.configService.set(this.configKey(), current);
+        });
+    }
+
     update(changes: Partial<MyServersConfig>): Promise<void> {
         return this.updateCurrent((current) => ({ ...current, ...changes }));
     }
