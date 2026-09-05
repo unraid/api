@@ -79,7 +79,9 @@ tester.run('require-graphql-authorization', rule, {
     ],
 });
 
-describe('authorization lint configuration', () => {
+// Loading the full ESLint config includes TypeScript transpilation and plugin startup.
+// Allow for that cold start while CI runs coverage across packages concurrently.
+describe('authorization lint configuration', { timeout: 30_000 }, () => {
     const cwd = fileURLToPath(new URL('..', import.meta.url));
     it.each([
         ['.eslintrc.ts', 'src/new-handler.ts'],
