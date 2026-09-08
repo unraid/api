@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'fs/promises';
-import { basename, dirname, join, resolve } from 'path';
+import { basename, join } from 'path';
 
 import type { Stats } from 'fs';
 import { FSWatcher, watch } from 'chokidar';
@@ -16,6 +16,7 @@ import { AppError } from '@app/core/errors/app-error.js';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { NotificationIni } from '@app/core/types/states/notification.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { resolveFileInDirectory } from '@app/core/utils/files/resolve-file-in-directory.js';
 import { parseConfig } from '@app/core/utils/misc/parse-config.js';
 import { CHOKIDAR_USEPOLLING } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
@@ -94,16 +95,7 @@ export class NotificationsService {
     }
 
     private notificationPath(id: string, type: NotificationType): string {
-        if (!id || id === '.' || id === '..' || /[/\\:\0]/u.test(id)) {
-            throw new AppError('Invalid notification ID', 400);
-        }
-
-        const directory = resolve(this.paths()[type]);
-        const path = resolve(directory, id);
-        if (dirname(path) !== directory) {
-            throw new AppError('Invalid notification ID', 400);
-        }
-        return path;
+        return resolveFileInDirectory(this.paths()[type], id);
     }
 
     private initializeNotificationsState(basePath: string, recreate = false) {
