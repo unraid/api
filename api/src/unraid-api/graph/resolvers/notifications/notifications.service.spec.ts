@@ -10,9 +10,12 @@ import type { TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { existsSync } from 'fs';
-import { mkdir } from 'fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'fs/promises';
+import { join } from 'path';
 
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { execa } from 'execa';
+import { Kind } from 'graphql';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { NotificationIni } from '@app/core/types/states/notification.js';
@@ -281,6 +284,95 @@ describe.sequential('NotificationsService', () => {
 
         ({ overview } = await service.recalculateOverview());
         expect.soft(overview.unread.total).toEqual(0);
+    });
+
+    describe('notification path validation', () => {
+        const operations = [
+            {
+                name: 'delete unread',
+                run: (id: string) => service.deleteNotification({ id, type: NotificationType.UNREAD }),
+            },
+            {
+                name: 'delete archived',
+                run: (id: string) => service.deleteNotification({ id, type: NotificationType.ARCHIVE }),
+            },
+            { name: 'archive', run: (id: string) => service.archiveNotification({ id }) },
+            { name: 'restore', run: (id: string) => service.markAsUnread({ id }) },
+        ];
+
+        it.each(operations)('$name rejects traversal and preserves an outside file', async ({ run }) => {
+            const outsidePath = join(basePath, 'outside.notify');
+            const contents = 'unrelated=value\n';
+            await writeFile(outsidePath, contents);
+            const overview = service.getOverview();
+            try {
+                await expect(run('../outside.notify')).rejects.toThrow();
+                expect(await readFile(outsidePath, 'utf8')).toBe(contents);
+                expect(service.getOverview()).toEqual(overview);
+            } finally {
+                await rm(outsidePath, { force: true });
+            }
+        });
+
+        it.each(operations)('$name rejects invalid IDs as bad requests', async ({ run }) => {
+            const invalidIds = [
+                '',
+                '.',
+                '..',
+                '../outside',
+                'nested/file.notify',
+                'nested/../file.notify',
+                '/absolute.notify',
+                '..\\outside',
+                'C:\\outside',
+                'server:extra:outside',
+                'bad\0.notify',
+            ];
+            for (const id of invalidIds) {
+                await expect(run(id)).rejects.toMatchObject({ status: 400 });
+            }
+        });
+
+        it.each(['variable', 'literal'])(
+            'rejects prefixed traversal from a GraphQL %s',
+            async (inputKind) => {
+                const scalar = new PrefixedID();
+                const value = '1:../outside.notify';
+                const id =
+                    inputKind === 'variable'
+                        ? scalar.parseValue(value)
+                        : scalar.parseLiteral({ kind: Kind.STRING, value });
+                const outsidePath = join(basePath, 'outside.notify');
+                const contents = 'unrelated=value\n';
+                await writeFile(outsidePath, contents);
+                try {
+                    await expect(
+                        service.deleteNotification({ id, type: NotificationType.UNREAD })
+                    ).rejects.toThrow();
+                    expect(await readFile(outsidePath, 'utf8')).toBe(contents);
+                } finally {
+                    await rm(outsidePath, { force: true });
+                }
+            }
+        );
+
+        it('allows deletion of a malformed notification inside the notification directory', async () => {
+            const id = 'invalid.notify';
+            const path = join(testPaths.UNREAD, id);
+            await writeFile(path, 'unrelated=value\n');
+            await service.deleteNotification({ id, type: NotificationType.UNREAD });
+            expect(existsSync(path)).toBe(false);
+        });
+
+        it('preserves valid filenames through archive, restore, and deletion', async () => {
+            const notification = await createNotification({ title: 'Überwachung v1.2 (NAS)' });
+            const archived = await service.archiveNotification(notification);
+            expect(existsSync(join(testPaths.ARCHIVE, notification.id))).toBe(true);
+            const restored = await service.markAsUnread(archived);
+            expect(existsSync(join(testPaths.UNREAD, notification.id))).toBe(true);
+            await service.deleteNotification(restored);
+            expect(existsSync(join(testPaths.UNREAD, notification.id))).toBe(false);
+        });
     });
 
     it.each(notificationImportance)('loadNotifications respects %s filter', async (importance) => {

@@ -65,6 +65,25 @@ describe('LogsService', () => {
         vi.clearAllMocks();
     });
 
+    it.each(['', '.', '..', '../..', '/var/log/..', 'bad\0.log'])(
+        'rejects an invalid log subscription path %j before registration',
+        (path) => {
+            expect(() => service.registerLogFileSubscription(path)).toThrow();
+            expect(subscriptionTracker.registerTopic).not.toHaveBeenCalled();
+            expect(chokidar.watch).not.toHaveBeenCalled();
+        }
+    );
+
+    it.each(['.', '..', '/var/log/..'])('rejects log directory reads for %j', async (path) => {
+        await expect(service.getLogFileContent(path)).rejects.toThrow();
+    });
+
+    it('accepts a full log path returned by the log listing', () => {
+        expect(service.registerLogFileSubscription('/var/log/syslog')).toEqual(
+            service.registerLogFileSubscription('syslog')
+        );
+    });
+
     it('should be defined', () => {
         expect(service).toBeDefined();
     });
