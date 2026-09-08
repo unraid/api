@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'fs/promises';
-import { basename, join } from 'path';
+import { basename, dirname, join, resolve } from 'path';
 
 import type { Stats } from 'fs';
 import { FSWatcher, watch } from 'chokidar';
@@ -91,6 +91,19 @@ export class NotificationsService {
             [NotificationType.UNREAD]: makePath(NotificationType.UNREAD),
             [NotificationType.ARCHIVE]: makePath(NotificationType.ARCHIVE),
         };
+    }
+
+    private notificationPath(id: string, type: NotificationType): string {
+        if (!id || id === '.' || id === '..' || /[/\\:\0]/u.test(id)) {
+            throw new AppError('Invalid notification ID', 400);
+        }
+
+        const directory = resolve(this.paths()[type]);
+        const path = resolve(directory, id);
+        if (dirname(path) !== directory) {
+            throw new AppError('Invalid notification ID', 400);
+        }
+        return path;
     }
 
     private initializeNotificationsState(basePath: string, recreate = false) {
@@ -311,7 +324,7 @@ export class NotificationsService {
             this.logger.debug(`[createNotification] legacy notifier failed: ${error}`);
             this.logger.verbose(`[createNotification] Writing: ${JSON.stringify(fileData, null, 4)}`);
 
-            const path = join(this.paths().UNREAD, id);
+            const path = this.notificationPath(id, NotificationType.UNREAD);
             const ini = encodeIni(fileData);
             // this.logger.debug(`[createNotification] INI: ${ini}`);
             await writeFile(path, ini);
@@ -395,7 +408,7 @@ export class NotificationsService {
      *------------------------------------------------------------------------**/
 
     public async deleteNotification({ id, type }: Pick<Notification, 'id' | 'type'>) {
-        const path = join(this.paths()[type], id);
+        const path = this.notificationPath(id, type);
 
         // we don't want to update the overview stats if the deletion (unlink) fails
         // so we do the file system ops first
@@ -471,12 +484,11 @@ export class NotificationsService {
         snapshot?: NotificationOverview;
     }) {
         const { from, to, snapshot } = params;
-        const paths = this.paths();
         const fromStatKey = from.toLowerCase();
         const toStatKey = to.toLowerCase();
         return async (notification: Notification) => {
-            const currentPath = join(paths[from], notification.id);
-            const targetPath = join(paths[to], notification.id);
+            const currentPath = this.notificationPath(notification.id, from);
+            const targetPath = this.notificationPath(notification.id, to);
 
             /**-----------------------
              *     Event, PubSub, & Overview Update logic
@@ -518,7 +530,7 @@ export class NotificationsService {
     }
 
     public async archiveNotification({ id }: Pick<Notification, 'id'>): Promise<Notification> {
-        const unreadPath = join(this.paths().UNREAD, id);
+        const unreadPath = this.notificationPath(id, NotificationType.UNREAD);
 
         // We expect to only archive 'unread' notifications, but it's possible that the notification
         // has already been archived or deleted (e.g. retry logic, spike in network latency).
@@ -554,7 +566,7 @@ export class NotificationsService {
     }
 
     public async markAsUnread({ id }: Pick<Notification, 'id'>): Promise<Notification> {
-        const archivePath = join(this.paths().ARCHIVE, id);
+        const archivePath = this.notificationPath(id, NotificationType.ARCHIVE);
         // the target notification might not be in the archive!
         if (!(await fileExists(archivePath))) {
             this.logger.warn(`[markAsUnread] Could not find notification in archive: ${id}`);
