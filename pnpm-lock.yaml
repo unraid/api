@@ -13,6 +13,7 @@ overrides:
   body-parser: 2.3.0
   brace-expansion@<1.1.18: 1.1.18
   brace-expansion@>=3.0.0 <5.0.9: 5.0.9
+  casbin>csv-parse: 7.0.2
   defu: 6.1.7
   esbuild: 0.28.1
   fast-uri: 3.1.6
@@ -27,7 +28,7 @@ overrides:
   js-beautify: 1.15.4
   js-cookie: 3.0.8
   jiti: 2.7.0
-  js-yaml: 4.3.1
+  js-yaml: 4.3.2
   lodash: 4.18.1
   minimatch@<3.1.5: 3.1.5
   minimatch@>=9.0.0 <9.0.9: 9.0.9
@@ -6560,8 +6561,8 @@ packages:
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
-  csv-parse@5.6.0:
-    resolution: {integrity: sha512-l3nz3euub2QMg5ouu5U09Ew9Wf6/wQ8I++ch1loQ0ljmzhmfZYrH9fflS22i/PQEvsPvxCwxgz5q7UB8K1JO4Q==}
+  csv-parse@7.0.2:
+    resolution: {integrity: sha512-uKZghv9UmPkMVLYy//KZ9HFAIJsl7wkhoEdIL0+rhuSY9pZQlhaeGEDPIe+/w7eh81MOql8Q/9+inAGWG6ZHYA==}
 
   culvert@0.1.2:
     resolution: {integrity: sha512-yi1x3EAWKjQTreYWeSd98431AV+IEE0qoDyOoaHJ7KJ21gv6HtBXHVLX74opVSGqcR8/AbjJBHAHpcOy2bj5Gg==}
@@ -8536,8 +8537,8 @@ packages:
   js-tokens@9.0.1:
     resolution: {integrity: sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==}
 
-  js-yaml@4.3.1:
-    resolution: {integrity: sha512-CY6crGq313MX8GkwvB7tzgp99vjQxY1++5y10/BKN/GUfHqWaOGQMNZkBvqSzsZKWk/ijwHlWzzkLulsGHhjWQ==}
+  js-yaml@4.3.2:
+    resolution: {integrity: sha512-SFNOvSJ+Dgf/9An904Yx+CgSlIPCkIpao4qo51lpee25TIRejdH3rhR4EZMGoNx3/TP3O+wzWuiTFl4sqbltzA==}
     hasBin: true
 
   jsdom@26.1.0:
@@ -13253,7 +13254,7 @@ snapshots:
       globals: 14.0.0
       ignore: 5.3.2
       import-fresh: 3.3.1
-      js-yaml: 4.3.1
+      js-yaml: 4.3.2
       minimatch: 3.1.5
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
@@ -14367,7 +14368,7 @@ snapshots:
   '@manypkg/tools@2.1.0':
     dependencies:
       jju: 1.4.0
-      js-yaml: 4.3.1
+      js-yaml: 4.3.2
       tinyglobby: 0.2.17
 
   '@mapbox/node-pre-gyp@2.0.0':
@@ -17500,7 +17501,7 @@ snapshots:
       '@casbin/expression-eval': 5.3.0
       await-lock: 2.2.2
       buffer: 6.0.3
-      csv-parse: 5.6.0
+      csv-parse: 7.0.2
       minimatch: 10.2.5
 
   chai@5.3.3:
@@ -17844,7 +17845,7 @@ snapshots:
   cosmiconfig@8.3.6(typescript@5.9.2):
     dependencies:
       import-fresh: 3.3.1
-      js-yaml: 4.3.1
+      js-yaml: 4.3.2
       parse-json: 5.2.0
       path-type: 4.0.0
     optionalDependencies:
@@ -17854,7 +17855,7 @@ snapshots:
     dependencies:
       env-paths: 2.2.1
       import-fresh: 3.3.1
-      js-yaml: 4.3.1
+      js-yaml: 4.3.2
       parse-json: 5.2.0
     optionalDependencies:
       typescript: 5.9.2
@@ -17948,7 +17949,7 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  csv-parse@5.6.0: {}
+  csv-parse@7.0.2: {}
 
   culvert@0.1.2: {}
 
@@ -20123,7 +20124,7 @@ snapshots:
 
   js-tokens@9.0.1: {}
 
-  js-yaml@4.3.1:
+  js-yaml@4.3.2:
     dependencies:
       argparse: 2.0.1
 
@@ -21405,7 +21406,7 @@ snapshots:
       debug: 4.4.3
       eventemitter2: 6.4.9
       fast-json-patch: 3.1.1
-      js-yaml: 4.3.1
+      js-yaml: 4.3.2
       pidusage: 4.0.1
       pm2-deploy: 1.0.2
       proxy-agent: 6.5.0
@@ -23677,7 +23678,7 @@ snapshots:
       dot-object: 2.1.5
       glob: 7.2.3
       is-valid-glob: 1.0.0
-      js-yaml: 4.3.1
+      js-yaml: 4.3.2
 
   vue-i18n@11.1.11(vue@3.5.20(typescript@5.9.2)):
     dependencies:
