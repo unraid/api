@@ -49,13 +49,17 @@ const zeroOverview = (): NotificationOverview => ({
     },
 });
 
-async function disableNotificationsWatcher() {
-    const watcher = Reflect.get(NotificationsService, 'watcher') as {
-        close?: () => Promise<void>;
-    } | null;
-    await watcher?.close?.();
-    Reflect.set(NotificationsService, 'watcher', null);
-    Reflect.set(NotificationsService, 'overview', zeroOverview());
+async function disableNotificationsWatcher(service: NotificationsService) {
+    try {
+        await Reflect.get(service, 'initialization');
+    } finally {
+        const watcher = Reflect.get(NotificationsService, 'watcher') as {
+            close?: () => Promise<void>;
+        } | null;
+        await watcher?.close?.();
+        Reflect.set(NotificationsService, 'watcher', null);
+        Reflect.set(NotificationsService, 'overview', zeroOverview());
+    }
 }
 
 // we run sequentially here because this module's state depends on external, shared systems
@@ -88,7 +92,7 @@ describe.sequential('NotificationsService', () => {
         }).compile();
 
         service = module.get<NotificationsService>(NotificationsService); // this might need to be a module.resolve instead of get
-        await disableNotificationsWatcher();
+        await disableNotificationsWatcher(service);
         vi.spyOn(service, 'paths').mockImplementation(() => testPaths);
 
         await service.deleteAllNotifications();
@@ -216,6 +220,11 @@ describe.sequential('NotificationsService', () => {
         Object.values(snapshot.unread).forEach((count) => {
             expect(count).toEqual(0);
         });
+    });
+
+    it('keeps the filesystem watcher disabled after initialization', async () => {
+        await Reflect.get(service, 'initialization');
+        expect(Reflect.get(NotificationsService, 'watcher')).toBeNull();
     });
 
     it('generates unique ids', async () => {
@@ -620,7 +629,7 @@ describe.concurrent('NotificationsService legacy script compatibility', () => {
         }).compile();
 
         service = module.get<NotificationsService>(NotificationsService);
-        await disableNotificationsWatcher();
+        await disableNotificationsWatcher(service);
     });
 
     it.for([['normal'], ['warning'], ['alert']] as const)(
