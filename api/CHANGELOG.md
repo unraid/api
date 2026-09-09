@@ -1,12 +1,5 @@
 # Changelog
 
-## [4.37.5](https://github.com/unraid/api/compare/v4.37.4...v4.37.5) (2026-09-09)
-
-
-### Bug Fixes
-
-* **api:** clear dependency findings and stabilize notification tests ([#2077](https://github.com/unraid/api/issues/2077)) ([ad26830](https://github.com/unraid/api/commit/ad268301ca78da1fa47fd3bb87e60fcedc458c5b))
-
 ## [4.37.4](https://github.com/unraid/api/compare/v4.37.3...v4.37.4) (2026-09-08)
 
 
