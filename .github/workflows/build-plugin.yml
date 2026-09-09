@@ -56,18 +56,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.ref }}
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4.4.0
         name: Install pnpm
         with:
           run_install: false
 
       - name: Install Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.0.0
         with:
           node-version-file: ".nvmrc"
           cache: 'pnpm'
@@ -101,19 +101,19 @@ jobs:
           pnpm install --frozen-lockfile --filter @unraid/connect-plugin
 
       - name: Download Unraid UI Components
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v7.0.0
         with:
           name: unraid-wc-ui
           path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/uui
           merge-multiple: true
       - name: Download Unraid Web Components
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v7.0.0
         with:
           pattern: unraid-wc-rich
           path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone
           merge-multiple: true
       - name: Download Unraid API
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v7.0.0
         with:
           name: unraid-api
           path: ${{ github.workspace }}/plugin/api/
@@ -142,7 +142,7 @@ jobs:
           fi
 
       - name: Upload to GHA
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v6.0.0
         with:
           name: unraid-plugin-${{ github.run_id }}-${{ inputs.TAG || inputs.RELEASE_TAG || 'build' }}
           path: plugin/deploy/
