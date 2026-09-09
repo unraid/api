@@ -50,13 +50,16 @@ const zeroOverview = (): NotificationOverview => ({
 });
 
 async function disableNotificationsWatcher(service: NotificationsService) {
-    await Reflect.get(service, 'initialization');
-    const watcher = Reflect.get(NotificationsService, 'watcher') as {
-        close?: () => Promise<void>;
-    } | null;
-    await watcher?.close?.();
-    Reflect.set(NotificationsService, 'watcher', null);
-    Reflect.set(NotificationsService, 'overview', zeroOverview());
+    try {
+        await Reflect.get(service, 'initialization');
+    } finally {
+        const watcher = Reflect.get(NotificationsService, 'watcher') as {
+            close?: () => Promise<void>;
+        } | null;
+        await watcher?.close?.();
+        Reflect.set(NotificationsService, 'watcher', null);
+        Reflect.set(NotificationsService, 'overview', zeroOverview());
+    }
 }
 
 // we run sequentially here because this module's state depends on external, shared systems
