@@ -49,7 +49,8 @@ const zeroOverview = (): NotificationOverview => ({
     },
 });
 
-async function disableNotificationsWatcher() {
+async function disableNotificationsWatcher(service: NotificationsService) {
+    await Reflect.get(service, 'initialization');
     const watcher = Reflect.get(NotificationsService, 'watcher') as {
         close?: () => Promise<void>;
     } | null;
@@ -88,7 +89,7 @@ describe.sequential('NotificationsService', () => {
         }).compile();
 
         service = module.get<NotificationsService>(NotificationsService); // this might need to be a module.resolve instead of get
-        await disableNotificationsWatcher();
+        await disableNotificationsWatcher(service);
         vi.spyOn(service, 'paths').mockImplementation(() => testPaths);
 
         await service.deleteAllNotifications();
@@ -216,6 +217,11 @@ describe.sequential('NotificationsService', () => {
         Object.values(snapshot.unread).forEach((count) => {
             expect(count).toEqual(0);
         });
+    });
+
+    it('keeps the filesystem watcher disabled after initialization', async () => {
+        await Reflect.get(service, 'initialization');
+        expect(Reflect.get(NotificationsService, 'watcher')).toBeNull();
     });
 
     it('generates unique ids', async () => {
@@ -620,7 +626,7 @@ describe.concurrent('NotificationsService legacy script compatibility', () => {
         }).compile();
 
         service = module.get<NotificationsService>(NotificationsService);
-        await disableNotificationsWatcher();
+        await disableNotificationsWatcher(service);
     });
 
     it.for([['normal'], ['warning'], ['alert']] as const)(
