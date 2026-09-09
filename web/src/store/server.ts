@@ -253,6 +253,7 @@ export const useServerStore = defineStore('server', () => {
       description: description.value,
       deviceCount: deviceCount.value,
       expireTime: expireTime.value,
+      flashGuid: flashGuid.value || undefined,
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
       guid: guid.value,
@@ -268,6 +269,7 @@ export const useServerStore = defineStore('server', () => {
       regTy: regTy.value,
       regUpdatesExpired: regUpdatesExpired.value,
       state: state.value,
+      tpmGuid: tpmGuid.value || undefined,
       wanFQDN: wanFQDN.value,
       ...overrides,
     };

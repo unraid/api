@@ -188,6 +188,7 @@ const getStore = () => {
           description: store.description,
           deviceCount: store.deviceCount,
           expireTime: store.expireTime,
+          flashGuid: store.flashGuid || undefined,
           flashProduct: store.flashProduct,
           flashVendor: store.flashVendor,
           guid: store.guid,
@@ -203,6 +204,7 @@ const getStore = () => {
           regTy: store.regTy,
           regUpdatesExpired: store.regUpdatesExpired,
           state: store.state,
+          tpmGuid: store.tpmGuid || undefined,
           wanFQDN: store.wanFQDN,
         };
 
@@ -218,6 +220,7 @@ const getStore = () => {
           deviceCount: store.deviceCount,
           description: store.description,
           expireTime: store.expireTime,
+          flashGuid: store.flashGuid || undefined,
           flashProduct: store.flashProduct,
           flashVendor: store.flashVendor,
           guid: store.guid,
@@ -233,6 +236,7 @@ const getStore = () => {
           regTy: store.regTy,
           regUpdatesExpired: store.regUpdatesExpired,
           state: store.state,
+          tpmGuid: store.tpmGuid || undefined,
           wanFQDN: store.wanFQDN,
         };
 
@@ -291,6 +295,14 @@ const getStore = () => {
 
   return store;
 };
+
+const getActualStore = () =>
+  useServerStore(
+    createTestingPinia({
+      createSpy: vi.fn,
+      stubActions: false,
+    })
+  );
 
 // Mock dependent stores
 vi.mock('~/store/account', () => ({
@@ -651,6 +663,7 @@ describe('useServerStore', () => {
       deviceCount: 6,
       description: 'Test Server',
       expireTime: 123,
+      flashGuid: 'flash-guid-1',
       flashProduct: 'TestFlash',
       flashVendor: 'TestVendor',
       guid: '123456',
@@ -675,6 +688,7 @@ describe('useServerStore', () => {
     expect(payload.description).toBe('Test Server');
     expect(payload.deviceCount).toBe(6);
     expect(payload.expireTime).toBe(123);
+    expect(payload.flashGuid).toBe('flash-guid-1');
     expect(payload.flashProduct).toBe('TestFlash');
     expect(payload.flashVendor).toBe('TestVendor');
     expect(payload.guid).toBe('123456');
@@ -767,6 +781,7 @@ describe('useServerStore', () => {
       regGuid: 'reg-guid-1',
       regTy: 'Plus',
       state: 'PLUS' as ServerState,
+      tpmGuid: '01-TPM-GUID-1',
       wanFQDN: 'test.myunraid.net',
     });
 
@@ -777,6 +792,7 @@ describe('useServerStore', () => {
     expect(payload.deviceCount).toBe(6);
     expect(payload.description).toBe('Test Server');
     expect(payload.expireTime).toBe(123);
+    expect(payload.flashGuid).toBe('flash-guid-1');
     expect(payload.flashProduct).toBe('TestFlash');
     expect(payload.flashVendor).toBe('TestVendor');
     expect(payload.guid).toBe('123456');
@@ -792,7 +808,25 @@ describe('useServerStore', () => {
     expect(payload.regTy).toBe('Plus');
     expect(payload.regUpdatesExpired).toBe(true);
     expect(payload.state).toBe('PLUS');
+    expect(payload.tpmGuid).toBe('01-TPM-GUID-1');
     expect(payload.wanFQDN).toBe('test.myunraid.net');
+  });
+
+  it('should include physical identities in the actual callback payloads', () => {
+    const store = getActualStore();
+
+    store.setServer({
+      flashGuid: '058F-6387-0000-0000F1F1E1C6',
+      guid: '058F-6387-0000-0000F1F1E1C6',
+      tpmGuid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
+    } as Server);
+
+    expect(store.serverPurchasePayload.flashGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverPurchasePayload.tpmGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(store.serverAccountPayload.flashGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverAccountPayload.tpmGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(store.serverReplacePayload.flashGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverReplacePayload.tpmGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
   });
 
   it('should create serverReplacePayload with TPM guid when available on flash boot', () => {
