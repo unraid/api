@@ -74,6 +74,14 @@ const showRebootButton = computed(
   () => rebootType.value === 'downgrade' || rebootType.value === 'update'
 );
 
+const checkForUpdates = () => {
+  updateOsStore.localCheckForUpdate();
+};
+
+const showRefreshButton = computed(
+  () => updateAvailable.value && !showRebootButton.value && !props.showExternalDowngrade
+);
+
 const checkButton = computed(() => {
   if (showRebootButton.value || props.showExternalDowngrade) {
     return {
@@ -91,9 +99,7 @@ const checkButton = computed(() => {
 
   if (!updateAvailable.value) {
     return {
-      click: () => {
-        updateOsStore.localCheckForUpdate();
-      },
+      click: checkForUpdates,
       icon: () => h(ArrowPathIcon, { style: 'width: 16px; height: 16px;' }),
       text: t('userProfile.dropdownContent.checkForUpdate'),
     };
@@ -228,6 +234,17 @@ const navigateToRegistration = () => {
               ? t('updateOs.status.rebootNowToDowngradeTo', [rebootVersion])
               : t('updateOs.status.rebootNowToUpdateTo', [rebootVersion])
           }}
+        </Button>
+
+        <Button
+          v-if="showRefreshButton"
+          variant="pill-gray"
+          :title="t('userProfile.dropdownContent.checkForUpdate')"
+          :disabled="status === 'checking'"
+          @click="checkForUpdates"
+        >
+          <ArrowPathIcon class="shrink-0" style="width: 16px; height: 16px" />
+          {{ t('userProfile.dropdownContent.checkForUpdate') }}
         </Button>
 
         <Button
