@@ -257,6 +257,31 @@ describe('Account Store', () => {
       );
     });
 
+    it('should forward a supplied server payload for replace', () => {
+      const replacementPayload = {
+        guid: '01-old-tpm-guid',
+        keyfile: 'test-keyfile',
+        name: 'test-server',
+        registered: true,
+        state: 'EBLACKLISTED' as const,
+      };
+
+      store.replace(replacementPayload);
+
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [
+          {
+            server: replacementPayload,
+            type: 'replace',
+          },
+        ],
+        undefined,
+        'post'
+      );
+    });
+
     it('should forward the full server payload for replaceTpm', () => {
       store.replaceTpm();
 

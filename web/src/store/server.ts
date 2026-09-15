@@ -145,6 +145,17 @@ export const useServerStore = defineStore('server', () => {
     }
     return guid.value || undefined;
   });
+  const hasBlacklistedTpmLicenseMismatch = computed(
+    (): boolean =>
+      state.value === 'EBLACKLISTED' &&
+      Boolean(
+        keyfile.value &&
+          hasDistinctTpmGuid.value &&
+          regGuid.value.startsWith('01-') &&
+          tpmGuid.value.startsWith('01-') &&
+          regGuid.value !== tpmGuid.value
+      )
+  );
   const site = ref<string>('');
   const ssoEnabled = ref<boolean>(false);
   const state = ref<ServerState>();
@@ -433,7 +444,11 @@ export const useServerStore = defineStore('server', () => {
   const replaceAction = computed((): ServerStateDataAction => {
     return {
       click: () => {
-        accountStore.replace();
+        accountStore.replace(
+          hasBlacklistedTpmLicenseMismatch.value
+            ? { ...serverReplacePayload.value, state: 'EGUID' }
+            : undefined
+        );
       },
       external: true,
       icon: KeyIcon,
@@ -718,6 +733,15 @@ export const useServerStore = defineStore('server', () => {
           message: t('server.state.enoflash.message'),
         };
       case 'EBLACKLISTED':
+        if (hasBlacklistedTpmLicenseMismatch.value) {
+          return {
+            actions: [replaceAction.value],
+            error: true,
+            humanReadable: t('server.state.eblacklisted.tpmMismatch.humanReadable'),
+            heading: t('server.state.eblacklisted.tpmMismatch.heading'),
+            message: t('server.state.eblacklisted.tpmMismatch.message'),
+          };
+        }
         return {
           error: true,
           humanReadable: t('server.state.eblacklisted.humanReadable'),
@@ -1436,6 +1460,7 @@ export const useServerStore = defineStore('server', () => {
     guid,
     bootDeviceType,
     hasDistinctTpmGuid,
+    hasBlacklistedTpmLicenseMismatch,
     bootedFromFlashWithInternalBootSetup,
     keyfile,
     inIframe,

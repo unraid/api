@@ -366,6 +366,95 @@ describe('Registration.standalone.vue', () => {
     expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(true);
   });
 
+  it('shows the TPM mismatch and Replace Key action when the boot flash is blacklisted', async () => {
+    serverStore.state = 'EBLACKLISTED';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.regGuid = '01-OLD-TPM-GUID-1234567890';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(false);
+    expect(wrapper.text()).toContain('License / TPM mismatch');
+    expect(wrapper.text()).not.toContain('Blacklisted boot device GUID');
+    expect(wrapper.text()).not.toContain('copy the correct key file');
+    expect(wrapper.text()).not.toContain('Move License to TPM');
+    expect(wrapper.text()).toContain('Your license is registered to a different TPM');
+    expect(findItemByLabel(t('TPM GUID'))?.props('text')).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(findItemByLabel(t('registration.registeredGuid'))?.props('text')).toBe(
+      '01-OLD-TPM-GUID-1234567890'
+    );
+    expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(true);
+    expect(serverStore.keyActions?.some((action) => action.name === 'replace')).toBe(true);
+    expect(serverStore.keyActions?.find((action) => action.name === 'replace')?.text).toBe(
+      'Replace Key'
+    );
+
+    serverStore.keyActions?.find((action) => action.name === 'replace')?.click?.();
+
+    expect(accountStore.replace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        guid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
+        regGuid: '01-OLD-TPM-GUID-1234567890',
+        state: 'EGUID',
+      })
+    );
+    expect(serverStore.state).toBe('EBLACKLISTED');
+    expect(accountStore.replaceTpm).not.toHaveBeenCalled();
+  });
+
+  it('does not show Move License to TPM for invalid blacklisted states', async () => {
+    serverStore.state = 'EBLACKLISTED1';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(false);
+  });
+
+  it('does not show Move License to TPM for a blacklisted boot flash without a key file', async () => {
+    serverStore.state = 'EBLACKLISTED';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = '';
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(false);
+  });
+
+  it('does not show Move License to TPM when the blacklisted flash is still the registered license device', async () => {
+    serverStore.state = 'EBLACKLISTED';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.regGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(false);
+  });
+
+  it('does not show Move License to TPM when the key is already registered to the detected TPM', async () => {
+    serverStore.state = 'EBLACKLISTED';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.regGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(false);
+  });
+
   it('triggers the TPM replacement action when Move License to TPM is clicked', async () => {
     serverStore.state = 'PRO';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';

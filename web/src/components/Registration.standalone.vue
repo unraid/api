@@ -51,6 +51,7 @@ const {
   guid,
   keyActions,
   computedRegDevs,
+  hasBlacklistedTpmLicenseMismatch,
   regGuid,
   regTm,
   regTo,
@@ -129,9 +130,12 @@ const showPartnerActivationCode = computed(() => {
   );
 });
 const showTpmTransferButton = computed((): boolean =>
-  Boolean((keyInstalled.value || showTrialExpiration.value) && hasDistinctTpmGuid.value)
+  Boolean(hasDistinctTpmGuid.value && (keyInstalled.value || showTrialExpiration.value))
 );
 const disableTpmTransferButton = computed((): boolean => showTrialExpiration.value);
+const showTpmGuid = computed((): boolean =>
+  Boolean(showTpmTransferButton.value || hasBlacklistedTpmLicenseMismatch.value)
+);
 
 // Organize items into three sections
 const bootDeviceItems = computed((): RegistrationItemProps[] => {
@@ -144,7 +148,7 @@ const bootDeviceItems = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
-    ...(showTpmTransferButton.value && tpmGuid.value
+    ...(showTpmGuid.value && tpmGuid.value
       ? [
           {
             label: t('registration.tpmGuid'),
@@ -176,7 +180,7 @@ const bootDeviceItems = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
-    ...(state.value === 'EGUID'
+    ...(state.value === 'EGUID' || hasBlacklistedTpmLicenseMismatch.value
       ? [
           {
             label: t('registration.registeredGuid'),
@@ -369,7 +373,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
 
           <!-- Actions Section -->
           <div
-            v-if="actionItems.length > 0"
+            v-if="actionItems.length > 0 || showTpmTransferButton"
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
             <h4 class="mb-3 text-lg font-semibold">{{ t('registration.actions') }}</h4>

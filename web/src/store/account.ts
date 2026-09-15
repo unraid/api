@@ -183,8 +183,8 @@ export const useAccountStore = defineStore('account', () => {
   const recover = () => {
     sendAccountAction('recover');
   };
-  const replace = () => {
-    sendAccountAction('replace');
+  const replace = (serverPayload?: ServerData) => {
+    sendAccountAction('replace', { serverPayload });
   };
   const replaceTpm = () => {
     sendAccountAction('replace', { serverPayload: serverReplacePayload.value });
