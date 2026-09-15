@@ -49,9 +49,9 @@ const {
   flashProduct,
   flashVendor,
   guid,
-  keyfile,
   keyActions,
   computedRegDevs,
+  hasBlacklistedTpmLicenseMismatch,
   regGuid,
   regTm,
   regTo,
@@ -129,16 +129,6 @@ const showPartnerActivationCode = computed(() => {
     (currentState === 'ENOKEYFILE' || currentState === 'TRIAL' || currentState === 'EEXPIRED')
   );
 });
-const hasBlacklistedTpmLicenseMismatch = computed(
-  (): boolean =>
-    state.value === 'EBLACKLISTED' &&
-    Boolean(
-      keyfile.value &&
-        regGuid.value.startsWith('01-') &&
-        tpmGuid.value.startsWith('01-') &&
-        regGuid.value !== tpmGuid.value
-    )
-);
 const showTpmTransferButton = computed((): boolean =>
   Boolean(
     hasDistinctTpmGuid.value &&

@@ -145,6 +145,17 @@ export const useServerStore = defineStore('server', () => {
     }
     return guid.value || undefined;
   });
+  const hasBlacklistedTpmLicenseMismatch = computed(
+    (): boolean =>
+      state.value === 'EBLACKLISTED' &&
+      Boolean(
+        keyfile.value &&
+          hasDistinctTpmGuid.value &&
+          regGuid.value.startsWith('01-') &&
+          tpmGuid.value.startsWith('01-') &&
+          regGuid.value !== tpmGuid.value
+      )
+  );
   const site = ref<string>('');
   const ssoEnabled = ref<boolean>(false);
   const state = ref<ServerState>();
@@ -718,6 +729,15 @@ export const useServerStore = defineStore('server', () => {
           message: t('server.state.enoflash.message'),
         };
       case 'EBLACKLISTED':
+        if (hasBlacklistedTpmLicenseMismatch.value) {
+          return {
+            actions: [replaceAction.value],
+            error: true,
+            humanReadable: t('server.state.eguid.humanReadable'),
+            heading: t('server.state.eguid.heading'),
+            message: t('server.state.eguid.messageMismatch'),
+          };
+        }
         return {
           error: true,
           humanReadable: t('server.state.eblacklisted.humanReadable'),
@@ -1436,6 +1456,7 @@ export const useServerStore = defineStore('server', () => {
     guid,
     bootDeviceType,
     hasDistinctTpmGuid,
+    hasBlacklistedTpmLicenseMismatch,
     bootedFromFlashWithInternalBootSetup,
     keyfile,
     inIframe,

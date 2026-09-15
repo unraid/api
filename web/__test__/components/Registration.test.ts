@@ -380,12 +380,18 @@ describe('Registration.standalone.vue', () => {
 
     expect(moveButton.exists()).toBe(true);
     expect(moveButton.attributes('disabled')).toBeUndefined();
-    expect(wrapper.text()).toContain('Blacklisted boot device GUID');
-    expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(false);
+    expect(wrapper.text()).toContain('Registration key / boot device GUID mismatch');
+    expect(wrapper.text()).not.toContain('Blacklisted boot device GUID');
+    expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(true);
+    expect(serverStore.keyActions?.some((action) => action.name === 'replace')).toBe(true);
 
     await moveButton.trigger('click');
 
     expect(accountStore.replaceTpm).toHaveBeenCalled();
+
+    serverStore.keyActions?.find((action) => action.name === 'replace')?.click?.();
+
+    expect(accountStore.replace).toHaveBeenCalled();
   });
 
   it('does not show Move License to TPM for invalid blacklisted states', async () => {
