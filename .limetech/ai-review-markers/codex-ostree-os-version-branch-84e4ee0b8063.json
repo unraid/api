@@ -1,25 +1,8 @@
 {
   "disposition": "PATCH",
-  "expected_structural_delta": "Adds one helper include and one test file; no new owners, services, or persistence.",
-  "minimum_design": "One shared PHP helper in dynamix.my.servers/include (OsVersionBranch) that keeps the Unraid 7 plugin-category path, reads the branch key from the OSTree updater config with strict validation and a stable default, and is called from state.php and UnraidCheck.php; a php-cli test wired into the existing plugin test script.",
-  "outcome": "On Unraid OS 8 (OSTree hosts without an unRAIDServer.plg), ServerState::osVersionBranch and the unraidcheck branch/current_version query parameters reflect the installed release branch recorded by Core in /boot/config/os-update.json instead of always falling back to stable.",
-  "reuse_decisions": [
-    {
-      "decision": "reuse",
-      "name": "plugin category lookup via PluginHelpers/plugin CLI",
-      "rationale": "Unraid 7 keeps deriving the branch from the installed OS plugin CATEGORY"
-    },
-    {
-      "decision": "extend",
-      "name": "plugin/tests php-cli harness (test-extractor.php pattern)",
-      "rationale": "No phpunit config exists; the repo CI runs plugin tests through pnpm test"
-    },
-    {
-      "decision": "reuse",
-      "name": "/etc/unraid-version parse_ini_file",
-      "rationale": "Already used for the patcher version comparison; supplies current_version on OS 8"
-    }
-  ],
+  "forecast_commit": "31b615c6637c5365cf9d86b77bb607bb16806e1f",
+  "reviewed_sha": "68d6f826f43badbec4cda484975cb6f822df3a7c",
   "schema": "limetech.ai-review-marker.v2",
-  "stage": "forecast"
+  "stage": "final",
+  "unresolved_proportionality_findings": []
 }
