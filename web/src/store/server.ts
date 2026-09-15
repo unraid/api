@@ -733,9 +733,9 @@ export const useServerStore = defineStore('server', () => {
           return {
             actions: [replaceAction.value],
             error: true,
-            humanReadable: t('server.state.eguid.humanReadable'),
-            heading: t('server.state.eguid.heading'),
-            message: t('server.state.eguid.messageMismatch'),
+            humanReadable: t('server.state.eblacklisted.tpmMismatch.humanReadable'),
+            heading: t('server.state.eblacklisted.tpmMismatch.heading'),
+            message: t('server.state.eblacklisted.tpmMismatch.message'),
           };
         }
         return {

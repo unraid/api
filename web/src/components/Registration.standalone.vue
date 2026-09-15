@@ -180,7 +180,7 @@ const bootDeviceItems = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
-    ...(state.value === 'EGUID'
+    ...(state.value === 'EGUID' || hasBlacklistedTpmLicenseMismatch.value
       ? [
           {
             label: t('registration.registeredGuid'),

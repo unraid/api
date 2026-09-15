@@ -380,10 +380,18 @@ describe('Registration.standalone.vue', () => {
 
     expect(moveButton.exists()).toBe(true);
     expect(moveButton.attributes('disabled')).toBeUndefined();
-    expect(wrapper.text()).toContain('Registration key / boot device GUID mismatch');
+    expect(wrapper.text()).toContain('License / TPM mismatch');
     expect(wrapper.text()).not.toContain('Blacklisted boot device GUID');
+    expect(wrapper.text()).not.toContain('copy the correct key file');
+    expect(wrapper.text()).toContain('Your license is registered to a different TPM');
+    expect(findItemByLabel(t('registration.registeredGuid'))?.props('text')).toBe(
+      '01-OLD-TPM-GUID-1234567890'
+    );
     expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(true);
     expect(serverStore.keyActions?.some((action) => action.name === 'replace')).toBe(true);
+    expect(serverStore.keyActions?.find((action) => action.name === 'replace')?.text).toBe(
+      'Replace Key'
+    );
 
     await moveButton.trigger('click');
 
