@@ -13,16 +13,6 @@ import { createTestI18n } from '../utils/i18n';
 
 vi.mock('@unraid/ui', () => ({
   PageContainer: { template: '<div><slot /></div>' },
-  BrandButton: {
-    template: '<button v-bind="$attrs" @click="$emit(\'click\')"><slot /></button>',
-  },
-}));
-
-const mockAccountStore = {
-  updateOs: vi.fn(),
-};
-vi.mock('~/store/account', () => ({
-  useAccountStore: () => mockAccountStore,
 }));
 
 const mockRebootType = ref('');
@@ -35,6 +25,17 @@ vi.mock('~/store/server', () => ({
   useServerStore: () => mockServerStore,
 }));
 
+const mockUpdateOsStore = {
+  available: undefined as string | undefined,
+  availableWithRenewal: undefined as string | undefined,
+  localCheckForUpdate: vi.fn().mockResolvedValue(undefined),
+  setModalOpen: vi.fn(),
+  updateOsModalVisible: false,
+};
+vi.mock('~/store/updateOs', () => ({
+  useUpdateOsStore: () => mockUpdateOsStore,
+}));
+
 // Mock window.location
 Object.defineProperty(window, 'location', {
   value: {
@@ -44,10 +45,6 @@ Object.defineProperty(window, 'location', {
   configurable: true,
 });
 
-vi.mock('~/helpers/urls', () => ({
-  WEBGUI_TOOLS_UPDATE: '/Tools/Update',
-}));
-
 const UpdateOsStatusStub = {
   template: '<div data-testid="update-os-status">Status</div>',
   props: ['showUpdateCheck', 'title', 'subtitle', 't'],
@@ -56,13 +53,23 @@ const UpdateOsThirdPartyDriversStub = {
   template: '<div data-testid="third-party-drivers">Third Party</div>',
   props: ['t'],
 };
+const UpdateOsCheckUpdateResponseModalStub = {
+  template: '<div v-if="open" data-testid="update-os-check-response">Check Response</div>',
+  props: ['open', 'embedded'],
+};
+const UpdateOsChangelogModalStub = {
+  template: '<div data-testid="update-os-changelog">Changelog</div>',
+};
 
 describe('UpdateOs.standalone.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRebootType.value = '';
     mockSetRebootVersion.mockClear();
-    mockAccountStore.updateOs.mockClear();
+    mockUpdateOsStore.available = undefined;
+    mockUpdateOsStore.availableWithRenewal = undefined;
+    mockUpdateOsStore.localCheckForUpdate.mockResolvedValue(undefined);
+    mockUpdateOsStore.updateOsModalVisible = false;
     window.location.pathname = '/some/other/path';
   });
 
@@ -99,7 +106,7 @@ describe('UpdateOs.standalone.vue', () => {
   });
 
   describe('Initial Rendering and onBeforeMount Logic', () => {
-    it('shows account button and does not auto-redirect when path matches and rebootType is empty', async () => {
+    it('shows the internal update status when path matches and rebootType is empty', async () => {
       window.location.pathname = '/Tools/Update';
       mockRebootType.value = '';
 
@@ -107,21 +114,22 @@ describe('UpdateOs.standalone.vue', () => {
         global: {
           plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
           stubs: {
-            // Rely on @unraid/ui mock for PageContainer & BrandButton
             UpdateOsStatus: UpdateOsStatusStub,
             UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+            UpdateOsCheckUpdateResponseModal: UpdateOsCheckUpdateResponseModalStub,
+            UpdateOsChangelogModal: UpdateOsChangelogModalStub,
           },
         },
       });
 
       await nextTick();
 
-      expect(mockAccountStore.updateOs).not.toHaveBeenCalled();
-      expect(wrapper.find('[data-testid="update-os-account-button"]').exists()).toBe(true);
-      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
+      expect(wrapper.findComponent(UpdateOsStatusStub).props('showUpdateCheck')).toBe(true);
+      expect(mockUpdateOsStore.localCheckForUpdate).toHaveBeenCalledTimes(1);
     });
 
-    it('shows status and does not call updateOs when path does not match', async () => {
+    it('shows status when path does not match', async () => {
       window.location.pathname = '/some/other/path';
       mockRebootType.value = '';
 
@@ -129,21 +137,22 @@ describe('UpdateOs.standalone.vue', () => {
         global: {
           plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
           stubs: {
-            // Rely on @unraid/ui mock for PageContainer & BrandLoading
             UpdateOsStatus: UpdateOsStatusStub,
             UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+            UpdateOsCheckUpdateResponseModal: UpdateOsCheckUpdateResponseModalStub,
+            UpdateOsChangelogModal: UpdateOsChangelogModalStub,
           },
         },
       });
 
       await nextTick();
 
-      expect(mockAccountStore.updateOs).not.toHaveBeenCalled();
-      expect(wrapper.find('[data-testid="update-os-account-button"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
+      expect(mockUpdateOsStore.localCheckForUpdate).not.toHaveBeenCalled();
+      expect(mockUpdateOsStore.setModalOpen).not.toHaveBeenCalled();
     });
 
-    it('shows status and does not call updateOs when rebootType is not empty', async () => {
+    it('shows status when rebootType is not empty', async () => {
       window.location.pathname = '/Tools/Update';
       mockRebootType.value = 'downgrade';
 
@@ -151,23 +160,48 @@ describe('UpdateOs.standalone.vue', () => {
         global: {
           plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
           stubs: {
-            // Rely on @unraid/ui mock for PageContainer & BrandLoading
             UpdateOsStatus: UpdateOsStatusStub,
             UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+            UpdateOsCheckUpdateResponseModal: UpdateOsCheckUpdateResponseModalStub,
+            UpdateOsChangelogModal: UpdateOsChangelogModalStub,
           },
         },
       });
 
       await nextTick();
 
-      expect(mockAccountStore.updateOs).not.toHaveBeenCalled();
-      expect(wrapper.find('[data-testid="update-os-account-button"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
+      expect(mockUpdateOsStore.localCheckForUpdate).not.toHaveBeenCalled();
+      expect(mockUpdateOsStore.setModalOpen).not.toHaveBeenCalled();
     });
 
-    it('navigates to account update when the button is clicked', async () => {
+    it('opens the update modal when an update is already available', async () => {
       window.location.pathname = '/Tools/Update';
       mockRebootType.value = '';
+      mockUpdateOsStore.available = '6.12.5';
+
+      mount(UpdateOs, {
+        global: {
+          plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
+          stubs: {
+            UpdateOsStatus: UpdateOsStatusStub,
+            UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+            UpdateOsCheckUpdateResponseModal: UpdateOsCheckUpdateResponseModalStub,
+            UpdateOsChangelogModal: UpdateOsChangelogModalStub,
+          },
+        },
+      });
+
+      await nextTick();
+
+      expect(mockUpdateOsStore.setModalOpen).toHaveBeenCalledWith(true);
+      expect(mockUpdateOsStore.localCheckForUpdate).not.toHaveBeenCalled();
+    });
+
+    it('embeds the update response on the Tools update page', async () => {
+      window.location.pathname = '/Tools/Update';
+      mockRebootType.value = '';
+      mockUpdateOsStore.updateOsModalVisible = true;
 
       const wrapper = mount(UpdateOs, {
         global: {
@@ -175,15 +209,19 @@ describe('UpdateOs.standalone.vue', () => {
           stubs: {
             UpdateOsStatus: UpdateOsStatusStub,
             UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+            UpdateOsCheckUpdateResponseModal: UpdateOsCheckUpdateResponseModalStub,
+            UpdateOsChangelogModal: UpdateOsChangelogModalStub,
           },
         },
       });
 
       await nextTick();
 
-      await wrapper.find('[data-testid="update-os-account-button"]').trigger('click');
-
-      expect(mockAccountStore.updateOs).toHaveBeenCalledWith(true);
+      const checkResponse = wrapper.findComponent(UpdateOsCheckUpdateResponseModalStub);
+      expect(checkResponse.exists()).toBe(true);
+      expect(checkResponse.props('embedded')).not.toBe(false);
+      expect(wrapper.find('[data-testid="update-os-check-response"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="update-os-changelog"]').exists()).toBe(true);
     });
   });
 
@@ -196,6 +234,8 @@ describe('UpdateOs.standalone.vue', () => {
           stubs: {
             UpdateOsStatus: UpdateOsStatusStub,
             UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+            UpdateOsCheckUpdateResponseModal: UpdateOsCheckUpdateResponseModalStub,
+            UpdateOsChangelogModal: UpdateOsChangelogModalStub,
           },
         },
       });
@@ -216,6 +256,8 @@ describe('UpdateOs.standalone.vue', () => {
           stubs: {
             UpdateOsStatus: UpdateOsStatusStub,
             UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+            UpdateOsCheckUpdateResponseModal: UpdateOsCheckUpdateResponseModalStub,
+            UpdateOsChangelogModal: UpdateOsChangelogModalStub,
           },
         },
       });
@@ -233,6 +275,8 @@ describe('UpdateOs.standalone.vue', () => {
           stubs: {
             UpdateOsStatus: UpdateOsStatusStub,
             UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+            UpdateOsCheckUpdateResponseModal: UpdateOsCheckUpdateResponseModalStub,
+            UpdateOsChangelogModal: UpdateOsChangelogModalStub,
           },
         },
       });
