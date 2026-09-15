@@ -398,8 +398,10 @@ describe('Registration.standalone.vue', () => {
       expect.objectContaining({
         guid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
         regGuid: '01-OLD-TPM-GUID-1234567890',
+        state: 'EGUID',
       })
     );
+    expect(serverStore.state).toBe('EBLACKLISTED');
     expect(accountStore.replaceTpm).not.toHaveBeenCalled();
   });
 

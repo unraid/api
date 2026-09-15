@@ -445,7 +445,9 @@ export const useServerStore = defineStore('server', () => {
     return {
       click: () => {
         accountStore.replace(
-          hasBlacklistedTpmLicenseMismatch.value ? serverReplacePayload.value : undefined
+          hasBlacklistedTpmLicenseMismatch.value
+            ? { ...serverReplacePayload.value, state: 'EGUID' }
+            : undefined
         );
       },
       external: true,
