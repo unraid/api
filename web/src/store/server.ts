@@ -445,9 +445,7 @@ export const useServerStore = defineStore('server', () => {
     return {
       click: () => {
         accountStore.replace(
-          hasBlacklistedTpmLicenseMismatch.value
-            ? buildServerCallbackPayload({ guid: regGuid.value })
-            : undefined
+          hasBlacklistedTpmLicenseMismatch.value ? serverReplacePayload.value : undefined
         );
       },
       external: true,
