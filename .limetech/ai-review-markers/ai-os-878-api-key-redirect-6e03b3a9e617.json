@@ -1,30 +1,8 @@
 {
   "disposition": "PATCH",
-  "expected_structural_delta": "Two runtime files change (one shared validator/export and one composable call site) plus two focused test files; no new runtime owner, state, dependency, API, persistence, or generated artifact.",
-  "minimum_design": "Add one shared redirect URI parser and validator in web/src/utils/authorizationScopes.ts, route useAuthorizationLink and callback URL construction through it, and cover accepted and rejected schemes and hosts with focused tests.",
-  "outcome": "G1: When an API-key authorization request carries an attacker-controlled redirect URI, the webGUI must never navigate to an attacker-controlled script URL on Cancel or success; valid HTTPS and exact localhost HTTP callbacks remain usable.",
-  "reuse_decisions": [
-    {
-      "decision": "extend",
-      "name": "Existing URL parsing in authorizationScopes.ts",
-      "rationale": "buildCallbackUrl already owns callback URL construction, so the existing utility remains the single policy owner."
-    },
-    {
-      "decision": "reuse",
-      "name": "useAuthorizationLink redirect validation",
-      "rationale": "Route the existing computed guard through the shared validator instead of duplicating redirect policy."
-    },
-    {
-      "decision": "unchanged",
-      "name": "ApiKeyAuthorize.standalone.vue navigation",
-      "rationale": "Cancel and success already gate navigation through hasValidRedirectUri and buildCallbackUrl."
-    },
-    {
-      "decision": "exclude",
-      "name": "Legacy webgui StartCommand.php",
-      "rationale": "The full legacy exploit chain was not independently reproduced and is a separate integration surface."
-    }
-  ],
+  "forecast_commit": "d9176c709a4d688a7010727c2ea8a5bb29cb4c44",
+  "reviewed_sha": "419f1fd128bccf1f7a6d72c7ef58ffe991dcbe9b",
   "schema": "limetech.ai-review-marker.v2",
-  "stage": "forecast"
+  "stage": "final",
+  "unresolved_proportionality_findings": []
 }
