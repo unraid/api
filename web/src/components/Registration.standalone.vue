@@ -49,6 +49,7 @@ const {
   flashProduct,
   flashVendor,
   guid,
+  keyfile,
   keyActions,
   computedRegDevs,
   regGuid,
@@ -128,8 +129,21 @@ const showPartnerActivationCode = computed(() => {
     (currentState === 'ENOKEYFILE' || currentState === 'TRIAL' || currentState === 'EEXPIRED')
   );
 });
+const hasBlacklistedTpmLicenseMismatch = computed(
+  (): boolean =>
+    state.value === 'EBLACKLISTED' &&
+    Boolean(
+      keyfile.value &&
+        regGuid.value.startsWith('01-') &&
+        tpmGuid.value.startsWith('01-') &&
+        regGuid.value !== tpmGuid.value
+    )
+);
 const showTpmTransferButton = computed((): boolean =>
-  Boolean((keyInstalled.value || showTrialExpiration.value) && hasDistinctTpmGuid.value)
+  Boolean(
+    hasDistinctTpmGuid.value &&
+      (keyInstalled.value || showTrialExpiration.value || hasBlacklistedTpmLicenseMismatch.value)
+  )
 );
 const disableTpmTransferButton = computed((): boolean => showTrialExpiration.value);
 
@@ -369,7 +383,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
 
           <!-- Actions Section -->
           <div
-            v-if="actionItems.length > 0"
+            v-if="actionItems.length > 0 || showTpmTransferButton"
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
             <h4 class="mb-3 text-lg font-semibold">{{ t('registration.actions') }}</h4>

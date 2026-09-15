@@ -289,6 +289,7 @@ class ServerState
             "flashVendor" => $this->var['flashVendor'],
             "flashBackupActivated" => $this->flashBackupActivated,
             "guid" => $this->var['flashGUID'],
+            "tpmGuid" => $this->var['tpmGUID'] ?? '',
             "hasRemoteApikey" => $this->hasRemoteApikey,
             "internalPort" => _var($_SERVER, 'SERVER_PORT'),
             "keyfile" => $this->keyfileBase64UrlSafe,
