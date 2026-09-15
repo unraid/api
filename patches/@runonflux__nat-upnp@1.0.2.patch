@@ -91,8 +91,9 @@ diff --git a/build/src/nat-upnp/client.js b/build/src/nat-upnp/client.js
 index 55335e888b88cefc9571041a85ef5aa0bec88c6a..06077ff94b1caaf10a2fe0953277528bdb157e19 100644
 --- a/build/src/nat-upnp/client.js
 +++ b/build/src/nat-upnp/client.js
-@@ -17,8 +17,10 @@ const device_1 = __importDefault(require("./device"));
+@@ -17,8 +17,11 @@ const device_1 = __importDefault(require("./device"));
  const ssdp_1 = __importDefault(require("./ssdp"));
++const url_1 = require("url");
  class Client {
      constructor(options = {}) {
 -        this.ssdp = new ssdp_1.default();
@@ -159,12 +160,18 @@ index 55335e888b88cefc9571041a85ef5aa0bec88c6a..06077ff94b1caaf10a2fe0953277528b
      close() {
          this.ssdp.close();
      }
-@@ -172,3 +200,6 @@ function normalizeOptions(options) {
+@@ -172,3 +200,12 @@ function normalizeOptions(options) {
      };
  }
  exports.default = Client;
 +function normalizeAddress(address) {
-+    return address.replace(/^\[|\]$/g, "").toLowerCase();
++    const unbracketed = address.replace(/^\[|\]$/g, "");
++    try {
++        return new url_1.URL(`http://[${unbracketed}]/`).hostname;
++    }
++    catch (_a) {
++        return unbracketed.toLowerCase();
++    }
 +}
 diff --git a/build/src/nat-upnp/device.d.ts b/build/src/nat-upnp/device.d.ts
 index b8d2073e35c5844d8c1e986cddd81b26db10a951..e01c11218d0a33d81a24a08f54f3fbfc8e42965d 100644
@@ -257,7 +264,7 @@ index 2b92c7c90ba0ed525dcb6a4d751fbccc05e7baa6..3ee8b3a2bb98aa6b64004f65db88109d
                  headers: {
                      "Content-Type": 'text/xml; charset="utf-8"',
                      "Content-Length": "" + Buffer.byteLength(body),
-@@ -112,6 +126,28 @@ class Device {
+@@ -112,6 +126,34 @@ class Device {
              devices,
          };
      }
@@ -284,7 +291,13 @@ index 2b92c7c90ba0ed525dcb6a4d751fbccc05e7baa6..3ee8b3a2bb98aa6b64004f65db88109d
 +    return normalizeAddress(hostname) === normalizeAddress(address);
 +}
 +function normalizeAddress(address) {
-+    return address.replace(/^\[|\]$/g, "").toLowerCase();
++    const unbracketed = address.replace(/^\[|\]$/g, "");
++    try {
++        return new url_1.URL(`http://[${unbracketed}]/`).hostname;
++    }
++    catch (_a) {
++        return unbracketed.toLowerCase();
++    }
 +}
 diff --git a/build/src/nat-upnp/ssdp.d.ts b/build/src/nat-upnp/ssdp.d.ts
 index 2e903410d67f8c607e4fc394b39a06342aa18643..a844762818bf965be097efe4e0015b8b4b7ba334 100644
