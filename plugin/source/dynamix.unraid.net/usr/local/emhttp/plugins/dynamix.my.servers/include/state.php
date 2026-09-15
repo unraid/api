@@ -18,6 +18,7 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
 require_once "$docroot/plugins/dynamix.plugin.manager/include/UnraidCheck.php";
 require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
+require_once "$docroot/plugins/dynamix.my.servers/include/os-release.php";
 /**
  * ServerState class encapsulates server-related information and settings.
  *
@@ -112,7 +113,7 @@ class ServerState
 
         $this->state = strtoupper(empty($this->var['regCheck']) ? $this->var['regTy'] : $this->var['regCheck']);
         $this->osVersion = $this->var['version'];
-        $this->osVersionBranch = trim(@exec('plugin category /var/log/plugins/unRAIDServer.plg') ?? 'stable');
+        $this->osVersionBranch = OsRelease::branch();
 
         $caseModelFile = '/boot/config/plugins/dynamix/case-model.cfg';
         $this->caseModel = file_exists($caseModelFile) ? htmlspecialchars(@file_get_contents($caseModelFile), ENT_HTML5, 'UTF-8') : '';
