@@ -130,12 +130,12 @@ const showPartnerActivationCode = computed(() => {
   );
 });
 const showTpmTransferButton = computed((): boolean =>
-  Boolean(
-    hasDistinctTpmGuid.value &&
-      (keyInstalled.value || showTrialExpiration.value || hasBlacklistedTpmLicenseMismatch.value)
-  )
+  Boolean(hasDistinctTpmGuid.value && (keyInstalled.value || showTrialExpiration.value))
 );
 const disableTpmTransferButton = computed((): boolean => showTrialExpiration.value);
+const showTpmGuid = computed((): boolean =>
+  Boolean(showTpmTransferButton.value || hasBlacklistedTpmLicenseMismatch.value)
+);
 
 // Organize items into three sections
 const bootDeviceItems = computed((): RegistrationItemProps[] => {
@@ -148,7 +148,7 @@ const bootDeviceItems = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
-    ...(showTpmTransferButton.value && tpmGuid.value
+    ...(showTpmGuid.value && tpmGuid.value
       ? [
           {
             label: t('registration.tpmGuid'),

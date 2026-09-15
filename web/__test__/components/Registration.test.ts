@@ -366,7 +366,7 @@ describe('Registration.standalone.vue', () => {
     expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(true);
   });
 
-  it('shows Move License to TPM when the boot flash is blacklisted but TPM licensing is available', async () => {
+  it('shows the TPM mismatch and Replace Key action when the boot flash is blacklisted', async () => {
     serverStore.state = 'EBLACKLISTED';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
@@ -376,14 +376,13 @@ describe('Registration.standalone.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    const moveButton = wrapper.find('[data-testid="move-license-to-tpm"]');
-
-    expect(moveButton.exists()).toBe(true);
-    expect(moveButton.attributes('disabled')).toBeUndefined();
+    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(false);
     expect(wrapper.text()).toContain('License / TPM mismatch');
     expect(wrapper.text()).not.toContain('Blacklisted boot device GUID');
     expect(wrapper.text()).not.toContain('copy the correct key file');
+    expect(wrapper.text()).not.toContain('Move License to TPM');
     expect(wrapper.text()).toContain('Your license is registered to a different TPM');
+    expect(findItemByLabel(t('TPM GUID'))?.props('text')).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
     expect(findItemByLabel(t('registration.registeredGuid'))?.props('text')).toBe(
       '01-OLD-TPM-GUID-1234567890'
     );
@@ -393,13 +392,10 @@ describe('Registration.standalone.vue', () => {
       'Replace Key'
     );
 
-    await moveButton.trigger('click');
-
-    expect(accountStore.replaceTpm).toHaveBeenCalled();
-
     serverStore.keyActions?.find((action) => action.name === 'replace')?.click?.();
 
     expect(accountStore.replace).toHaveBeenCalled();
+    expect(accountStore.replaceTpm).not.toHaveBeenCalled();
   });
 
   it('does not show Move License to TPM for invalid blacklisted states', async () => {

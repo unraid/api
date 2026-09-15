@@ -769,7 +769,7 @@
   "server.state.eblacklisted.message": "<p>This boot device has been blacklisted. This can occur as a result of transferring your license key to a replacement device, and you are currently booted from your old device.</p><p>A device may also be blacklisted if we discover the serial number is not unique – this is common with USB card readers.</p>",
   "server.state.eblacklisted.tpmMismatch.heading": "License / TPM mismatch",
   "server.state.eblacklisted.tpmMismatch.humanReadable": "LICENSE / TPM MISMATCH",
-  "server.state.eblacklisted.tpmMismatch.message": "<p>Your license is registered to a different TPM than the one currently detected. This can occur after a hardware swap.</p><p>Choose Move License to TPM to replace the license on this TPM, or choose Replace Key to start the license replacement flow. The blacklisted boot flash will not be changed.</p>",
+  "server.state.eblacklisted.tpmMismatch.message": "<p>Your license is registered to a different TPM than the one currently detected. This can occur after a hardware swap.</p><p>Choose Replace Key to start the license replacement flow. The blacklisted boot flash will not be changed.</p>",
   "server.state.eblacklisted1.heading": "Boot device error",
   "server.state.eblacklisted1.message": "<p>This boot device has an invalid GUID. Please try a different boot device</p>",
   "server.state.eblacklisted2.heading": "Boot device has no serial number",
