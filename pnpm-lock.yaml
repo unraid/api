@@ -55,7 +55,7 @@ overrides:
 
 patchedDependencies:
   '@runonflux/nat-upnp@1.0.2':
-    hash: 296285328e3be854cded1e7febb2c040ad212964cb7c4842bcbe82c54bd42852
+    hash: 274ba7f173eb18860b91b39968827ae567ec17bec40febfdf03bdc21c8a8072b
     path: patches/@runonflux__nat-upnp@1.0.2.patch
 
 importers:

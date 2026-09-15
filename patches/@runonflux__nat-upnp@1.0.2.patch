@@ -302,10 +302,10 @@ index 2e903410d67f8c607e4fc394b39a06342aa18643..a844762818bf965be097efe4e0015b8b
  declare type SearchEvent = <E extends Events>(ev: E, ...args: E extends "device" ? SearchArgs : []) => boolean;
  declare type Events = "device" | "end";
 diff --git a/build/src/nat-upnp/ssdp.js b/build/src/nat-upnp/ssdp.js
-index 40bce5c6983b385655ee0dcf346d056be8a4c7bb..9350316a6862c9c29a3f9d697ee1550150b3dd9e 100644
+index 40bce5c6983b385655ee0dcf346d056be8a4c7bb..54c0ceaf85717e329c60b600f357ff89a784a480 100644
 --- a/build/src/nat-upnp/ssdp.js
 +++ b/build/src/nat-upnp/ssdp.js
-@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+@@ -3,7 +3,7 @@
      return (mod && mod.__esModule) ? mod : { "default": mod };
  };
  Object.defineProperty(exports, "__esModule", { value: true });
@@ -314,11 +314,21 @@ index 40bce5c6983b385655ee0dcf346d056be8a4c7bb..9350316a6862c9c29a3f9d697ee15501
  const dgram_1 = __importDefault(require("dgram"));
  const os_1 = __importDefault(require("os"));
  const events_1 = __importDefault(require("events"));
-@@ -28,12 +28,12 @@ class Ssdp {
+@@ -23,17 +23,20 @@
+         const interfaces = os_1.default.networkInterfaces();
+         this.sockets = Object.keys(interfaces).reduce((arr, key) => {
+             var _a, _b;
+-            return arr.concat((_b = (_a = interfaces[key]) === null || _a === void 0 ? void 0 : _a.filter((item) => !item.internal).map((item) => this.createSocket(item))) !== null && _b !== void 0 ? _b : []);
++            return arr.concat((_b = (_a = interfaces[key]) === null || _a === void 0 ? void 0 : _a.filter((item) => !item.internal).map((item) => this.createSocket(item, key))) !== null && _b !== void 0 ? _b : []);
+         }, []);
      }
-     createSocket(iface) {
+-    createSocket(iface) {
++    createSocket(iface, interfaceName) {
          const socket = dgram_1.default.createSocket(iface.family === "IPv4" ? "udp4" : "udp6");
 -        socket.on("message", (message) => {
++        const multicast = iface.family === "IPv4" ? "239.255.255.250" : `FF02::C%${interfaceName}`;
++        socket.multicast = multicast;
++        socket.multicastHost = iface.family === "IPv4" ? multicast : "[FF02::C]";
 +        socket.on("message", (message, rinfo) => {
              // Ignore messages after closing sockets
              if (this.closed)
@@ -329,7 +339,7 @@ index 40bce5c6983b385655ee0dcf346d056be8a4c7bb..9350316a6862c9c29a3f9d697ee15501
          });
          // Bind in next tick (sockets should be me in this.sockets array)
          process.nextTick(() => {
-@@ -59,16 +59,11 @@ class Ssdp {
+@@ -59,16 +62,11 @@
          });
          return socket;
      }
@@ -350,11 +360,41 @@ index 40bce5c6983b385655ee0dcf346d056be8a4c7bb..9350316a6862c9c29a3f9d697ee15501
      }
      search(device, emitter) {
          if (!emitter) {
-@@ -96,10 +91,10 @@ class Ssdp {
-             "\r\n");
-         // Send query on each socket
-         this.sockets.forEach((socket) => socket.send(query, 0, query.length, this.port, this.multicast));
+@@ -82,24 +80,26 @@
+             this.queue.push([device, emitter]);
+             return emitter;
+         }
+-        const query = Buffer.from("M-SEARCH * HTTP/1.1\r\n" +
+-            "HOST: " +
+-            this.multicast +
+-            ":" +
+-            this.port +
+-            "\r\n" +
+-            'MAN: "ssdp:discover"\r\n' +
+-            "MX: 1\r\n" +
+-            "ST: " +
+-            device +
+-            "\r\n" +
+-            "\r\n");
+-        // Send query on each socket
+-        this.sockets.forEach((socket) => socket.send(query, 0, query.length, this.port, this.multicast));
 -        const ondevice = (headers, address) => {
++        // Send the family-specific SSDP query on each interface.
++        this.sockets.forEach((socket) => {
++            const query = Buffer.from("M-SEARCH * HTTP/1.1\r\n" +
++                "HOST: " +
++                socket.multicastHost +
++                ":" +
++                this.port +
++                "\r\n" +
++                'MAN: "ssdp:discover"\r\n' +
++                "MX: 1\r\n" +
++                "ST: " +
++                device +
++                "\r\n" +
++                "\r\n");
++            socket.send(query, 0, query.length, this.port, socket.multicast);
++        });
 +        const ondevice = (headers, remoteAddress, localAddress) => {
              if (!emitter || emitter._ended || headers.st !== device)
                  return;
@@ -363,7 +403,7 @@ index 40bce5c6983b385655ee0dcf346d056be8a4c7bb..9350316a6862c9c29a3f9d697ee15501
          };
          this.ssdpEmitter.on("device", ondevice);
          // Detach listener after receiving 'end' event
-@@ -124,4 +119,13 @@ function parseMimeHeader(headerStr) {
+@@ -124,4 +124,13 @@
          return headers;
      }, {});
  }
