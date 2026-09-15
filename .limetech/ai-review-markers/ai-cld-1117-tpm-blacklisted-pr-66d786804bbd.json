@@ -1,0 +1,30 @@
+{
+  "disposition": "PATCH",
+  "expected_structural_delta": "Add no production modules, owners, dependencies, representations, or pass-through hops. Extend one existing Registration predicate, the existing PHP state fallback, and the existing Registration test file with focused positive and negative cases.",
+  "minimum_design": "Extend the existing Registration eligibility predicate to require normal EBLACKLISTED state, a key file, a flash boot device, a usable TPM GUID, and a different registered TPM GUID. Reuse the existing PHP state payload fallback and Account replacement operation.",
+  "outcome": "When the current boot device is a blacklisted flash, a usable new TPM is detected, and the installed key is registered to a different old TPM GUID, Registration shows the existing TPM key-replacement action.",
+  "reuse_decisions": [
+    {
+      "decision": "extend",
+      "name": "Existing Registration TPM replacement action",
+      "rationale": "The component already owns the TPM eligibility predicate, button, payload, and Account action. Extending it keeps one customer-facing action and one effect path."
+    },
+    {
+      "decision": "extend",
+      "name": "Existing server state representation",
+      "rationale": "The existing server store already exposes the boot, registered, and TPM identifiers. The PHP fallback supplies the missing TPM identifier."
+    },
+    {
+      "decision": "reuse",
+      "name": "Account TPM replacement operation",
+      "rationale": "The existing Account replaceTpm operation already handles the replacement request. No provider operation is added."
+    },
+    {
+      "decision": "not applicable",
+      "name": "Other blacklisted states and Core UI",
+      "rationale": "The ticket concerns normal EBLACKLISTED with a blacklisted flash and an old-TPM/new-TPM mismatch. Other blacklisted state codes and the separate Core UI are outside this causal path."
+    }
+  ],
+  "schema": "limetech.ai-review-marker.v2",
+  "stage": "forecast"
+}
