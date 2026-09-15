@@ -1,0 +1,30 @@
+{
+  "disposition": "PATCH",
+  "expected_structural_delta": "Add one route-parser/provider module, one parser test file, one existing-client wiring change, and one repository-local pnpm patch with lock/config entries; add no new runtime service or API route.",
+  "minimum_design": "Use the existing UPnP client with a local default-gateway allow-list, validate route output, and apply a repository-local pnpm patch to nat-upnp for SSDP response and control-URL validation.",
+  "outcome": "When Unraid API performs UPnP gateway discovery on a supported host, a LAN device that is not the host's default gateway cannot cause the API to fetch or invoke an attacker-controlled UPnP endpoint.",
+  "reuse_decisions": [
+    {
+      "decision": "extend",
+      "name": "Existing UPnP client",
+      "rationale": "helpers.ts already owns the singleton and can supply gateway addresses without a second client."
+    },
+    {
+      "decision": "reuse",
+      "name": "Existing execa dependency",
+      "rationale": "The API already depends on execa for subprocess boundaries, so route lookup needs no new dependency."
+    },
+    {
+      "decision": "patch locally",
+      "name": "@runonflux/nat-upnp package",
+      "rationale": "The package owns SSDP and SOAP behavior; a repository-local pnpm patch keeps the security fix in this API while upstream publication remains out of scope."
+    },
+    {
+      "decision": "reuse",
+      "name": "MockUpnpClient",
+      "rationale": "The Docker path already uses the mock client and does not perform live SSDP discovery."
+    }
+  ],
+  "schema": "limetech.ai-review-marker.v2",
+  "stage": "forecast"
+}
