@@ -394,7 +394,9 @@ describe('Registration.standalone.vue', () => {
 
     serverStore.keyActions?.find((action) => action.name === 'replace')?.click?.();
 
-    expect(accountStore.replace).toHaveBeenCalled();
+    expect(accountStore.replace).toHaveBeenCalledWith(
+      expect.objectContaining({ guid: '01-OLD-TPM-GUID-1234567890' })
+    );
     expect(accountStore.replaceTpm).not.toHaveBeenCalled();
   });
 
