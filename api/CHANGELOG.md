@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.37.5](https://github.com/unraid/api/compare/v4.37.4...v4.37.5) (2026-09-16)
+
+
+### Bug Fixes
+
+* **api-key-auth:** reject unsafe redirect URI schemes ([509853c](https://github.com/unraid/api/commit/509853c1bc7c219d79b5b1d20a7c31a0cd6b4315))
+* **upnp:** Upnp issue fix ([#2081](https://github.com/unraid/api/issues/2081)) ([d061525](https://github.com/unraid/api/commit/d0615255e0ce062f7a8262e560f963d07f311539))
+
 ## [4.37.4](https://github.com/unraid/api/compare/v4.37.3...v4.37.4) (2026-09-08)
 
 
