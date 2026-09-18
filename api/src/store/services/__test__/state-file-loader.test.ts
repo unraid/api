@@ -13,7 +13,7 @@ const VAR_FIXTURE = readFileSync(new URL('../../../../dev/states/var.ini', impor
 const writeVarFixture = (dir: string, safeMode: 'yes' | 'no') => {
     const content = VAR_FIXTURE.replace(/safeMode="(yes|no)"/, `safeMode="${safeMode}"`).replace(
         /flashGUID="([^"]+)"/,
-        'flashGUID="$1"\ntpmGUID="01-V35H8S0L1QHK1SBG1XHXJNH7"'
+        'flashGUID="$1"\ntpmGUID="01-V35H8S0L1QHK1SBG1XHXJNH7"\nusbGUID="058F-6387-0000-0000F1F1E1C6"'
     );
     writeFileSync(join(dir, `${StateFileKey.var}.ini`), content);
 };
@@ -47,6 +47,7 @@ describe('loadStateFileSync', () => {
 
         expect(result?.safeMode).toBe(true);
         expect(result?.tpmGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
+        expect(result?.usbGuid).toBe('058F-6387-0000-0000F1F1E1C6');
         expect(dispatchSpy).toHaveBeenCalledWith(
             expect.objectContaining({
                 type: 'emhttp/updateEmhttpState',
@@ -55,6 +56,7 @@ describe('loadStateFileSync', () => {
                     state: expect.objectContaining({
                         safeMode: true,
                         tpmGuid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
+                        usbGuid: '058F-6387-0000-0000F1F1E1C6',
                     }),
                 },
             })
