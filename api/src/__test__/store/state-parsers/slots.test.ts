@@ -32,8 +32,8 @@ test('Returns parsed state file', async () => {
           "isSpinning": true,
           "name": "parity",
           "numErrors": 0,
-          "numReads": 0,
-          "numWrites": 0,
+          "numReads": 5404086599,
+          "numWrites": 1032312047,
           "rotational": true,
           "size": 17578328012,
           "status": "DISK_OK",
@@ -57,8 +57,8 @@ test('Returns parsed state file', async () => {
           "isSpinning": true,
           "name": "disk1",
           "numErrors": 0,
-          "numReads": 0,
-          "numWrites": 0,
+          "numReads": 6067048321,
+          "numWrites": 761993220,
           "rotational": true,
           "size": 17578328012,
           "status": "DISK_OK",
@@ -82,8 +82,8 @@ test('Returns parsed state file', async () => {
           "isSpinning": true,
           "name": "disk2",
           "numErrors": 0,
-          "numReads": 0,
-          "numWrites": 0,
+          "numReads": 3178772532,
+          "numWrites": 1182939,
           "rotational": true,
           "size": 11718885324,
           "status": "DISK_OK",
@@ -107,8 +107,8 @@ test('Returns parsed state file', async () => {
           "isSpinning": true,
           "name": "disk3",
           "numErrors": 0,
-          "numReads": 0,
-          "numWrites": 0,
+          "numReads": 3375865821,
+          "numWrites": 269152540,
           "rotational": true,
           "size": 11718885324,
           "status": "DISK_OK",
@@ -132,8 +132,8 @@ test('Returns parsed state file', async () => {
           "isSpinning": true,
           "name": "cache",
           "numErrors": 0,
-          "numReads": 0,
-          "numWrites": 0,
+          "numReads": 7751234,
+          "numWrites": 72422828,
           "rotational": false,
           "size": 244198552,
           "status": "DISK_OK",
@@ -157,8 +157,8 @@ test('Returns parsed state file', async () => {
           "isSpinning": true,
           "name": "cache2",
           "numErrors": 0,
-          "numReads": 0,
-          "numWrites": 0,
+          "numReads": 8509208,
+          "numWrites": 78986172,
           "rotational": false,
           "size": 244198552,
           "status": "DISK_OK",
@@ -182,8 +182,8 @@ test('Returns parsed state file', async () => {
           "isSpinning": true,
           "name": "flash",
           "numErrors": 0,
-          "numReads": 0,
-          "numWrites": 0,
+          "numReads": 24522,
+          "numWrites": 26095,
           "rotational": true,
           "size": 3956700,
           "status": "DISK_OK",
@@ -195,6 +195,23 @@ test('Returns parsed state file', async () => {
       ]
     `);
 }, 15000);
+
+test('preserves disk I/O counters from disks.ini', async () => {
+    const { parse } = await import('@app/store/state-parsers/slots.js');
+    const { parseConfig } = await import('@app/core/utils/misc/parse-config.js');
+    const { paths } = store.getState();
+    const filePath = join(paths.states, 'disks.ini');
+    const stateFile = parseConfig<SlotsIni>({
+        filePath,
+        type: 'ini',
+    });
+
+    const parity = parse(stateFile).find((disk) => disk.name === 'parity');
+
+    expect(parity?.numReads).toBe(5404086599);
+    expect(parity?.numWrites).toBe(1032312047);
+    expect(parity?.numErrors).toBe(0);
+});
 
 test('preserves Boot slots from disks.ini for internal boot selection', async () => {
     const { parse } = await import('@app/store/state-parsers/slots.js');
