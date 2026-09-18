@@ -21,6 +21,10 @@ export class VmsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.VMS,
+    })
     @ResolveField(() => [VmDomain])
     public async domains(): Promise<Array<VmDomain>> {
         try {
@@ -32,6 +36,10 @@ export class VmsResolver {
         }
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.VMS,
+    })
     @ResolveField(() => [VmDomain])
     public async domain(): Promise<Array<VmDomain>> {
         return this.domains();

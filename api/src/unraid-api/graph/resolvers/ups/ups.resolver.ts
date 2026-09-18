@@ -1,5 +1,7 @@
 import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { PubSub } from 'graphql-subscriptions';
 
 import { UPSConfigInput } from '@app/unraid-api/graph/resolvers/ups/ups.inputs.js';
@@ -42,6 +44,10 @@ export class UPSResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @Query(() => [UPSDevice])
     async upsDevices(): Promise<UPSDevice[]> {
         const upsData = await this.upsService.getUPSData();
@@ -49,6 +55,10 @@ export class UPSResolver {
         return [this.createUPSDevice(upsData, upsData.MODEL || 'ups1')];
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @Query(() => UPSDevice, { nullable: true })
     async upsDeviceById(@Args('id') id: string): Promise<UPSDevice | null> {
         const upsData = await this.upsService.getUPSData();
@@ -59,6 +69,10 @@ export class UPSResolver {
         return null;
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @Query(() => UPSConfiguration)
     async upsConfiguration(): Promise<UPSConfiguration> {
         const config = await this.upsService.getCurrentConfig();
@@ -80,6 +94,10 @@ export class UPSResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.CONFIG,
+    })
     @Mutation(() => Boolean)
     async configureUps(@Args('config') config: UPSConfigInput): Promise<boolean> {
         await this.upsService.configureUPS(config);
@@ -89,6 +107,10 @@ export class UPSResolver {
         return true;
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @Subscription(() => UPSDevice)
     upsUpdates() {
         return this.pubSub.asyncIterableIterator('upsUpdates');

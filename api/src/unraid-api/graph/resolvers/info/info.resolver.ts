@@ -40,54 +40,94 @@ export class InfoResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => GraphQLISODateTime)
     public async time(): Promise<Date> {
         return new Date();
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => InfoBaseboard)
     public async baseboard(): Promise<InfoBaseboard> {
         const baseboard = await getBaseboard();
         return { id: 'info/baseboard', ...baseboard } as InfoBaseboard;
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => InfoCpu)
     public async cpu(): Promise<InfoCpu> {
         return this.cpuService.generateCpu();
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => InfoDevices)
     public devices(): Partial<InfoDevices> {
         // Return minimal stub, let InfoDevicesResolver handle all fields
         return { id: 'info/devices' };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => InfoDisplay)
     public async display(): Promise<InfoDisplay> {
         return this.displayService.generateDisplay();
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => String, { nullable: true })
     public async machineId(): Promise<string | undefined> {
         return getMachineId();
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => InfoMemory)
     public async memory(): Promise<InfoMemory> {
         return this.memoryService.generateMemory();
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => InfoOs)
     public async os(): Promise<InfoOs> {
         return this.osService.generateOs();
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => InfoSystem)
     public async system(): Promise<InfoSystem> {
         const system = await getSystem();
         return { id: 'info/system', ...system } as InfoSystem;
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => InfoVersions)
     public versions(): Partial<InfoVersions> {
         return this.versionsService.generateVersions();

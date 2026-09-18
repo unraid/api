@@ -29,6 +29,17 @@ const WORKSPACE_PACKAGES_TO_VENDOR = {
     'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect',
 } as const;
 
+const REPOSITORY_ROOT = resolve('..');
+
+const LOCAL_PATCHED_DEPENDENCIES = [
+    {
+        packageName: '@runonflux/nat-upnp',
+        patchPath: join(REPOSITORY_ROOT, 'patches/@runonflux__nat-upnp@1.0.2.patch'),
+        validationPath: 'build/src/nat-upnp/client.js',
+        validationMarker: 'No trusted gateway addresses found',
+    },
+] as const;
+
 /**
  * Packs a workspace package and installs it as a tarball dependency.
  */
@@ -47,6 +58,34 @@ const packAndInstallWorkspacePackage = async (pkgName: string, pkgPath: string, 
     // Install the tarball
     const tarballPattern = join(fullTempDir, tarballName);
     await $`npm install ${tarballPattern}`;
+};
+
+const applyLocalPatchesToProductionDependencies = async () => {
+    for (const dependency of LOCAL_PATCHED_DEPENDENCIES) {
+        const dependencyPath = resolve('node_modules', dependency.packageName);
+
+        if (!existsSync(dependencyPath)) {
+            throw new Error(`Patched dependency ${dependency.packageName} was not installed`);
+        }
+
+        if (!existsSync(dependency.patchPath)) {
+            throw new Error(`Patch file not found: ${dependency.patchPath}`);
+        }
+
+        console.log(`Applying local patch to ${dependency.packageName}...`);
+        const reverseCheck =
+            await $`GIT_DIR=/dev/null git -C ${dependencyPath} apply --reverse --check --no-index ${dependency.patchPath}`
+                .nothrow()
+                .quiet();
+        if (reverseCheck.exitCode !== 0) {
+            await $`GIT_DIR=/dev/null git -C ${dependencyPath} apply --no-index ${dependency.patchPath}`;
+        }
+
+        const patchedSource = await readFile(join(dependencyPath, dependency.validationPath), 'utf-8');
+        if (!patchedSource.includes(dependency.validationMarker)) {
+            throw new Error(`Patch validation failed for ${dependency.packageName}`);
+        }
+    }
 };
 
 /**------------------------------------------------------------------------
@@ -137,6 +176,8 @@ try {
             await packAndInstallWorkspacePackage(dep, join('../../../', pkgPath), tempDir);
         }
     }
+
+    await applyLocalPatchesToProductionDependencies();
 
     // Clean the release directory
     await $`rm -rf ../release/*`;

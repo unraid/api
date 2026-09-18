@@ -4,7 +4,10 @@ import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import prettier from 'eslint-plugin-prettier';
 import tseslint from 'typescript-eslint';
 
+import { graphqlAuthorizationConfig } from './eslint/graphql-authorization.config.mjs';
+
 export default tseslint.config(
+    ...graphqlAuthorizationConfig,
     eslint.configs.recommended,
     ...tseslint.configs.recommended,
     {

@@ -3,9 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
-import {
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { ConfigType, ConnectConfig, DynamicRemoteAccessType } from '../config/connect.config.js';
 import { Connect, ConnectSettings, DynamicRemoteAccessStatus } from './connect.model.js';
@@ -26,6 +24,10 @@ export class ConnectResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONNECT,
+    })
     @ResolveField(() => DynamicRemoteAccessStatus)
     public dynamicRemoteAccess(): DynamicRemoteAccessStatus {
         const state = this.configService.getOrThrow<ConnectConfig>('connect');
@@ -36,6 +38,10 @@ export class ConnectResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONNECT,
+    })
     @ResolveField(() => ConnectSettings)
     public async settings(): Promise<ConnectSettings> {
         return {} as ConnectSettings;

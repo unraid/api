@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.37.4](https://github.com/unraid/api/compare/v4.37.3...v4.37.4) (2026-09-08)
+
+
+### Bug Fixes
+
+* **api:** confine notification, log, and API-key file operations ([#2076](https://github.com/unraid/api/issues/2076)) ([421b53e](https://github.com/unraid/api/commit/421b53ea3986fc5c76461f98e4db1fe6b516acf5))
+* **auth:** require explicit GraphQL authorization ([#2074](https://github.com/unraid/api/issues/2074)) ([3ec4764](https://github.com/unraid/api/commit/3ec47647879a02bd45d55ca0e2bca987b1ff0d27))
+
 ## [4.37.3](https://github.com/unraid/api/compare/v4.37.2...v4.37.3) (2026-08-25)
 
 

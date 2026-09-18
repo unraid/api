@@ -7,6 +7,7 @@ import { createInterface } from 'node:readline';
 import * as chokidar from 'chokidar';
 
 import { pubsub } from '@app/core/pubsub.js';
+import { resolveFileInDirectory } from '@app/core/utils/files/resolve-file-in-directory.js';
 import { getters } from '@app/store/index.js';
 import { LogWatcherManager } from '@app/unraid-api/graph/resolvers/logs/log-watcher-manager.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
@@ -84,7 +85,7 @@ export class LogsService {
     ): Promise<LogFileContent> {
         try {
             // Validate that the path is within the log directory
-            const normalizedPath = join(this.logBasePath, basename(path));
+            const normalizedPath = resolveFileInDirectory(this.logBasePath, basename(path));
 
             // Count total lines
             const totalLines = await this.countFileLines(normalizedPath);
@@ -119,7 +120,7 @@ export class LogsService {
      * @returns The subscription topic key
      */
     registerLogFileSubscription(path: string): string {
-        const normalizedPath = join(this.logBasePath, basename(path));
+        const normalizedPath = resolveFileInDirectory(this.logBasePath, basename(path));
         const topicKey = this.getTopicKey(normalizedPath);
 
         // Register the topic if not already registered

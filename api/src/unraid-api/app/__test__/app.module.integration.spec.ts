@@ -2,13 +2,13 @@ import { INestApplication } from '@nestjs/common';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { AuthZGuard } from 'nest-authz';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { AppModule } from '@app/unraid-api/app/app.module.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { AuthenticationGuard } from '@app/unraid-api/auth/authentication.guard.js';
+import { AuthorizationGuard } from '@app/unraid-api/auth/authorization.guard.js';
 
 // Mock the store before importing it
 vi.mock('@app/store/index.js', () => ({
@@ -76,7 +76,7 @@ describe('AppModule Integration Tests', () => {
                 canActivate: () => true,
             })
             // Override authorization guard
-            .overrideGuard(AuthZGuard)
+            .overrideGuard(AuthorizationGuard)
             .useValue({
                 canActivate: () => true,
             })
