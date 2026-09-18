@@ -91,6 +91,7 @@ export const SERVER_STATE_QUERY = graphql(/* GraphQL */ `
       bootedFromFlashWithInternalBootSetup
       flashGuid
       tpmGuid
+      usbGuid
       mdState
       regGen
       regState

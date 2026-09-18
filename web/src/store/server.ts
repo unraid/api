@@ -150,6 +150,7 @@ export const useServerStore = defineStore('server', () => {
   const state = ref<ServerState>();
   const theme = ref<Theme>();
   const tpmGuid = ref<string>('');
+  const usbGuid = ref<string>('');
   watch(theme, (newVal) => {
     if (newVal) {
       themeStore.setTheme(newVal);
@@ -225,6 +226,7 @@ export const useServerStore = defineStore('server', () => {
       state: state.value,
       theme: theme.value,
       tpmGuid: tpmGuid.value,
+      usbGuid: usbGuid.value,
       uptime: uptime.value,
       username: username.value,
       wanFQDN: wanFQDN.value,
@@ -253,6 +255,7 @@ export const useServerStore = defineStore('server', () => {
       description: description.value,
       deviceCount: deviceCount.value,
       expireTime: expireTime.value,
+      flashGuid: flashGuid.value || undefined,
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
       guid: guid.value,
@@ -268,6 +271,8 @@ export const useServerStore = defineStore('server', () => {
       regTy: regTy.value,
       regUpdatesExpired: regUpdatesExpired.value,
       state: state.value,
+      tpmGuid: tpmGuid.value || undefined,
+      usbGuid: usbGuid.value || undefined,
       wanFQDN: wanFQDN.value,
       ...overrides,
     };
@@ -1145,6 +1150,9 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.tpmGuid !== 'undefined') {
       tpmGuid.value = data.tpmGuid;
     }
+    if (typeof data?.usbGuid !== 'undefined') {
+      usbGuid.value = data.usbGuid;
+    }
     if (typeof data?.updateOsIgnoredReleases !== 'undefined') {
       updateOsIgnoredReleases.value = data.updateOsIgnoredReleases;
     }
@@ -1206,6 +1214,7 @@ export const useServerStore = defineStore('server', () => {
       regTy: data.registration?.type ?? undefined,
       state: data.registration?.state ?? data.vars?.regState ?? undefined,
       tpmGuid: data.vars?.tpmGuid ?? undefined,
+      usbGuid: data.vars?.usbGuid ?? '',
       config: data.config
         ? { id: 'config', ...data.config }
         : {
@@ -1462,6 +1471,7 @@ export const useServerStore = defineStore('server', () => {
     state,
     theme,
     tpmGuid,
+    usbGuid,
     updateOsIgnoredReleases,
     updateOsNotificationsEnabled,
     updateOsResponse,
