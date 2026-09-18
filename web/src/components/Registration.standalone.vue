@@ -46,7 +46,7 @@ const {
   hasDistinctTpmGuid,
   dateTimeFormat,
   deviceCount,
-  flashGuid,
+  usbGuid,
   flashProduct,
   flashVendor,
   guid,
@@ -136,11 +136,11 @@ const disableTpmTransferButton = computed((): boolean => showTrialExpiration.val
 
 const licensingGuidItems = computed((): RegistrationItemProps[] => {
   const items: RegistrationItemProps[] = [
-    ...(flashGuid.value
+    ...(usbGuid.value
       ? [
           {
             label: t('registration.flashGuid'),
-            text: flashGuid.value,
+            text: usbGuid.value,
           },
         ]
       : guid.value
@@ -151,7 +151,7 @@ const licensingGuidItems = computed((): RegistrationItemProps[] => {
             },
           ]
         : []),
-    ...(tpmGuid.value && (flashGuid.value || tpmGuid.value !== guid.value)
+    ...(tpmGuid.value && (usbGuid.value || tpmGuid.value !== guid.value)
       ? [
           {
             label: t('registration.tpmGuid'),

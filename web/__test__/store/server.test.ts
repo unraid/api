@@ -189,6 +189,7 @@ const getStore = () => {
           deviceCount: store.deviceCount,
           expireTime: store.expireTime,
           flashGuid: store.flashGuid || undefined,
+          usbGuid: store.usbGuid || undefined,
           flashProduct: store.flashProduct,
           flashVendor: store.flashVendor,
           guid: store.guid,
@@ -221,6 +222,7 @@ const getStore = () => {
           description: store.description,
           expireTime: store.expireTime,
           flashGuid: store.flashGuid || undefined,
+          usbGuid: store.usbGuid || undefined,
           flashProduct: store.flashProduct,
           flashVendor: store.flashVendor,
           guid: store.guid,
@@ -782,6 +784,7 @@ describe('useServerStore', () => {
       regTy: 'Plus',
       state: 'PLUS' as ServerState,
       tpmGuid: '01-TPM-GUID-1',
+      usbGuid: 'usb-guid-1',
       wanFQDN: 'test.myunraid.net',
     });
 
@@ -809,6 +812,7 @@ describe('useServerStore', () => {
     expect(payload.regUpdatesExpired).toBe(true);
     expect(payload.state).toBe('PLUS');
     expect(payload.tpmGuid).toBe('01-TPM-GUID-1');
+    expect(payload.usbGuid).toBe('usb-guid-1');
     expect(payload.wanFQDN).toBe('test.myunraid.net');
   });
 
@@ -816,17 +820,22 @@ describe('useServerStore', () => {
     const store = getActualStore();
 
     store.setServer({
-      flashGuid: '058F-6387-0000-0000F1F1E1C6',
-      guid: '058F-6387-0000-0000F1F1E1C6',
+      flashGuid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
+      guid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
       tpmGuid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
+      usbGuid: '058F-6387-0000-0000F1F1E1C6',
     } as Server);
 
-    expect(store.serverPurchasePayload.flashGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverPurchasePayload.flashGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(store.serverPurchasePayload.guid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
     expect(store.serverPurchasePayload.tpmGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
-    expect(store.serverAccountPayload.flashGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverPurchasePayload.usbGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverAccountPayload.flashGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
     expect(store.serverAccountPayload.tpmGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
-    expect(store.serverReplacePayload.flashGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverAccountPayload.usbGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverReplacePayload.flashGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
     expect(store.serverReplacePayload.tpmGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(store.serverReplacePayload.usbGuid).toBe('058F-6387-0000-0000F1F1E1C6');
   });
 
   it('should create serverReplacePayload with TPM guid when available on flash boot', () => {

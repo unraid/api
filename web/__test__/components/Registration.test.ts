@@ -118,6 +118,7 @@ const initialServerState = {
   dateTimeFormat: { date: 'MMM D, YYYY', time: 'h:mm A' },
   deviceCount: 0,
   flashGuid: '',
+  usbGuid: '',
   guid: '',
   keyfile: '',
   mdState: '',
@@ -342,6 +343,7 @@ describe('Registration.standalone.vue', () => {
     serverStore.state = 'PRO';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.usbGuid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
     serverStore.keyfile = 'keyfile-present';
 
@@ -361,6 +363,7 @@ describe('Registration.standalone.vue', () => {
     serverStore.state = 'ENOKEYFILE';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.usbGuid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
 
     await wrapper.vm.$nextTick();
@@ -370,6 +373,20 @@ describe('Registration.standalone.vue', () => {
     );
     expect(findItemByLabel(t('TPM GUID'))?.props('text')).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
     expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(false);
+  });
+
+  it('does not label the selected TPM GUID as a USB GUID', async () => {
+    serverStore.guid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.flashGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.usbGuid = '';
+
+    await wrapper.vm.$nextTick();
+
+    expect(findItemByLabel(t('registration.flashGuid'))).toBeUndefined();
+    expect(findItemByLabel(t('registration.deviceGuid'))?.props('text')).toBe(
+      '01-V35H8S0L1QHK1SBG1XHXJNH7'
+    );
   });
 
   it('shows Move License to TPM when flashGuid is missing but the active GUID is still a flash GUID', async () => {

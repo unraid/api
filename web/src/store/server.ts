@@ -150,6 +150,7 @@ export const useServerStore = defineStore('server', () => {
   const state = ref<ServerState>();
   const theme = ref<Theme>();
   const tpmGuid = ref<string>('');
+  const usbGuid = ref<string>('');
   watch(theme, (newVal) => {
     if (newVal) {
       themeStore.setTheme(newVal);
@@ -225,6 +226,7 @@ export const useServerStore = defineStore('server', () => {
       state: state.value,
       theme: theme.value,
       tpmGuid: tpmGuid.value,
+      usbGuid: usbGuid.value,
       uptime: uptime.value,
       username: username.value,
       wanFQDN: wanFQDN.value,
@@ -246,8 +248,11 @@ export const useServerStore = defineStore('server', () => {
     }
   };
 
-  const buildServerCallbackPayload = (overrides: Partial<ServerData> = {}): ServerData => {
-    const payload: ServerData = {
+  type ServerCallbackData = ServerData & { usbGuid?: string };
+  const buildServerCallbackPayload = (
+    overrides: Partial<ServerCallbackData> = {}
+  ): ServerCallbackData => {
+    const payload: ServerCallbackData = {
       connectPluginVersion: connectPluginVersion.value || undefined,
       connectState: getConnectState(),
       description: description.value,
@@ -270,6 +275,7 @@ export const useServerStore = defineStore('server', () => {
       regUpdatesExpired: regUpdatesExpired.value,
       state: state.value,
       tpmGuid: tpmGuid.value || undefined,
+      usbGuid: usbGuid.value || undefined,
       wanFQDN: wanFQDN.value,
       ...overrides,
     };
@@ -296,12 +302,12 @@ export const useServerStore = defineStore('server', () => {
     };
   };
 
-  const serverPurchasePayload = computed((): ServerData => buildServerCallbackPayload());
+  const serverPurchasePayload = computed((): ServerCallbackData => buildServerCallbackPayload());
 
-  const serverAccountPayload = computed((): ServerData => buildServerCallbackPayload());
+  const serverAccountPayload = computed((): ServerCallbackData => buildServerCallbackPayload());
 
   const serverReplacePayload = computed(
-    (): ServerData => ({
+    (): ServerCallbackData => ({
       ...buildServerCallbackPayload({
         guid: replaceFlashGuid.value,
       }),
@@ -1147,6 +1153,9 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.tpmGuid !== 'undefined') {
       tpmGuid.value = data.tpmGuid;
     }
+    if (typeof data?.usbGuid !== 'undefined') {
+      usbGuid.value = data.usbGuid;
+    }
     if (typeof data?.updateOsIgnoredReleases !== 'undefined') {
       updateOsIgnoredReleases.value = data.updateOsIgnoredReleases;
     }
@@ -1208,6 +1217,7 @@ export const useServerStore = defineStore('server', () => {
       regTy: data.registration?.type ?? undefined,
       state: data.registration?.state ?? data.vars?.regState ?? undefined,
       tpmGuid: data.vars?.tpmGuid ?? undefined,
+      usbGuid: data.vars?.usbGuid ?? '',
       config: data.config
         ? { id: 'config', ...data.config }
         : {
@@ -1464,6 +1474,7 @@ export const useServerStore = defineStore('server', () => {
     state,
     theme,
     tpmGuid,
+    usbGuid,
     updateOsIgnoredReleases,
     updateOsNotificationsEnabled,
     updateOsResponse,
