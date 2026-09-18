@@ -248,11 +248,8 @@ export const useServerStore = defineStore('server', () => {
     }
   };
 
-  type ServerCallbackData = ServerData & { usbGuid?: string };
-  const buildServerCallbackPayload = (
-    overrides: Partial<ServerCallbackData> = {}
-  ): ServerCallbackData => {
-    const payload: ServerCallbackData = {
+  const buildServerCallbackPayload = (overrides: Partial<ServerData> = {}): ServerData => {
+    const payload: ServerData = {
       connectPluginVersion: connectPluginVersion.value || undefined,
       connectState: getConnectState(),
       description: description.value,
@@ -302,12 +299,12 @@ export const useServerStore = defineStore('server', () => {
     };
   };
 
-  const serverPurchasePayload = computed((): ServerCallbackData => buildServerCallbackPayload());
+  const serverPurchasePayload = computed((): ServerData => buildServerCallbackPayload());
 
-  const serverAccountPayload = computed((): ServerCallbackData => buildServerCallbackPayload());
+  const serverAccountPayload = computed((): ServerData => buildServerCallbackPayload());
 
   const serverReplacePayload = computed(
-    (): ServerCallbackData => ({
+    (): ServerData => ({
       ...buildServerCallbackPayload({
         guid: replaceFlashGuid.value,
       }),
