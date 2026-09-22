@@ -203,6 +203,8 @@ export const useServerStore = defineStore('server', () => {
       flashGuid: flashGuid.value,
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
+      // Preserve the selected legacy GUID, including an empty no-key value.
+      // Account resolves usbGuid/tpmGuid separately; neither is an implicit fallback.
       guid: guid.value,
       bootedFromFlashWithInternalBootSetup: bootedFromFlashWithInternalBootSetup.value,
       inIframe: inIframe.value,

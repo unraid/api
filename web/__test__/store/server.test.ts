@@ -838,6 +838,53 @@ describe('useServerStore', () => {
     expect(store.serverReplacePayload.usbGuid).toBe('058F-6387-0000-0000F1F1E1C6');
   });
 
+  it('should preserve physical identities without inventing a selected GUID for an unregistered server', () => {
+    const store = getActualStore();
+
+    store.setServer({
+      flashGuid: '',
+      guid: '',
+      regGuid: '',
+      state: 'ENOKEYFILE',
+      tpmGuid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
+      usbGuid: '058F-6387-0000-0000F1F1E1C6',
+    } as Server);
+
+    for (const payload of [
+      store.serverPurchasePayload,
+      store.serverAccountPayload,
+      store.serverReplacePayload,
+    ]) {
+      expect(payload.flashGuid).toBeUndefined();
+      expect(payload.tpmGuid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
+      expect(payload.usbGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    }
+    expect(store.serverPurchasePayload.guid).toBe('');
+    expect(store.serverAccountPayload.guid).toBe('');
+    expect(store.serverReplacePayload.guid).toBeUndefined();
+  });
+
+  it('should keep the legacy selected GUID when physical identity fields are absent', () => {
+    const store = getActualStore();
+
+    store.setServer({
+      flashGuid: '058F-6387-0000-0000F1F1E1C6',
+      guid: '058F-6387-0000-0000F1F1E1C6',
+      state: 'PRO',
+    } as Server);
+
+    for (const payload of [
+      store.serverPurchasePayload,
+      store.serverAccountPayload,
+      store.serverReplacePayload,
+    ]) {
+      expect(payload.flashGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+      expect(payload.guid).toBe('058F-6387-0000-0000F1F1E1C6');
+      expect(payload.usbGuid).toBeUndefined();
+      expect(payload.tpmGuid).toBeUndefined();
+    }
+  });
+
   it('should create serverReplacePayload with TPM guid when available on flash boot', () => {
     const store = getStore();
 
