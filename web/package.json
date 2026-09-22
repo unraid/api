@@ -117,7 +117,7 @@
     "@nuxt/ui": "4.8.2",
     "@tanstack/vue-table": "8.21.3",
     "@tiptap/y-tiptap": "3.0.7",
-    "@unraid/shared-callbacks": "3.1.0",
+    "@unraid/shared-callbacks": "3.3.0",
     "@unraid/ui": "link:../unraid-ui",
     "@vue/apollo-composable": "4.2.2",
     "@vueuse/components": "13.8.0",
