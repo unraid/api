@@ -45,6 +45,21 @@ const SmartDataSchema = z.object({
         .optional()
         .nullable(),
 });
+const LsblkPhysicalDisksSchema = z.object({
+    blockdevices: z.array(
+        z.object({
+            path: z.string(),
+            type: z.string(),
+            size: z.coerce.number().nullable(),
+            serial: z.string().nullable(),
+            model: z.string().nullable(),
+            tran: z.string().nullable(),
+        })
+    ),
+});
+
+export type PhysicalDisk = Pick<Disk, 'id' | 'device' | 'name' | 'interfaceType'>;
+
 interface EmhttpDeviceRecord {
     id?: unknown;
     device?: unknown;
@@ -337,28 +352,6 @@ export class DisksService {
                 (p): p is { name: string; fsType: DiskFsType; size: number } => p.fsType !== undefined
             );
 
-        // Explicitly map interface types
-        let mappedInterfaceType: DiskInterfaceType;
-        switch (disk.interfaceType?.toUpperCase()) {
-            case 'SATA':
-                mappedInterfaceType = DiskInterfaceType.SATA;
-                break;
-            case 'SAS':
-                mappedInterfaceType = DiskInterfaceType.SAS;
-                break;
-            case 'USB':
-                mappedInterfaceType = DiskInterfaceType.USB;
-                break;
-            case 'NVME': // Map NVMe string to PCIE enum
-                mappedInterfaceType = DiskInterfaceType.PCIE;
-                break;
-            case 'PCIE': // Also handle PCIE string
-                mappedInterfaceType = DiskInterfaceType.PCIE;
-                break;
-            default:
-                mappedInterfaceType = DiskInterfaceType.UNKNOWN;
-        }
-
         const arrayDisk = arrayDisks.find((d) => d.id.trim() === disk.serialNum.trim());
         return {
             ...disk,
@@ -366,10 +359,56 @@ export class DisksService {
             smartStatus:
                 DiskSmartStatus[disk.smartStatus?.toUpperCase() as keyof typeof DiskSmartStatus] ??
                 DiskSmartStatus.UNKNOWN,
-            interfaceType: mappedInterfaceType,
+            interfaceType: this.mapInterfaceType(disk.interfaceType),
             partitions,
             isSpinning: arrayDisk?.isSpinning ?? false,
         };
+    }
+
+    private mapInterfaceType(value: string | null | undefined): DiskInterfaceType {
+        switch (value?.toUpperCase()) {
+            case 'SATA':
+                return DiskInterfaceType.SATA;
+            case 'SAS':
+                return DiskInterfaceType.SAS;
+            case 'USB':
+                return DiskInterfaceType.USB;
+            case 'NVME':
+            case 'PCIE':
+                return DiskInterfaceType.PCIE;
+            default:
+                return DiskInterfaceType.UNKNOWN;
+        }
+    }
+
+    /**
+     * List physical disks from kernel metadata only. Unlike getDisks(), this never
+     * runs SMART commands, so it does not wake disks that are spun down.
+     */
+    async getPhysicalDisks(): Promise<PhysicalDisk[]> {
+        const { stdout } = await execa('lsblk', [
+            '-J',
+            '-d',
+            '-b',
+            '-o',
+            'PATH,TYPE,SIZE,SERIAL,MODEL,TRAN',
+        ]);
+        const { blockdevices } = LsblkPhysicalDisksSchema.parse(JSON.parse(stdout));
+
+        return blockdevices
+            .filter(
+                (device) =>
+                    device.type === 'disk' &&
+                    (device.size ?? 0) > 0 &&
+                    !device.path.startsWith('/dev/loop') &&
+                    !device.path.startsWith('/dev/ram')
+            )
+            .map((device) => ({
+                id: device.serial?.trim() ?? '',
+                device: device.path,
+                name: device.model?.trim() ?? '',
+                interfaceType: this.mapInterfaceType(device.tran),
+            }));
     }
 
     /**

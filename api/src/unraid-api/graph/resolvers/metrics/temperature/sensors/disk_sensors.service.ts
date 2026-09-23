@@ -22,7 +22,7 @@ export class DiskSensorsService implements TemperatureSensorProvider {
     }
 
     async read(): Promise<RawTemperatureSensor[]> {
-        const disks = await this.disksService.getDisks();
+        const disks = await this.disksService.getPhysicalDisks();
         const sensors: RawTemperatureSensor[] = [];
 
         for (const disk of disks) {

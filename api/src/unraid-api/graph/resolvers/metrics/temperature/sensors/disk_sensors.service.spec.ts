@@ -22,6 +22,7 @@ describe('DiskSensorsService', () => {
                     provide: DisksService,
                     useValue: {
                         getDisks: vi.fn(),
+                        getPhysicalDisks: vi.fn(),
                         getTemperature: vi.fn(),
                     },
                 },
@@ -42,14 +43,17 @@ describe('DiskSensorsService', () => {
                         device: '/dev/sda',
                         name: 'Test Disk',
                     } as unknown as Disk;
-                    const getDisks = vi.mocked(disksService.getDisks);
+                    const getDisks = vi.mocked(disksService.getPhysicalDisks);
                     getDisks.mockResolvedValue([disk]);
                 },
             ],
-            ['when no disks exist', () => vi.mocked(disksService.getDisks).mockResolvedValue([])],
+            [
+                'when no disks exist',
+                () => vi.mocked(disksService.getPhysicalDisks).mockResolvedValue([]),
+            ],
             [
                 'when DisksService would throw',
-                () => vi.mocked(disksService.getDisks).mockRejectedValue(new Error('Failed')),
+                () => vi.mocked(disksService.getPhysicalDisks).mockRejectedValue(new Error('Failed')),
             ],
         ])('should return true without checking disks %s', async (_label, setupMock) => {
             setupMock();
@@ -57,13 +61,13 @@ describe('DiskSensorsService', () => {
             const available = await service.isAvailable();
 
             expect(available).toBe(true);
-            expect(disksService.getDisks).not.toHaveBeenCalled();
+            expect(disksService.getPhysicalDisks).not.toHaveBeenCalled();
         });
     });
 
     describe('read', () => {
         it('should return disk temperatures', async () => {
-            vi.mocked(disksService.getDisks).mockResolvedValue([
+            vi.mocked(disksService.getPhysicalDisks).mockResolvedValue([
                 {
                     id: 'disk1',
                     device: '/dev/sda',
@@ -99,8 +103,19 @@ describe('DiskSensorsService', () => {
             });
         });
 
+        it('should not use getDisks, whose SMART queries wake spun-down disks', async () => {
+            vi.mocked(disksService.getPhysicalDisks).mockResolvedValue([
+                { id: 'disk1', device: '/dev/sda', name: 'Disk 1' } as unknown as Disk,
+            ]);
+            vi.mocked(disksService.getTemperature).mockResolvedValue(35);
+
+            await service.read();
+
+            expect(disksService.getDisks).not.toHaveBeenCalled();
+        });
+
         it('should skip disks without temperature data', async () => {
-            vi.mocked(disksService.getDisks).mockResolvedValue([
+            vi.mocked(disksService.getPhysicalDisks).mockResolvedValue([
                 { id: 'disk1', device: '/dev/sda', name: 'Disk 1' } as unknown as Disk,
                 { id: 'disk2', device: '/dev/sdb', name: 'Disk 2' } as unknown as Disk,
             ]);
@@ -114,7 +129,7 @@ describe('DiskSensorsService', () => {
         });
 
         it('should handle getTemperature errors gracefully', async () => {
-            vi.mocked(disksService.getDisks).mockResolvedValue([
+            vi.mocked(disksService.getPhysicalDisks).mockResolvedValue([
                 { id: 'disk1', device: '/dev/sda', name: 'Disk 1' } as unknown as Disk,
                 { id: 'disk2', device: '/dev/sdb', name: 'Disk 2' } as unknown as Disk,
             ]);
@@ -130,7 +145,7 @@ describe('DiskSensorsService', () => {
         });
 
         it('should use device name as fallback when name is empty', async () => {
-            vi.mocked(disksService.getDisks).mockResolvedValue([
+            vi.mocked(disksService.getPhysicalDisks).mockResolvedValue([
                 { id: 'disk1', device: '/dev/sda', name: '' } as unknown as Disk,
             ]);
 
@@ -144,7 +159,7 @@ describe('DiskSensorsService', () => {
 
     describe('inferDiskType', () => {
         it('should return NVME for nvme interface', async () => {
-            vi.mocked(disksService.getDisks).mockResolvedValue([
+            vi.mocked(disksService.getPhysicalDisks).mockResolvedValue([
                 {
                     id: 'disk1',
                     device: '/dev/nvme0n1',
@@ -159,7 +174,7 @@ describe('DiskSensorsService', () => {
         });
 
         it('should return NVME for pcie interface', async () => {
-            vi.mocked(disksService.getDisks).mockResolvedValue([
+            vi.mocked(disksService.getPhysicalDisks).mockResolvedValue([
                 {
                     id: 'disk1',
                     device: '/dev/nvme0n1',
@@ -174,7 +189,7 @@ describe('DiskSensorsService', () => {
         });
 
         it('should return DISK for sata interface', async () => {
-            vi.mocked(disksService.getDisks).mockResolvedValue([
+            vi.mocked(disksService.getPhysicalDisks).mockResolvedValue([
                 {
                     id: 'disk1',
                     device: '/dev/sda',
@@ -189,7 +204,7 @@ describe('DiskSensorsService', () => {
         });
 
         it('should return DISK for undefined interface', async () => {
-            vi.mocked(disksService.getDisks).mockResolvedValue([
+            vi.mocked(disksService.getPhysicalDisks).mockResolvedValue([
                 { id: 'disk1', device: '/dev/sda', name: 'HDD' } as unknown as Disk,
             ]);
             vi.mocked(disksService.getTemperature).mockResolvedValue(35);
