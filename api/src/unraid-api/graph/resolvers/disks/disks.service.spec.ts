@@ -810,6 +810,96 @@ describe('DisksService', () => {
     });
 
     // --- Test getTemperature ---
+    describe('getPhysicalDisks', () => {
+        const lsblkResult = (blockdevices: unknown[]) =>
+            ({
+                stdout: JSON.stringify({ blockdevices }),
+                stderr: '',
+                exitCode: 0,
+            }) as unknown as Awaited<ReturnType<typeof execa>>;
+
+        it('lists whole disks from lsblk without running SMART commands', async () => {
+            mockExeca.mockResolvedValue(
+                lsblkResult([
+                    {
+                        path: '/dev/sdb',
+                        type: 'disk',
+                        size: 12000000000000,
+                        serial: 'TESTSERIAL001 ',
+                        model: 'Test HDD 12TB',
+                        tran: 'sata',
+                    },
+                    {
+                        path: '/dev/nvme0n1',
+                        type: 'disk',
+                        size: 1000000000000,
+                        serial: 'TESTSERIAL002',
+                        model: 'Test NVMe 1TB',
+                        tran: 'nvme',
+                    },
+                ])
+            );
+
+            await expect(service.getPhysicalDisks()).resolves.toEqual([
+                {
+                    id: 'TESTSERIAL001',
+                    device: '/dev/sdb',
+                    name: 'Test HDD 12TB',
+                    interfaceType: DiskInterfaceType.SATA,
+                },
+                {
+                    id: 'TESTSERIAL002',
+                    device: '/dev/nvme0n1',
+                    name: 'Test NVMe 1TB',
+                    interfaceType: DiskInterfaceType.PCIE,
+                },
+            ]);
+            expect(mockExeca).not.toHaveBeenCalledWith('smartctl', expect.anything());
+            expect(mockDiskLayout).not.toHaveBeenCalled();
+        });
+
+        it('skips loop, md and zero-size devices and falls back to the device path without a serial', async () => {
+            mockExeca.mockResolvedValue(
+                lsblkResult([
+                    {
+                        path: '/dev/loop0',
+                        type: 'loop',
+                        size: 1000000,
+                        serial: null,
+                        model: null,
+                        tran: null,
+                    },
+                    {
+                        path: '/dev/md1p1',
+                        type: 'md',
+                        size: 10000000000000,
+                        serial: null,
+                        model: null,
+                        tran: null,
+                    },
+                    { path: '/dev/zram0', type: 'disk', size: 0, serial: null, model: null, tran: null },
+                    {
+                        path: '/dev/sdc',
+                        type: 'disk',
+                        size: 500000000000,
+                        serial: null,
+                        model: null,
+                        tran: 'usb',
+                    },
+                ])
+            );
+
+            await expect(service.getPhysicalDisks()).resolves.toEqual([
+                {
+                    id: '/dev/sdc',
+                    device: '/dev/sdc',
+                    name: '',
+                    interfaceType: DiskInterfaceType.USB,
+                },
+            ]);
+        });
+    });
+
     describe('getTemperature', () => {
         it('should return temperature for a disk', async () => {
             mockExeca.mockResolvedValue({
