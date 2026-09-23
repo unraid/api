@@ -105,7 +105,12 @@ describe('DiskSensorsService', () => {
 
         it('should not use getDisks, whose SMART queries wake spun-down disks', async () => {
             vi.mocked(disksService.getPhysicalDisks).mockResolvedValue([
-                { id: 'disk1', device: '/dev/sda', name: 'Disk 1' } as unknown as Disk,
+                {
+                    id: 'disk1',
+                    device: '/dev/sda',
+                    name: 'Disk 1',
+                    interfaceType: DiskInterfaceType.SATA,
+                },
             ]);
             vi.mocked(disksService.getTemperature).mockResolvedValue(35);
 

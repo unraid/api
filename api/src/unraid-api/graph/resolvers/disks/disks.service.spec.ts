@@ -858,7 +858,7 @@ describe('DisksService', () => {
             expect(mockDiskLayout).not.toHaveBeenCalled();
         });
 
-        it('skips loop, md, empty and zero-size devices', async () => {
+        it('skips loop, md and zero-size devices and falls back to the device path without a serial', async () => {
             mockExeca.mockResolvedValue(
                 lsblkResult([
                     {
@@ -890,7 +890,12 @@ describe('DisksService', () => {
             );
 
             await expect(service.getPhysicalDisks()).resolves.toEqual([
-                { id: '', device: '/dev/sdc', name: '', interfaceType: DiskInterfaceType.USB },
+                {
+                    id: '/dev/sdc',
+                    device: '/dev/sdc',
+                    name: '',
+                    interfaceType: DiskInterfaceType.USB,
+                },
             ]);
         });
     });

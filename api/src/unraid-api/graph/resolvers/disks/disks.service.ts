@@ -404,7 +404,7 @@ export class DisksService {
                     !device.path.startsWith('/dev/ram')
             )
             .map((device) => ({
-                id: device.serial?.trim() ?? '',
+                id: device.serial?.trim() || device.path,
                 device: device.path,
                 name: device.model?.trim() ?? '',
                 interfaceType: this.mapInterfaceType(device.tran),
