@@ -117,14 +117,24 @@ function cleanupDiagnostics() {
 function startDowngrade() {
   $('div.spinner').show('slow');
 
-  $.get(
+  $.post(
     '/plugins/dynamix.plugin.manager/include/Downgrade.php',
-    {
-      version: '<?= $rebootDetails->previousVersion ?>',
+    { action: 'prepare' },
+    function(prepareResponse) {
+      $.post(
+        '/plugins/dynamix.plugin.manager/include/Downgrade.php',
+        {
+          nonce: prepareResponse.nonce,
+          confirm: 'yes',
+          version: '<?= $rebootDetails->previousVersion ?>',
+        },
+        function() {
+          refresh();
+        },
+        'json'
+      );
     },
-    function() {
-      refresh();
-    }
+    'json'
   );
 }
 
