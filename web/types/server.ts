@@ -121,6 +121,7 @@ export interface Server {
   state?: ServerState;
   theme?: Theme | undefined;
   tpmGuid?: string;
+  usbGuid?: string;
   updateOsIgnoredReleases?: string[];
   updateOsNotificationsEnabled?: boolean;
   updateOsResponse?: ServerUpdateOsResponse;
