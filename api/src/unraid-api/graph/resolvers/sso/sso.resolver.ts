@@ -69,9 +69,10 @@ export class SsoResolver {
         }));
     }
 
+    // Persisted provider configuration includes secrets and requires configuration-write access.
     @Query(() => [OidcProvider], { description: 'Get all configured OIDC providers (admin only)' })
     @UsePermissions({
-        action: AuthAction.READ_ANY,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONFIG,
     })
     public async oidcProviders(): Promise<OidcProvider[]> {
@@ -80,7 +81,7 @@ export class SsoResolver {
 
     @Query(() => OidcProvider, { nullable: true, description: 'Get a specific OIDC provider by ID' })
     @UsePermissions({
-        action: AuthAction.READ_ANY,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONFIG,
     })
     public async oidcProvider(
@@ -91,7 +92,7 @@ export class SsoResolver {
 
     @Query(() => OidcConfiguration, { description: 'Get the full OIDC configuration (admin only)' })
     @UsePermissions({
-        action: AuthAction.READ_ANY,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONFIG,
     })
     public async oidcConfiguration(): Promise<OidcConfiguration> {

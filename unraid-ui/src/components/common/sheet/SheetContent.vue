@@ -47,7 +47,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 <template>
   <DialogPortal :disabled="disabled" :force-mount="forceMount" :to="teleportTarget">
     <DialogOverlay
-      class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/60"
+      class="data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 fixed inset-0 z-50 bg-black/60 data-[state=closed]:duration-200 data-[state=open]:duration-300"
     />
     <DialogContent :class="sheetClass" v-bind="forwarded">
       <slot />

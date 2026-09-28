@@ -21,6 +21,10 @@ WORKDIR /app
 ENV NODE_ENV=development
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+# Prefer sharp's prebuilt libvips instead of probing a host/global libvips
+# installation. This keeps dependency installation portable on builders whose
+# libvips ABI is newer than the sharp binary expects.
+ENV SHARP_IGNORE_GLOBAL_LIBVIPS=1
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@8.15.4 --activate && npm i -g npm@latest

@@ -1,0 +1,22 @@
+{
+  "agent": "claude",
+  "base_oid": "f3205d978fada931da54df4255d41c07489066d9",
+  "base_ref": "origin/main",
+  "branch": "feat/consolidated-header",
+  "linear_data_shares": [],
+  "linear_skip_reason": "No durable cross-branch knowledge emerged; delta findings are branch-local non-blocking test-coverage nits and a comment fix.",
+  "linear_state": "skipped",
+  "review_notes": "Requested preset auto; resolved to thorough with the shared mount-engine.ts delta reviewed deep (blast-radius trigger). Full branch was exhaustively reviewed at prior SHA ead8641; this pass verifies the applied fixes + 7.4 gate comment sync. Lenses: correctness, architecture, tests, type/modeling - all delegated, one read-only subagent each, strong model/high reasoning. Data-safety/security/documentation lenses not re-run (no changed surface in the delta; covered at ead8641). Source remediation: report-only (one comment fix applied that a lens explicitly requested). Marker: commit-on-green. Refreshes the stale marker from prior SHA ead8641 after 4 follow-up commits.",
+  "review_status": "reviewed",
+  "reviewed_at": "2026-07-23T12:44:57Z",
+  "reviewed_sha": "ba0d98a82ad7e566eb721d2e085c96e7e2796510",
+  "schema": "limetech.ai-review-marker.v1",
+  "scope": "branch-diff",
+  "summary": "No blocking findings. Delegated re-review of the delta since the prior exhaustive pass (mount-engine placeholder-gating + timer/observer/buffer teardown, headerLogoStyle typing, 7.3->7.4 gate comment sync). Correctness/architecture/type lenses clean; blast radius confirmed bounded to the header; 4 non-blocking test-coverage nits; one stale 7.3 comment fixed (main.css). Lint/type-check clean; 656 tests pass.",
+  "unreviewed_head_reason": "The latest PR SHA is the marker-only commit that records this review.",
+  "validation": {
+    "lint": "pass (eslint + prettier)",
+    "tests": "656 passed / 6 skipped / 67 files",
+    "type_check": "pass (vue-tsc)"
+  }
+}

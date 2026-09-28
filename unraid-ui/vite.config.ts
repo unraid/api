@@ -30,8 +30,10 @@ export default function createConfig() {
                 'src/**/*.stories.{ts,tsx,vue}',
                 'src/**/__tests__/**',
               ],
-              outDir: 'dist',
-              rollupTypes: true,
+              outDirs: ['dist'],
+              bundleTypes: {
+                bundledPackages: [],
+              },
               copyDtsFiles: true,
             }),
           ]),

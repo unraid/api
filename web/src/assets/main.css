@@ -28,6 +28,18 @@
     @import "tailwindcss/preflight.css";
   }
 
+  /* Disable mobile-browser font-boosting (text auto-inflation) for the Vue
+     surface. Preflight normally sets this on `html`, but our PostCSS scoping
+     rewrites that reset to `.unapi html`, which matches nothing (html is never
+     inside .unapi). Re-apply it on the scope root so it's inherited by every
+     mounted component and by teleported modals/sheets (#unraid-api-modals-virtual
+     is itself .unapi). Without this, phones inflate large single-column blocks
+     like the notifications sidebar well beyond their authored sizes. */
+  .unapi {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   /* Accessible focus styles for keyboard navigation */
   .unapi button:focus-visible {
     outline: 2px solid #ff8c2f;
@@ -40,6 +52,25 @@ unraid-modals.unapi {
   position: relative;
   z-index: 999999;
   isolation: isolate;
+}
+
+/* Consolidated header (7.4+): custom elements default to display:inline, which
+   shrink-wraps the grid. Make it fill the header so the layout can space the logo
+   and account controls across the full available width. */
+unraid-header.unapi {
+  display: block;
+  width: 100%;
+}
+
+/* The webgui `#header` centers its flex children. On mobile the consolidated
+   header wants its content top-anchored (uptime near the top, extra room at the
+   bottom), so stretch the host to the full header height and let the grid place
+   everything from the top. Styled here because `#header` and this host element
+   live outside the component's `.unapi` scope. */
+@media (max-width: 639.98px) {
+  unraid-header.unapi {
+    align-self: stretch;
+  }
 }
 
 /* Style for Unraid progress frame */

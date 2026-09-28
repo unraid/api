@@ -31,6 +31,7 @@ const open = defineModel<boolean>('open', { default: false });
 const { width: windowWidth } = useWindowSize();
 const sidebarWidth = ref(props.defaultWidth);
 const isResizing = ref(false);
+const isClient = typeof document !== 'undefined';
 
 const clampSidebarWidth = (desired: number, viewport: number | null) => {
   const safeViewport = viewport || props.defaultWidth;
@@ -41,7 +42,7 @@ const clampSidebarWidth = (desired: number, viewport: number | null) => {
 
 const startResize = (e: MouseEvent) => {
   isResizing.value = true;
-  if (import.meta.client) {
+  if (isClient) {
     document.body.style.cursor = 'ew-resize';
     document.body.style.userSelect = 'none';
   }
@@ -59,7 +60,7 @@ const handleResize = (e: MouseEvent) => {
 const stopResize = () => {
   if (!isResizing.value) return;
   isResizing.value = false;
-  if (import.meta.client) {
+  if (isClient) {
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   }

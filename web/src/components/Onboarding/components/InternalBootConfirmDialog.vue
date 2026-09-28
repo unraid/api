@@ -20,6 +20,10 @@ const title = computed(() =>
     ? t('onboarding.nextSteps.confirmReboot.title')
     : t('onboarding.nextSteps.confirmShutdown.title')
 );
+
+const handleOpenChange = (value: boolean) => {
+  if (!value) emit('cancel');
+};
 </script>
 
 <template>
@@ -29,11 +33,7 @@ const title = computed(() =>
     :title="title"
     :description="t('onboarding.nextSteps.confirmReboot.description')"
     :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-md' }"
-    @update:open="
-      (value) => {
-        if (!value) emit('cancel');
-      }
-    "
+    @update:open="handleOpenChange"
   >
     <template #body>
       <UAlert

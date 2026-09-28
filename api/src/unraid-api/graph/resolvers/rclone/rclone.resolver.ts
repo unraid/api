@@ -34,6 +34,10 @@ export class RCloneBackupSettingsResolver {
         return {} as RCloneBackupSettings;
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.FLASH,
+    })
     @ResolveField(() => RCloneBackupConfigForm)
     async configForm(
         @Parent() _parent: RCloneBackupSettings,
@@ -48,6 +52,10 @@ export class RCloneBackupSettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.FLASH,
+    })
     @ResolveField(() => [RCloneRemote])
     async remotes(@Parent() _parent: RCloneBackupSettings): Promise<RCloneRemote[]> {
         try {

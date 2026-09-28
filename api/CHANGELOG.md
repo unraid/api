@@ -1,5 +1,79 @@
 # Changelog
 
+## [4.37.5](https://github.com/unraid/api/compare/v4.37.4...v4.37.5) (2026-09-16)
+
+
+### Bug Fixes
+
+* **api-key-auth:** reject unsafe redirect URI schemes ([509853c](https://github.com/unraid/api/commit/509853c1bc7c219d79b5b1d20a7c31a0cd6b4315))
+* **upnp:** Upnp issue fix ([#2081](https://github.com/unraid/api/issues/2081)) ([d061525](https://github.com/unraid/api/commit/d0615255e0ce062f7a8262e560f963d07f311539))
+
+## [4.37.4](https://github.com/unraid/api/compare/v4.37.3...v4.37.4) (2026-09-08)
+
+
+### Bug Fixes
+
+* **api:** confine notification, log, and API-key file operations ([#2076](https://github.com/unraid/api/issues/2076)) ([421b53e](https://github.com/unraid/api/commit/421b53ea3986fc5c76461f98e4db1fe6b516acf5))
+* **auth:** require explicit GraphQL authorization ([#2074](https://github.com/unraid/api/issues/2074)) ([3ec4764](https://github.com/unraid/api/commit/3ec47647879a02bd45d55ca0e2bca987b1ff0d27))
+
+## [4.37.3](https://github.com/unraid/api/compare/v4.37.2...v4.37.3) (2026-08-25)
+
+
+### Bug Fixes
+
+* **connect:** serialize nginx reload requests ([#2066](https://github.com/unraid/api/issues/2066)) ([d65341d](https://github.com/unraid/api/commit/d65341d59ab04023fa5ec2dabb82302fb69cd69b))
+
+## [4.37.2](https://github.com/unraid/api/compare/v4.37.1...v4.37.2) (2026-08-18)
+
+
+### Bug Fixes
+
+* **plugin:** clean stale web components from TXZ installs ([#2063](https://github.com/unraid/api/issues/2063)) ([d0dc27b](https://github.com/unraid/api/commit/d0dc27b99b0fc29a87c34d4b727c0f53f13fd2a8))
+
+## [4.37.1](https://github.com/unraid/api/compare/v4.37.0...v4.37.1) (2026-08-12)
+
+
+### Bug Fixes
+
+* **api:** enable PKCE for Unraid OIDC ([#2061](https://github.com/unraid/api/issues/2061)) ([5f87782](https://github.com/unraid/api/commit/5f877826c2a525aeb6b4751b1108a04182f638e5))
+
+## [4.37.0](https://github.com/unraid/api/compare/v4.36.1...v4.37.0) (2026-08-03)
+
+
+### Features
+
+* **web:** consolidated single-component header for Unraid 7.3+ (fixes mobile overlap) ([#2037](https://github.com/unraid/api/issues/2037)) ([62574cd](https://github.com/unraid/api/commit/62574cd946a21e28dd620f43dbb913112423b41e))
+
+
+### Bug Fixes
+
+* **web:** align consolidated header logo, version, and nav on mobile ([#2054](https://github.com/unraid/api/issues/2054)) ([12c23d8](https://github.com/unraid/api/commit/12c23d808a45e8521ded6d36bdf0c0aaf152775a))
+* **web:** stop header logo resizing on mount, narrow banner gradient ([#2059](https://github.com/unraid/api/issues/2059)) ([98034ff](https://github.com/unraid/api/commit/98034ff8405d8f1322daca9bd4d7d7dccc262810))
+
+## [4.36.1](https://github.com/unraid/api/compare/v4.36.0...v4.36.1) (2026-07-22)
+
+
+### Bug Fixes
+
+* **ci:** make dependency audit non-blocking ([#2048](https://github.com/unraid/api/issues/2048)) ([9db6c38](https://github.com/unraid/api/commit/9db6c38bf5f8fafeb5f6fad34bd5ca138416e970))
+* **deps:** resolve production audit advisories ([#2049](https://github.com/unraid/api/issues/2049)) ([e5654cc](https://github.com/unraid/api/commit/e5654ccfafeb174702d93bba1cc46954b3e023b6))
+
+## [4.36.0](https://github.com/unraid/api/compare/v4.35.1...v4.36.0) (2026-07-21)
+
+
+### Features
+
+* add docker restart mutation ([#2022](https://github.com/unraid/api/issues/2022)) ([b58120c](https://github.com/unraid/api/commit/b58120ca1ef484b68d81dffd72d5a307fefca24f))
+* update dependencies ([#2028](https://github.com/unraid/api/issues/2028)) ([1c8522d](https://github.com/unraid/api/commit/1c8522dda6957254319a2950ace6c4c8d1613c7b))
+
+
+### Bug Fixes
+
+* **ci:** publish PR plugin after unrelated failures ([#2046](https://github.com/unraid/api/issues/2046)) ([a2b0833](https://github.com/unraid/api/commit/a2b083374b55d337c344a180cae65573ec066e80))
+* **ci:** resolve PR number for fork PR plugin uploads ([#2040](https://github.com/unraid/api/issues/2040)) ([a086778](https://github.com/unraid/api/commit/a086778f971f4ffcdaf8da3d4494b05c6f377b5d))
+* **ui:** smooth notification drawer slide-in/out ([#2038](https://github.com/unraid/api/issues/2038)) ([66e86fe](https://github.com/unraid/api/commit/66e86fef17d87e130df66a9bdb9d3b51e1050a11))
+* **web:** send CSRF token on fetch-based webGUI requests ([#2039](https://github.com/unraid/api/issues/2039)) ([8cb15f1](https://github.com/unraid/api/commit/8cb15f121f21b0ccfedd1582ad503db3d35073ef))
+
 ## [4.35.1](https://github.com/unraid/api/compare/v4.35.0...v4.35.1) (2026-06-18)
 
 

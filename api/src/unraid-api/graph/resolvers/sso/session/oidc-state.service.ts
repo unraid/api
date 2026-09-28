@@ -8,6 +8,7 @@ interface StateData {
     timestamp: number;
     providerId: string;
     redirectUri?: string;
+    codeVerifier?: string;
 }
 
 @Injectable()
@@ -33,7 +34,8 @@ export class OidcStateService {
     async generateSecureState(
         providerId: string,
         clientState: string,
-        redirectUri?: string
+        redirectUri?: string,
+        codeVerifier?: string
     ): Promise<string> {
         const nonce = crypto.randomBytes(16).toString('hex');
         const timestamp = Date.now();
@@ -45,6 +47,7 @@ export class OidcStateService {
             timestamp,
             providerId,
             redirectUri,
+            codeVerifier,
         };
 
         // Store in cache with TTL (in milliseconds for cache-manager v7)
@@ -78,7 +81,13 @@ export class OidcStateService {
     async validateSecureState(
         state: string,
         expectedProviderId: string
-    ): Promise<{ isValid: boolean; clientState?: string; redirectUri?: string; error?: string }> {
+    ): Promise<{
+        isValid: boolean;
+        clientState?: string;
+        redirectUri?: string;
+        codeVerifier?: string;
+        error?: string;
+    }> {
         try {
             // Extract provider ID and signed state
             const parts = state.split(':');
@@ -180,6 +189,7 @@ export class OidcStateService {
                 isValid: true,
                 clientState: cachedState.clientState,
                 redirectUri: cachedState.redirectUri,
+                codeVerifier: cachedState.codeVerifier,
             };
         } catch (error) {
             this.logger.error(

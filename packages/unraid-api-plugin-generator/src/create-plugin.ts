@@ -41,8 +41,8 @@ export async function createPlugin(pluginName: string, targetDir: string = proce
     type: "module",
     files: ["dist"],
     scripts: {
-      test: "echo \"Error: no test specified\" && exit 1",
       build: "tsc",
+      validate: "npm run build && npm pack --dry-run",
       prepare: "npm run build"
     },
     keywords: [],
@@ -53,29 +53,25 @@ export async function createPlugin(pluginName: string, targetDir: string = proce
       "@nestjs/config": "^4.0.2",
       "@nestjs/core": "^11.0.11",
       "@nestjs/graphql": "^13.0.3",
-      "@types/ini": "^4.1.1",
       "@types/node": "^22.14.0",
-      "camelcase-keys": "^9.1.3",
+      "@types/ws": "^8.18.1",
       "class-transformer": "^0.5.1",
       "class-validator": "^0.14.1",
-      "ini": "^5.0.0",
-      "nest-authz": "^2.14.0",
+      "graphql": "^16.11.0",
+      "reflect-metadata": "^0.2.2",
       "rxjs": "^7.8.2",
-      "typescript": "^5.8.2",
-      "zod": "^3.23.8"
+      "typescript": "^5.8.2"
     },
     peerDependencies: {
       "@nestjs/common": "^11.0.11",
       "@nestjs/config": "^4.0.2",
       "@nestjs/core": "^11.0.11",
       "@nestjs/graphql": "^13.0.3",
-      "camelcase-keys": "^9.1.3",
       "class-transformer": "^0.5.1",
       "class-validator": "^0.14.1",
-      "ini": "^5.0.0",
-      "nest-authz": "^2.14.0",
-      "rxjs": "^7.8.2",
-      "zod": "^3.23.8"
+      "graphql": "^16.11.0",
+      "reflect-metadata": "^0.2.2",
+      "rxjs": "^7.8.2"
     }
   };
 
@@ -93,6 +89,7 @@ export async function createPlugin(pluginName: string, targetDir: string = proce
       emitDecoratorMetadata: true,
       esModuleInterop: true,
       strict: true,
+      skipLibCheck: true,
       outDir: "dist",
       rootDir: "src"
     },

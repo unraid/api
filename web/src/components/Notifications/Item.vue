@@ -91,10 +91,10 @@ const reformattedTimestamp = computed<string>(() => {
 </script>
 
 <template>
-  <div class="group/item relative flex flex-col gap-2 py-3 text-base">
+  <div class="group/item relative flex flex-col gap-2 py-3 text-sm">
     <header class="flex -translate-y-1 flex-row items-baseline justify-between gap-2">
       <h3
-        class="m-0 flex flex-row items-baseline gap-2 overflow-x-hidden text-base font-semibold normal-case"
+        class="m-0 flex flex-row items-baseline gap-2 overflow-x-hidden text-sm font-semibold normal-case"
       >
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
         <component
@@ -110,7 +110,7 @@ const reformattedTimestamp = computed<string>(() => {
         class="mt-1 flex shrink-0 flex-row items-baseline justify-end gap-2"
         :title="formattedTimestamp ?? reformattedTimestamp"
       >
-        <p class="text-secondary-foreground text-sm">{{ reformattedTimestamp }}</p>
+        <p class="text-secondary-foreground text-xs">{{ reformattedTimestamp }}</p>
       </div>
     </header>
 

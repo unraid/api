@@ -3,18 +3,11 @@ import { getPrimaryContainerName, getWebUiUrl, openLanIpInNewTab } from '@/utils
 
 import type { DockerContainer } from '@/composables/gql/graphql';
 import type { TreeRow } from '@/composables/useTreeData';
+import type { DropdownMenuItem } from '@nuxt/ui/components/DropdownMenu.vue';
 import type { Ref } from 'vue';
 
-export type ActionDropdownItem = {
-  label: string;
-  icon?: string;
-  onSelect?: (e?: Event) => void;
-  as?: string;
-  disabled?: boolean;
-  color?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral';
-};
-
-export type DropdownMenuItems = ActionDropdownItem[][];
+export type ActionDropdownItem = DropdownMenuItem;
+export type DropdownMenuItems = DropdownMenuItem[][];
 
 export interface DockerRowActionsOptions {
   updatingRowIds: Ref<Set<string>>;

@@ -35,7 +35,6 @@ const description = computed(() => serverStore.description);
 const guid = computed(() => serverStore.guid);
 const keyfile = computed(() => serverStore.keyfile);
 const lanIp = computed(() => serverStore.lanIp);
-const bannerGradient = computed(() => themeStore.bannerGradient);
 const theme = computed(() => themeStore.theme);
 
 // Control dropdown open state
@@ -96,11 +95,6 @@ onMounted(() => {
     id="UserProfile"
     class="text-foreground absolute top-0 right-0 z-20 flex h-full max-w-full flex-col items-end gap-y-1 pt-2 pr-2 pl-[30%] md:pl-[160px]"
   >
-    <div
-      v-if="bannerGradient"
-      class="unraid-banner-gradient-layer pointer-events-none absolute inset-y-0 right-0 left-0 z-0 w-full"
-    />
-
     <UpcServerStatus class="relative z-10" />
 
     <div class="relative z-10 flex h-full flex-row items-center justify-end gap-x-2">

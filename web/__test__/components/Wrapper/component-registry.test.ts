@@ -74,9 +74,11 @@ describe('component-registry', () => {
   it('should have priority components listed first', async () => {
     const { componentMappings } = await import('~/components/Wrapper/component-registry');
 
-    // Priority components should be first
-    expect(componentMappings[0].appId).toBe('header-os-version');
-    expect(componentMappings[1].appId).toBe('user-profile');
+    // Priority components should be first: the consolidated header (7.4+) leads,
+    // followed by the legacy multi-component header used as the < 7.4 fallback.
+    expect(componentMappings[0].appId).toBe('header');
+    expect(componentMappings[1].appId).toBe('header-os-version');
+    expect(componentMappings[2].appId).toBe('user-profile');
   });
 
   it('should support multiple selectors for modals', async () => {

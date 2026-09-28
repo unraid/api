@@ -5,7 +5,7 @@ import {
   AccordionRoot,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { computed, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 export interface AccordionItemData {
   value: string;
@@ -31,7 +31,7 @@ const props = withDefaults(defineProps<AccordionProps>(), {
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string | string[]];
+  'update:modelValue': [value: string | string[] | undefined];
 }>();
 
 const openValue = ref<string | string[] | undefined>(props.modelValue ?? props.defaultValue);
@@ -39,7 +39,7 @@ const openValue = ref<string | string[] | undefined>(props.modelValue ?? props.d
 watch(
   () => props.modelValue,
   (val) => {
-    if (val !== undefined) openValue.value = val;
+    openValue.value = val;
   }
 );
 
@@ -49,7 +49,7 @@ function isItemOpen(itemValue: string): boolean {
   return openValue.value === itemValue;
 }
 
-function handleUpdate(value: string | string[]) {
+function handleUpdate(value: string | string[] | undefined) {
   openValue.value = value;
   emit('update:modelValue', value);
 }

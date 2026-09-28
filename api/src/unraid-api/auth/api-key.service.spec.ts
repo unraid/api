@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { readdir, readFile, writeFile } from 'fs/promises';
+import { readdir, readFile, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
@@ -27,6 +27,7 @@ vi.mock('fs/promises', async () => ({
     readdir: vi.fn().mockResolvedValue(['key1.json', 'key2.json', 'notakey.txt']),
     readFile: vi.fn(),
     writeFile: vi.fn(),
+    unlink: vi.fn(),
 }));
 
 vi.mock('fs-extra', () => ({
@@ -98,6 +99,31 @@ describe('ApiKeyService', () => {
 
     afterEach(() => {
         vi.clearAllMocks();
+    });
+
+    describe('file path validation', () => {
+        it.each(['../outside', 'nested/key', '..\\outside', '/absolute/key'])(
+            'rejects unsafe stored key ID %j before writing',
+            async (id) => {
+                await expect(apiKeyService.saveApiKey({ ...mockApiKey, id })).rejects.toThrow();
+                expect(writeFile).not.toHaveBeenCalled();
+            }
+        );
+
+        it('excludes unsafe IDs loaded from disk', async () => {
+            vi.mocked<(path: string) => Promise<string[]>>(readdir).mockResolvedValue(['key.json']);
+            vi.mocked(readFile).mockResolvedValue(JSON.stringify({ ...mockApiKey, id: '../outside' }));
+            expect(await apiKeyService.loadAllFromDisk()).toEqual([]);
+        });
+
+        it('rejects an unsafe deletion batch before deleting any key', async () => {
+            const unsafeKey = { ...mockApiKey, id: '../outside' };
+            vi.spyOn(apiKeyService, 'findByField').mockImplementation((_field, id) =>
+                id === unsafeKey.id ? unsafeKey : mockApiKey
+            );
+            await expect(apiKeyService.deleteApiKeys([mockApiKey.id, unsafeKey.id])).rejects.toThrow();
+            expect(unlink).not.toHaveBeenCalled();
+        });
     });
 
     describe('initialization', () => {

@@ -5,6 +5,85 @@ import { provideApolloClient } from '@vue/apollo-composable';
 import { ApolloClient, ApolloLink, InMemoryCache, Observable } from '@apollo/client/core';
 import { beforeEach, vi } from 'vitest';
 
+vi.mock('dompurify', async () => {
+  const [{ JSDOM }, { default: createDOMPurify }] = await Promise.all([
+    import('jsdom'),
+    vi.importActual<typeof import('dompurify')>('dompurify'),
+  ]);
+  const { window } = new JSDOM('<!doctype html><html><body></body></html>');
+
+  return {
+    default: createDOMPurify(window),
+  };
+});
+
+class MemoryStorage implements Storage {
+  [name: string]: unknown;
+
+  readonly #items = new Map<string, string>();
+
+  get length() {
+    return this.#items.size;
+  }
+
+  clear() {
+    for (const key of this.#items.keys()) {
+      delete this[key];
+    }
+    this.#items.clear();
+  }
+
+  getItem(key: string) {
+    return this.#items.get(key) ?? null;
+  }
+
+  key(index: number) {
+    return Array.from(this.#items.keys())[index] ?? null;
+  }
+
+  removeItem(key: string) {
+    this.#items.delete(key);
+    delete this[key];
+  }
+
+  setItem(key: string, value: string) {
+    this.#items.set(key, value);
+    Object.defineProperty(this, key, {
+      value,
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
+  }
+}
+
+const createStorage = (): Storage => {
+  return new MemoryStorage();
+};
+
+const localStorageMock = createStorage();
+const sessionStorageMock = createStorage();
+
+Object.defineProperty(globalThis, 'localStorage', {
+  value: localStorageMock,
+  configurable: true,
+});
+
+Object.defineProperty(globalThis, 'sessionStorage', {
+  value: sessionStorageMock,
+  configurable: true,
+});
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  configurable: true,
+});
+
+Object.defineProperty(window, 'sessionStorage', {
+  value: sessionStorageMock,
+  configurable: true,
+});
+
 vi.mock('@vue/apollo-composable', async () => {
   const actual =
     await vi.importActual<typeof import('@vue/apollo-composable')>('@vue/apollo-composable');

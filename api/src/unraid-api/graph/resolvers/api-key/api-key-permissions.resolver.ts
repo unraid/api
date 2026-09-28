@@ -111,6 +111,10 @@ export class ApiKeyPermissionsResolver {
         return result;
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.PERMISSION,
+    })
     @Query(() => [AuthAction], {
         description: 'Get all available authentication actions with possession',
     })

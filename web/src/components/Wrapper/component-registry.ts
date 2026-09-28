@@ -23,6 +23,14 @@ export type ComponentMapping = {
 // Priority components (header, user profile) are listed first for faster mounting
 export const componentMappings: ComponentMapping[] = [
   {
+    // Consolidated header (Unraid 7.4+). Owns the entire header in one component;
+    // the legacy `unraid-header-os-version` + `unraid-user-profile` pair below is
+    // the fallback for Unraid < 7.4.
+    component: defineAsyncComponent(() => import('@/components/Header.standalone.vue')),
+    selector: 'unraid-header',
+    appId: 'header',
+  },
+  {
     component: defineAsyncComponent(() => import('@/components/HeaderOsVersion.standalone.vue')),
     selector: 'unraid-header-os-version',
     appId: 'header-os-version',

@@ -1,18 +1,18 @@
 {
   "name": "@unraid/connect-plugin",
-  "version": "4.35.1",
+  "version": "4.37.5",
   "private": true,
   "dependencies": {
     "commander": "14.0.0",
     "conventional-changelog": "7.1.1",
     "conventional-changelog-conventionalcommits": "9.1.0",
     "date-fns": "4.1.0",
-    "glob": "11.0.3",
+    "glob": "11.1.0",
     "html-sloppy-escaper": "0.1.0",
     "semver": "7.7.2",
     "tsx": "4.20.5",
     "zod": "3.25.76",
-    "zx": "8.8.1"
+    "zx": "8.8.5"
   },
   "type": "module",
   "license": "GPL-2.0-or-later",
@@ -27,21 +27,22 @@
     "build:watch": "./scripts/dc.sh pnpm run build:watcher",
     "docker:build": "docker compose build",
     "docker:run": "SKIP_HOST_BUILD=true ./scripts/dc.sh bash -c 'pnpm build && exec bash'",
-    "predocker:build-and-run": "pnpm install && pnpm --filter @unraid/ui run build:wc && pnpm --filter @unraid/web run build && pnpm --filter @unraid/api run build:release",
+    "predocker:build-and-run": "SHARP_IGNORE_GLOBAL_LIBVIPS=1 pnpm install && pnpm --filter @unraid/ui run build:wc && pnpm --filter @unraid/web run build && pnpm --filter @unraid/api run build:release",
     "docker:build-and-run": "pnpm run docker:build && pnpm run docker:run",
     "// Environment management": "",
     "env:init": "cp .env.example .env",
     "env:validate": "test -f .env || (echo 'Error: .env file missing. Run npm run env:init first' && exit 1)",
     "env:clean": "rm -f .env",
     "// Testing": "",
-    "test": "vitest && pnpm run test:extractor && pnpm run test:shell-detection",
+    "test": "vitest && pnpm run test:extractor && pnpm run test:shell-detection && pnpm run test:txz-install",
     "test:extractor": "bash ./tests/test-extractor.sh",
-    "test:shell-detection": "bash ./tests/test-shell-detection.sh"
+    "test:shell-detection": "bash ./tests/test-shell-detection.sh",
+    "test:txz-install": "bash ./tests/test-txz-install.sh"
   },
   "devDependencies": {
     "http-server": "14.1.1",
     "nodemon": "3.1.10",
-    "vitest": "3.2.4"
+    "vitest": "3.2.6"
   },
   "packageManager": "pnpm@10.15.0"
 }

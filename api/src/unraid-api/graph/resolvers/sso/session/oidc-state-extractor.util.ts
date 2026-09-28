@@ -7,6 +7,7 @@ export interface StateExtractionResult {
     originalState: string;
     clientState?: string;
     redirectUri?: string;
+    codeVerifier?: string;
 }
 
 /**
@@ -55,6 +56,7 @@ export class OidcStateExtractor {
             originalState: state,
             clientState: stateValidation.clientState,
             redirectUri: stateValidation.redirectUri,
+            codeVerifier: stateValidation.codeVerifier,
         };
     }
 }

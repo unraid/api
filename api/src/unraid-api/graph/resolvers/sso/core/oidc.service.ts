@@ -65,8 +65,18 @@ export class OidcService {
         this.logger.debug(`Using redirect URI for authorization: ${redirectUri}`);
         this.logger.debug(`Request origin was: ${requestOrigin}`);
 
-        // Generate secure state with cryptographic signature, including redirect URI
-        const secureState = await this.stateService.generateSecureState(providerId, state, redirectUri);
+        let codeVerifier: string | undefined;
+        let codeChallenge: string | undefined;
+        if (provider.usePkce === true) {
+            codeVerifier = client.randomPKCECodeVerifier();
+            codeChallenge = await client.calculatePKCECodeChallenge(codeVerifier);
+        }
+
+        // Generate secure state with cryptographic signature, including the
+        // exact redirect URI and the transient PKCE verifier.
+        const secureState = codeVerifier
+            ? await this.stateService.generateSecureState(providerId, state, redirectUri, codeVerifier)
+            : await this.stateService.generateSecureState(providerId, state, redirectUri);
 
         // Build authorization URL
         if (provider.authorizationEndpoint) {
@@ -79,6 +89,10 @@ export class OidcService {
             authUrl.searchParams.set('scope', provider.scopes.join(' '));
             authUrl.searchParams.set('state', secureState);
             authUrl.searchParams.set('response_type', 'code');
+            if (codeChallenge) {
+                authUrl.searchParams.set('code_challenge', codeChallenge);
+                authUrl.searchParams.set('code_challenge_method', 'S256');
+            }
 
             this.logger.debug(`Built authorization URL for provider ${provider.id}`);
             this.logger.debug(
@@ -96,6 +110,10 @@ export class OidcService {
             state: secureState,
             response_type: 'code',
         };
+        if (codeChallenge) {
+            parameters.code_challenge = codeChallenge;
+            parameters.code_challenge_method = 'S256';
+        }
 
         // For HTTP endpoints, we need to call allowInsecureRequests on the config
         if (provider.issuer) {
@@ -196,14 +214,24 @@ export class OidcService {
             this.logger.debug(`Client state extracted: ${originalState}`);
 
             // Use the token exchange service
-            const tokens = await this.tokenExchangeService.exchangeCodeForTokens(
-                config,
-                provider,
-                code,
-                originalState,
-                redirectUri,
-                fullCallbackUrl
-            );
+            const tokens = stateInfo.codeVerifier
+                ? await this.tokenExchangeService.exchangeCodeForTokens(
+                      config,
+                      provider,
+                      code,
+                      originalState,
+                      redirectUri,
+                      fullCallbackUrl,
+                      stateInfo.codeVerifier
+                  )
+                : await this.tokenExchangeService.exchangeCodeForTokens(
+                      config,
+                      provider,
+                      code,
+                      originalState,
+                      redirectUri,
+                      fullCallbackUrl
+                  );
 
             // Parse ID token to get user info
             const claims = this.claimsService.parseIdToken(tokens.id_token);

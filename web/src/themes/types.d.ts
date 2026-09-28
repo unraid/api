@@ -1,3 +1,5 @@
+export type HeaderLogoStyle = 'gradient' | 'theme';
+
 export interface Theme {
   banner: boolean;
   bannerGradient: boolean;

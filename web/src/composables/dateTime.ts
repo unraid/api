@@ -66,28 +66,34 @@ const useDateTimeHelper = (
   providedDateTime?: number | undefined,
   diffCountUp?: boolean
 ) => {
-  const buildStringFromValues = (payload: TimeStringsObject) => {
+  /**
+   * @param maxUnits when > 0, keep only the largest N non-zero units (e.g. 1 =>
+   *   just "8 days"). Omit for the full diff ("8 days 4 hours 12 minutes").
+   */
+  const buildStringFromValues = (payload: TimeStringsObject, maxUnits?: number) => {
     const { years, months, days, hours, minutes, seconds, firstDateWasLater, displaySeconds } = payload;
-    const result = [];
+    const units: string[] = [];
 
     if (years) {
-      result.push(t('composables.dateTime.year', years));
+      units.push(t('composables.dateTime.year', years));
     }
     if (months) {
-      result.push(t('composables.dateTime.month', months));
+      units.push(t('composables.dateTime.month', months));
     }
     if (days) {
-      result.push(t('composables.dateTime.day', days));
+      units.push(t('composables.dateTime.day', days));
     }
     if (hours) {
-      result.push(t('composables.dateTime.hour', hours));
+      units.push(t('composables.dateTime.hour', hours));
     }
     if (minutes) {
-      result.push(t('composables.dateTime.minute', minutes));
+      units.push(t('composables.dateTime.minute', minutes));
     }
     if (seconds && ((!years && !months && !days && !hours && !minutes) || displaySeconds)) {
-      result.push(t('composables.dateTime.second', seconds));
+      units.push(t('composables.dateTime.second', seconds));
     }
+
+    const result = maxUnits && maxUnits > 0 ? units.slice(0, maxUnits) : units;
     if (firstDateWasLater) {
       result.push(t('composables.dateTime.ago'));
     }
@@ -219,12 +225,15 @@ const useDateTimeHelper = (
 
   // provide outputs for components
   const outputDateTimeReadableDiff = ref<string>('');
+  // Same diff reduced to its largest unit only, e.g. "8 days" for a compact
+  // display where the full breakdown lives in a tooltip.
+  const outputDateTimeReadableDiffShort = ref<string>('');
   const outputDateTimeFormatted = computed(() => formatDate(providedDateTime ?? Date.now()));
 
   const runDiff = () => {
-    outputDateTimeReadableDiff.value = buildStringFromValues(
-      dateDiff((providedDateTime ?? Date.now()).toString(), diffCountUp ?? false)
-    );
+    const values = dateDiff((providedDateTime ?? Date.now()).toString(), diffCountUp ?? false);
+    outputDateTimeReadableDiff.value = buildStringFromValues(values);
+    outputDateTimeReadableDiffShort.value = buildStringFromValues(values, 1);
   };
 
   let interval: string | number | ReturnType<typeof setInterval> | undefined;
@@ -246,6 +255,7 @@ const useDateTimeHelper = (
   return {
     formatDate,
     outputDateTimeReadableDiff,
+    outputDateTimeReadableDiffShort,
     outputDateTimeFormatted,
   };
 };

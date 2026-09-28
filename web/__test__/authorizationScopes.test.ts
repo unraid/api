@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { AuthAction, Resource } from '~/composables/gql/graphql';
-import { decodeScopesToPermissions, encodePermissionsToScopes } from '~/utils/authorizationScopes';
+import {
+  buildCallbackUrl,
+  decodeScopesToPermissions,
+  encodePermissionsToScopes,
+  isValidRedirectUri,
+} from '~/utils/authorizationScopes.js';
 
 describe('authorizationScopes', () => {
   describe('encodePermissionsToScopes', () => {
@@ -207,6 +212,40 @@ describe('authorizationScopes', () => {
         // The scopes should be separate since they have different action sets
         expect(scopes).toHaveLength(2);
       });
+    });
+  });
+
+  describe('redirect URI validation', () => {
+    it.each([
+      'https://example.com/callback',
+      'https://localhost/callback',
+      'http://localhost:3000/callback',
+    ])('accepts %s', (redirectUri) => {
+      expect(isValidRedirectUri(redirectUri)).toBe(true);
+    });
+
+    it.each([
+      'javascript:alert(1)',
+      'data:text/html,callback',
+      'file:///tmp/callback',
+      'http://example.com/callback',
+      'http://127.0.0.1:3000/callback',
+      'http://localhost.example.com/callback',
+      'not-a-url',
+    ])('rejects %s', (redirectUri) => {
+      expect(isValidRedirectUri(redirectUri)).toBe(false);
+    });
+
+    it('builds a callback URL for an allowed redirect URI', () => {
+      expect(buildCallbackUrl('https://example.com/callback', 'key', 'access_denied', 'state')).toBe(
+        'https://example.com/callback?api_key=key&error=access_denied&state=state'
+      );
+    });
+
+    it('rejects unsupported redirect URI schemes when building a callback URL', async () => {
+      await expect(
+        Promise.resolve().then(() => buildCallbackUrl('javascript:alert(1)'))
+      ).rejects.toThrow();
     });
   });
 });

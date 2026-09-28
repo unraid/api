@@ -13,6 +13,11 @@ type ApiPackageJson = PackageJson & {
     version: string;
     peerDependencies: Record<string, string>;
     dependencies?: Record<string, string>;
+    overrides?: Record<string, unknown>;
+};
+
+type RootPackageJson = PackageJson & {
+    pnpm?: { overrides?: Record<string, string> };
 };
 
 /**
@@ -23,6 +28,17 @@ const WORKSPACE_PACKAGES_TO_VENDOR = {
     '@unraid/shared': 'packages/unraid-shared',
     'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect',
 } as const;
+
+const REPOSITORY_ROOT = resolve('..');
+
+const LOCAL_PATCHED_DEPENDENCIES = [
+    {
+        packageName: '@runonflux/nat-upnp',
+        patchPath: join(REPOSITORY_ROOT, 'patches/@runonflux__nat-upnp@1.0.2.patch'),
+        validationPath: 'build/src/nat-upnp/client.js',
+        validationMarker: 'No trusted gateway addresses found',
+    },
+] as const;
 
 /**
  * Packs a workspace package and installs it as a tarball dependency.
@@ -42,6 +58,34 @@ const packAndInstallWorkspacePackage = async (pkgName: string, pkgPath: string, 
     // Install the tarball
     const tarballPattern = join(fullTempDir, tarballName);
     await $`npm install ${tarballPattern}`;
+};
+
+const applyLocalPatchesToProductionDependencies = async () => {
+    for (const dependency of LOCAL_PATCHED_DEPENDENCIES) {
+        const dependencyPath = resolve('node_modules', dependency.packageName);
+
+        if (!existsSync(dependencyPath)) {
+            throw new Error(`Patched dependency ${dependency.packageName} was not installed`);
+        }
+
+        if (!existsSync(dependency.patchPath)) {
+            throw new Error(`Patch file not found: ${dependency.patchPath}`);
+        }
+
+        console.log(`Applying local patch to ${dependency.packageName}...`);
+        const reverseCheck =
+            await $`GIT_DIR=/dev/null git -C ${dependencyPath} apply --reverse --check --no-index ${dependency.patchPath}`
+                .nothrow()
+                .quiet();
+        if (reverseCheck.exitCode !== 0) {
+            await $`GIT_DIR=/dev/null git -C ${dependencyPath} apply --no-index ${dependency.patchPath}`;
+        }
+
+        const patchedSource = await readFile(join(dependencyPath, dependency.validationPath), 'utf-8');
+        if (!patchedSource.includes(dependency.validationMarker)) {
+            throw new Error(`Patch validation failed for ${dependency.packageName}`);
+        }
+    }
 };
 
 /**------------------------------------------------------------------------
@@ -93,6 +137,15 @@ try {
     // omit dev dependencies from vendored dependencies in release build
     parsedPackageJson.devDependencies = {};
 
+    // Propagate the workspace's pnpm.overrides into the production package.json so the
+    // npm-built release resolves the same security-patched transitive versions as the
+    // pnpm workspace the audit gate validates. npm honors the `name@range` key syntax.
+    const rootPackageJson = JSON.parse(await readFile('../package.json', 'utf-8')) as RootPackageJson;
+    const rootOverrides = rootPackageJson.pnpm?.overrides ?? {};
+    if (Object.keys(rootOverrides).length > 0) {
+        parsedPackageJson.overrides = { ...rootOverrides, ...(parsedPackageJson.overrides ?? {}) };
+    }
+
     // Create a temporary directory for packaging
     await mkdir('./deploy/pack/', { recursive: true });
 
@@ -123,6 +176,8 @@ try {
             await packAndInstallWorkspacePackage(dep, join('../../../', pkgPath), tempDir);
         }
     }
+
+    await applyLocalPatchesToProductionDependencies();
 
     // Clean the release directory
     await $`rm -rf ../release/*`;

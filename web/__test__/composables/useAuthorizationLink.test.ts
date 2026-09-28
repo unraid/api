@@ -162,6 +162,19 @@ describe('useAuthorizationLink', () => {
     expect(displayAppName.value).toBe('Unknown Application');
   });
 
+  it.each([
+    { redirectUri: 'https://example.com/callback', expected: true },
+    { redirectUri: 'http://localhost:3000/callback', expected: true },
+    { redirectUri: 'javascript:alert(1)', expected: false },
+    { redirectUri: 'http://example.com/callback', expected: false },
+  ])('should validate redirect URI $redirectUri', ({ redirectUri, expected }) => {
+    const params = new URLSearchParams({ redirect_uri: redirectUri });
+
+    const { hasValidRedirectUri } = useAuthorizationLink(params);
+
+    expect(hasValidRedirectUri.value).toBe(expected);
+  });
+
   describe('permission grouping and preservation', () => {
     it('should group multiple resources with same actions into single permission group', () => {
       const params = new URLSearchParams({

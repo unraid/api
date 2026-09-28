@@ -1,7 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import crypto from 'crypto';
 import { readdir, readFile, unlink, writeFile } from 'fs/promises';
-import { join } from 'path';
 
 import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { normalizeLegacyActions } from '@unraid/shared/util/permissions.js';
@@ -11,6 +10,7 @@ import { ensureDirSync } from 'fs-extra';
 import { GraphQLError } from 'graphql';
 import { v4 as uuidv4 } from 'uuid';
 
+import { resolveFileInDirectory } from '@app/core/utils/files/resolve-file-in-directory.js';
 import { environment } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
 import {
@@ -217,7 +217,7 @@ export class ApiKeyService implements OnModuleInit {
      */
     private async loadApiKeyFile(file: string): Promise<ApiKey | null> {
         try {
-            const content = await readFile(join(this.basePath, file), 'utf8');
+            const content = await readFile(resolveFileInDirectory(this.basePath, file), 'utf8');
 
             // First convert all the strings in roles and permissions to uppercase (this ensures that casing is never an issue)
             const parsedContent = JSON.parse(content);
@@ -235,7 +235,9 @@ export class ApiKeyService implements OnModuleInit {
                 }));
             }
 
-            return await validateObject(ApiKey, parsedContent);
+            const apiKey = await validateObject(ApiKey, parsedContent);
+            resolveFileInDirectory(this.basePath, `${apiKey.id}.json`);
+            return apiKey;
         } catch (error) {
             if (error instanceof SyntaxError) {
                 this.logger.error(`Corrupted key file: ${file}`);
@@ -299,7 +301,7 @@ export class ApiKeyService implements OnModuleInit {
                 }, {} as ApiKey);
 
             await writeFile(
-                join(this.basePath, `${validatedApiKey.id}.json`),
+                resolveFileInDirectory(this.basePath, `${validatedApiKey.id}.json`),
                 JSON.stringify(sortedApiKey, null, 2)
             );
         } catch (error: unknown) {
@@ -333,6 +335,11 @@ export class ApiKeyService implements OnModuleInit {
      * @throws Array<Error> if errors occur during the file deletion.
      */
     public async deleteApiKeys(ids: string[]): Promise<void> {
+        const keyFiles = ids.map((id) => ({
+            id,
+            path: resolveFileInDirectory(this.basePath, `${id}.json`),
+        }));
+
         // First verify all keys exist
         const missingKeys = ids.filter((id) => !this.findByField('id', id));
         if (missingKeys.length > 0) {
@@ -340,8 +347,8 @@ export class ApiKeyService implements OnModuleInit {
         }
 
         // Delete all files in parallel
-        const { errors, data: deletedIds } = await batchProcess(ids, async (id) => {
-            await unlink(join(this.basePath, `${id}.json`));
+        const { errors, data: deletedIds } = await batchProcess(keyFiles, async ({ id, path }) => {
+            await unlink(path);
             return id;
         });
 

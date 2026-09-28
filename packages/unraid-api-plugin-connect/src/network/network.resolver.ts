@@ -2,9 +2,7 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { AccessUrl } from '@unraid/shared/network.model.js';
-import {
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { Network } from '../unraid-connect/connect.model.js';
 import { UrlResolverService } from './url-resolver.service.js';
@@ -24,6 +22,10 @@ export class NetworkResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.NETWORK,
+    })
     @ResolveField(() => [AccessUrl])
     public async accessUrls(): Promise<AccessUrl[]> {
         const ips = this.urlResolverService.getServerIps();

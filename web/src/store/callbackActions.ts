@@ -24,13 +24,15 @@ import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
+const callbackEncryptionKey = import.meta.env.VITE_CALLBACK_KEY ?? '';
+
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const {
     send,
     watcher: providedWatcher,
     generateUrl,
   } = useCallback({
-    encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
+    encryptionKey: callbackEncryptionKey,
   });
 
   // Lazy store initialization - call stores inside functions to avoid circular dependencies
@@ -205,7 +207,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     generateUrl,
     // helpers
     sendType,
-    encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
+    encryptionKey: callbackEncryptionKey,
     callbackError,
   };
 });

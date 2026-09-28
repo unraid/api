@@ -19,10 +19,9 @@ vi.setConfig({
 });
 
 // Mock fetch
-globalThis.fetch = vi.fn(() =>
-  Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve({}),
-    text: () => Promise.resolve(''),
-  } as Response)
+globalThis.fetch = Object.assign(
+  vi.fn(() => Promise.resolve(new Response('{}'))),
+  {
+    preconnect: vi.fn(),
+  }
 );

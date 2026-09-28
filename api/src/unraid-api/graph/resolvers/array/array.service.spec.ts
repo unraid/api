@@ -305,26 +305,6 @@ describe('ArrayService', () => {
         });
     });
 
-    describe('removeDiskFromArray', () => {
-        const input: ArrayDiskInput = { id: 'test-disk', slot: 1 };
-
-        it('should remove disk from array when STOPPED', async () => {
-            const result = await service.removeDiskFromArray(input);
-            expect(result).toEqual(mockArrayData);
-            expect(mockEmcmd).toHaveBeenCalledWith({
-                changeDevice: 'apply',
-                'slotId.1': '',
-            });
-            expect(mockGetArrayDataUtil).toHaveBeenCalledTimes(1);
-        });
-
-        it('should throw ArrayRunningError when array is STARTED', async () => {
-            mockEmhttp.mockReturnValue({ var: { mdState: ArrayState.STARTED } } as any);
-            await expect(service.removeDiskFromArray(input)).rejects.toThrow(new ArrayRunningError());
-            expect(mockEmcmd).not.toHaveBeenCalled();
-        });
-    });
-
     describe('mountArrayDisk', () => {
         const diskId = 'test-disk';
 
