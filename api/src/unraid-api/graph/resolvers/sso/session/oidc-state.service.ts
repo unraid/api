@@ -13,7 +13,6 @@ interface StateData {
 
 interface ActiveState {
     expiresAt: number;
-    bucket: string;
 }
 
 @Injectable()
@@ -25,11 +24,9 @@ export class OidcStateService {
     private readonly STATE_TTL_MS = 600000; // 10 minutes in milliseconds (cache-manager v7+ expects milliseconds, not seconds)
     private readonly STATE_CACHE_PREFIX = 'oidc_state:';
     private readonly MAX_ACTIVE_STATES = 256;
-    private readonly MAX_ACTIVE_STATES_PER_BUCKET = 32;
     private readonly MAX_CLIENT_STATE_LENGTH = 256;
     private readonly MAX_REDIRECT_URI_LENGTH = 2048;
     private readonly activeStates = new Map<string, ActiveState>();
-    private readonly activeStateCounts = new Map<string, number>();
 
     constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
         // Track instance creation
@@ -67,21 +64,14 @@ export class OidcStateService {
 
         const nonce = crypto.randomBytes(16).toString('hex');
         const timestamp = Date.now();
-        const bucket = this.getStateBucket(providerId, redirectUri);
-        const bucketCount = this.activeStateCounts.get(bucket) ?? 0;
 
-        if (
-            this.activeStates.size >= this.MAX_ACTIVE_STATES ||
-            bucketCount >= this.MAX_ACTIVE_STATES_PER_BUCKET
-        ) {
+        if (this.activeStates.size >= this.MAX_ACTIVE_STATES) {
             throw new Error('Too many pending OIDC authorization requests');
         }
 
         this.activeStates.set(nonce, {
             expiresAt: timestamp + this.STATE_TTL_MS,
-            bucket,
         });
-        this.activeStateCounts.set(bucket, bucketCount + 1);
 
         // Store state data in cache
         const stateData: StateData = {
@@ -280,10 +270,6 @@ export class OidcStateService {
         }
     }
 
-    private getStateBucket(providerId: string, redirectUri?: string): string {
-        return `${providerId}:${redirectUri ?? ''}`;
-    }
-
     private pruneExpiredStates(now = Date.now()): void {
         for (const [nonce, state] of this.activeStates) {
             if (state.expiresAt <= now) {
@@ -299,12 +285,6 @@ export class OidcStateService {
         }
 
         this.activeStates.delete(nonce);
-        const nextCount = (this.activeStateCounts.get(state.bucket) ?? 1) - 1;
-        if (nextCount > 0) {
-            this.activeStateCounts.set(state.bucket, nextCount);
-        } else {
-            this.activeStateCounts.delete(state.bucket);
-        }
     }
 
     extractProviderFromLegacyState(state: string): { providerId: string; originalState: string } {
