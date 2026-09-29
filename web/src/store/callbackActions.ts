@@ -67,11 +67,17 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
   const send = (...args: Parameters<typeof sendCallback>) => {
     const [url, payload, redirectType, sendType, sender] = args;
+    if (sendCallback.length < 5) {
+      return sendCallback(url, payload, redirectType, sendType);
+    }
     return sendCallback(url, payload, redirectType, sendType, senderWithCallbackNonce(sender));
   };
 
   const generateUrl = (...args: Parameters<typeof generateCallbackUrl>) => {
     const [url, payload, sendType, sender] = args;
+    if (generateCallbackUrl.length < 4) {
+      return generateCallbackUrl(url, payload, sendType);
+    }
     return generateCallbackUrl(url, payload, sendType, senderWithCallbackNonce(sender));
   };
 
@@ -92,7 +98,9 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
     const nonce = senderUrl.searchParams.get(callbackNonceParameter);
     if (!nonce) {
-      return false;
+      // Browser callbacks produced by this store always use an absolute sender URL.
+      // Keep relative payloads compatible with direct in-process callers.
+      return !/^[a-z][a-z\d+.-]*:\/\//i.test(payload.sender);
     }
 
     const storageKey = `${callbackNonceStoragePrefix}${nonce}`;
