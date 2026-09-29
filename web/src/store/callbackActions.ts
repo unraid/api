@@ -25,15 +25,79 @@ import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 const callbackEncryptionKey = import.meta.env.VITE_CALLBACK_KEY ?? '';
+const callbackNonceParameter = 'callback_nonce';
+const callbackNonceStoragePrefix = 'unraid-callback-nonce:';
+const callbackNonceTtlMs = 10 * 60 * 1000;
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const {
-    send,
+    send: sendCallback,
     watcher: providedWatcher,
-    generateUrl,
+    generateUrl: generateCallbackUrl,
   } = useCallback({
     encryptionKey: callbackEncryptionKey,
   });
+
+  const createCallbackNonce = (): string => {
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  };
+
+  const rememberCallbackNonce = (nonce: string) => {
+    sessionStorage.setItem(
+      `${callbackNonceStoragePrefix}${nonce}`,
+      String(Date.now() + callbackNonceTtlMs)
+    );
+  };
+
+  const senderWithCallbackNonce = (sender?: string): string | undefined => {
+    if (typeof window === 'undefined') {
+      return sender;
+    }
+
+    const nonce = createCallbackNonce();
+    const senderUrl = new URL(sender ?? window.location.href);
+    senderUrl.hash = '';
+    senderUrl.searchParams.delete('data');
+    senderUrl.searchParams.set(callbackNonceParameter, nonce);
+    rememberCallbackNonce(nonce);
+    return senderUrl.toString();
+  };
+
+  const send = (...args: Parameters<typeof sendCallback>) => {
+    const [url, payload, redirectType, sendType, sender] = args;
+    return sendCallback(url, payload, redirectType, sendType, senderWithCallbackNonce(sender));
+  };
+
+  const generateUrl = (...args: Parameters<typeof generateCallbackUrl>) => {
+    const [url, payload, sendType, sender] = args;
+    return generateCallbackUrl(url, payload, sendType, senderWithCallbackNonce(sender));
+  };
+
+  const validateAndConsumeCallbackNonce = (payload: QueryPayloads): boolean => {
+    if (!isExternalCallbackPayload(payload)) {
+      return true;
+    }
+
+    let senderUrl: URL;
+    try {
+      senderUrl = new URL(payload.sender);
+    } catch {
+      return false;
+    }
+
+    const nonce = senderUrl.searchParams.get(callbackNonceParameter);
+    if (!nonce) {
+      // Callbacks from older clients do not carry a nonce.
+      return true;
+    }
+
+    const storageKey = `${callbackNonceStoragePrefix}${nonce}`;
+    const expiresAt = Number(sessionStorage.getItem(storageKey));
+    sessionStorage.removeItem(storageKey);
+    return Number.isSafeInteger(expiresAt) && expiresAt >= Date.now();
+  };
 
   // Lazy store initialization - call stores inside functions to avoid circular dependencies
   const getAccountStore = () => useAccountStore();
@@ -66,6 +130,13 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   };
 
   const saveCallbackData = async (decryptedData?: QueryPayloads) => {
+    if (decryptedData && !validateAndConsumeCallbackNonce(decryptedData)) {
+      callbackData.value = undefined;
+      callbackError.value = 'Callback request is not active or has expired';
+      callbackStatus.value = 'error';
+      return;
+    }
+
     if (decryptedData) {
       callbackData.value = decryptedData;
     }
