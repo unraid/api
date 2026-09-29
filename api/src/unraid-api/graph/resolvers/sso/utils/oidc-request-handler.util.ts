@@ -108,17 +108,17 @@ export class OidcRequestHandler {
      * Validate required parameters for authorization flow
      */
     static validateAuthorizeParams(
-        providerId: string | undefined,
-        state: string | undefined,
-        redirectUri: string | undefined
+        providerId: string | string[] | undefined,
+        state: string | string[] | undefined,
+        redirectUri: string | string[] | undefined
     ): { providerId: string; state: string; redirectUri: string } {
-        if (!providerId) {
+        if (typeof providerId !== 'string' || !providerId) {
             throw new Error('Provider ID is required');
         }
-        if (!state) {
+        if (typeof state !== 'string' || !state) {
             throw new Error('State parameter is required');
         }
-        if (!redirectUri) {
+        if (typeof redirectUri !== 'string' || !redirectUri) {
             throw new Error('Redirect URI is required');
         }
         if (
@@ -136,10 +136,10 @@ export class OidcRequestHandler {
      * Validate required parameters for callback flow
      */
     static validateCallbackParams(
-        code: string | undefined,
-        state: string | undefined
+        code: string | string[] | undefined,
+        state: string | string[] | undefined
     ): { code: string; state: string } {
-        if (!code || !state) {
+        if (typeof code !== 'string' || !code || typeof state !== 'string' || !state) {
             throw new Error('Missing required parameters');
         }
 

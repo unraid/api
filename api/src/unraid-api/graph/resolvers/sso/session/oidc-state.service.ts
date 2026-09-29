@@ -49,11 +49,16 @@ export class OidcStateService {
         codeVerifier?: string
     ): Promise<string> {
         if (
+            typeof providerId !== 'string' ||
             !providerId ||
             providerId.length > 128 ||
+            typeof clientState !== 'string' ||
             !clientState ||
             clientState.length > this.MAX_CLIENT_STATE_LENGTH ||
-            (redirectUri !== undefined && redirectUri.length > this.MAX_REDIRECT_URI_LENGTH)
+            (redirectUri !== undefined &&
+                (typeof redirectUri !== 'string' ||
+                    redirectUri.length > this.MAX_REDIRECT_URI_LENGTH)) ||
+            (codeVerifier !== undefined && typeof codeVerifier !== 'string')
         ) {
             throw new Error('Invalid OIDC authorization parameters');
         }
@@ -134,7 +139,13 @@ export class OidcStateService {
         let parsedNonce: string | undefined;
 
         try {
-            if (!state || state.length > 4096) {
+            if (
+                typeof state !== 'string' ||
+                !state ||
+                state.length > 4096 ||
+                typeof expectedProviderId !== 'string' ||
+                !expectedProviderId
+            ) {
                 return {
                     isValid: false,
                     error: 'Invalid state format',
