@@ -17,7 +17,10 @@ import {
 import { ApiSettings } from '@app/unraid-api/graph/resolvers/settings/settings.service.js';
 import { SsoSettings } from '@app/unraid-api/graph/resolvers/settings/sso-settings.model.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
-import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
+import {
+    OidcProvider,
+    redactOidcClientSecret,
+} from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 
 const redactOidcClientSecrets = (values: Record<string, unknown>): Record<string, unknown> => {
     const sso = values.sso;
@@ -163,7 +166,7 @@ export class UnifiedSettingsResolver {
     ): Promise<UpdateSettingsResponse> {
         this.logger.verbose('Updating Settings %O', input);
         const { restartRequired, values } = await this.userSettings.updateNamespacedValues(input);
-        this.logger.verbose('Updated Setting Values %O', values);
+        this.logger.verbose('Updated Setting Values %O', redactOidcClientSecrets(values));
         if (restartRequired) {
             // hack: allow time for pending writes to flush
             this.lifecycleService.restartApi({ delayMs: 300 });
@@ -182,6 +185,7 @@ export class SsoSettingsResolver {
     })
     @ResolveField(() => [OidcProvider], { description: 'List of configured OIDC providers' })
     async oidcProviders(): Promise<OidcProvider[]> {
-        return this.oidcConfig.getProviders();
+        const providers = await this.oidcConfig.getProviders();
+        return providers.map(redactOidcClientSecret);
     }
 }
