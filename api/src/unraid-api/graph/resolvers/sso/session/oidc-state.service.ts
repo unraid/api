@@ -13,6 +13,7 @@ interface StateData {
 
 interface ActiveState {
     expiresAt: number;
+    providerId: string;
 }
 
 @Injectable()
@@ -24,9 +25,11 @@ export class OidcStateService {
     private readonly STATE_TTL_MS = 600000; // 10 minutes in milliseconds (cache-manager v7+ expects milliseconds, not seconds)
     private readonly STATE_CACHE_PREFIX = 'oidc_state:';
     private readonly MAX_ACTIVE_STATES = 256;
+    private readonly MAX_ACTIVE_STATES_PER_PROVIDER = 64;
     private readonly MAX_CLIENT_STATE_LENGTH = 256;
     private readonly MAX_REDIRECT_URI_LENGTH = 2048;
     private readonly activeStates = new Map<string, ActiveState>();
+    private readonly activeStatesByProvider = new Map<string, number>();
 
     constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
         // Track instance creation
@@ -65,13 +68,19 @@ export class OidcStateService {
         const nonce = crypto.randomBytes(16).toString('hex');
         const timestamp = Date.now();
 
-        if (this.activeStates.size >= this.MAX_ACTIVE_STATES) {
+        const providerStateCount = this.activeStatesByProvider.get(providerId) ?? 0;
+        if (
+            this.activeStates.size >= this.MAX_ACTIVE_STATES ||
+            providerStateCount >= this.MAX_ACTIVE_STATES_PER_PROVIDER
+        ) {
             throw new Error('Too many pending OIDC authorization requests');
         }
 
         this.activeStates.set(nonce, {
             expiresAt: timestamp + this.STATE_TTL_MS,
+            providerId,
         });
+        this.activeStatesByProvider.set(providerId, providerStateCount + 1);
 
         // Store state data in cache
         const stateData: StateData = {
@@ -285,6 +294,12 @@ export class OidcStateService {
         }
 
         this.activeStates.delete(nonce);
+        const providerStateCount = this.activeStatesByProvider.get(state.providerId) ?? 0;
+        if (providerStateCount <= 1) {
+            this.activeStatesByProvider.delete(state.providerId);
+        } else {
+            this.activeStatesByProvider.set(state.providerId, providerStateCount - 1);
+        }
     }
 
     extractProviderFromLegacyState(state: string): { providerId: string; originalState: string } {
