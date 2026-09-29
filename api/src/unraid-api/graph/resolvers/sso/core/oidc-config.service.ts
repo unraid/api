@@ -416,11 +416,22 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                     >;
                 }
             ) => {
+                const currentConfig =
+                    this.configService.get<OidcConfig>(this.configKey()) || this.defaultConfig();
+
                 // Process each provider to handle simple mode conversion
                 const processedConfig: OidcConfig = {
                     ...config,
                     providers: config.providers.map((provider) => {
-                        const extendedProvider = provider as OidcProvider & {
+                        const existingProvider = currentConfig.providers.find(
+                            (currentProvider) => currentProvider.id === provider.id
+                        );
+                        const providerWithSecret =
+                            provider.clientSecret === undefined &&
+                            existingProvider?.clientSecret !== undefined
+                                ? { ...provider, clientSecret: existingProvider.clientSecret }
+                                : provider;
+                        const extendedProvider = providerWithSecret as OidcProvider & {
                             authorizationMode?: string;
                             simpleAuthorization?: unknown;
                         };
