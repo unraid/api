@@ -150,6 +150,8 @@ export class RestController {
             : ['/graphql/api/auth/oidc/callback']
     )
     @Public()
+    @UseGuards(FastifyThrottlerGuard)
+    @Throttle({ default: { limit: 10, ttl: 60_000 } })
     async oidcCallback(
         @Query('code') code: string,
         @Query('state') state: string,
