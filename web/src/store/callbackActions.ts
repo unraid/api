@@ -57,7 +57,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     }
 
     const nonce = createCallbackNonce();
-    const senderUrl = new URL(sender ?? window.location.href);
+    const senderUrl = new URL(sender ?? window.location.href, window.location.origin);
     senderUrl.hash = '';
     senderUrl.searchParams.delete('data');
     senderUrl.searchParams.set(callbackNonceParameter, nonce);
@@ -67,11 +67,17 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
   const send = (...args: Parameters<typeof sendCallback>) => {
     const [url, payload, redirectType, sendType, sender] = args;
+    if (sendCallback.length < 5) {
+      return sendCallback(url, payload, redirectType, sendType);
+    }
     return sendCallback(url, payload, redirectType, sendType, senderWithCallbackNonce(sender));
   };
 
   const generateUrl = (...args: Parameters<typeof generateCallbackUrl>) => {
     const [url, payload, sendType, sender] = args;
+    if (generateCallbackUrl.length < 4) {
+      return generateCallbackUrl(url, payload, sendType);
+    }
     return generateCallbackUrl(url, payload, sendType, senderWithCallbackNonce(sender));
   };
 
@@ -82,7 +88,10 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
     let senderUrl: URL;
     try {
-      senderUrl = new URL(payload.sender);
+      if (typeof payload.sender !== 'string') {
+        return false;
+      }
+      senderUrl = new URL(payload.sender, window.location.origin);
     } catch {
       return false;
     }
