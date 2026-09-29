@@ -125,7 +125,9 @@ export const createDynamicIntrospectionPlugin = (
 
                         if (operation && isBlockedIntrospectionOperation(operation, document)) {
                             response.body = blockedIntrospectionBody();
-                            response.http.status = 400;
+                            if (response.http) {
+                                response.http.status = 400;
+                            }
                         }
                     } catch {
                         return;
