@@ -164,7 +164,7 @@ export class UnifiedSettingsResolver {
     async updateSettings(
         @Args('input', { type: () => GraphQLJSON }) input: Record<string, unknown>
     ): Promise<UpdateSettingsResponse> {
-        this.logger.verbose('Updating Settings %O', input);
+        this.logger.verbose('Updating Settings %O', redactOidcClientSecrets(input));
         const { restartRequired, values } = await this.userSettings.updateNamespacedValues(input);
         this.logger.verbose('Updated Setting Values %O', redactOidcClientSecrets(values));
         if (restartRequired) {
