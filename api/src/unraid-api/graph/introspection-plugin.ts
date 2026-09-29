@@ -2,7 +2,7 @@ import type { ApolloServerPlugin, GraphQLRequestListener } from '@apollo/server'
 import type { DocumentNode, OperationDefinitionNode, SelectionSetNode } from 'graphql';
 import { Kind, parse } from 'graphql';
 
-const BLOCKED_INTROSPECTION_FIELDS = new Set(['__schema', '__type']);
+const BLOCKED_INTROSPECTION_FIELDS = new Set(['__schema']);
 
 const hasBlockedIntrospectionField = (
     selectionSet: SelectionSetNode,
