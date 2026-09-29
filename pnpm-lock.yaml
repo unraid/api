@@ -16,7 +16,7 @@ overrides:
   csv-parse: 7.0.2
   defu: 6.1.7
   esbuild: 0.28.1
-  fast-uri: 3.1.6
+  fast-uri: 3.1.7
   fast-xml-parser: 5.8.0
   file-type: 22.0.1
   flatted: 3.4.2
@@ -47,7 +47,7 @@ overrides:
   ws: 8.21.0
   yaml: 2.9.0
   find-my-way@>=9.0.0 <9.7.0: 9.7.0
-  ip-address@>=10.0.0 <10.3.1: 10.3.1
+  ip-address: 10.5.1
   nanoid@>=3.0.0 <3.3.18: 3.3.18
   stylus@<0.64.0: 0.64.0
   brace-expansion@>=2.0.0 <2.1.4: 2.1.4
@@ -352,8 +352,8 @@ importers:
         specifier: 5.31.7
         version: 5.31.7
       undici:
-        specifier: 7.29.0
-        version: 7.29.0
+        specifier: 7.29.1
+        version: 7.29.1
       unraid-api-plugin-connect:
         specifier: workspace:*
         version: link:../packages/unraid-api-plugin-connect
@@ -672,8 +672,8 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
       undici:
-        specifier: 7.29.0
-        version: 7.29.0
+        specifier: 7.29.1
+        version: 7.29.1
       vitest:
         specifier: 3.2.6
         version: 3.2.6(@types/node@22.18.0)(@vitest/ui@3.2.6)(happy-dom@20.10.3)(jiti@2.7.0)(jsdom@26.1.0)(lightningcss@1.32.0)(stylus@0.64.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.9.0)
@@ -790,8 +790,8 @@ importers:
         specifier: 7.8.2
         version: 7.8.2
       undici:
-        specifier: 7.29.0
-        version: 7.29.0
+        specifier: 7.29.1
+        version: 7.29.1
     devDependencies:
       '@graphql-tools/utils':
         specifier: 10.9.1
@@ -7441,8 +7441,8 @@ packages:
   fast-safe-stringify@2.1.1:
     resolution: {integrity: sha512-W+KJc2dmILlPplD/H4K9l9LcAHAfPtP6BY84uVLXQ6Evcz9Lcg33Y2z1IVblT6xdY54PXYVHEv+0Wpq8Io6zkA==}
 
-  fast-uri@3.1.6:
-    resolution: {integrity: sha512-7Ical1vFEMr0onbVzEDIreM22I4khW+fzyQPwvAFWBp1iwdshSZRsL4jjRvPG9JP1uiqMHRto+YU6R2/CzDz5Q==}
+  fast-uri@3.1.7:
+    resolution: {integrity: sha512-dOvZVzjdZdz7phd9v6jCbwxrBW3fK6n8Rc0CtdmM4bumzMnxywBYhuph6J819RRw/ku+rLbelwfMunktuzVVHg==}
 
   fast-xml-builder@1.2.0:
     resolution: {integrity: sha512-00aAWieqff+ZJhsXA4g1g7M8k+7AYoMUUHF+/zFb5U6Uv/P0Vl4QZo84/IcufzYalLuEj9928bXN9PbbFzMF0Q==}
@@ -8178,8 +8178,8 @@ packages:
     resolution: {integrity: sha512-ehuGcf94bQXhfagULNXrJdfnWO38v070jxSx/qE87Kjzmu2fU7ro5EFAb+OPituLqgfyuQaym5DlrNydW2sJ9A==}
     engines: {node: '>=12.22.0'}
 
-  ip-address@10.3.1:
-    resolution: {integrity: sha512-1e9d3kb97NHJTIJDZW9rKqW2h6+dFa50Dy0fpPSMQp2ADje5gvKsXmdiK6dwY5t76TaTt5+P5N1Y/LoToIxP6g==}
+  ip-address@10.5.1:
+    resolution: {integrity: sha512-EXujUp9jyOI/chPgtqk6uy7fDq8AeCB/WlfEuPg9LN0fN9lzKAKfuDYi60SMhHwgUiEhZvVYsbGZN+RUU1INiA==}
     engines: {node: '>= 12'}
 
   ipaddr.js@1.9.1:
@@ -11313,8 +11313,8 @@ packages:
     resolution: {integrity: sha512-6KQ/+QxK49Z/p3HO6E5ZCZWNnCasyZLa5ExaVYyvPxUwKtbCPMKELJOqh7EqOle0t9cH/7d2TaaTRRa6Nhs4YQ==}
     engines: {node: '>=20.18.1'}
 
-  undici@7.29.0:
-    resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
+  undici@7.29.1:
+    resolution: {integrity: sha512-RYONW2MeafgYlkVOKYKkA/Ag7BmXqgIWCa8t1m0JcxrQg9pI9lEqRhAOruOBCbAohOa/gkCF+iPi9hrgvTzu6Q==}
     engines: {node: '>=20.18.1'}
 
   unenv@2.0.0-rc.24:
@@ -13280,7 +13280,7 @@ snapshots:
     dependencies:
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
-      fast-uri: 3.1.6
+      fast-uri: 3.1.7
 
   '@fastify/busboy@3.1.1': {}
 
@@ -17015,7 +17015,7 @@ snapshots:
   ajv@8.20.0:
     dependencies:
       fast-deep-equal: 3.1.3
-      fast-uri: 3.1.6
+      fast-uri: 3.1.7
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
 
@@ -18839,7 +18839,7 @@ snapshots:
   express-rate-limit@8.5.2(express@5.2.1):
     dependencies:
       express: 5.2.1
-      ip-address: 10.3.1
+      ip-address: 10.5.1
 
   express@5.2.1:
     dependencies:
@@ -18927,7 +18927,7 @@ snapshots:
       '@fastify/merge-json-schemas': 0.2.1
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
-      fast-uri: 3.1.6
+      fast-uri: 3.1.7
       json-schema-ref-resolver: 3.0.0
       rfdc: 1.4.1
 
@@ -18941,7 +18941,7 @@ snapshots:
 
   fast-safe-stringify@2.1.1: {}
 
-  fast-uri@3.1.6: {}
+  fast-uri@3.1.7: {}
 
   fast-xml-builder@1.2.0:
     dependencies:
@@ -19806,7 +19806,7 @@ snapshots:
       - supports-color
     optional: true
 
-  ip-address@10.3.1: {}
+  ip-address@10.5.1: {}
 
   ipaddr.js@1.9.1: {}
 
@@ -22254,7 +22254,7 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       ts-morph: 27.0.2
-      undici: 7.29.0
+      undici: 7.29.1
       validate-npm-package-name: 5.0.1
       vue-metamorph: 3.3.4(eslint@9.34.0(jiti@2.7.0))
       zod: 3.25.76
@@ -22398,7 +22398,7 @@ snapshots:
 
   socks@2.8.9:
     dependencies:
-      ip-address: 10.3.1
+      ip-address: 10.5.1
       smart-buffer: 4.2.0
 
   sonic-boom@4.2.0:
@@ -23054,7 +23054,7 @@ snapshots:
 
   undici@7.24.8: {}
 
-  undici@7.29.0: {}
+  undici@7.29.1: {}
 
   unenv@2.0.0-rc.24:
     dependencies:
