@@ -19,6 +19,36 @@ import { SsoSettings } from '@app/unraid-api/graph/resolvers/settings/sso-settin
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
 import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 
+const redactOidcClientSecrets = (values: Record<string, unknown>): Record<string, unknown> => {
+    const sso = values.sso;
+    if (!sso || typeof sso !== 'object' || Array.isArray(sso)) {
+        return values;
+    }
+
+    const providers = (sso as Record<string, unknown>).providers;
+    if (!Array.isArray(providers)) {
+        return values;
+    }
+
+    return {
+        ...values,
+        sso: {
+            ...(sso as Record<string, unknown>),
+            providers: providers.map((provider) => {
+                if (!provider || typeof provider !== 'object' || Array.isArray(provider)) {
+                    return provider;
+                }
+
+                const { clientSecret: _clientSecret, ...safeProvider } = provider as Record<
+                    string,
+                    unknown
+                >;
+                return safeProvider;
+            }),
+        },
+    };
+};
+
 @Resolver(() => Settings)
 export class SettingsResolver {
     constructor(
@@ -120,8 +150,7 @@ export class UnifiedSettingsResolver {
     })
     @ResolveField(() => GraphQLJSON)
     async values() {
-        // Unified settings include persisted OIDC client secrets.
-        return this.userSettings.getAllValues();
+        return redactOidcClientSecrets(await this.userSettings.getAllValues());
     }
 
     @Mutation(() => UpdateSettingsResponse)
@@ -139,7 +168,7 @@ export class UnifiedSettingsResolver {
             // hack: allow time for pending writes to flush
             this.lifecycleService.restartApi({ delayMs: 300 });
         }
-        return { restartRequired, values };
+        return { restartRequired, values: redactOidcClientSecrets(values) };
     }
 }
 

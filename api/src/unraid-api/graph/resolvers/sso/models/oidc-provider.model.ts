@@ -70,10 +70,6 @@ export class OidcProvider {
     @IsNotEmpty()
     clientId!: string;
 
-    @Field(() => String, {
-        nullable: true,
-        description: 'OAuth2 client secret (if required by provider)',
-    })
     @IsString()
     @IsOptional()
     clientSecret?: string;
