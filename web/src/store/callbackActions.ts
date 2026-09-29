@@ -45,7 +45,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   };
 
   const rememberCallbackNonce = (nonce: string) => {
-    sessionStorage.setItem(
+    localStorage.setItem(
       `${callbackNonceStoragePrefix}${nonce}`,
       String(Date.now() + callbackNonceTtlMs)
     );
@@ -67,17 +67,11 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
   const send = (...args: Parameters<typeof sendCallback>) => {
     const [url, payload, redirectType, sendType, sender] = args;
-    if (sendCallback.length < 5) {
-      return sendCallback(url, payload, redirectType, sendType);
-    }
     return sendCallback(url, payload, redirectType, sendType, senderWithCallbackNonce(sender));
   };
 
   const generateUrl = (...args: Parameters<typeof generateCallbackUrl>) => {
     const [url, payload, sendType, sender] = args;
-    if (generateCallbackUrl.length < 4) {
-      return generateCallbackUrl(url, payload, sendType);
-    }
     return generateCallbackUrl(url, payload, sendType, senderWithCallbackNonce(sender));
   };
 
@@ -98,13 +92,12 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
     const nonce = senderUrl.searchParams.get(callbackNonceParameter);
     if (!nonce) {
-      // Callbacks from older clients do not carry a nonce.
-      return true;
+      return false;
     }
 
     const storageKey = `${callbackNonceStoragePrefix}${nonce}`;
-    const expiresAt = Number(sessionStorage.getItem(storageKey));
-    sessionStorage.removeItem(storageKey);
+    const expiresAt = Number(localStorage.getItem(storageKey));
+    localStorage.removeItem(storageKey);
     return Number.isSafeInteger(expiresAt) && expiresAt >= Date.now();
   };
 

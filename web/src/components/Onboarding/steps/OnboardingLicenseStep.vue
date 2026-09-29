@@ -21,7 +21,7 @@ interface Props {
   onComplete?: () => void;
   onBack?: () => void;
   showBack?: boolean;
-  activateHref: string;
+  activateHref: string | (() => string);
   activateExternal?: boolean;
   allowSkip?: boolean;
 }
@@ -88,14 +88,18 @@ const isSkipDialogOpen = ref(false);
 const isRefreshing = ref(false);
 
 // Methods
+const resolveActivateHref = () =>
+  typeof props.activateHref === 'function' ? props.activateHref() : props.activateHref;
+
 const openActivate = () => {
+  const activateHref = resolveActivateHref();
   if (props.activateExternal) {
-    const opened = window.open(props.activateHref, '_blank', 'noopener,noreferrer');
+    const opened = window.open(activateHref, '_blank', 'noopener,noreferrer');
     if (opened) {
       opened.opener = null;
     }
   } else {
-    window.location.href = props.activateHref;
+    window.location.href = activateHref;
   }
 };
 
