@@ -58,6 +58,9 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
     const nonce = createCallbackNonce();
     const senderUrl = new URL(sender ?? window.location.href, window.location.origin);
+    if (sender === undefined && senderUrl.pathname === '/Tools/Update') {
+      senderUrl.pathname = '/Tools';
+    }
     senderUrl.hash = '';
     senderUrl.searchParams.delete('data');
     senderUrl.searchParams.set(callbackNonceParameter, nonce);
