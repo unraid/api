@@ -22,6 +22,10 @@ export interface OidcCallbackResult extends OidcFlowResult {
  * between authorize and callback endpoints
  */
 export class OidcRequestHandler {
+    private static readonly MAX_PROVIDER_ID_LENGTH = 128;
+    private static readonly MAX_STATE_LENGTH = 256;
+    private static readonly MAX_REDIRECT_URI_LENGTH = 2048;
+
     /**
      * Extract request information from Fastify request headers
      */
@@ -116,6 +120,13 @@ export class OidcRequestHandler {
         }
         if (!redirectUri) {
             throw new Error('Redirect URI is required');
+        }
+        if (
+            providerId.length > OidcRequestHandler.MAX_PROVIDER_ID_LENGTH ||
+            state.length > OidcRequestHandler.MAX_STATE_LENGTH ||
+            redirectUri.length > OidcRequestHandler.MAX_REDIRECT_URI_LENGTH
+        ) {
+            throw new Error('Invalid OIDC authorization parameters');
         }
 
         return { providerId, state, redirectUri };

@@ -12,6 +12,14 @@ export class FastifyThrottlerGuard extends ThrottlerGuard {
     }
 
     getRequestResponse(context: ExecutionContext) {
+        if (context.getType() === 'http') {
+            const httpContext = context.switchToHttp();
+            return {
+                req: httpContext.getRequest(),
+                res: httpContext.getResponse(),
+            };
+        }
+
         const gqlContext = GqlExecutionContext.create(context);
         const ctx = gqlContext.getContext();
 
