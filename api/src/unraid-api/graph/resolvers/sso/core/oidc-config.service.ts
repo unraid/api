@@ -309,7 +309,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             buttonStyle: provider.buttonStyle,
         };
 
-        const existingIndex = providers.findIndex((p) => p.id === provider.id);
+        const existingIndex = existingProvider ? providers.indexOf(existingProvider) : -1;
         if (existingIndex >= 0) {
             providers[existingIndex] = cleanedProvider;
         } else {
