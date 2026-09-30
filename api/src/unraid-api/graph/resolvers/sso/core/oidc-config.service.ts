@@ -282,11 +282,20 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         }
 
         // Clean up the provider object - remove UI-only fields
+        const existingProvider = providers.find(
+            (currentProvider) =>
+                currentProvider.id === provider.id ||
+                (currentProvider.clientId === provider.clientId &&
+                    (currentProvider.issuer ?? '') === (provider.issuer ?? '') &&
+                    (currentProvider.authorizationEndpoint ?? '') ===
+                        (provider.authorizationEndpoint ?? '') &&
+                    (currentProvider.tokenEndpoint ?? '') === (provider.tokenEndpoint ?? ''))
+        );
         const cleanedProvider: OidcProvider = {
             id: provider.id,
             name: provider.name,
             clientId: provider.clientId,
-            clientSecret: provider.clientSecret,
+            clientSecret: provider.clientSecret ?? existingProvider?.clientSecret,
             usePkce: provider.usePkce,
             issuer: provider.issuer,
             authorizationEndpoint: provider.authorizationEndpoint,
@@ -424,7 +433,14 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                     ...config,
                     providers: config.providers.map((provider) => {
                         const existingProvider = currentConfig.providers.find(
-                            (currentProvider) => currentProvider.id === provider.id
+                            (currentProvider) =>
+                                currentProvider.id === provider.id ||
+                                (currentProvider.clientId === provider.clientId &&
+                                    (currentProvider.issuer ?? '') === (provider.issuer ?? '') &&
+                                    (currentProvider.authorizationEndpoint ?? '') ===
+                                        (provider.authorizationEndpoint ?? '') &&
+                                    (currentProvider.tokenEndpoint ?? '') ===
+                                        (provider.tokenEndpoint ?? ''))
                         );
                         const providerWithSecret =
                             provider.clientSecret === undefined &&
