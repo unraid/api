@@ -27,7 +27,7 @@ import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 const callbackEncryptionKey = import.meta.env.VITE_CALLBACK_KEY ?? '';
 const callbackNonceParameter = 'callback_nonce';
 const callbackNonceStoragePrefix = 'unraid-callback-nonce:';
-const callbackNonceTtlMs = 10 * 60 * 1000;
+const callbackNonceTtlMs = 30 * 60 * 1000;
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const {
@@ -103,7 +103,9 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     if (!nonce) {
       // Browser callbacks produced by this store always use an absolute sender URL.
       // Keep relative payloads compatible with direct in-process callers.
-      return !/^[a-z][a-z\d+.-]*:\/\//i.test(payload.sender);
+      const isAbsoluteSender =
+        payload.sender.startsWith('//') || /^[a-z][a-z\d+.-]*:/i.test(payload.sender);
+      return !isAbsoluteSender && senderUrl.origin === window.location.origin;
     }
 
     const storageKey = `${callbackNonceStoragePrefix}${nonce}`;
