@@ -114,6 +114,22 @@ function cleanupDiagnostics() {
   setTimeout(cleanupDiagnostics, 2000);
 }
 
+function reportDowngradeError(xhr) {
+  $('div.spinner').hide('slow');
+
+  const response = xhr && xhr.responseJSON;
+  const message = response && response.error
+    ? response.error
+    : "_(Unable to complete the downgrade. Please try again.)_";
+
+  swal({
+    title: "_(Downgrade failed)_",
+    text: message,
+    type: 'error',
+    confirmButtonText: "_(Ok)_",
+  });
+}
+
 function startDowngrade() {
   $('div.spinner').show('slow');
 
@@ -132,10 +148,10 @@ function startDowngrade() {
           refresh();
         },
         'json'
-      );
+      ).fail(reportDowngradeError);
     },
     'json'
-  );
+  ).fail(reportDowngradeError);
 }
 
 function confirmDowngrade() {
