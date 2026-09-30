@@ -282,15 +282,16 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         }
 
         // Clean up the provider object - remove UI-only fields
-        const existingProvider = providers.find(
-            (currentProvider) =>
-                currentProvider.id === provider.id ||
-                (currentProvider.clientId === provider.clientId &&
+        const existingProvider =
+            providers.find((currentProvider) => currentProvider.id === provider.id) ||
+            providers.find(
+                (currentProvider) =>
+                    currentProvider.clientId === provider.clientId &&
                     (currentProvider.issuer ?? '') === (provider.issuer ?? '') &&
                     (currentProvider.authorizationEndpoint ?? '') ===
                         (provider.authorizationEndpoint ?? '') &&
-                    (currentProvider.tokenEndpoint ?? '') === (provider.tokenEndpoint ?? ''))
-        );
+                    (currentProvider.tokenEndpoint ?? '') === (provider.tokenEndpoint ?? '')
+            );
         const cleanedProvider: OidcProvider = {
             id: provider.id,
             name: provider.name,
@@ -432,16 +433,19 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                 const processedConfig: OidcConfig = {
                     ...config,
                     providers: config.providers.map((provider) => {
-                        const existingProvider = currentConfig.providers.find(
-                            (currentProvider) =>
-                                currentProvider.id === provider.id ||
-                                (currentProvider.clientId === provider.clientId &&
+                        const existingProvider =
+                            currentConfig.providers.find(
+                                (currentProvider) => currentProvider.id === provider.id
+                            ) ||
+                            currentConfig.providers.find(
+                                (currentProvider) =>
+                                    currentProvider.clientId === provider.clientId &&
                                     (currentProvider.issuer ?? '') === (provider.issuer ?? '') &&
                                     (currentProvider.authorizationEndpoint ?? '') ===
                                         (provider.authorizationEndpoint ?? '') &&
                                     (currentProvider.tokenEndpoint ?? '') ===
-                                        (provider.tokenEndpoint ?? ''))
-                        );
+                                        (provider.tokenEndpoint ?? '')
+                            );
                         const providerWithSecret =
                             provider.clientSecret === undefined &&
                             existingProvider?.clientSecret !== undefined
