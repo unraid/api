@@ -14,6 +14,7 @@ interface StateData {
 interface ActiveState {
     expiresAt: number;
     providerId: string;
+    scopeKey: string;
 }
 
 @Injectable()
@@ -26,10 +27,12 @@ export class OidcStateService {
     private readonly STATE_CACHE_PREFIX = 'oidc_state:';
     private readonly MAX_ACTIVE_STATES = 256;
     private readonly MAX_ACTIVE_STATES_PER_PROVIDER = 64;
+    private readonly MAX_ACTIVE_STATES_PER_SCOPE = 32;
     private readonly MAX_CLIENT_STATE_LENGTH = 256;
     private readonly MAX_REDIRECT_URI_LENGTH = 2048;
     private readonly activeStates = new Map<string, ActiveState>();
     private readonly activeStatesByProvider = new Map<string, number>();
+    private readonly activeStatesByScope = new Map<string, number>();
 
     constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
         // Track instance creation
@@ -69,9 +72,12 @@ export class OidcStateService {
         const timestamp = Date.now();
 
         const providerStateCount = this.activeStatesByProvider.get(providerId) ?? 0;
+        const scopeKey = this.getStateScopeKey(providerId, redirectUri);
+        const scopeStateCount = this.activeStatesByScope.get(scopeKey) ?? 0;
         if (
             this.activeStates.size >= this.MAX_ACTIVE_STATES ||
-            providerStateCount >= this.MAX_ACTIVE_STATES_PER_PROVIDER
+            providerStateCount >= this.MAX_ACTIVE_STATES_PER_PROVIDER ||
+            scopeStateCount >= this.MAX_ACTIVE_STATES_PER_SCOPE
         ) {
             throw new Error('Too many pending OIDC authorization requests');
         }
@@ -79,8 +85,10 @@ export class OidcStateService {
         this.activeStates.set(nonce, {
             expiresAt: timestamp + this.STATE_TTL_MS,
             providerId,
+            scopeKey,
         });
         this.activeStatesByProvider.set(providerId, providerStateCount + 1);
+        this.activeStatesByScope.set(scopeKey, scopeStateCount + 1);
 
         // Store state data in cache
         const stateData: StateData = {
@@ -287,6 +295,10 @@ export class OidcStateService {
         }
     }
 
+    private getStateScopeKey(providerId: string, redirectUri?: string): string {
+        return JSON.stringify([providerId, redirectUri ?? '']);
+    }
+
     private releaseState(nonce: string): void {
         const state = this.activeStates.get(nonce);
         if (!state) {
@@ -299,6 +311,13 @@ export class OidcStateService {
             this.activeStatesByProvider.delete(state.providerId);
         } else {
             this.activeStatesByProvider.set(state.providerId, providerStateCount - 1);
+        }
+
+        const scopeStateCount = this.activeStatesByScope.get(state.scopeKey) ?? 0;
+        if (scopeStateCount <= 1) {
+            this.activeStatesByScope.delete(state.scopeKey);
+        } else {
+            this.activeStatesByScope.set(state.scopeKey, scopeStateCount - 1);
         }
     }
 
