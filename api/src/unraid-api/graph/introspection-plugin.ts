@@ -2,13 +2,14 @@ import type { ApolloServerPlugin, GraphQLRequestListener } from '@apollo/server'
 import type { DocumentNode, OperationDefinitionNode, SelectionSetNode } from 'graphql';
 import { Kind, parse } from 'graphql';
 
-const BLOCKED_INTROSPECTION_FIELDS = new Set(['__schema']);
+const BLOCKED_INTROSPECTION_FIELDS = new Set(['__schema', '__type']);
 
 const hasBlockedIntrospectionField = (
     selectionSet: SelectionSetNode,
     fragments: Map<string, SelectionSetNode>,
     visitedFragments = new Set<string>(),
-    atQueryRoot = true
+    atQueryRoot = true,
+    fragmentResults = new Map<string, boolean>()
 ): boolean =>
     selectionSet.selections.some((selection) => {
         if (selection.kind === Kind.FIELD) {
@@ -19,7 +20,8 @@ const hasBlockedIntrospectionField = (
                         selection.selectionSet,
                         fragments,
                         visitedFragments,
-                        false
+                        false,
+                        fragmentResults
                     ))
             );
         }
@@ -29,8 +31,15 @@ const hasBlockedIntrospectionField = (
                 selection.selectionSet,
                 fragments,
                 visitedFragments,
-                atQueryRoot
+                atQueryRoot,
+                fragmentResults
             );
+        }
+
+        const fragmentKey = `${selection.name.value}:${atQueryRoot ? 'root' : 'nested'}`;
+        const cachedResult = fragmentResults.get(fragmentKey);
+        if (cachedResult !== undefined) {
+            return cachedResult;
         }
 
         if (visitedFragments.has(selection.name.value)) {
@@ -47,9 +56,11 @@ const hasBlockedIntrospectionField = (
             fragmentSelectionSet,
             fragments,
             visitedFragments,
-            atQueryRoot
+            atQueryRoot,
+            fragmentResults
         );
         visitedFragments.delete(selection.name.value);
+        fragmentResults.set(fragmentKey, blocked);
         return blocked;
     });
 
