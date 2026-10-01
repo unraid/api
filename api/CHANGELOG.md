@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.37.6](https://github.com/unraid/api/compare/v4.37.5...v4.37.6) (2026-10-01)
+
+
+### Bug Fixes
+
+* **web:** align registration license action buttons ([#2101](https://github.com/unraid/api/issues/2101)) ([b638d29](https://github.com/unraid/api/commit/b638d29214187f13574edc50d90812dcb6ec3aa9))
+
 ## [4.37.5](https://github.com/unraid/api/compare/v4.37.4...v4.37.5) (2026-09-16)
 
 
