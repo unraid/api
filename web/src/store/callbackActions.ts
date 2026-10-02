@@ -25,15 +25,94 @@ import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 const callbackEncryptionKey = import.meta.env.VITE_CALLBACK_KEY ?? '';
+const callbackNonceParameter = 'callback_nonce';
+const callbackNonceStoragePrefix = 'unraid-callback-nonce:';
+const callbackNonceTtlMs = 30 * 60 * 1000;
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const {
-    send,
+    send: sendCallback,
     watcher: providedWatcher,
-    generateUrl,
+    generateUrl: generateCallbackUrl,
   } = useCallback({
     encryptionKey: callbackEncryptionKey,
   });
+
+  const createCallbackNonce = (): string => {
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  };
+
+  const rememberCallbackNonce = (nonce: string) => {
+    localStorage.setItem(
+      `${callbackNonceStoragePrefix}${nonce}`,
+      String(Date.now() + callbackNonceTtlMs)
+    );
+  };
+
+  const senderWithCallbackNonce = (sender?: string): string | undefined => {
+    if (typeof window === 'undefined') {
+      return sender;
+    }
+
+    const nonce = createCallbackNonce();
+    const senderUrl = new URL(sender ?? window.location.href, window.location.origin);
+    if (sender === undefined && senderUrl.pathname === '/Tools/Update') {
+      senderUrl.pathname = '/Tools';
+    }
+    senderUrl.hash = '';
+    senderUrl.searchParams.delete('data');
+    senderUrl.searchParams.set(callbackNonceParameter, nonce);
+    rememberCallbackNonce(nonce);
+    return senderUrl.toString();
+  };
+
+  const send = (...args: Parameters<typeof sendCallback>) => {
+    const [url, payload, redirectType, sendType, sender] = args;
+    if (sendCallback.length < 5) {
+      return sendCallback(url, payload, redirectType, sendType);
+    }
+    return sendCallback(url, payload, redirectType, sendType, senderWithCallbackNonce(sender));
+  };
+
+  const generateUrl = (...args: Parameters<typeof generateCallbackUrl>) => {
+    const [url, payload, sendType, sender] = args;
+    if (generateCallbackUrl.length < 4) {
+      return generateCallbackUrl(url, payload, sendType);
+    }
+    return generateCallbackUrl(url, payload, sendType, senderWithCallbackNonce(sender));
+  };
+
+  const validateAndConsumeCallbackNonce = (payload: QueryPayloads): boolean => {
+    if (!isExternalCallbackPayload(payload)) {
+      return true;
+    }
+
+    let senderUrl: URL;
+    try {
+      if (typeof payload.sender !== 'string') {
+        return false;
+      }
+      senderUrl = new URL(payload.sender, window.location.origin);
+    } catch {
+      return false;
+    }
+
+    const nonce = senderUrl.searchParams.get(callbackNonceParameter);
+    if (!nonce) {
+      // Browser callbacks produced by this store always use an absolute sender URL.
+      // Keep relative payloads compatible with direct in-process callers.
+      const isAbsoluteSender =
+        payload.sender.startsWith('//') || /^[a-z][a-z\d+.-]*:/i.test(payload.sender);
+      return !isAbsoluteSender && senderUrl.origin === window.location.origin;
+    }
+
+    const storageKey = `${callbackNonceStoragePrefix}${nonce}`;
+    const expiresAt = Number(localStorage.getItem(storageKey));
+    localStorage.removeItem(storageKey);
+    return Number.isSafeInteger(expiresAt) && expiresAt >= Date.now();
+  };
 
   // Lazy store initialization - call stores inside functions to avoid circular dependencies
   const getAccountStore = () => useAccountStore();
@@ -66,6 +145,13 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   };
 
   const saveCallbackData = async (decryptedData?: QueryPayloads) => {
+    if (decryptedData && !validateAndConsumeCallbackNonce(decryptedData)) {
+      callbackData.value = undefined;
+      callbackError.value = 'Callback request is not active or has expired';
+      callbackStatus.value = 'error';
+      return;
+    }
+
     if (decryptedData) {
       callbackData.value = decryptedData;
     }
