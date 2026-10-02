@@ -127,15 +127,17 @@ describe('Dynamic Introspection Plugin', () => {
             expect(response.body).toBeNull();
         });
 
-        it('should allow queries with __type field (not full introspection)', async () => {
+        it('should block queries with __type field', async () => {
             const response = await runPlugin(
                 'query GetType { __type(name: "User") { name fields { name } } }',
                 'GetType',
                 false
             );
 
-            expect(response.http.status).toBe(200);
-            expect(response.body).toBeNull();
+            expect(response.http.status).toBe(400);
+            expect(response.body?.singleResult?.errors?.[0]?.extensions?.code).toBe(
+                'INTROSPECTION_DISABLED'
+            );
         });
 
         it('should allow queries with __typename field', async () => {
