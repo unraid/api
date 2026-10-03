@@ -31,14 +31,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.target_commitish || github.ref }}
           fetch-depth: 0
           token: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: '20.20.0'
 
@@ -167,7 +167,7 @@ jobs:
       release_notes: ${{ needs.generate-release-notes.outputs.release_notes }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.target_commitish || github.ref }}
           fetch-depth: 0
