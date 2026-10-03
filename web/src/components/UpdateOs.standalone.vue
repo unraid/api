@@ -15,18 +15,19 @@ else
   echo "Third party plugins found - PLEASE CHECK YOUR UNRAID NOTIFICATIONS AND WAIT FOR THE MESSAGE THAT IT IS SAFE TO REBOOT!"
 fi
  */
-import { computed, onBeforeMount } from 'vue';
+import { computed, onBeforeMount, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
-import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
-import { BrandButton, PageContainer } from '@unraid/ui';
+import { PageContainer } from '@unraid/ui';
 import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
+import UpdateOsChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
+import UpdateOsCheckUpdateResponseModal from '~/components/UpdateOs/CheckUpdateResponseModal.vue';
 import UpdateOsStatus from '~/components/UpdateOs/Status.vue';
 import UpdateOsThirdPartyDrivers from '~/components/UpdateOs/ThirdPartyDrivers.vue';
-import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
+import { useUpdateOsStore } from '~/store/updateOs';
 
 const { t } = useI18n();
 
@@ -37,9 +38,14 @@ const props = withDefaults(defineProps<Props>(), {
   rebootVersion: '',
 });
 
-const accountStore = useAccountStore();
 const serverStore = useServerStore();
+const updateOsStore = useUpdateOsStore();
 const { rebootType } = storeToRefs(serverStore);
+const updateOsModalVisible = computed(() => updateOsStore.updateOsModalVisible);
+
+const isToolsUpdatePage = computed(
+  () => typeof window !== 'undefined' && window.location.pathname === WEBGUI_TOOLS_UPDATE
+);
 
 const subtitle = computed(() => {
   if (rebootType.value === 'downgrade') {
@@ -48,48 +54,43 @@ const subtitle = computed(() => {
   return '';
 });
 
-// Show a prompt to continue in the Account app when no reboot is pending.
-const showRedirectPrompt = computed(
-  () =>
-    typeof window !== 'undefined' &&
-    window.location.pathname === WEBGUI_TOOLS_UPDATE &&
-    rebootType.value === ''
-);
-
-const openAccountUpdate = () => {
-  accountStore.updateOs(true);
-};
-
 onBeforeMount(() => {
   serverStore.setRebootVersion(props.rebootVersion);
+});
+
+onMounted(() => {
+  if (
+    typeof window === 'undefined' ||
+    window.location.pathname !== WEBGUI_TOOLS_UPDATE ||
+    rebootType.value !== ''
+  ) {
+    return;
+  }
+
+  if (updateOsStore.available || updateOsStore.availableWithRenewal) {
+    updateOsStore.setModalOpen(true);
+    return;
+  }
+
+  void updateOsStore.localCheckForUpdate().catch((error: unknown) => {
+    console.error(error);
+  });
 });
 </script>
 
 <template>
   <PageContainer>
-    <div
-      v-if="showRedirectPrompt"
-      class="mx-auto flex max-w-[720px] flex-col items-center gap-4 py-8 text-center"
-    >
-      <h1 class="text-2xl font-semibold">{{ t('updateOs.updateUnraidOs') }}</h1>
-      <p class="text-base leading-relaxed opacity-75">
-        {{ t('updateOs.update.receiveTheLatestAndGreatestFor') }}
-      </p>
-      <BrandButton
-        data-testid="update-os-account-button"
-        :icon-right="ArrowTopRightOnSquareIcon"
-        @click="openAccountUpdate"
-      >
-        {{ t('updateOs.update.viewAvailableUpdates') }}
-      </BrandButton>
-    </div>
-    <div v-else>
-      <UpdateOsStatus
-        :show-update-check="true"
-        :title="t('updateOs.updateUnraidOs')"
-        :subtitle="subtitle"
-      />
-      <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" />
-    </div>
+    <UpdateOsStatus
+      :show-update-check="true"
+      :title="t('updateOs.updateUnraidOs')"
+      :subtitle="subtitle"
+    />
+    <UpdateOsCheckUpdateResponseModal
+      v-if="isToolsUpdatePage && rebootType === ''"
+      :open="updateOsModalVisible"
+      embedded
+    />
+    <UpdateOsChangelogModal v-if="isToolsUpdatePage" />
+    <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" />
   </PageContainer>
 </template>
