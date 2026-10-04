@@ -50,7 +50,7 @@ jobs:
       - name: Deploy to Cloudflare Workers (Staging)
         id: deploy_staging
         if: github.event_name == 'pull_request'
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN }}
           command: deploy --env staging
@@ -58,7 +58,7 @@ jobs:
 
       - name: Deploy to Cloudflare Workers (Production)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN }}
           command: deploy
