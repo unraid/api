@@ -29,11 +29,19 @@ remove_stale_component_files() {
   [ -d "$component_dir" ] || return 0
 
   package_db=""
-  for candidate in var/lib/pkgtools/packages/dynamix.unraid.net-* var/log/packages/dynamix.unraid.net-*; do
-    if [ -f "$candidate" ]; then
+  for package_dir in var/lib/pkgtools/packages var/log/packages; do
+    for candidate in "$package_dir"/dynamix.unraid.net-*; do
+      case "$candidate" in
+        *-upgraded-*) continue ;;
+      esac
+      [ -f "$candidate" ] || continue
+      if [ -n "$package_db" ]; then
+        echo "Warning: Multiple installed package file lists; keeping component files"
+        return 0
+      fi
       package_db="$candidate"
-      break
-    fi
+    done
+    [ -z "$package_db" ] || break
   done
 
   if [ -z "$package_db" ]; then

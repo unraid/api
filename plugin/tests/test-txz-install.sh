@@ -69,6 +69,28 @@ run_case() {
         "$root/var/log/packages/dynamix.unraid.net-legacy" \
         "usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/current.js"
       ;;
+    upgrade-primary|upgrade-legacy|upgraded-only|upgraded-fallback|ambiguous)
+      local manifest_dir="$root/var/lib/pkgtools/packages"
+      [ "$manifest_location" != "upgrade-legacy" ] || manifest_dir="$root/var/log/packages"
+      write_manifest \
+        "$manifest_dir/dynamix.unraid.net-4.37.4-x86_64-5-upgraded-2026-10-01,05:30:14" \
+        "usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/old.js"
+      if [ "$manifest_location" != "upgraded-only" ] && [ "$manifest_location" != "upgraded-fallback" ]; then
+        write_manifest \
+          "$manifest_dir/dynamix.unraid.net-4.37.5-x86_64-2" \
+          "usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/current.js"
+      fi
+      if [ "$manifest_location" = "upgraded-fallback" ]; then
+        write_manifest \
+          "$root/var/log/packages/dynamix.unraid.net-4.37.5-x86_64-2" \
+          "usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/current.js"
+      fi
+      if [ "$manifest_location" = "ambiguous" ]; then
+        write_manifest \
+          "$manifest_dir/dynamix.unraid.net-4.37.4-x86_64-5" \
+          "usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/old.js"
+      fi
+      ;;
     none)
       ;;
     *)
@@ -80,6 +102,7 @@ run_case() {
   (
     cd "$root"
     sh "$DOINST_SCRIPT"
+    sh "$DOINST_SCRIPT"
   )
 
   if [ ! -f "$component_dir/standalone/current.js" ]; then
@@ -87,9 +110,9 @@ run_case() {
     exit 1
   fi
 
-  if [ "$manifest_location" = "none" ]; then
+  if [ "$manifest_location" = "none" ] || [ "$manifest_location" = "upgraded-only" ] || [ "$manifest_location" = "ambiguous" ]; then
     if [ ! -f "$component_dir/standalone/old.js" ] || [ ! -f "$component_dir/.stale" ]; then
-      echo "$case_name deleted files without a package manifest" >&2
+      echo "$case_name deleted files without an unambiguous current package manifest" >&2
       exit 1
     fi
   elif [ -e "$component_dir/standalone/old.js" ] || [ -e "$component_dir/.stale" ]; then
@@ -104,5 +127,10 @@ run_case() {
 
 run_case "Primary manifest" primary
 run_case "Legacy manifest fallback" legacy
+run_case "Primary upgrade preserves current components" upgrade-primary
+run_case "Legacy upgrade preserves current components" upgrade-legacy
+run_case "Only upgraded manifest keeps components" upgraded-only
+run_case "Upgraded primary permits legacy fallback" upgraded-fallback
+run_case "Ambiguous active manifests keep components" ambiguous
 run_case "Missing manifest fail-open" none
 echo "TXZ install cleanup tests passed"
