@@ -28,20 +28,27 @@ remove_stale_component_files() {
   component_dir="usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
   [ -d "$component_dir" ] || return 0
 
+  package_identity="usr/local/share/dynamix.unraid.net/config/package-name"
+  package_name=""
+  if [ -r "$package_identity" ]; then
+    IFS= read -r package_name < "$package_identity"
+  fi
+  case "$package_name" in
+    ""|*[!a-zA-Z0-9._+-]*|*-upgraded-*)
+      echo "Warning: Missing or invalid package identity; keeping component files"
+      return 0
+      ;;
+    dynamix.unraid.net-*) ;;
+    *) return 0 ;;
+  esac
+
   package_db=""
   for package_dir in var/lib/pkgtools/packages var/log/packages; do
-    for candidate in "$package_dir"/dynamix.unraid.net-*; do
-      case "$candidate" in
-        *-upgraded-*) continue ;;
-      esac
-      [ -f "$candidate" ] || continue
-      if [ -n "$package_db" ]; then
-        echo "Warning: Multiple installed package file lists; keeping component files"
-        return 0
-      fi
+    candidate="$package_dir/$package_name"
+    if [ -f "$candidate" ]; then
       package_db="$candidate"
-    done
-    [ -z "$package_db" ] || break
+      break
+    fi
   done
 
   if [ -z "$package_db" ]; then

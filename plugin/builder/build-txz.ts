@@ -1,7 +1,7 @@
 import { join } from "path";
 import { $, cd } from "zx";
 import { existsSync } from "node:fs";
-import { readdir } from "node:fs/promises";
+import { readdir, writeFile } from "node:fs/promises";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
 import { ensureNodeJs } from "./utils/nodejs-helper";
 
@@ -196,6 +196,11 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   
   console.log(`Storing vendor archive information: ${vendorUrl} -> ${vendorFilename}`);
   await storeVendorArchiveInfo(version, vendorUrl, vendorFilename);
+  await writeFile(
+    join(startingDir, "source", pluginName, "usr/local/share/dynamix.unraid.net/config/package-name"),
+    `${txzName.slice(0, -4)}\n`,
+    "utf8"
+  );
   
   await Promise.all([
     ensureNodeJs(),
