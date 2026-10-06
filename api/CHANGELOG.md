@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.37.6](https://github.com/unraid/api/compare/v4.37.5...v4.37.6) (2026-10-06)
+
+
+### Bug Fixes
+
+* **deps:** refresh vulnerable API and web packages ([#2098](https://github.com/unraid/api/issues/2098)) ([64eac12](https://github.com/unraid/api/commit/64eac12c94039b681fd42e8afa0cfdcd2fb3cb5b))
+* **plugin:** bind component cleanup to the exact package manifest ([#2107](https://github.com/unraid/api/issues/2107)) ([89b1395](https://github.com/unraid/api/commit/89b13957c2d68b0df8150fb1b8df79edbcb5c02c))
+* **web:** align registration license action buttons ([#2101](https://github.com/unraid/api/issues/2101)) ([b638d29](https://github.com/unraid/api/commit/b638d29214187f13574edc50d90812dcb6ec3aa9))
+
 ## [4.37.5](https://github.com/unraid/api/compare/v4.37.4...v4.37.5) (2026-09-16)
 
 
