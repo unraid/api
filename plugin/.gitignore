@@ -38,3 +38,6 @@ source/dynamix.unraid.net/usr/local/share/dynamix.unraid.net/config/vendor_archi
 .rclone-version
 rclone-v*
 source/**/rclone
+
+# Exact package identity generated for each TXZ
+source/dynamix.unraid.net/usr/local/share/dynamix.unraid.net/config/package-name
