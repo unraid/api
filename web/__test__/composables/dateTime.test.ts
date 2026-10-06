@@ -1,15 +1,25 @@
 import { defineComponent } from 'vue';
+import { createI18n } from 'vue-i18n';
 import { enableAutoUnmount, mount } from '@vue/test-utils';
 
+import enUS from '~/locales/en.json';
 import dayjs from 'dayjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ServerDateTimeFormat } from '~/types/server';
+import type { DefaultLocaleMessageSchema } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
-import { createTestI18n, testTranslate } from '../utils/i18n';
+import { testTranslate } from '../utils/i18n';
 
 enableAutoUnmount(afterEach);
+
+const createTranslate = () =>
+  createI18n<DefaultLocaleMessageSchema, 'en-US', false>({
+    legacy: false,
+    locale: 'en-US',
+    messages: { 'en-US': enUS },
+  }).global.t;
 
 const formatDateWithComponent = (
   dateTimeFormat: ServerDateTimeFormat | undefined,
@@ -71,7 +81,7 @@ describe('useDateTimeHelper', () => {
 
   it('updates elapsed time each second and stops its timer on unmount', () => {
     const timestamp = Date.now() - 59_000;
-    const t = createTestI18n().global.t;
+    const t = createTranslate();
     const wrapper = mount(
       defineComponent({
         setup: () => useDateTimeHelper(undefined, t, false, timestamp, true),
@@ -123,7 +133,7 @@ describe('useDateTimeHelper', () => {
     },
   ])('formats $name consistently', ({ now, provided, countUp, full, short }) => {
     vi.setSystemTime(now);
-    const t = createTestI18n().global.t;
+    const t = createTranslate();
     const wrapper = mount(
       defineComponent({
         setup: () => useDateTimeHelper(undefined, t, false, provided.getTime(), countUp),
