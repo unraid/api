@@ -24,10 +24,10 @@
   "pnpm": {
     "overrides": {
       "graphql": "16.11.0",
-      "@graphql-tools/utils": "10.9.1",
+      "@graphql-tools/utils": "12.0.1",
       "ajv@<6.14.0": "6.15.0",
       "ajv@>=7.0.0-alpha.0 <8.18.0": "8.20.0",
-      "axios": "1.18.1",
+      "axios": "1.20.0",
       "body-parser": "2.3.0",
       "brace-expansion@<1.1.19": "1.1.19",
       "brace-expansion@>=3.0.0 <5.0.13": "5.0.12",
@@ -69,7 +69,13 @@
       "nanoid@>=3.0.0 <3.3.18": "3.3.18",
       "stylus@<0.64.0": "0.64.0",
       "brace-expansion@>=2.0.0 <2.1.8": "2.1.7",
-      "fastify@>=5.0.0 <5.12.1": "5.12.1"
+      "fastify@>=5.0.0 <5.12.5": "5.12.5",
+      "dompurify@<3.4.16": "3.4.16",
+      "@grpc/grpc-js@<1.14.5": "1.14.5",
+      "basic-ftp@<6.2.1": "6.2.1",
+      "source-map-js@<1.2.2": "1.2.2",
+      "fast-copy@>=3.0.0 <3.1.0": "3.1.0",
+      "vue": "3.5.42"
     },
     "peerDependencyRules": {
       "allowAny": [

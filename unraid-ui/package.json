@@ -44,7 +44,7 @@
   "peerDependencies": {
     "ajv": "8.20.0",
     "tailwindcss": "4.1.12",
-    "vue": "3.5.20"
+    "vue": "3.5.42"
   },
   "dependencies": {
     "@headlessui/vue": "1.7.23",
@@ -58,7 +58,7 @@
     "ajv-errors": "3.0.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
-    "dompurify": "3.4.13",
+    "dompurify": "3.4.16",
     "kebab-case": "2.0.2",
     "lucide-vue-next": "0.542.0",
     "marked": "16.2.1",
@@ -110,7 +110,7 @@
     "vite-plugin-dts": "5.0.2",
     "vite-plugin-vue-devtools": "8.0.1",
     "vitest": "3.2.6",
-    "vue": "3.5.20",
+    "vue": "3.5.42",
     "vue-eslint-parser": "10.2.0",
     "vue-tsc": "3.0.6",
     "wrangler": "4.100.0"
