@@ -282,11 +282,21 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         }
 
         // Clean up the provider object - remove UI-only fields
+        const existingProvider =
+            providers.find((currentProvider) => currentProvider.id === provider.id) ||
+            providers.find(
+                (currentProvider) =>
+                    currentProvider.clientId === provider.clientId &&
+                    (currentProvider.issuer ?? '') === (provider.issuer ?? '') &&
+                    (currentProvider.authorizationEndpoint ?? '') ===
+                        (provider.authorizationEndpoint ?? '') &&
+                    (currentProvider.tokenEndpoint ?? '') === (provider.tokenEndpoint ?? '')
+            );
         const cleanedProvider: OidcProvider = {
             id: provider.id,
             name: provider.name,
             clientId: provider.clientId,
-            clientSecret: provider.clientSecret,
+            clientSecret: provider.clientSecret ?? existingProvider?.clientSecret,
             usePkce: provider.usePkce,
             issuer: provider.issuer,
             authorizationEndpoint: provider.authorizationEndpoint,
@@ -300,7 +310,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             buttonStyle: provider.buttonStyle,
         };
 
-        const existingIndex = providers.findIndex((p) => p.id === provider.id);
+        const existingIndex = existingProvider ? providers.indexOf(existingProvider) : -1;
         if (existingIndex >= 0) {
             providers[existingIndex] = cleanedProvider;
         } else {
@@ -416,11 +426,32 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                     >;
                 }
             ) => {
+                const currentConfig =
+                    this.configService.get<OidcConfig>(this.configKey()) || this.defaultConfig();
+
                 // Process each provider to handle simple mode conversion
                 const processedConfig: OidcConfig = {
                     ...config,
                     providers: config.providers.map((provider) => {
-                        const extendedProvider = provider as OidcProvider & {
+                        const existingProvider =
+                            currentConfig.providers.find(
+                                (currentProvider) => currentProvider.id === provider.id
+                            ) ||
+                            currentConfig.providers.find(
+                                (currentProvider) =>
+                                    currentProvider.clientId === provider.clientId &&
+                                    (currentProvider.issuer ?? '') === (provider.issuer ?? '') &&
+                                    (currentProvider.authorizationEndpoint ?? '') ===
+                                        (provider.authorizationEndpoint ?? '') &&
+                                    (currentProvider.tokenEndpoint ?? '') ===
+                                        (provider.tokenEndpoint ?? '')
+                            );
+                        const providerWithSecret =
+                            provider.clientSecret === undefined &&
+                            existingProvider?.clientSecret !== undefined
+                                ? { ...provider, clientSecret: existingProvider.clientSecret }
+                                : provider;
+                        const extendedProvider = providerWithSecret as OidcProvider & {
                             authorizationMode?: string;
                             simpleAuthorization?: unknown;
                         };
