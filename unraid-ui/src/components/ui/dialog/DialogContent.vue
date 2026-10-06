@@ -13,7 +13,7 @@ import {
   type DialogContentEmits,
   type DialogContentProps,
 } from 'reka-ui';
-import type { HTMLAttributes } from 'vue';
+import { computed, type HTMLAttributes } from 'vue';
 
 const props = defineProps<
   DialogContentProps & {
@@ -29,6 +29,7 @@ const delegatedProps = reactiveOmit(props, 'class', 'showCloseButton', 'to');
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
 const { teleportTarget } = useTeleport();
+const isFullscreen = computed(() => cn(props.class).split(/\s+/).includes('min-h-screen'));
 </script>
 
 <template>
@@ -42,10 +43,9 @@ const { teleportTarget } = useTeleport();
         cn(
           'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 border-muted fixed top-1/2 left-1/2 z-50 flex w-full max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-lg border p-6 shadow-lg duration-200',
           // Only apply zoom animation if not fullscreen
-          !props.class?.includes('min-h-screen') &&
-            'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+          !isFullscreen && 'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
           // Apply slide-up animation for fullscreen modals
-          props.class?.includes('min-h-screen') &&
+          isFullscreen &&
             'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
           props.class
         )
