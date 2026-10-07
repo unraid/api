@@ -73,6 +73,18 @@ export class MemoryUtilization extends Node {
 
     @Field(() => Float, { description: 'Swap usage percentage' })
     percentSwapTotal!: number;
+
+    @Field(() => GraphQLBigInt, { nullable: true, description: 'ZFS ARC cache memory in bytes' })
+    zfsCache?: number;
+
+    @Field(() => GraphQLBigInt, { nullable: true, description: 'VM memory in bytes' })
+    vm?: number;
+
+    @Field(() => GraphQLBigInt, { nullable: true, description: 'Docker memory in bytes' })
+    docker?: number;
+
+    @Field(() => GraphQLBigInt, { nullable: true, description: 'System memory in bytes' })
+    system?: number;
 }
 
 @ObjectType({ implements: () => Node })
