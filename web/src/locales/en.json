@@ -692,6 +692,7 @@
   "registration.bootDeviceType.internalBootMulti": "Internal Boot (Multi-device)",
   "registration.bootDeviceType.tpm": "TPM",
   "registration.deviceGuid": "Device GUID",
+  "registration.flashGuid": "USB Flash GUID",
   "registration.flashProduct": "Flash Product",
   "registration.flashVendor": "Flash Vendor",
   "registration.general.goToToolsRegistrationToLearn": "Go to Tools > Registration to Learn More",
