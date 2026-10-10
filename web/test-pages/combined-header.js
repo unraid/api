@@ -14,7 +14,11 @@ import '/src/assets/main.css';
 import '@unraid/ui/styles';
 
 const params = new URLSearchParams(location.search);
-let usedPercent = Math.min(100, Math.max(0, Number(params.get('used') || 38)));
+const normalizeUsedPercent = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.min(100, Math.max(0, parsed)) : 38;
+};
+let usedPercent = normalizeUsedPercent(params.get('used') || 38);
 let arrayState = params.get('array') === 'stopped' ? 'STOPPED' : 'STARTED';
 const arrayData = () => ({
   id: 'preview-array',
@@ -141,7 +145,7 @@ const app = createApp({
       client.writeQuery({ query: ARRAY_CAPACITY_QUERY, data: { array: arrayData() } });
     });
     document.querySelector('#array-used').addEventListener('change', (event) => {
-      usedPercent = Math.min(100, Math.max(0, Number(event.target.value)));
+      usedPercent = normalizeUsedPercent(event.target.value);
       client.writeQuery({ query: ARRAY_CAPACITY_QUERY, data: { array: arrayData() } });
     });
     document.querySelector('#notification').addEventListener('change', (event) => {

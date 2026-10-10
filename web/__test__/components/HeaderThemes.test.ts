@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { URL as NodeURL } from 'node:url';
 
 import { nextTick, ref } from 'vue';
 import { setActivePinia } from 'pinia';
@@ -189,7 +190,10 @@ describe('Header.standalone.vue theme layout', () => {
 
   it('embeds the original WebGUI logo asset without reconstructing its paths', () => {
     const image = mountWithTheme('white').get('.uh-logo-block img');
-    const original = readFileSync('../api/dev/webGui/images/UN-logotype-gradient.svg', 'utf8');
+    const original = readFileSync(
+      new NodeURL('../../../api/dev/webGui/images/UN-logotype-gradient.svg', import.meta.url),
+      'utf8'
+    );
     expect(decodeURIComponent(image.attributes('src')!.replace('data:image/svg+xml,', ''))).toBe(
       original
     );
