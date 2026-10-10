@@ -29,12 +29,8 @@ import { useThemeStore } from '~/store/theme';
  * multi-component header (`unraid-header-os-version` + `unraid-user-profile`) is
  * rendered instead.
  *
- * Layout is a CSS grid so a single `actions` block (bell + account menu) can be
- * repositioned across the breakpoint without duplicating stateful components:
- *   - mobile: app-style — logo + actions share the top row, then version, then
- *     status, then name.
- *   - sm+: two columns — logo/version on the left, status over name+actions on the
- *     right (the prior desktop look).
+ * A single grid keeps stateful controls mounted once. On mobile the version and
+ * update notice span the header width instead of competing with account actions.
  */
 export interface Props {
   server?: Server | string;
@@ -73,10 +69,6 @@ const theme = computed(() => themeStore.theme);
 const logoStyle = computed<HeaderLogoStyle>(() =>
   props.headerLogoStyle === 'theme' ? 'theme' : 'gradient'
 );
-// On mobile the meta row spans full width over the banner image, so its text
-// needs its own legibility treatment (drop-shadow) rather than the right-only
-// banner gradient. Only when a banner image is present, otherwise the header is
-// a solid color the theme text already reads against.
 const hasBanner = computed(() => theme.value?.banner === true);
 
 const dropdownOpen = ref(false);
@@ -90,23 +82,15 @@ const copyLanIp = async () => {
 </script>
 
 <template>
-  <div id="UnraidHeader" class="unraid-header-shell text-foreground relative z-20 w-full max-w-full">
-    <!--
-      Banner-gradient backdrop. Darkens the right of the header so the metadata,
-      server name, and account controls stay legible over a bright banner image,
-      matching the legacy header. Rendered inside the component (in the `.unapi`
-      scope) because the webgui `#header` element lives outside that scope, so the
-      main.css `#header.image::before` edge gradient never matches here. The
-      `.unraid-banner-gradient-layer` class (styled in main.css) paints
-      `var(--banner-gradient)`, which is null when the banner gradient is
-      disabled, so this self-gates. Sits behind the content columns (z-0).
-      Width matches the legacy `#header.image::before` edge gradient in main.css
-      (`background-size: min(30%, 320px) 100%`) rather than a bare percentage:
-      `left-[55%]` covered the right 45% (576px at a 1280px viewport), roughly
-      1.8x the legacy 320px, which visibly obscured users' banner images.
-    -->
+  <div
+    id="UnraidHeader"
+    class="unraid-header-shell text-foreground relative z-20 w-full max-w-full"
+    :class="{ 'uh-banner-gradient-enabled': themeStore.bannerGradient }"
+  >
+    <!-- Start the desktop fade before the account column so it follows the
+         content width. Mobile uses a backdrop across all header rows. -->
     <div
-      class="unraid-banner-gradient-layer pointer-events-none absolute inset-y-0 right-0 z-0 w-[min(30%,320px)]"
+      class="unraid-banner-gradient-layer pointer-events-none absolute inset-y-0 z-0"
       aria-hidden="true"
     />
 
@@ -114,22 +98,21 @@ const copyLanIp = async () => {
       class="uh-meta-right relative z-10 flex max-w-full min-w-0 flex-col items-end gap-y-1 text-end"
       :class="{ 'uh-meta-over-banner': hasBanner }"
     >
-      <ArrayUsage v-if="showArrayUsage" />
+      <ArrayUsage v-if="showArrayUsage" class="uh-array-usage" />
       <!--
         Below sm the meta row becomes a full-width top strip so the uptime and
         registration state split to opposite ends (uptime left, state right)
         instead of stacking cramped on the right. At sm+ it collapses back to the
-        right-aligned desktop cluster. Over a banner, force white text so both
-        ends read against the image (paired with the drop-shadow in scoped CSS).
+        right-aligned desktop cluster. The backdrop provides contrast while
+        preserving the configured header text colors.
       -->
       <UpcServerStatus
-        class="max-sm:!w-full max-sm:!flex-row max-sm:!items-center max-sm:!justify-between max-sm:!gap-x-2 max-sm:pr-2"
-        :class="{ 'max-sm:!text-white': hasBanner }"
+        class="uh-server-status max-sm:!w-full max-sm:!flex-row max-sm:!flex-wrap max-sm:!items-center max-sm:!justify-between max-sm:!gap-x-2"
       />
     </div>
 
     <div class="uh-logo-block relative z-10 flex min-w-0 flex-col items-start justify-center gap-y-2">
-      <HeaderLogo :logo-style="logoStyle" />
+      <HeaderLogo class="uh-logo" :logo-style="logoStyle" />
       <div class="uh-version flex min-w-0">
         <HeaderVersion />
       </div>
@@ -144,56 +127,75 @@ const copyLanIp = async () => {
             class="hidden truncate text-end text-base md:!inline-flex md:!items-center"
             v-html="description"
           />
-          <span class="text-header-text-secondary hidden px-2 md:!inline-flex md:!items-center"
-            >&bull;</span
-          >
+          <span class="text-header-text-secondary hidden md:!inline-flex md:!items-center">&bull;</span>
         </template>
         <Button
           v-if="lanIp"
           variant="ghost"
           :title="t('userProfile.clickToCopyLanIp', [lanIp])"
-          class="text-header-text-primary flex h-auto min-w-0 items-center truncate p-0 text-base opacity-100 transition-opacity hover:opacity-75 focus:opacity-75"
+          class="text-header-text-primary flex h-auto max-w-full min-w-0 items-center truncate p-0 text-base opacity-100 transition-opacity hover:opacity-75 focus:opacity-75"
           @click="copyLanIp()"
         >
-          {{ name }}
+          <span class="truncate">{{ name }}</span>
         </Button>
         <span v-else class="text-header-text-primary xs:text-base flex items-center truncate text-sm">
           {{ name }}
         </span>
       </div>
 
-      <NotificationsSidebar />
+      <div class="uh-actions flex shrink-0 items-center gap-x-1">
+        <NotificationsSidebar />
 
-      <DropdownMenu v-model:open="dropdownOpen" align="end" side="bottom" :side-offset="4">
-        <template #trigger>
-          <UpcDropdownTrigger />
-        </template>
-        <template #content>
-          <div class="max-w-[350px] sm:min-w-[350px]">
-            <UpcDropdownContent @close-dropdown="dropdownOpen = false" />
-          </div>
-        </template>
-      </DropdownMenu>
+        <DropdownMenu v-model:open="dropdownOpen" align="end" side="bottom" :side-offset="4">
+          <template #trigger>
+            <UpcDropdownTrigger compact />
+          </template>
+          <template #content>
+            <div class="max-w-[350px] sm:min-w-[350px]">
+              <UpcDropdownContent @close-dropdown="dropdownOpen = false" />
+            </div>
+          </template>
+        </DropdownMenu>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/*
- * Three bands: metadata anchors top/bottom while the logo and UPC controls stay
- * centered in the primary middle band without overlapping the tags.
- */
-/*
- * The `639.98px` media-query boundaries below are Tailwind's `sm` breakpoint
- * (640px) minus a hair, so these hand-written queries stay in lockstep with the
- * `sm:`/`max-sm:` utility classes used in the template above.
- */
 .unraid-header-shell {
+  --uh-header-inset: calc(var(--spacing) * 2.5);
   display: grid;
+  padding: calc(var(--spacing) * 1.25) var(--uh-header-inset);
   column-gap: 0.75rem;
   align-items: stretch;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: auto minmax(max-content, 1fr) auto;
+}
+
+.unraid-banner-gradient-layer {
+  --uh-banner-color: var(--header-gradient-end, var(--color-header-gradient-end));
+  --uh-banner-fade-width: clamp(14rem, 20vw, 32rem);
+  grid-column: 2 / -1;
+  inset-inline-start: calc(var(--uh-banner-fade-width) * -1);
+  inset-inline-end: calc(var(--uh-header-inset) * -1);
+  background-image: none;
+}
+
+.uh-banner-gradient-enabled .unraid-banner-gradient-layer {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0,
+    color-mix(in srgb, var(--uh-banner-color) 3%, transparent) calc(var(--uh-banner-fade-width) * 0.1),
+    color-mix(in srgb, var(--uh-banner-color) 10%, transparent) calc(var(--uh-banner-fade-width) * 0.2),
+    color-mix(in srgb, var(--uh-banner-color) 22%, transparent) calc(var(--uh-banner-fade-width) * 0.3),
+    color-mix(in srgb, var(--uh-banner-color) 35%, transparent) calc(var(--uh-banner-fade-width) * 0.4),
+    color-mix(in srgb, var(--uh-banner-color) 50%, transparent) calc(var(--uh-banner-fade-width) * 0.5),
+    color-mix(in srgb, var(--uh-banner-color) 65%, transparent) calc(var(--uh-banner-fade-width) * 0.6),
+    color-mix(in srgb, var(--uh-banner-color) 78%, transparent) calc(var(--uh-banner-fade-width) * 0.7),
+    color-mix(in srgb, var(--uh-banner-color) 90%, transparent) calc(var(--uh-banner-fade-width) * 0.8),
+    color-mix(in srgb, var(--uh-banner-color) 97%, transparent) calc(var(--uh-banner-fade-width) * 0.9),
+    var(--uh-banner-color) var(--uh-banner-fade-width)
+  );
 }
 
 .uh-meta-right {
@@ -201,69 +203,14 @@ const copyLanIp = async () => {
   grid-row: 1;
   align-self: start;
   justify-self: end;
-  /*
-   * The account trigger below has 8px of internal right padding, so the meta
-   * row needs the same inset for its right edge (uptime/registration/purchase)
-   * to line up with the nav controls. Reset on mobile where the row goes
-   * full-width (its inner content owns the padding there).
-   */
   padding-right: 0.5rem;
 }
 
-/*
- * Mobile (below sm): the meta row spans the full width as a top strip so uptime
- * and registration state split to opposite ends. Over a banner image the text
- * gets a drop-shadow (and white color, set on the child) for legibility instead
- * of a heavy backdrop bar; the right-only banner gradient does not reach the
- * left-aligned uptime. At sm+ the desktop right-aligned cluster (above) applies
- * unchanged.
- */
-@media (max-width: 639.98px) {
-  .uh-meta-right {
-    grid-column: 1 / -1;
-    justify-self: stretch;
-    padding-right: 0;
-  }
-
-  .uh-meta-over-banner {
-    text-shadow:
-      0 1px 2px rgb(0 0 0 / 0.95),
-      0 0 4px rgb(0 0 0 / 0.8);
-  }
-}
-
-/*
- * Logo + version as one vertically-centered group (matching the legacy header),
- * rather than the logo floating in the middle band with the version pinned to
- * the bottom, which left an awkward gap above the logo. On desktop the group
- * spans the full height so it centers against the whole header; the mobile
- * override below re-places it.
- */
 .uh-logo-block {
   grid-column: 1;
   grid-row: 1 / -1;
   align-self: center;
   justify-self: start;
-}
-
-/*
- * Mobile: the meta row is a full-width top strip (see .uh-meta-right override),
- * so the logo block and nav controls share the middle grid row. Both keep the
- * base `align-self: center`, so the logo and the DEVGEN/bell/menu/avatar cluster
- * stay vertically centered on the same line. The version sits directly under the
- * logo in normal flow (the block is a left-aligned flex column, see template),
- * so it shares the logo's left edge and gets natural space above the nav tabs
- * rather than being floated hard against the header's bottom edge.
- */
-@media (max-width: 639.98px) {
-  .unraid-header-shell {
-    height: 100%;
-    padding-top: 0.25rem;
-  }
-
-  .uh-logo-block {
-    grid-row: 2;
-  }
 }
 
 .uh-nav-right {
@@ -273,14 +220,111 @@ const copyLanIp = async () => {
   justify-self: end;
 }
 
-/*
- * Nudge the version tag down so its baseline lines up with the bottom of the
- * account controls (hamburger/avatar) instead of sitting high against the logo.
- * `position: relative` shifts it visually without reflowing the logo above it,
- * so the logo/nav center alignment is preserved. Applies at both breakpoints.
- */
 .uh-version {
   position: relative;
   top: 0.5rem;
+}
+
+.uh-name {
+  column-gap: calc(var(--spacing) * 2);
+}
+
+@media (max-width: 639.98px) {
+  .unraid-header-shell {
+    --uh-header-inset: calc(var(--spacing) * 2);
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    column-gap: var(--spacing);
+    row-gap: var(--spacing);
+    padding-block: var(--spacing);
+    padding-inline: var(--uh-header-inset) !important;
+  }
+
+  .uh-logo-block {
+    display: contents;
+  }
+
+  .uh-nav-right {
+    grid-column: 2;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  .uh-logo {
+    position: relative;
+    z-index: 10;
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+  }
+
+  .uh-actions {
+    column-gap: 0;
+  }
+
+  .uh-actions :deep([role='button']) {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0;
+  }
+
+  .uh-server-status :deep(.text-unraid-red),
+  .uh-actions :deep(.text-unraid-red) {
+    color: color-mix(in srgb, var(--color-unraid-red) 75%, var(--color-header-text-primary));
+  }
+
+  .uh-name {
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .uh-version {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    top: auto;
+  }
+
+  .uh-meta-right {
+    display: contents;
+  }
+
+  .uh-server-status,
+  .uh-array-usage {
+    position: relative;
+    z-index: 10;
+  }
+
+  .uh-server-status {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .uh-array-usage {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .uh-meta-right,
+  .uh-version {
+    --color-header-text-secondary: var(--color-header-text-primary);
+  }
+
+  .unraid-banner-gradient-layer {
+    grid-column: 1 / -1;
+    inset-inline: calc(var(--uh-header-inset) * -1);
+    width: auto;
+    background-image: none;
+  }
+
+  .uh-banner-gradient-enabled .unraid-banner-gradient-layer {
+    background-image:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--uh-banner-color) 95%, transparent) 0%,
+        color-mix(in srgb, var(--uh-banner-color) 55%, transparent) 35%,
+        var(--uh-banner-color) 100%
+      ),
+      linear-gradient(90deg, transparent 40%, var(--uh-banner-color) 80%);
+  }
 }
 </style>
