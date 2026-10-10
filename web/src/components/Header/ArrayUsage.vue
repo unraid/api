@@ -47,14 +47,18 @@ const hasData = computed(() => array.value != null);
 <template>
   <div
     v-if="hasData"
-    class="flex w-full flex-col gap-y-0.5 sm:w-40"
+    class="flex w-full items-center gap-x-2 gap-y-0.5 sm:w-40 sm:flex-col sm:items-stretch"
     :title="started ? t('headerArrayUsage.usedOfArray', [usedPercent]) : undefined"
   >
-    <div class="text-header-text-secondary flex items-center justify-between text-xs leading-none">
+    <div
+      class="text-header-text-secondary flex shrink-0 items-center justify-between gap-x-2 text-xs leading-none"
+    >
       <span>{{ t('headerArrayUsage.array') }}</span>
       <span v-if="started" class="font-semibold">{{ usedPercent }}%</span>
     </div>
-    <div class="bg-header-text-secondary/20 h-1.5 w-full overflow-hidden rounded-full">
+    <div
+      class="bg-header-text-secondary/20 h-1.5 min-w-0 flex-1 overflow-hidden rounded-full sm:w-full sm:flex-none"
+    >
       <div
         v-if="started"
         class="h-full rounded-full transition-[width]"

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Combined header preview</title>
+  {% set resolvedTheme = query.theme or resolvedTheme %}
+  {% include "partials/styles.njk" %}
+  <style>
+    body { margin: 0; padding: 0; }
+    :root {
+      --header-gradient-end: var(--header-background-color);
+      --banner-gradient: linear-gradient(90deg, transparent 0, var(--header-gradient-end) var(--banner-gradient-stop, 30%));
+      --header-text-primary: var(--header-text-color);
+      --header-text-secondary: var(--header-text-color);
+    }
+    #header { padding-inline: 0; }
+    #header-preview { align-self: stretch; display: flex; }
+    #header.image { background-image: url('/test-pages/header-banner.png'); background-size: cover; }
+    .preview-controls { display: flex; flex-wrap: wrap; gap: 12px; padding: 24px 16px; font-size: 14px; }
+    .preview-controls label { display: flex; gap: 8px; align-items: center; }
+  </style>
+</head>
+<body>
+  <div id="header" class="unapi image unraid-consolidated-header"><unraid-header id="header-preview" class="unapi" style="width: 100%"></unraid-header></div>
+  <form class="preview-controls">
+    <label>Banner <input id="banner" type="checkbox" checked></label>
+    <label>Fade <input id="fade" type="checkbox" checked></label>
+    <label>Reboot required <input id="reboot" type="checkbox" checked></label>
+    <label>Status <select id="operating-state"><option value="normal">Normal</option><option value="update">Reboot for update</option><option value="downgrade">Reboot for downgrade</option><option value="thirdPartyDriversDownloading">Drivers downloading</option><option value="available">Update available</option><option value="renewal">Update needs renewal</option></select></label>
+    <label>Logo <select id="logo-style"><option value="gradient">Original gradient</option><option value="theme">Theme color</option></select></label>
+    <label>Array state <select id="array-state"><option value="STARTED">Started</option><option value="STOPPED">Stopped</option></select></label>
+    <label>Used % <input id="array-used" type="number" min="0" max="100" value="38" style="width: 60px"></label>
+    <label>Notifications <select id="notification"><option value="none">None</option><option value="info">Unread</option><option value="warning">Warning</option><option value="alert">Alert</option></select></label>
+    <label>Long server name <input id="long-name" type="checkbox"></label>
+    <label>Array usage <input id="usage" type="checkbox"></label>
+    <label>License <select id="license"><option>LIFETIME</option><option>STARTER</option><option>PRO</option><option>TRIAL</option><option>EEXPIRED</option><option>ENOKEYFILE</option><option>ENOCONN</option><option>EGUID</option><option>EDEVICECOUNT</option></select></label>
+  </form>
+  <p style="padding-inline: 16px; font-size: 14px">Illustrative server data. Resize the browser and use ?theme=white, black, gray, or azure.</p>
+  <script type="module" src="/test-pages/combined-header.js"></script>
+</body>
+</html>

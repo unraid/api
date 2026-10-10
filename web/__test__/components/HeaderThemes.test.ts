@@ -1,4 +1,6 @@
-import { ref } from 'vue';
+import { readFileSync } from 'node:fs';
+
+import { nextTick, ref } from 'vue';
 import { setActivePinia } from 'pinia';
 import { provideApolloClient } from '@vue/apollo-composable';
 import { mount } from '@vue/test-utils';
@@ -88,7 +90,7 @@ const THEMES = [
 const layoutSignature = (wrapper: VueWrapper) => {
   const root = wrapper.get('#UnraidHeader');
   const gradient = root.find('.unraid-banner-gradient-layer');
-  const logoSvg = root.find('.uh-logo-block a svg');
+  const logoSvg = root.find('.uh-logo-block a :is(svg, img)');
   return {
     gradientLayer: gradient.exists() ? [...gradient.classes()].sort().join(' ') : null,
     logoSvg: logoSvg.exists() ? [...logoSvg.classes()].sort().join(' ') : null,
@@ -185,6 +187,16 @@ describe('Header.standalone.vue theme layout', () => {
     }
   );
 
+  it('embeds the original WebGUI logo asset without reconstructing its paths', () => {
+    const image = mountWithTheme('white').get('.uh-logo-block img');
+    const original = readFileSync('../api/dev/webGui/images/UN-logotype-gradient.svg', 'utf8');
+    expect(decodeURIComponent(image.attributes('src')!.replace('data:image/svg+xml,', ''))).toBe(
+      original
+    );
+    expect(image.attributes('width')).toBe('222.36');
+    expect(image.attributes('height')).toBe('39.04');
+  });
+
   it.each(['gradient', 'theme'] as const)('renders the %s header logo style', (logoStyle) => {
     expect(layoutSignature(mountWithTheme('white', { logoStyle })).logoSvg).toMatchSnapshot();
   });
@@ -199,7 +211,7 @@ describe('Header.standalone.vue theme layout', () => {
   it.each(THEMES.map((theme) => [theme.name, theme] as const))(
     'keeps the logo a fixed size on the %s theme so the boot placeholder cannot resize on mount',
     (_name, theme) => {
-      const logoSvg = mountWithTheme(theme.name).get('.uh-logo-block a svg');
+      const logoSvg = mountWithTheme(theme.name).get('.uh-logo-block a :is(svg, img)');
       expect(logoSvg.classes()).toContain('shrink-0');
       expect(logoSvg.classes()).not.toContain('max-w-full');
       expect(logoSvg.classes()).toContain('w-[14rem]');
@@ -207,19 +219,33 @@ describe('Header.standalone.vue theme layout', () => {
     }
   );
 
-  /**
-   * Regression guard: the banner gradient must stay within the legacy header's
-   * `min(30%, 320px)` edge width. A bare `left-[55%]` covered the right 45%
-   * (~576px at 1280px, ~1.8x legacy) and visibly obscured users' banner images.
-   */
-  it('scopes the banner gradient to the legacy edge width', () => {
-    const gradient = mountWithTheme('white').get('.unraid-banner-gradient-layer');
-    expect(gradient.classes()).toContain('w-[min(30%,320px)]');
-    expect(gradient.classes()).toContain('right-0');
-    expect(gradient.classes()).not.toContain('left-[55%]');
+  it('enables the header fade only while both banner and fade are enabled', async () => {
+    const style = document.documentElement.style;
+    const previousGradient = style.getPropertyValue('--banner-gradient');
+    style.setProperty('--banner-gradient', 'linear-gradient(90deg, transparent, #1c1b1b)');
+    try {
+      const wrapper = mountWithTheme('white');
+      const themeStore = useThemeStore();
+      expect(wrapper.classes()).toContain('uh-banner-gradient-enabled');
+
+      themeStore.setTheme({ bannerGradient: false });
+      await nextTick();
+      expect(wrapper.classes()).not.toContain('uh-banner-gradient-enabled');
+
+      themeStore.setTheme({ bannerGradient: true });
+      await nextTick();
+      expect(wrapper.classes()).toContain('uh-banner-gradient-enabled');
+
+      themeStore.setTheme({ banner: false });
+      await nextTick();
+      expect(wrapper.classes()).not.toContain('uh-banner-gradient-enabled');
+    } finally {
+      if (previousGradient) style.setProperty('--banner-gradient', previousGradient);
+      else style.removeProperty('--banner-gradient');
+    }
   });
 
-  it('omits the banner gradient styling hook only when the theme disables it', () => {
+  it('disables the backdrop without a banner', () => {
     const themeStore = useThemeStore();
     themeStore.setTheme({
       name: 'white',
@@ -235,9 +261,8 @@ describe('Header.standalone.vue theme layout', () => {
       global: { plugins: [pinia], stubs },
     });
     wrappers.push(wrapper);
-    // The layer is always present; `--banner-gradient` is null when disabled, so
-    // it self-gates in CSS rather than by conditional rendering.
     expect(wrapper.find('.unraid-banner-gradient-layer').exists()).toBe(true);
+    expect(wrapper.classes()).not.toContain('uh-banner-gradient-enabled');
     expect(wrapper.find('.uh-meta-over-banner').exists()).toBe(false);
   });
 });
