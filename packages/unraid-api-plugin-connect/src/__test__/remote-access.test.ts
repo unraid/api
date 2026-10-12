@@ -1,9 +1,11 @@
 import { ConfigService } from '@nestjs/config';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Test } from '@nestjs/testing';
+import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
+import { Test, TestingModule } from '@nestjs/testing';
 
 import { URL_TYPE } from '@unraid/shared/network.model.js';
+import { NginxService } from '@unraid/shared/services/nginx.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
+import { NGINX_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -12,8 +14,10 @@ import {
     emptyMyServersConfig,
     makeDisabledDynamicRemoteAccessState,
 } from '../config/connect.config.js';
+import { ConnectConfigService } from '../config/connect.config.service.js';
 import { ONE_MINUTE_MS } from '../helper/generic-consts.js';
 import { EVENTS } from '../helper/nest-tokens.js';
+import { DnsService } from '../network/dns.service.js';
 import { NetworkService } from '../network/network.service.js';
 import { UpnpService } from '../network/upnp.service.js';
 import { UrlResolverService } from '../network/url-resolver.service.js';
@@ -29,7 +33,10 @@ describe('remote access transitions', () => {
     let remoteAccess: DynamicRemoteAccessService;
     let settings: ConnectSettingsService;
     let eventEmitter: EventEmitter2;
-    const reloadNetworkStack = vi.fn().mockResolvedValue(undefined);
+    let dependencies: TestingModule;
+    let staticAccess: StaticRemoteAccessService;
+    const reloadNginx = vi.fn<() => Promise<boolean>>().mockResolvedValue(true);
+    const updateDns = vi.fn().mockResolvedValue(true);
     const createOrRenewUpnpLease = vi.fn().mockResolvedValue({ publicPort: 443 });
     const disableUpnp = vi.fn().mockResolvedValue(undefined);
     const allowedUrl = {
@@ -43,7 +50,8 @@ describe('remote access transitions', () => {
 
     beforeEach(async () => {
         vi.clearAllMocks();
-        reloadNetworkStack.mockResolvedValue(undefined);
+        reloadNginx.mockResolvedValue(true);
+        updateDns.mockResolvedValue(true);
         createOrRenewUpnpLease.mockResolvedValue({ publicPort: 443 });
         disableUpnp.mockResolvedValue(undefined);
         const configuration = {
@@ -55,23 +63,41 @@ describe('remote access transitions', () => {
         };
         configService = new ConfigService<ConfigType>(configuration);
         const validatedConfigService = new ConfigService<ConfigType, true>(configuration);
-        const dependencies = await Test.createTestingModule({
+        const urlResolver = new UrlResolverService(validatedConfigService);
+        vi.spyOn(urlResolver, 'getRemoteAccessUrl').mockReturnValue(null);
+        dependencies = await Test.createTestingModule({
+            imports: [EventEmitterModule.forRoot()],
             providers: [
-                { provide: NetworkService, useValue: { reloadNetworkStack } },
+                { provide: NGINX_SERVICE_TOKEN, useValue: { reload: reloadNginx } },
+                { provide: DnsService, useValue: { update: updateDns } },
+                {
+                    provide: NetworkService,
+                    useFactory: (nginx: NginxService, dns: DnsService) =>
+                        new NetworkService(
+                            nginx,
+                            dns,
+                            urlResolver,
+                            new ConnectConfigService(configService)
+                        ),
+                    inject: [NGINX_SERVICE_TOKEN, DnsService],
+                },
+                {
+                    provide: WanAccessEventHandler,
+                    useFactory: (network: NetworkService) =>
+                        new WanAccessEventHandler(configService, network),
+                    inject: [NetworkService],
+                },
                 { provide: UpnpService, useValue: { createOrRenewUpnpLease, disableUpnp } },
                 { provide: UserSettingsService, useValue: { register: vi.fn() } },
             ],
         }).compile();
-        eventEmitter = new EventEmitter2();
+        await dependencies.init();
+        eventEmitter = dependencies.get(EventEmitter2);
         const networkService = dependencies.get(NetworkService);
-        const wanAccess = new WanAccessEventHandler(configService, networkService);
-        eventEmitter.on(EVENTS.ENABLE_WAN_ACCESS, () => wanAccess.enableWanAccess(), { async: true });
-        eventEmitter.on(EVENTS.DISABLE_WAN_ACCESS, () => wanAccess.disableWanAccess(), { async: true });
-        const urlResolver = new UrlResolverService(validatedConfigService);
-        vi.spyOn(urlResolver, 'getRemoteAccessUrl').mockReturnValue(null);
+        staticAccess = new StaticRemoteAccessService(configService, eventEmitter, urlResolver);
         remoteAccess = new DynamicRemoteAccessService(
             validatedConfigService,
-            new StaticRemoteAccessService(configService, eventEmitter, urlResolver),
+            staticAccess,
             new UpnpRemoteAccessService(
                 dependencies.get(UpnpService),
                 configService,
@@ -86,11 +112,11 @@ describe('remote access transitions', () => {
             dependencies.get(UserSettingsService),
             networkService
         );
-        await dependencies.close();
     });
 
-    afterEach(() => {
-        eventEmitter.removeAllListeners();
+    afterEach(async () => {
+        await flushEvents();
+        await dependencies.close();
         vi.restoreAllMocks();
     });
 
@@ -100,9 +126,125 @@ describe('remote access transitions', () => {
         expect(configService.get('connect.config.wanaccess')).toBe(true);
     }
 
+    it('retries a failed nginx reload before reusing static access', async () => {
+        reloadNginx.mockResolvedValueOnce(false);
+
+        await remoteAccess.enableDynamicRemoteAccess(staticRequest);
+        await flushEvents();
+
+        expect(configService.get('connect.config.wanaccess')).toBe(true);
+        expect(remoteAccess.getState().error).toBeTruthy();
+        expect(reloadNginx).toHaveBeenCalledTimes(1);
+        expect(updateDns).toHaveBeenCalledTimes(1);
+
+        await startStatic();
+        expect(remoteAccess.getState().error).toBeNull();
+        expect(reloadNginx).toHaveBeenCalledTimes(3);
+
+        await startStatic();
+        expect(reloadNginx).toHaveBeenCalledTimes(3);
+    });
+
+    it('does not complete a static start before the nginx reload finishes', async () => {
+        const reload = Promise.withResolvers<boolean>();
+        const reloadStarted = Promise.withResolvers<void>();
+        reloadNginx.mockImplementationOnce(() => {
+            reloadStarted.resolve();
+            return reload.promise;
+        });
+        let completed = false;
+        const start = remoteAccess.enableDynamicRemoteAccess(staticRequest).then(() => {
+            completed = true;
+        });
+        await reloadStarted.promise;
+
+        expect(reloadNginx).toHaveBeenCalledTimes(1);
+        expect(completed).toBe(false);
+
+        reload.resolve(true);
+        await start;
+        await startStatic();
+        expect(reloadNginx).toHaveBeenCalledTimes(1);
+    });
+
+    it('requires an acknowledgement from the WAN handler', async () => {
+        eventEmitter.removeAllListeners(EVENTS.ENABLE_WAN_ACCESS);
+
+        await remoteAccess.enableDynamicRemoteAccess(staticRequest);
+
+        expect(remoteAccess.getState().error).toBeTruthy();
+        expect(staticAccess.isReady()).toBe(false);
+        expect(reloadNginx).not.toHaveBeenCalled();
+    });
+
+    it('retries after the WAN handler suppresses a thrown reload error', async () => {
+        reloadNginx.mockRejectedValueOnce(new Error('nginx reload failed'));
+
+        await remoteAccess.enableDynamicRemoteAccess(staticRequest);
+
+        expect(remoteAccess.getState().error).toBeTruthy();
+        expect(staticAccess.isReady()).toBe(false);
+        await startStatic();
+        expect(remoteAccess.getState().error).toBeNull();
+        expect(reloadNginx).toHaveBeenCalledTimes(3);
+    });
+
+    it('keeps a pending static start stopped after its reload completes', async () => {
+        const reload = Promise.withResolvers<boolean>();
+        const reloadStarted = Promise.withResolvers<void>();
+        reloadNginx.mockImplementationOnce(() => {
+            reloadStarted.resolve();
+            return reload.promise;
+        });
+        const start = remoteAccess.enableDynamicRemoteAccess(staticRequest);
+        await reloadStarted.promise;
+
+        await remoteAccess.stopRemoteAccess();
+        expect(reloadNginx).toHaveBeenCalledTimes(2);
+        expect(configService.get('connect.config.wanaccess')).toBe(false);
+        reload.resolve(true);
+        await start;
+
+        expect(remoteAccess.getState().runningType).toBe(DynamicRemoteAccessType.DISABLED);
+        expect(staticAccess.isReady()).toBe(false);
+        await startStatic();
+        expect(reloadNginx).toHaveBeenCalledTimes(3);
+    });
+
+    it('does not reuse a newer pending start when an older reload completes', async () => {
+        const firstReload = Promise.withResolvers<boolean>();
+        const nextReload = Promise.withResolvers<boolean>();
+        const firstReloadStarted = Promise.withResolvers<void>();
+        const nextReloadStarted = Promise.withResolvers<void>();
+        reloadNginx.mockImplementationOnce(() => {
+            firstReloadStarted.resolve();
+            return firstReload.promise;
+        });
+        const firstStart = remoteAccess.enableDynamicRemoteAccess(staticRequest);
+        await firstReloadStarted.promise;
+        reloadNginx.mockResolvedValueOnce(true).mockImplementationOnce(() => {
+            nextReloadStarted.resolve();
+            return nextReload.promise;
+        });
+        const nextStart = remoteAccess.enableDynamicRemoteAccess(staticRequest);
+        await nextReloadStarted.promise;
+        expect(reloadNginx).toHaveBeenCalledTimes(3);
+
+        firstReload.resolve(true);
+        await firstStart;
+        expect(staticAccess.isReady()).toBe(false);
+        await startStatic();
+        expect(reloadNginx).toHaveBeenCalledTimes(5);
+
+        nextReload.resolve(true);
+        await nextStart;
+        await startStatic();
+        expect(reloadNginx).toHaveBeenCalledTimes(5);
+    });
+
     it('does not reload the network stack for repeated active static requests', async () => {
         await startStatic();
-        expect(reloadNetworkStack).toHaveBeenCalledTimes(1);
+        expect(reloadNginx).toHaveBeenCalledTimes(1);
         remoteAccess.keepAlive();
         const lastPing = remoteAccess.getState().lastPing;
 
@@ -111,7 +253,7 @@ describe('remote access transitions', () => {
             await flushEvents();
         }
 
-        expect(reloadNetworkStack).toHaveBeenCalledTimes(1);
+        expect(reloadNginx).toHaveBeenCalledTimes(1);
         expect(remoteAccess.getState()).toMatchObject({
             runningType: DynamicRemoteAccessType.STATIC,
             allowedUrl,
@@ -129,7 +271,7 @@ describe('remote access transitions', () => {
         await flushEvents();
 
         expect(remoteAccess.getState().allowedUrl).toEqual(updatedUrl);
-        expect(reloadNetworkStack).toHaveBeenCalledTimes(1);
+        expect(reloadNginx).toHaveBeenCalledTimes(1);
     });
 
     it('preserves the timeout after a repeated static request', async () => {
@@ -146,7 +288,7 @@ describe('remote access transitions', () => {
 
         expect(configService.get('connect.config.wanaccess')).toBe(false);
         expect(remoteAccess.getState()).toEqual(makeDisabledDynamicRemoteAccessState());
-        expect(reloadNetworkStack).toHaveBeenCalledTimes(2);
+        expect(reloadNginx).toHaveBeenCalledTimes(2);
     });
 
     it.each(['disabled WAN access', 'an error'])('restarts static access after %s', async (reason) => {
@@ -162,7 +304,7 @@ describe('remote access transitions', () => {
 
         expect(configService.get('connect.config.wanaccess')).toBe(true);
         expect(remoteAccess.getState().error).toBeNull();
-        expect(reloadNetworkStack).toHaveBeenCalledTimes(3);
+        expect(reloadNginx).toHaveBeenCalledTimes(3);
     });
 
     it('still disables active static access', async () => {
@@ -173,7 +315,7 @@ describe('remote access transitions', () => {
 
         expect(configService.get('connect.config.wanaccess')).toBe(false);
         expect(remoteAccess.getState()).toEqual(makeDisabledDynamicRemoteAccessState());
-        expect(reloadNetworkStack).toHaveBeenCalledTimes(2);
+        expect(reloadNginx).toHaveBeenCalledTimes(2);
     });
 
     it('clears request metadata when the requested mode is disabled', async () => {
@@ -202,7 +344,7 @@ describe('remote access transitions', () => {
         expect(configService.get('connect.config.wanport')).toBe(8443);
         expect(configService.get('connect.config.wanaccess')).toBe(true);
         expect(remoteAccess.getState().runningType).toBe(DynamicRemoteAccessType.STATIC);
-        expect(reloadNetworkStack).toHaveBeenCalledTimes(3);
+        expect(reloadNginx).toHaveBeenCalledTimes(3);
     });
 
     it('still disables remote access through settings', async () => {
@@ -214,7 +356,7 @@ describe('remote access transitions', () => {
         expect(configService.get('connect.config.wanport')).toBeNull();
         expect(configService.get('connect.config.wanaccess')).toBe(false);
         expect(remoteAccess.getState().runningType).toBe(DynamicRemoteAccessType.DISABLED);
-        expect(reloadNetworkStack).toHaveBeenCalledTimes(2);
+        expect(reloadNginx).toHaveBeenCalledTimes(2);
     });
 
     it('retains UPnP lease renewal and transitions back to static access', async () => {
@@ -234,6 +376,6 @@ describe('remote access transitions', () => {
         expect(disableUpnp).toHaveBeenCalledTimes(2);
         expect(configService.get('connect.config.wanaccess')).toBe(true);
         expect(remoteAccess.getState().runningType).toBe(DynamicRemoteAccessType.STATIC);
-        expect(reloadNetworkStack).toHaveBeenCalledTimes(7);
+        expect(reloadNginx).toHaveBeenCalledTimes(7);
     });
 });

@@ -8,6 +8,8 @@ import { AccessUrl, UrlResolverService } from '../network/url-resolver.service.j
 
 @Injectable()
 export class StaticRemoteAccessService {
+    private activeStart?: { ready: boolean };
+
     constructor(
         private readonly configService: ConfigService<ConfigType>,
         private readonly eventEmitter: EventEmitter2,
@@ -16,15 +18,26 @@ export class StaticRemoteAccessService {
 
     private logger = new Logger(StaticRemoteAccessService.name);
 
+    isReady(): boolean {
+        return this.activeStart?.ready === true;
+    }
+
     async stopRemoteAccess() {
-        this.eventEmitter.emit(EVENTS.DISABLE_WAN_ACCESS);
+        this.activeStart = undefined;
+        await this.eventEmitter.emitAsync(EVENTS.DISABLE_WAN_ACCESS);
     }
 
     async beginRemoteAccess(): Promise<AccessUrl | null> {
         this.logger.log('Begin Static Remote Access');
         // enabling/disabling static remote access is a config-only change.
         // the actual forwarding must be configured on the router, outside of the API.
-        this.eventEmitter.emit(EVENTS.ENABLE_WAN_ACCESS);
+        const attempt = { ready: false };
+        this.activeStart = attempt;
+        const results: unknown[] = await this.eventEmitter.emitAsync(EVENTS.ENABLE_WAN_ACCESS);
+        if (!results.length || results.some((result) => result !== true)) {
+            throw new Error('Failed to reload nginx for Static Remote Access');
+        }
+        attempt.ready = true;
         return this.urlResolverService.getRemoteAccessUrl();
     }
 }

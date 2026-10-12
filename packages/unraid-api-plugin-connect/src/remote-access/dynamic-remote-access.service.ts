@@ -82,6 +82,7 @@ export class DynamicRemoteAccessService {
                 input.type === DynamicRemoteAccessType.STATIC &&
                 state.runningType === DynamicRemoteAccessType.STATIC &&
                 this.configService.get('connect.config.wanaccess') === true &&
+                this.staticRemoteAccessService.isReady() &&
                 !state.error;
 
             if (!staticAccessAlreadyRunning) {
