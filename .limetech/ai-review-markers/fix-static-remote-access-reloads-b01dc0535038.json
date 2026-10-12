@@ -1,0 +1,25 @@
+{
+  "disposition": "PATCH",
+  "expected_structural_delta": "Five primary modules; one feature root; zero new hops, production modules, owners, consumers, event or public-operation families. One private per-attempt proof. Forecast production lines +90/-20; tests at most two files +260/-0 lines.",
+  "minimum_design": "Extend the existing Dynamic/Static/WAN/Network path to acknowledge completed nginx application. Static owns one private current-attempt completion proof, invalidated before stop. Reuse requires that proof; settings explicitly stop before changing config; metadata updates preserve timeout.",
+  "outcome": "Repeated healthy Static Remote Access starts avoid nginx reloads; failed or incomplete reloads remain retryable while stop, timeout, settings and UPnP effects are preserved.",
+  "reuse_decisions": [
+    {
+      "decision": "extend",
+      "name": "Static/Dynamic remote access lifecycle",
+      "rationale": "Existing owners retain transition and completion responsibilities; early running type keeps pending stop routing."
+    },
+    {
+      "decision": "extend",
+      "name": "WAN events and nginx reload result",
+      "rationale": "Return and await existing boolean result through current event path; no new event or acknowledgement framework."
+    },
+    {
+      "decision": "extend",
+      "name": "Settings and URL metadata",
+      "rationale": "Explicit settings transitions retain network effects; repeated cloud metadata does not reset timeout."
+    }
+  ],
+  "schema": "limetech.ai-review-marker.v2",
+  "stage": "forecast"
+}
