@@ -22,8 +22,9 @@ overrides:
   flatted: 3.4.2
   follow-redirects: 1.16.0
   glob@>=11.0.0 <11.1.0: 11.1.0
-  handlebars: 4.7.9
+  handlebars: 4.7.10
   hono: 4.12.31
+  http-cache-semantics: 4.3.0
   immutable: 3.8.3
   js-beautify: 1.15.4
   js-cookie: 3.0.8
@@ -37,6 +38,7 @@ overrides:
   picomatch@>=4.0.0 <4.0.4: 4.0.4
   postcss: 8.5.23
   qs: 6.16.0
+  roarr: 3.3.0
   shell-quote: 1.8.4
   protobufjs: 7.6.5
   tar: 7.5.21
@@ -5769,6 +5771,10 @@ packages:
   anynum@1.0.0:
     resolution: {integrity: sha512-xjR9/zBVnUOP6ztMIIgShjsxui80nQUQH+5xJnvrYLs+90bF25/KJqaAi8mk+B4RDtX1Nspi6fmp4YTEts8SfA==}
 
+  approximate-now@1.0.2:
+    resolution: {integrity: sha512-r0PAP7S9VaWCQEZT+loOnZRM0gj30L/S5oB9SKTuMXGhQLycvnh9gKFhu2Kq89dJkjAWf7m8PH4xy7OamBElwQ==}
+    engines: {node: '>=10.0'}
+
   argparse@1.0.10:
     resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
 
@@ -7407,11 +7413,19 @@ packages:
   fast-json-stable-stringify@2.1.0:
     resolution: {integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==}
 
+  fast-json-stringify@2.7.13:
+    resolution: {integrity: sha512-ar+hQ4+OIurUGjSJD1anvYSDcUflywhKjfxnsW4TBTD7+u0tJufv6DKRWoQk3vI6YBOWMoz0TQtfbe7dxbQmvA==}
+    engines: {node: '>= 10.0.0'}
+
   fast-json-stringify@7.0.1:
     resolution: {integrity: sha512-eRSayARSbbwlBjpP4vnTTIRD5QPcIrmihPxDeN1DtKnHPg66UuJLx+8hlK1kaFdjvzyQ/dzALoi4vwAQ+T+iZA==}
 
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
+
+  fast-printf@1.6.10:
+    resolution: {integrity: sha512-GwTgG9O4FVIdShhbVF3JxOgSBY2+ePGsu2V/UONgoCPzF9VY6ZdBMKsHKCYQHZwNk3qNouUolRDsgVxcVA5G1w==}
+    engines: {node: '>=10.0'}
 
   fast-querystring@1.1.2:
     resolution: {integrity: sha512-g6KuKWmFXc0fID8WWH0jit4g0AGBoJhCkJMb1RmbsSEUNvQ+ZC8D6CUZ+GtF8nMzSPXnhiePyyqqipzNNEnHjg==}
@@ -7894,8 +7908,8 @@ packages:
   h3@1.15.11:
     resolution: {integrity: sha512-L3THSe2MPeBwgIZVSH5zLdBBU90TOxarvhK9d04IDY2AmVS8j2Jz2LIWtwsGOU3lu2I5jCN7FNvVfY2+XyF+mg==}
 
-  handlebars@4.7.9:
-    resolution: {integrity: sha512-4E71E0rpOaQuJR2A3xDZ+GM1HyWYv1clR58tC8emQNeQe3RH7MAzSbat+V0wG78LQBo6m6bzSG/L4pBuCsgnUQ==}
+  handlebars@4.7.10:
+    resolution: {integrity: sha512-P5VJMVM7qgBn6vjXMw8WG9uVI+ncf2pi72j4de4yz5ZULLj2RGqLYaKOYGsgyrViQ0tePOVlN1tDCCXXtFqXKg==}
     engines: {node: '>=0.4.7'}
     hasBin: true
 
@@ -8006,8 +8020,8 @@ packages:
   html-sloppy-escaper@0.1.0:
     resolution: {integrity: sha512-ONSUC5HwiImkny/29ApddyM+BxpqjgTZ+pOag6y39Q5FQgJuWypPLl7cGDpPYp1RtC5+6Wi5yQld3zAXhlO3xg==}
 
-  http-cache-semantics@4.1.1:
-    resolution: {integrity: sha512-er295DKPVsV82j5kw1Gjt+ADA/XYHsajl82cGNQG2eyoPkvgUhX+nDIyelzhIWbbsXP39EHcI6l5tYs2FYqYXQ==}
+  http-cache-semantics@4.3.0:
+    resolution: {integrity: sha512-M5t5LlJpS1UHMjvwRQVdFHvPISGeLAxNcrWuJkeGh0KxsqCHZ1O3NXZU/8x7cD0BDcGW8kapxMKTvwlqrNkHkA==}
 
   http-errors@2.0.1:
     resolution: {integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==}
@@ -8212,6 +8226,9 @@ packages:
   is-callable@1.2.7:
     resolution: {integrity: sha512-1BC0BVFhS/p0qtw6enp8e+8OD0UrK0oFLztSjNzhcKA3WDuJxxAPXzPuPtKkjEY9UUoEWlX/8fgKeu2S8i9JTA==}
     engines: {node: '>= 0.4'}
+
+  is-circular@1.0.2:
+    resolution: {integrity: sha512-YttjnrswnUYRVJvxCvu8z+PGMUSzC2JttP0OEXezlAEdp3EXzhf7IZ3j0gRAybJBQupedIZFhY61Tga6E0qASA==}
 
   is-core-module@2.16.1:
     resolution: {integrity: sha512-UfoeMA6fIJ8wTYFEUjelnaGI67v6+N7qXJEvQuIGa99l4xsCruSYOVSQ0uPANn4dAzm8lkYPaKLrrijLq7x23w==}
@@ -10347,9 +10364,9 @@ packages:
     engines: {node: 20 || >=22}
     hasBin: true
 
-  roarr@2.15.4:
-    resolution: {integrity: sha512-CHhPh+UNHD2GTXNYhPWLnU8ONHdI+5DI+4EYIAOaiD63rHeYlZvyh8P+in5999TTSFgUYuKUAjzRI4mdh/p+2A==}
-    engines: {node: '>=8.0'}
+  roarr@3.3.0:
+    resolution: {integrity: sha512-9kZ+t1lba/ENPpC8euUg7oPkUJ1M8SeoYYmkO2lvkH61EaVLRI/Apm2+HIe/Fvza5EpNye9s8JfYhlPNlLHyUw==}
+    engines: {node: '>=10.0'}
 
   rollup-plugin-node-externals@8.1.0:
     resolution: {integrity: sha512-0D3S0E0Dl1V3Q6Cywnc7wt88VAfOB9AC5QHwVdgvP1vByRHW2wnEXoK0x3VYZzJ/EmGsR5Uix5HUmMJNG+hz2Q==}
@@ -10675,9 +10692,6 @@ packages:
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
 
-  sprintf-js@1.1.3:
-    resolution: {integrity: sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==}
-
   ssh2@1.17.0:
     resolution: {integrity: sha512-wPldCk3asibAjQ/kziWQQt1Wh3PgDFpC0XpwclzKcdT1vql6KeYxf5LIt4nlFkUeR8WuphYMKqUA56X4rjbfgQ==}
     engines: {node: '>=10.16.0'}
@@ -10733,6 +10747,10 @@ packages:
 
   string-env-interpolation@1.0.1:
     resolution: {integrity: sha512-78lwMoCcn0nNu8LszbP1UA7g55OeE4v7rCeWnM5B453rnNr4aq+5it3FEYtZrSEiMvHZOZ9Jlqb0OD0M2VInqg==}
+
+  string-similarity@4.0.4:
+    resolution: {integrity: sha512-/q/8Q4Bl4ZKAPjj8WerIBJWALKkaPRfrvhfF8k/B23i4nzrlRj2/go1m90In7nG/3XDSbOo0+pu6RvCTM9RGMQ==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   string-width@3.1.0:
     resolution: {integrity: sha512-vafcv6KjVZKSgz06oM/H6GDBrAtz8vdhQakGjFIvNrHA6y3HCF1CInLy+QLq8dTJPQ1b+KDUqDFctkdRW44e1w==}
@@ -17011,6 +17029,8 @@ snapshots:
 
   anynum@1.0.0: {}
 
+  approximate-now@1.0.2: {}
+
   argparse@1.0.10:
     dependencies:
       sprintf-js: 1.0.3
@@ -17382,7 +17402,7 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       get-stream: 9.0.1
-      http-cache-semantics: 4.1.1
+      http-cache-semantics: 4.3.0
       keyv: 4.5.4
       mimic-response: 4.0.0
       normalize-url: 8.0.1
@@ -17726,7 +17746,7 @@ snapshots:
   conventional-changelog-writer@8.2.0:
     dependencies:
       conventional-commits-filter: 5.0.0
-      handlebars: 4.7.9
+      handlebars: 4.7.10
       meow: 13.2.0
       semver: 7.7.2
 
@@ -17813,7 +17833,7 @@ snapshots:
       execa: 5.1.1
       gitconfig: 2.0.8
       globby: 11.1.0
-      handlebars: 4.7.9
+      handlebars: 4.7.10
       is-utf8: 0.2.1
       license.js: 3.1.2
       slash: 3.0.0
@@ -18853,6 +18873,13 @@ snapshots:
 
   fast-json-stable-stringify@2.1.0: {}
 
+  fast-json-stringify@2.7.13:
+    dependencies:
+      ajv: 6.15.0
+      deepmerge: 4.3.1
+      rfdc: 1.4.1
+      string-similarity: 4.0.4
+
   fast-json-stringify@7.0.1:
     dependencies:
       '@fastify/merge-json-schemas': 0.2.1
@@ -18863,6 +18890,8 @@ snapshots:
       rfdc: 1.4.1
 
   fast-levenshtein@2.0.6: {}
+
+  fast-printf@1.6.10: {}
 
   fast-querystring@1.1.2:
     dependencies:
@@ -19306,7 +19335,7 @@ snapshots:
       boolean: 3.2.0
       es6-error: 4.1.1
       matcher: 3.0.0
-      roarr: 2.15.4
+      roarr: 3.3.0
       semver: 7.7.2
       serialize-error: 7.0.1
 
@@ -19430,7 +19459,7 @@ snapshots:
       ufo: 1.6.4
       uncrypto: 0.1.3
 
-  handlebars@4.7.9:
+  handlebars@4.7.10:
     dependencies:
       minimist: 1.2.8
       neo-async: 2.6.2
@@ -19535,7 +19564,7 @@ snapshots:
     dependencies:
       html-escaper: 3.0.3
 
-  http-cache-semantics@4.1.1: {}
+  http-cache-semantics@4.3.0: {}
 
   http-errors@2.0.1:
     dependencies:
@@ -19787,6 +19816,8 @@ snapshots:
       semver: 7.7.2
 
   is-callable@1.2.7: {}
+
+  is-circular@1.0.2: {}
 
   is-core-module@2.16.1:
     dependencies:
@@ -21925,14 +21956,17 @@ snapshots:
       glob: 11.1.0
       package-json-from-dist: 1.0.1
 
-  roarr@2.15.4:
+  roarr@3.3.0:
     dependencies:
+      approximate-now: 1.0.2
       boolean: 3.2.0
       detect-node: 2.1.0
+      fast-json-stringify: 2.7.13
+      fast-printf: 1.6.10
       globalthis: 1.0.4
+      is-circular: 1.0.2
       json-stringify-safe: 5.0.1
       semver-compare: 1.0.0
-      sprintf-js: 1.1.3
 
   rollup-plugin-node-externals@8.1.0(rollup@4.62.0):
     dependencies:
@@ -22365,8 +22399,6 @@ snapshots:
 
   sprintf-js@1.0.3: {}
 
-  sprintf-js@1.1.3: {}
-
   ssh2@1.17.0:
     dependencies:
       asn1: 0.2.6
@@ -22426,6 +22458,8 @@ snapshots:
   string-argv@0.3.2: {}
 
   string-env-interpolation@1.0.1: {}
+
+  string-similarity@4.0.4: {}
 
   string-width@3.1.0:
     dependencies:
