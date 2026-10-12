@@ -77,8 +77,18 @@ export class DynamicRemoteAccessService {
     }) {
         try {
             this.logger.verbose(`enableDynamicRemoteAccess ${JSON.stringify(input, null, 2)}`);
-            await this.stopRemoteAccess();
-            if (input.allowedUrl) {
+            const state = this.getState();
+            const staticAccessAlreadyRunning =
+                input.type === DynamicRemoteAccessType.STATIC &&
+                state.runningType === DynamicRemoteAccessType.STATIC &&
+                this.configService.get('connect.config.wanaccess') === true &&
+                !state.error;
+
+            if (!staticAccessAlreadyRunning) {
+                await this.stopRemoteAccess();
+                await this.setType(input.type);
+            }
+            if (input.allowedUrl && input.type !== DynamicRemoteAccessType.DISABLED) {
                 this.setAllowedUrl({
                     ipv4: input.allowedUrl.ipv4?.toString() ?? null,
                     ipv6: input.allowedUrl.ipv6?.toString() ?? null,
@@ -86,7 +96,6 @@ export class DynamicRemoteAccessService {
                     name: input.allowedUrl.name,
                 });
             }
-            await this.setType(input.type);
         } catch (error) {
             this.logger.error(error);
             const message = error instanceof Error ? error.message : 'Unknown Error';
