@@ -16,6 +16,8 @@ import { UpnpRemoteAccessService } from './upnp-remote-access.service.js';
 
 @Injectable()
 export class DynamicRemoteAccessService {
+    private activeStart?: { ready: boolean };
+
     private readonly logger = new Logger(DynamicRemoteAccessService.name);
 
     constructor(
@@ -75,6 +77,7 @@ export class DynamicRemoteAccessService {
         allowedUrl: AccessUrlObject;
         type: DynamicRemoteAccessType;
     }) {
+        let attempt = this.activeStart;
         try {
             this.logger.verbose(`enableDynamicRemoteAccess ${JSON.stringify(input, null, 2)}`);
             const state = this.getState();
@@ -82,12 +85,17 @@ export class DynamicRemoteAccessService {
                 input.type === DynamicRemoteAccessType.STATIC &&
                 state.runningType === DynamicRemoteAccessType.STATIC &&
                 this.configService.get('connect.config.wanaccess') === true &&
-                this.staticRemoteAccessService.isReady() &&
+                this.activeStart?.ready === true &&
                 !state.error;
 
             if (!staticAccessAlreadyRunning) {
-                await this.stopRemoteAccess();
+                attempt = { ready: false };
+                this.activeStart = attempt;
+                await this.stopRemoteAccessForAttempt(attempt);
+                if (this.activeStart !== attempt) return;
                 await this.setType(input.type);
+                if (this.activeStart !== attempt) return;
+                attempt.ready = input.type === DynamicRemoteAccessType.STATIC;
             }
             if (input.allowedUrl && input.type !== DynamicRemoteAccessType.DISABLED) {
                 this.setAllowedUrl({
@@ -99,6 +107,7 @@ export class DynamicRemoteAccessService {
             }
         } catch (error) {
             this.logger.error(error);
+            if (this.activeStart !== attempt) return error;
             const message = error instanceof Error ? error.message : 'Unknown Error';
             this.setErrorMessage(message);
             return error;
@@ -138,6 +147,11 @@ export class DynamicRemoteAccessService {
      * Stop remote access and reset the state
      */
     async stopRemoteAccess(): Promise<void> {
+        this.activeStart = undefined;
+        await this.stopRemoteAccessForAttempt();
+    }
+
+    private async stopRemoteAccessForAttempt(attempt?: object): Promise<void> {
         const state = this.configService.get<DynamicRemoteAccessState>('connect.dynamicRemoteAccess');
 
         if (state?.runningType === DynamicRemoteAccessType.STATIC) {
@@ -145,6 +159,8 @@ export class DynamicRemoteAccessService {
         } else if (state?.runningType === DynamicRemoteAccessType.UPNP) {
             await this.upnpRemoteAccessService.stop();
         }
+
+        if (this.activeStart !== attempt) return;
 
         // Reset the state
         this.configService.set('connect.dynamicRemoteAccess', makeDisabledDynamicRemoteAccessState());

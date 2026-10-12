@@ -34,7 +34,6 @@ describe('remote access transitions', () => {
     let settings: ConnectSettingsService;
     let eventEmitter: EventEmitter2;
     let dependencies: TestingModule;
-    let staticAccess: StaticRemoteAccessService;
     const reloadNginx = vi.fn<() => Promise<boolean>>().mockResolvedValue(true);
     const updateDns = vi.fn().mockResolvedValue(true);
     const createOrRenewUpnpLease = vi.fn().mockResolvedValue({ publicPort: 443 });
@@ -94,7 +93,7 @@ describe('remote access transitions', () => {
         await dependencies.init();
         eventEmitter = dependencies.get(EventEmitter2);
         const networkService = dependencies.get(NetworkService);
-        staticAccess = new StaticRemoteAccessService(configService, eventEmitter, urlResolver);
+        const staticAccess = new StaticRemoteAccessService(configService, eventEmitter, urlResolver);
         remoteAccess = new DynamicRemoteAccessService(
             validatedConfigService,
             staticAccess,
@@ -173,7 +172,6 @@ describe('remote access transitions', () => {
         await remoteAccess.enableDynamicRemoteAccess(staticRequest);
 
         expect(remoteAccess.getState().error).toBeTruthy();
-        expect(staticAccess.isReady()).toBe(false);
         expect(reloadNginx).not.toHaveBeenCalled();
     });
 
@@ -183,7 +181,6 @@ describe('remote access transitions', () => {
         await remoteAccess.enableDynamicRemoteAccess(staticRequest);
 
         expect(remoteAccess.getState().error).toBeTruthy();
-        expect(staticAccess.isReady()).toBe(false);
         await startStatic();
         expect(remoteAccess.getState().error).toBeNull();
         expect(reloadNginx).toHaveBeenCalledTimes(3);
@@ -205,8 +202,7 @@ describe('remote access transitions', () => {
         reload.resolve(true);
         await start;
 
-        expect(remoteAccess.getState().runningType).toBe(DynamicRemoteAccessType.DISABLED);
-        expect(staticAccess.isReady()).toBe(false);
+        expect(remoteAccess.getState()).toEqual(makeDisabledDynamicRemoteAccessState());
         await startStatic();
         expect(reloadNginx).toHaveBeenCalledTimes(3);
     });
@@ -232,7 +228,7 @@ describe('remote access transitions', () => {
 
         firstReload.resolve(true);
         await firstStart;
-        expect(staticAccess.isReady()).toBe(false);
+        expect(remoteAccess.getState().allowedUrl).toBeNull();
         await startStatic();
         expect(reloadNginx).toHaveBeenCalledTimes(5);
 
@@ -240,6 +236,65 @@ describe('remote access transitions', () => {
         await nextStart;
         await startStatic();
         expect(reloadNginx).toHaveBeenCalledTimes(5);
+    });
+
+    it('does not apply an older reload failure to a newer successful start', async () => {
+        const firstReload = Promise.withResolvers<boolean>();
+        const firstReloadStarted = Promise.withResolvers<void>();
+        reloadNginx.mockImplementationOnce(() => {
+            firstReloadStarted.resolve();
+            return firstReload.promise;
+        });
+        const firstStart = remoteAccess.enableDynamicRemoteAccess(staticRequest);
+        await firstReloadStarted.promise;
+        await startStatic();
+        expect(reloadNginx).toHaveBeenCalledTimes(3);
+
+        firstReload.resolve(false);
+        await firstStart;
+
+        expect(remoteAccess.getState().error).toBeNull();
+        await startStatic();
+        expect(reloadNginx).toHaveBeenCalledTimes(3);
+    });
+
+    it.each(['stop', 'start'])('preserves a newer %s during a pending teardown', async (action) => {
+        await startStatic();
+        const reload = Promise.withResolvers<boolean>();
+        const reloadStarted = Promise.withResolvers<void>();
+        reloadNginx.mockImplementationOnce(() => {
+            reloadStarted.resolve();
+            return reload.promise;
+        });
+        configService.set('connect.config.wanaccess', false);
+        const restart = remoteAccess.enableDynamicRemoteAccess(staticRequest);
+        await reloadStarted.promise;
+
+        const newerRequest = {
+            ...staticRequest,
+            allowedUrl: { ...allowedUrl, ipv4: 'https://newer-viewer.example.net' },
+        };
+        if (action === 'stop') {
+            await remoteAccess.stopRemoteAccess();
+        } else {
+            await remoteAccess.enableDynamicRemoteAccess(newerRequest);
+        }
+        reload.resolve(true);
+        await restart;
+
+        if (action === 'stop') {
+            expect(remoteAccess.getState()).toEqual(makeDisabledDynamicRemoteAccessState());
+            expect(configService.get('connect.config.wanaccess')).toBe(false);
+            expect(reloadNginx).toHaveBeenCalledTimes(3);
+        } else {
+            expect(remoteAccess.getState()).toMatchObject({
+                runningType: DynamicRemoteAccessType.STATIC,
+                allowedUrl: newerRequest.allowedUrl,
+                error: null,
+            });
+            await remoteAccess.enableDynamicRemoteAccess(newerRequest);
+            expect(reloadNginx).toHaveBeenCalledTimes(4);
+        }
     });
 
     it('does not reload the network stack for repeated active static requests', async () => {
