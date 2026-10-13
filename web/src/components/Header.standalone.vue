@@ -30,7 +30,7 @@ import { useThemeStore } from '~/store/theme';
  * rendered instead.
  *
  * A single grid keeps stateful controls mounted once. On mobile the server name
- * sits beside the update notice, or the version when no notice is present.
+ * sits beside the version and update action, with array usage below the name.
  */
 export interface Props {
   server?: Server | string;
@@ -241,7 +241,7 @@ const copyLanIp = async () => {
 @media (max-width: 639.98px) {
   .unraid-header-shell {
     --uh-header-inset: calc(var(--spacing) * 2);
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: fit-content(60vw) minmax(0, 1fr);
     grid-template-rows: auto auto auto;
     column-gap: var(--spacing);
     row-gap: var(--spacing);
@@ -289,7 +289,7 @@ const copyLanIp = async () => {
     z-index: 10;
     grid-column: 2;
     grid-row: 3;
-    align-self: center;
+    align-self: end;
     justify-self: end;
     max-width: 100%;
     justify-content: flex-end;
@@ -302,41 +302,28 @@ const copyLanIp = async () => {
   }
 
   .uh-version {
-    display: contents;
-  }
-
-  .uh-version :deep(.header-version) {
-    display: contents;
-  }
-
-  .uh-version :deep(.header-version-trigger) {
-    position: relative;
     z-index: 10;
+    display: flex;
     grid-column: 1;
     grid-row: 3;
     align-self: center;
-    justify-self: start;
+    max-width: 100%;
+    top: auto;
+  }
+
+  .uh-version :deep(.header-version) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
   }
 
   .uh-version :deep(.header-update-status) {
-    position: relative;
-    z-index: 10;
-    grid-column: 1;
-    grid-row: 4;
     min-width: 0;
     max-width: 100%;
   }
 
-  .unraid-header-shell:has(.header-update-status) .uh-name {
-    grid-row: 4;
-  }
-
   .uh-array-usage {
     grid-row: 4;
-  }
-
-  .unraid-header-shell:has(.header-update-status) .uh-array-usage {
-    grid-row: 5;
   }
 
   .uh-meta-right {
