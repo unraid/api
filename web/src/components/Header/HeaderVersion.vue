@@ -245,16 +245,17 @@ const updateOsStatus = computed(() => {
 </template>
 
 <style scoped>
+.header-update-status {
+  width: fit-content;
+  padding-block: var(--spacing);
+  padding-inline: calc(var(--spacing) * 3);
+}
+
 @media (max-width: 639.98px) {
   .header-version {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     width: 100%;
-  }
-
-  .header-update-status {
-    width: fit-content;
-    padding-inline: calc(var(--spacing) * 3);
   }
 }
 </style>
