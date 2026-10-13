@@ -49,7 +49,7 @@ const client = new ApolloClient({
           info: {
             id: 'preview-info',
             primaryNetwork: null,
-            os: { id: 'preview-os', hostname: 'Tower' },
+            os: { id: 'preview-os', hostname: server.name },
             versions: { id: 'preview-versions', core: { unraid: '7.4.0-beta.3', api: '4.37.5' } },
           },
           notifications: {

@@ -29,8 +29,8 @@ import { useThemeStore } from '~/store/theme';
  * multi-component header (`unraid-header-os-version` + `unraid-user-profile`) is
  * rendered instead.
  *
- * A single grid keeps stateful controls mounted once. On mobile the version and
- * update notice span the header width instead of competing with account actions.
+ * A single grid keeps stateful controls mounted once. On mobile the server name
+ * sits beside the version and update action, with array usage below the name.
  */
 export interface Props {
   server?: Server | string;
@@ -98,7 +98,6 @@ const copyLanIp = async () => {
       class="uh-meta-right relative z-10 flex max-w-full min-w-0 flex-col items-end gap-y-1 text-end"
       :class="{ 'uh-meta-over-banner': hasBanner }"
     >
-      <ArrayUsage v-if="showArrayUsage" class="uh-array-usage" />
       <!--
         Below sm the meta row becomes a full-width top strip so the uptime and
         registration state split to opposite ends (uptime left, state right)
@@ -117,6 +116,7 @@ const copyLanIp = async () => {
         <HeaderVersion />
       </div>
     </div>
+    <ArrayUsage v-if="showArrayUsage" compact class="uh-array-usage" />
 
     <div class="uh-nav-right relative z-10 flex min-w-0 flex-row items-center justify-end gap-x-1">
       <div
@@ -229,10 +229,19 @@ const copyLanIp = async () => {
   column-gap: calc(var(--spacing) * 2);
 }
 
+.uh-array-usage {
+  position: relative;
+  z-index: 10;
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: end;
+  width: calc(var(--spacing) * 24);
+}
+
 @media (max-width: 639.98px) {
   .unraid-header-shell {
     --uh-header-inset: calc(var(--spacing) * 2);
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: fit-content(60vw) minmax(0, 1fr);
     grid-template-rows: auto auto auto;
     column-gap: var(--spacing);
     row-gap: var(--spacing);
@@ -245,9 +254,7 @@ const copyLanIp = async () => {
   }
 
   .uh-nav-right {
-    grid-column: 2;
-    grid-row: 2;
-    width: 100%;
+    display: contents;
   }
 
   .uh-logo {
@@ -259,6 +266,11 @@ const copyLanIp = async () => {
   }
 
   .uh-actions {
+    position: relative;
+    z-index: 10;
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
     column-gap: 0;
   }
 
@@ -274,37 +286,59 @@ const copyLanIp = async () => {
   }
 
   .uh-name {
-    flex: 1;
+    z-index: 10;
+    grid-column: 2;
+    grid-row: 3;
+    align-self: baseline;
+    justify-self: end;
+    max-width: 100%;
     justify-content: flex-end;
+    font-size: var(--text-sm);
+  }
+
+  .uh-name > span,
+  .uh-name :deep(button) {
+    font-size: inherit;
   }
 
   .uh-version {
-    grid-column: 1 / -1;
-    grid-row: 3;
+    z-index: 10;
+    display: flex;
+    grid-column: 1;
+    grid-row: 3 / span 2;
+    align-self: baseline;
+    max-width: 100%;
     top: auto;
+  }
+
+  .uh-version :deep(.header-version) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .uh-version :deep(.header-update-status) {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .uh-array-usage {
+    grid-row: 4;
   }
 
   .uh-meta-right {
     display: contents;
   }
 
-  .uh-server-status,
-  .uh-array-usage {
+  .uh-server-status {
     position: relative;
     z-index: 10;
-  }
-
-  .uh-server-status {
     grid-column: 1 / -1;
     grid-row: 1;
   }
 
-  .uh-array-usage {
-    grid-column: 1 / -1;
-    grid-row: 4;
-  }
-
   .uh-meta-right,
+  .uh-array-usage,
   .uh-version {
     --color-header-text-secondary: var(--color-header-text-primary);
   }

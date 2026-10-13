@@ -121,7 +121,9 @@ const updateOsStatus = computed(() => {
           rebootType.value === 'thirdPartyDriversDownloading' ? ArrowPathIcon : ExclamationTriangleIcon,
       },
       href: rebootType.value === 'downgrade' ? WEBGUI_TOOLS_DOWNGRADE : WEBGUI_TOOLS_UPDATE,
-      text: t(rebootTypeText.value),
+      text:
+        rebootType.value === 'update' ? t('headerOsVersion.rebootToUpdate') : t(rebootTypeText.value),
+      title: rebootTypeText.value,
     };
   }
 
@@ -153,7 +155,7 @@ const updateOsStatus = computed(() => {
       <DropdownMenuTrigger as-child>
         <Button
           variant="link"
-          class="xs:text-sm text-header-text-secondary hover:text-orange-dark focus:text-orange-dark flex h-auto flex-row items-center gap-x-1 p-0 text-xs leading-none font-semibold hover:underline focus:underline"
+          class="header-version-trigger xs:text-sm text-header-text-secondary hover:text-orange-dark focus:text-orange-dark flex h-auto flex-row items-center gap-x-1 p-0 text-xs leading-none font-semibold hover:underline focus:underline"
           :title="t('headerOsVersion.versionInformation')"
         >
           <InformationCircleIcon :style="{ width: '12px', height: '12px', flexShrink: 0 }" />
@@ -245,16 +247,17 @@ const updateOsStatus = computed(() => {
 </template>
 
 <style scoped>
+.header-update-status {
+  width: fit-content;
+  padding-block: var(--spacing);
+  padding-inline: calc(var(--spacing) * 3);
+}
+
 @media (max-width: 639.98px) {
   .header-version {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     width: 100%;
-  }
-
-  .header-update-status {
-    width: fit-content;
-    padding-inline: calc(var(--spacing) * 3);
   }
 }
 </style>
