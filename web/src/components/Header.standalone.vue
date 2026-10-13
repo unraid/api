@@ -29,8 +29,8 @@ import { useThemeStore } from '~/store/theme';
  * multi-component header (`unraid-header-os-version` + `unraid-user-profile`) is
  * rendered instead.
  *
- * A single grid keeps stateful controls mounted once. On mobile the version and
- * update notice span the header width instead of competing with account actions.
+ * A single grid keeps stateful controls mounted once. On mobile the server name
+ * sits beside the version, with update notices on a separate full-width row.
  */
 export interface Props {
   server?: Server | string;
@@ -245,9 +245,7 @@ const copyLanIp = async () => {
   }
 
   .uh-nav-right {
-    grid-column: 2;
-    grid-row: 2;
-    width: 100%;
+    display: contents;
   }
 
   .uh-logo {
@@ -259,6 +257,11 @@ const copyLanIp = async () => {
   }
 
   .uh-actions {
+    position: relative;
+    z-index: 10;
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
     column-gap: 0;
   }
 
@@ -274,14 +277,37 @@ const copyLanIp = async () => {
   }
 
   .uh-name {
-    flex: 1;
+    z-index: 10;
+    grid-column: 2;
+    grid-row: 3;
+    align-self: center;
+    justify-self: end;
+    max-width: 100%;
     justify-content: flex-end;
   }
 
   .uh-version {
-    grid-column: 1 / -1;
+    display: contents;
+  }
+
+  .uh-version :deep(.header-version) {
+    display: contents;
+  }
+
+  .uh-version :deep(.header-version-trigger) {
+    position: relative;
+    z-index: 10;
+    grid-column: 1;
     grid-row: 3;
-    top: auto;
+    align-self: center;
+    justify-self: start;
+  }
+
+  .uh-version :deep(.header-update-status) {
+    position: relative;
+    z-index: 10;
+    grid-column: 1 / -1;
+    grid-row: 4;
   }
 
   .uh-meta-right {
@@ -301,7 +327,7 @@ const copyLanIp = async () => {
 
   .uh-array-usage {
     grid-column: 1 / -1;
-    grid-row: 4;
+    grid-row: auto;
   }
 
   .uh-meta-right,

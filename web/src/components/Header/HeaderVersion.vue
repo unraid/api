@@ -153,7 +153,7 @@ const updateOsStatus = computed(() => {
       <DropdownMenuTrigger as-child>
         <Button
           variant="link"
-          class="xs:text-sm text-header-text-secondary hover:text-orange-dark focus:text-orange-dark flex h-auto flex-row items-center gap-x-1 p-0 text-xs leading-none font-semibold hover:underline focus:underline"
+          class="header-version-trigger xs:text-sm text-header-text-secondary hover:text-orange-dark focus:text-orange-dark flex h-auto flex-row items-center gap-x-1 p-0 text-xs leading-none font-semibold hover:underline focus:underline"
           :title="t('headerOsVersion.versionInformation')"
         >
           <InformationCircleIcon :style="{ width: '12px', height: '12px', flexShrink: 0 }" />
