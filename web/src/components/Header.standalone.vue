@@ -289,7 +289,7 @@ const copyLanIp = async () => {
     z-index: 10;
     grid-column: 2;
     grid-row: 3;
-    align-self: end;
+    align-self: baseline;
     justify-self: end;
     max-width: 100%;
     justify-content: flex-end;
@@ -305,8 +305,8 @@ const copyLanIp = async () => {
     z-index: 10;
     display: flex;
     grid-column: 1;
-    grid-row: 3;
-    align-self: center;
+    grid-row: 3 / span 2;
+    align-self: baseline;
     max-width: 100%;
     top: auto;
   }
