@@ -315,6 +315,9 @@ export class Vars extends Node {
     tpmGuid?: string;
 
     @Field({ nullable: true })
+    usbGuid?: string;
+
+    @Field({ nullable: true })
     regCheck?: string;
 
     @Field({ nullable: true })

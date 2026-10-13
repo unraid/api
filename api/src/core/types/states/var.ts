@@ -33,6 +33,7 @@ export type Var = {
     flashProduct: string;
     flashVendor: string;
     tpmGuid?: string;
+    usbGuid?: string;
     /** Current progress of the {@link ?content=mover | mover}. */
     fsCopyPrcnt: number;
     fsNumMounted: number;

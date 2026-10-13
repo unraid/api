@@ -46,6 +46,7 @@ const {
   hasDistinctTpmGuid,
   dateTimeFormat,
   deviceCount,
+  usbGuid,
   flashProduct,
   flashVendor,
   guid,
@@ -133,18 +134,24 @@ const showTpmTransferButton = computed((): boolean =>
 );
 const disableTpmTransferButton = computed((): boolean => showTrialExpiration.value);
 
-// Organize items into three sections
-const bootDeviceItems = computed((): RegistrationItemProps[] => {
-  return [
-    ...(guid.value
+const licensingGuidItems = computed((): RegistrationItemProps[] => {
+  const items: RegistrationItemProps[] = [
+    ...(usbGuid.value
       ? [
           {
-            label: t('registration.deviceGuid'),
-            text: guid.value,
+            label: t('registration.flashGuid'),
+            text: usbGuid.value,
           },
         ]
-      : []),
-    ...(showTpmTransferButton.value && tpmGuid.value
+      : guid.value
+        ? [
+            {
+              label: t('registration.deviceGuid'),
+              text: guid.value,
+            },
+          ]
+        : []),
+    ...(tpmGuid.value && (usbGuid.value || tpmGuid.value !== guid.value)
       ? [
           {
             label: t('registration.tpmGuid'),
@@ -152,6 +159,15 @@ const bootDeviceItems = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
+  ];
+
+  return items;
+});
+
+// Organize items into three sections
+const bootDeviceItems = computed((): RegistrationItemProps[] => {
+  return [
+    ...licensingGuidItems.value,
     ...(bootDeviceType.value
       ? [
           {
