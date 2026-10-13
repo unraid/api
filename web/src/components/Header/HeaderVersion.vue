@@ -121,7 +121,9 @@ const updateOsStatus = computed(() => {
           rebootType.value === 'thirdPartyDriversDownloading' ? ArrowPathIcon : ExclamationTriangleIcon,
       },
       href: rebootType.value === 'downgrade' ? WEBGUI_TOOLS_DOWNGRADE : WEBGUI_TOOLS_UPDATE,
-      text: t(rebootTypeText.value),
+      text:
+        rebootType.value === 'update' ? t('headerOsVersion.rebootToUpdate') : t(rebootTypeText.value),
+      title: rebootTypeText.value,
     };
   }
 
