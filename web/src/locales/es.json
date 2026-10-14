@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "{0}% del arreglo utilizado",
   "headerOsVersion.apiVersionCopiedToClipboard": "Versión del API copiada al portapapeles",
   "headerOsVersion.osVersionCopiedToClipboard": "Versión del SO copiada al portapapeles",
+  "headerOsVersion.rebootToUpdate": "Reiniciar para actualizar",
   "headerOsVersion.unraidApi": "API de Unraid",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} Publicado",
