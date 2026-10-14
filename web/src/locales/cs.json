@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "{0}% pole využito",
   "headerOsVersion.apiVersionCopiedToClipboard": "Verze API zkopírována do schránky",
   "headerOsVersion.osVersionCopiedToClipboard": "Verze OS zkopírována do schránky",
+  "headerOsVersion.rebootToUpdate": "Restartovat a aktualizovat",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} vydáno",
