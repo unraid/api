@@ -68,6 +68,19 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     return senderUrl.toString();
   };
 
+  const hasCallbackDataInCurrentUrl = (): boolean => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    try {
+      const currentUrl = new URL(window.location.href);
+      return currentUrl.searchParams.has('data') || currentUrl.hash.startsWith('#data=');
+    } catch {
+      return false;
+    }
+  };
+
   const send = (...args: Parameters<typeof sendCallback>) => {
     const [url, payload, redirectType, sendType, sender] = args;
     if (sendCallback.length < 5) {
@@ -84,7 +97,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     return generateCallbackUrl(url, payload, sendType, senderWithCallbackNonce(sender));
   };
 
-  const validateAndConsumeCallbackNonce = (payload: QueryPayloads): boolean => {
+  const validateAndConsumeCallbackNonce = (payload: QueryPayloads, requireNonce = false): boolean => {
     if (!isExternalCallbackPayload(payload)) {
       return true;
     }
@@ -101,7 +114,10 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
     const nonce = senderUrl.searchParams.get(callbackNonceParameter);
     if (!nonce) {
-      // Browser callbacks produced by this store always use an absolute sender URL.
+      if (requireNonce) {
+        return false;
+      }
+
       // Keep relative payloads compatible with direct in-process callers.
       const isAbsoluteSender =
         payload.sender.startsWith('//') || /^[a-z][a-z\d+.-]*:/i.test(payload.sender);
@@ -140,12 +156,15 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const watcher = () => {
     const result = providedWatcher();
     if (result) {
-      void saveCallbackData(result);
+      void saveCallbackData(result, { requireNonce: hasCallbackDataInCurrentUrl() });
     }
   };
 
-  const saveCallbackData = async (decryptedData?: QueryPayloads) => {
-    if (decryptedData && !validateAndConsumeCallbackNonce(decryptedData)) {
+  const saveCallbackData = async (
+    decryptedData?: QueryPayloads,
+    options: { requireNonce?: boolean } = {}
+  ) => {
+    if (decryptedData && !validateAndConsumeCallbackNonce(decryptedData, options.requireNonce)) {
       callbackData.value = undefined;
       callbackError.value = 'Callback request is not active or has expired';
       callbackStatus.value = 'error';
