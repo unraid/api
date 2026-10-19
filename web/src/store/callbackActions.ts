@@ -68,16 +68,20 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     return senderUrl.toString();
   };
 
-  const hasCallbackDataInCurrentUrl = (): boolean => {
+  const getCallbackDataInCurrentUrl = (): string | undefined => {
     if (typeof window === 'undefined') {
-      return false;
+      return undefined;
     }
 
     try {
       const currentUrl = new URL(window.location.href);
-      return currentUrl.searchParams.has('data') || currentUrl.hash.startsWith('#data=');
+      const queryData = currentUrl.searchParams.get('data');
+      if (queryData !== null) {
+        return queryData;
+      }
+      return currentUrl.hash.startsWith('#data=') ? currentUrl.hash.slice('#data='.length) : undefined;
     } catch {
-      return false;
+      return undefined;
     }
   };
 
@@ -142,6 +146,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const callbackActionsExecuting = ref(false);
   const callbackReconciliationPending = ref(false);
   const sendType = 'fromUpc';
+  let lastWatchedCallbackData: string | undefined;
 
   const getCallbackActionErrorMessage = (error: unknown): string => {
     if (error instanceof Error) {
@@ -154,9 +159,17 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   };
 
   const watcher = () => {
+    const callbackDataInCurrentUrl = getCallbackDataInCurrentUrl();
+    if (callbackDataInCurrentUrl && callbackDataInCurrentUrl === lastWatchedCallbackData) {
+      return;
+    }
+
     const result = providedWatcher();
     if (result) {
-      void saveCallbackData(result, { requireNonce: hasCallbackDataInCurrentUrl() });
+      if (callbackDataInCurrentUrl) {
+        lastWatchedCallbackData = callbackDataInCurrentUrl;
+      }
+      void saveCallbackData(result, { requireNonce: Boolean(callbackDataInCurrentUrl) });
     }
   };
 
