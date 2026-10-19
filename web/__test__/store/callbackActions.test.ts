@@ -38,11 +38,28 @@ const mockRefreshServerState = vi.fn();
 
 vi.mock('@unraid/shared-callbacks', () => {
   const mockWatcher = vi.fn();
-  const mockSend = vi.fn();
+  const mockSend = vi.fn(
+    (
+      url: string,
+      payload: unknown,
+      redirectType: string | null | undefined,
+      sendType: string | undefined,
+      sender?: string
+    ) => ({ url, payload, redirectType, sendType, sender })
+  );
+  const mockGenerateUrl = vi.fn(
+    (url: string, payload: unknown, sendType: string | undefined, sender?: string) => ({
+      url,
+      payload,
+      sendType,
+      sender,
+    })
+  );
 
   return {
     useCallback: vi.fn(({ encryptionKey: _encryptionKey }) => ({
       send: mockSend,
+      generateUrl: mockGenerateUrl,
       watcher: mockWatcher,
       parse: vi.fn(),
     })),
@@ -146,9 +163,13 @@ describe('Callback Actions Store', () => {
   let store: ReturnType<typeof useCallbackActionsStore>;
   let preventClose: { addPreventClose: Mock; removePreventClose: Mock };
   let mockWatcher: Mock;
+  let mockSend: Mock;
+  let mockGenerateUrl: Mock;
 
   beforeEach(async () => {
     setActivePinia(createPinia());
+    localStorage.clear();
+    window.history.replaceState(null, '', '/');
     mockAccountActionStatus.value = 'success';
     mockKeyInstallStatus.value = 'success';
     mockRefreshServerStateStatus.value = 'done';
@@ -163,7 +184,10 @@ describe('Callback Actions Store', () => {
 
     const { useCallback } = await import('@unraid/shared-callbacks');
 
-    mockWatcher = vi.mocked(useCallback).mock.results[0].value.watcher;
+    const callbackMock = vi.mocked(useCallback).mock.results[0].value;
+    mockWatcher = callbackMock.watcher;
+    mockSend = callbackMock.send;
+    mockGenerateUrl = callbackMock.generateUrl;
     vi.clearAllMocks();
   });
 
@@ -210,6 +234,128 @@ describe('Callback Actions Store', () => {
       expect(mockWatcher).toHaveBeenCalled();
       expect(store.callbackData).toBeUndefined();
       expect(store.callbackStatus).toBe('ready');
+    });
+  });
+
+  describe('Callback Return Paths', () => {
+    it('adds a marker to the default return path', () => {
+      window.history.replaceState(null, '', '/Tools/Update');
+
+      store.send(
+        'https://example.com/callback',
+        [{ type: 'updateOs', sha256: 'test-sha256' } as ExternalUpdateOsAction],
+        undefined,
+        'forUpc'
+      );
+
+      const sender = mockSend.mock.calls[0][4] as string;
+      const senderUrl = new URL(sender);
+      const nonce = senderUrl.searchParams.get('callback_nonce');
+
+      expect(senderUrl.pathname).toBe('/Tools');
+      expect(senderUrl.searchParams.get('data')).toBeNull();
+      expect(nonce).toMatch(/^[0-9a-f]{32}$/);
+      expect(localStorage.getItem(`unraid-callback-nonce:${nonce}`)).toBeTruthy();
+    });
+
+    it('preserves explicit return details when adding a marker', () => {
+      const sender = 'https://example.com/return?state=ready#section';
+
+      store.send(
+        'https://example.com/callback',
+        [{ type: 'updateOs', sha256: 'test-sha256' } as ExternalUpdateOsAction],
+        undefined,
+        'forUpc',
+        sender
+      );
+
+      const returnedUrl = new URL(mockSend.mock.calls[0][4] as string);
+
+      expect(returnedUrl.origin).toBe('https://example.com');
+      expect(returnedUrl.pathname).toBe('/return');
+      expect(returnedUrl.searchParams.get('state')).toBe('ready');
+      expect(returnedUrl.hash).toBe('');
+      expect(returnedUrl.searchParams.get('callback_nonce')).toMatch(/^[0-9a-f]{32}$/);
+    });
+
+    it('adds a marker when creating a return link', () => {
+      const payload = [{ type: 'updateOs', sha256: 'test-sha256' } as ExternalUpdateOsAction];
+
+      store.generateUrl('https://example.com/callback', payload, 'forUpc');
+
+      const sender = mockGenerateUrl.mock.calls[0][3] as string;
+      const senderUrl = new URL(sender);
+
+      expect(senderUrl.searchParams.get('callback_nonce')).toMatch(/^[0-9a-f]{32}$/);
+      expect(
+        localStorage.getItem(`unraid-callback-nonce:${senderUrl.searchParams.get('callback_nonce')}`)
+      ).toBeTruthy();
+    });
+  });
+
+  describe('Callback Return Validation', () => {
+    const updatePayload = (sender: string): QueryPayloads => ({
+      type: 'forUpc',
+      actions: [
+        {
+          type: 'updateOs',
+          sha256: 'test-sha256',
+        } as ExternalUpdateOsAction,
+      ],
+      sender,
+    });
+
+    it('uses the fragment when the query value is blank', async () => {
+      window.history.replaceState(null, '', '/Tools?data=#data=fragment');
+      mockWatcher.mockReturnValue(updatePayload('/Tools'));
+
+      store.watcher();
+      await nextTick();
+      store.watcher();
+
+      expect(mockWatcher).toHaveBeenCalledTimes(1);
+      expect(store.callbackStatus).toBe('error');
+      expect(store.callbackError).toBe('Callback request is not active or has expired');
+    });
+
+    it('consumes a return marker once', async () => {
+      store.send(
+        'https://example.com/callback',
+        [{ type: 'updateOs', sha256: 'test-sha256' } as ExternalUpdateOsAction],
+        undefined,
+        'forUpc'
+      );
+      const sender = mockSend.mock.calls[0][4] as string;
+      const nonce = new URL(sender).searchParams.get('callback_nonce');
+
+      await store.saveCallbackData(updatePayload(sender), { requireNonce: true });
+      await store.saveCallbackData(updatePayload(sender), { requireNonce: true });
+
+      expect(localStorage.getItem(`unraid-callback-nonce:${nonce}`)).toBeNull();
+      expect(store.callbackStatus).toBe('error');
+      expect(store.callbackError).toBe('Callback request is not active or has expired');
+    });
+
+    it('rejects an expired return marker', async () => {
+      const nonce = 'expired-marker';
+      localStorage.setItem(`unraid-callback-nonce:${nonce}`, String(Date.now() - 1));
+
+      await store.saveCallbackData(updatePayload(`/Tools?callback_nonce=${nonce}`), {
+        requireNonce: true,
+      });
+
+      expect(store.callbackStatus).toBe('error');
+      expect(store.callbackError).toBe('Callback request is not active or has expired');
+      expect(localStorage.getItem(`unraid-callback-nonce:${nonce}`)).toBeNull();
+    });
+
+    it('rejects an external return path without a marker', async () => {
+      await store.saveCallbackData(updatePayload('https://example.com/return'), {
+        requireNonce: true,
+      });
+
+      expect(store.callbackStatus).toBe('error');
+      expect(store.callbackError).toBe('Callback request is not active or has expired');
     });
   });
 
