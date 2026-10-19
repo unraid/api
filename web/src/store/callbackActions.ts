@@ -76,7 +76,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     try {
       const currentUrl = new URL(window.location.href);
       const queryData = currentUrl.searchParams.get('data');
-      if (queryData !== null) {
+      if (queryData) {
         return queryData;
       }
       return currentUrl.hash.startsWith('#data=') ? currentUrl.hash.slice('#data='.length) : undefined;
