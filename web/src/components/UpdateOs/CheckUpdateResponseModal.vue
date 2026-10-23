@@ -16,6 +16,7 @@ import {
   BrandButton,
   BrandLoading,
   Button,
+  CardWrapper,
   cn,
   DialogDescription,
   Label,
@@ -40,10 +41,12 @@ import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 
 export interface Props {
+  embedded?: boolean;
   open?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
+  embedded: false,
   open: false,
 });
 const { t } = useI18n();
@@ -281,24 +284,46 @@ const modalWidth = computed(() => {
 </script>
 
 <template>
-  <ResponsiveModal
-    :open="open"
-    :dialog-class="modalWidth"
-    :sheet-class="'h-full'"
-    :show-close-button="!checkForUpdatesLoading"
-    @update:open="(value) => !value && close()"
+  <component
+    :is="embedded ? CardWrapper : ResponsiveModal"
+    v-if="!embedded || open"
+    v-bind="
+      embedded
+        ? { increasedPadding: true }
+        : {
+            open,
+            dialogClass: modalWidth,
+            sheetClass: 'h-full',
+            showCloseButton: !checkForUpdatesLoading,
+          }
+    "
+    @update:open="(value: boolean) => !value && close()"
   >
-    <div class="flex h-full flex-col">
-      <ResponsiveModalHeader v-if="modalCopy?.title">
-        <ResponsiveModalTitle>
+    <div :class="cn('flex h-full flex-col', embedded && 'gap-6')">
+      <component
+        :is="embedded ? 'div' : ResponsiveModalHeader"
+        v-if="modalCopy?.title"
+        :class="embedded ? 'grid gap-y-2' : undefined"
+      >
+        <component
+          :is="embedded ? 'h2' : ResponsiveModalTitle"
+          :class="embedded ? 'text-xl font-semibold' : undefined"
+        >
           {{ modalCopy.title }}
-        </ResponsiveModalTitle>
-        <DialogDescription v-if="modalCopy?.description">
+        </component>
+        <component
+          :is="embedded ? 'p' : DialogDescription"
+          v-if="modalCopy?.description"
+          :class="embedded ? 'text-muted-foreground text-sm' : undefined"
+        >
           <span v-html="modalCopy.description" />
-        </DialogDescription>
-      </ResponsiveModalHeader>
+        </component>
+      </component>
 
-      <div v-if="renderMainSlot" class="flex flex-1 flex-col gap-6 overflow-y-auto px-6">
+      <div
+        v-if="renderMainSlot"
+        :class="cn('flex flex-1 flex-col gap-6 overflow-y-auto', !embedded && 'px-6')"
+      >
         <BrandLoading v-if="checkForUpdatesLoading" class="mx-auto w-[150px]" />
         <div v-else class="flex flex-col gap-y-6">
           <!-- OS Update highlight section -->
@@ -384,7 +409,7 @@ const modalWidth = computed(() => {
         </div>
       </div>
 
-      <ResponsiveModalFooter>
+      <component :is="embedded ? 'div' : ResponsiveModalFooter">
         <div
           :class="
             cn(
@@ -457,7 +482,7 @@ const modalWidth = computed(() => {
             </template>
           </div>
         </div>
-      </ResponsiveModalFooter>
+      </component>
     </div>
-  </ResponsiveModal>
+  </component>
 </template>
