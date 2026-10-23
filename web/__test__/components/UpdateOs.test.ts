@@ -3,13 +3,15 @@
  */
 
 import { nextTick, ref } from 'vue';
-import { mount } from '@vue/test-utils';
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils';
 
 import { createTestingPinia } from '@pinia/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import UpdateOs from '~/components/UpdateOs.standalone.vue';
 import { createTestI18n } from '../utils/i18n';
+
+enableAutoUnmount(afterEach);
 
 vi.mock('@unraid/ui', () => ({
   PageContainer: { template: '<div><slot /></div>' },
@@ -47,7 +49,7 @@ Object.defineProperty(window, 'location', {
 
 const UpdateOsStatusStub = {
   template: '<div data-testid="update-os-status">Status</div>',
-  props: ['showUpdateCheck', 'title', 'subtitle', 't'],
+  props: ['title', 'subtitle', 't'],
 };
 const UpdateOsThirdPartyDriversStub = {
   template: '<div data-testid="third-party-drivers">Third Party</div>',
@@ -106,7 +108,7 @@ describe('UpdateOs.standalone.vue', () => {
   });
 
   describe('Initial Rendering and onBeforeMount Logic', () => {
-    it('shows the internal update status when path matches and rebootType is empty', async () => {
+    it('checks for updates on the Tools page when no reboot is pending', async () => {
       window.location.pathname = '/Tools/Update';
       mockRebootType.value = '';
 
@@ -125,11 +127,10 @@ describe('UpdateOs.standalone.vue', () => {
       await nextTick();
 
       expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
-      expect(wrapper.findComponent(UpdateOsStatusStub).props('showUpdateCheck')).toBe(true);
       expect(mockUpdateOsStore.localCheckForUpdate).toHaveBeenCalledTimes(1);
     });
 
-    it('shows status when path does not match', async () => {
+    it('renders status without checking for updates on other pages', async () => {
       window.location.pathname = '/some/other/path';
       mockRebootType.value = '';
 
@@ -152,7 +153,7 @@ describe('UpdateOs.standalone.vue', () => {
       expect(mockUpdateOsStore.setModalOpen).not.toHaveBeenCalled();
     });
 
-    it('shows status when rebootType is not empty', async () => {
+    it('renders status without checking for updates while a reboot is pending', async () => {
       window.location.pathname = '/Tools/Update';
       mockRebootType.value = 'downgrade';
 
@@ -196,6 +197,49 @@ describe('UpdateOs.standalone.vue', () => {
 
       expect(mockUpdateOsStore.setModalOpen).toHaveBeenCalledWith(true);
       expect(mockUpdateOsStore.localCheckForUpdate).not.toHaveBeenCalled();
+    });
+
+    it('opens the known renewal release without another check', async () => {
+      window.location.pathname = '/Tools/Update';
+      mockUpdateOsStore.availableWithRenewal = '7.3.0';
+      mount(UpdateOs, {
+        global: {
+          plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
+          stubs: {
+            UpdateOsStatus: UpdateOsStatusStub,
+            UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+            UpdateOsCheckUpdateResponseModal: UpdateOsCheckUpdateResponseModalStub,
+            UpdateOsChangelogModal: UpdateOsChangelogModalStub,
+          },
+        },
+      });
+      await flushPromises();
+      expect(mockUpdateOsStore.setModalOpen).toHaveBeenCalledWith(true);
+      expect(mockUpdateOsStore.localCheckForUpdate).not.toHaveBeenCalled();
+    });
+
+    it('handles a rejected initial check without an unhandled rejection', async () => {
+      window.location.pathname = '/Tools/Update';
+      const error = new Error('update check unavailable');
+      mockUpdateOsStore.localCheckForUpdate.mockRejectedValueOnce(error);
+      const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        mount(UpdateOs, {
+          global: {
+            plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
+            stubs: {
+              UpdateOsStatus: UpdateOsStatusStub,
+              UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+              UpdateOsCheckUpdateResponseModal: UpdateOsCheckUpdateResponseModalStub,
+              UpdateOsChangelogModal: UpdateOsChangelogModalStub,
+            },
+          },
+        });
+        await flushPromises();
+        expect(logged).toHaveBeenCalledWith(error);
+      } finally {
+        logged.mockRestore();
+      }
     });
 
     it('embeds the update response on the Tools update page', async () => {

@@ -80,11 +80,7 @@ onMounted(() => {
 
 <template>
   <PageContainer>
-    <UpdateOsStatus
-      :show-update-check="true"
-      :title="t('updateOs.updateUnraidOs')"
-      :subtitle="subtitle"
-    />
+    <UpdateOsStatus :title="t('updateOs.updateUnraidOs')" :subtitle="subtitle" />
     <UpdateOsCheckUpdateResponseModal
       v-if="isToolsUpdatePage && rebootType === ''"
       :open="updateOsModalVisible"

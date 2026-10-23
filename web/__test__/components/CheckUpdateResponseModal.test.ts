@@ -1,10 +1,12 @@
 import { nextTick, ref } from 'vue';
-import { mount } from '@vue/test-utils';
+import { enableAutoUnmount, mount } from '@vue/test-utils';
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import CheckUpdateResponseModal from '~/components/UpdateOs/CheckUpdateResponseModal.vue';
 import { createTestI18n, testTranslate } from '../utils/i18n';
+
+enableAutoUnmount(afterEach);
 
 vi.mock('@unraid/ui', () => ({
   BrandButton: {
@@ -18,6 +20,7 @@ vi.mock('@unraid/ui', () => ({
     emits: ['click'],
     template: '<button class="brand-button" @click="$emit(\'click\')"><slot>{{ text }}</slot></button>',
   },
+  CardWrapper: { template: '<section class="card-wrapper"><slot /></section>' },
   BrandLoading: { template: '<div class="brand-loading" />' },
   Button: { template: '<button class="ui-button"><slot /></button>' },
   cn: (...classes: string[]) => classes.filter(Boolean).join(' '),
@@ -31,7 +34,13 @@ vi.mock('@unraid/ui', () => ({
   ResponsiveModalFooter: { template: '<div class="responsive-modal-footer"><slot /></div>' },
   ResponsiveModalHeader: { template: '<div class="responsive-modal-header"><slot /></div>' },
   ResponsiveModalTitle: { template: '<div class="responsive-modal-title"><slot /></div>' },
-  Switch: { name: 'Switch', props: ['modelValue'], template: '<div class="switch" />' },
+  Switch: {
+    name: 'Switch',
+    props: ['modelValue'],
+    emits: ['update:modelValue'],
+    template:
+      '<button role="switch" :aria-checked="modelValue" @click="$emit(\'update:modelValue\', !modelValue)" />',
+  },
   Tooltip: { template: '<div class="tooltip"><slot /></div>' },
   TooltipTrigger: { template: '<div class="tooltip-trigger"><slot /></div>' },
   TooltipContent: { template: '<div class="tooltip-content"><slot /></div>' },
@@ -56,8 +65,8 @@ vi.mock('~/components/UpdateOs/IgnoredRelease.vue', () => ({
 }));
 
 vi.mock('~/composables/dateTime', () => ({
-  default: () => ({
-    outputDateTimeFormatted: ref('2024-01-01'),
+  default: (_format: unknown, _t: unknown, _local: boolean, timestamp: number) => ({
+    outputDateTimeFormatted: ref(new Date(timestamp * 1000).toISOString().slice(0, 10)),
     outputDateTimeReadableDiff: ref('today'),
   }),
 }));
@@ -154,17 +163,24 @@ vi.mock('~/store/server', () => ({
   }),
 }));
 
-const mountModal = () =>
+const mountModal = (embedded = false, open = true) =>
   mount(CheckUpdateResponseModal, {
     props: {
-      open: true,
+      open,
+      embedded,
     },
     global: {
       plugins: [createTestI18n()],
     },
   });
 
-describe('CheckUpdateResponseModal', () => {
+describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded) => {
+  const renderModal = () => mountModal(embedded);
+  const titleSelector = embedded ? 'h2' : '.responsive-modal-title';
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
   beforeEach(() => {
     available.value = null;
     availableWithRenewal.value = null;
@@ -192,9 +208,9 @@ describe('CheckUpdateResponseModal', () => {
     );
     checkForUpdatesLoading.value = true;
 
-    const wrapper = mountModal();
+    const wrapper = renderModal();
 
-    expect(wrapper.find('.responsive-modal-title').text()).toBe('Checking for OS updates...');
+    expect(wrapper.find(titleSelector).text()).toBe('Checking for OS updates...');
     expect(wrapper.find('.brand-loading').exists()).toBe(true);
     expect(wrapper.find('.ui-button').text()).toBe('More Options');
   });
@@ -203,10 +219,10 @@ describe('CheckUpdateResponseModal', () => {
     osVersion.value = '6.12.3';
     updateOsNotificationsEnabled.value = false;
 
-    const wrapper = mountModal();
+    const wrapper = renderModal();
     await nextTick();
 
-    expect(wrapper.find('.responsive-modal-title').text()).toBe('Unraid OS is up-to-date');
+    expect(wrapper.find(titleSelector).text()).toBe('Unraid OS is up-to-date');
     expect(wrapper.text()).toContain('Current Version 6.12.3');
     expect(wrapper.text()).toContain(
       'Go to Settings > Notifications to enable automatic OS update notifications for future releases.'
@@ -221,7 +237,7 @@ describe('CheckUpdateResponseModal', () => {
     osVersion.value = '6.12.3';
     updateOsResponse.value = { changelog: '### New release' };
 
-    const wrapper = mountModal();
+    const wrapper = renderModal();
     await nextTick();
 
     const actionButtons = wrapper.findAll('.brand-button');
@@ -239,7 +255,7 @@ describe('CheckUpdateResponseModal', () => {
     availableWithRenewal.value = '6.14.0';
     updateOsResponse.value = { changelog: '### Renewal release' };
 
-    const wrapper = mountModal();
+    const wrapper = renderModal();
     await nextTick();
 
     const actionButtons = wrapper.findAll('.brand-button');
@@ -249,5 +265,95 @@ describe('CheckUpdateResponseModal', () => {
 
     await actionButtons.find((btn) => btn.text() === 'Extend License')?.trigger('click');
     expect(mockRenew).toHaveBeenCalled();
+  });
+
+  it('keeps the selected container and content hidden when closed', () => {
+    const wrapper = mountModal(embedded, false);
+    if (embedded) {
+      expect(wrapper.find('.card-wrapper').exists()).toBe(false);
+      expect(wrapper.find('.responsive-modal').exists()).toBe(false);
+    } else {
+      expect(wrapper.findComponent({ name: 'ResponsiveModal' }).props('open')).toBe(false);
+    }
+  });
+
+  it('routes verification and more options through the account updater', async () => {
+    available.value = '7.3.0-beta.1';
+    availableRequiresAuth.value = true;
+    const wrapper = renderModal();
+    expect(wrapper.text()).toContain('7.3.0-beta.1');
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text() === 'Verify to Update')!
+      .trigger('click');
+    expect(mockAccountUpdateOs).toHaveBeenCalledTimes(1);
+    expect(mockSetReleaseForUpdate).not.toHaveBeenCalled();
+    await wrapper.find('.ui-button').trigger('click');
+    expect(mockAccountUpdateOs).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows the release date and updates it after a new check', async () => {
+    available.value = '7.3.0';
+    availableReleaseDate.value = 1704067200;
+    const wrapper = renderModal();
+    expect(wrapper.text()).toContain('Released on 2024-01-01');
+    availableReleaseDate.value = 1704153600;
+    await nextTick();
+    expect(wrapper.text()).toContain('Released on 2024-01-02');
+  });
+
+  it.each([false, true])('shows license eligibility when expired=%s', async (expired) => {
+    availableWithRenewal.value = '7.3.0';
+    regUpdatesExpired.value = expired;
+    regExp.value = 1704067200;
+    const wrapper = renderModal();
+    expect(wrapper.text()).toContain('2024-01-01');
+    regExp.value = 1704153600;
+    await nextTick();
+    expect(wrapper.text()).toContain('2024-01-02');
+    expect(wrapper.text()).toContain('Extend License');
+  });
+
+  it('shows ignored releases and the notifications settings link', () => {
+    updateOsIgnoredReleases.value = ['7.2.0', '7.2.1'];
+    updateOsNotificationsEnabled.value = false;
+    const wrapper = renderModal();
+    expect(wrapper.findAll('.ignored-release')).toHaveLength(2);
+    expect(wrapper.text()).toContain('Ignored Releases');
+    expect(wrapper.find('[href="/Settings/Notifications"]').exists()).toBe(true);
+  });
+
+  it.each(['available', 'renewal'])(
+    'explains ignore and ignores the %s release only after close',
+    async (kind) => {
+      vi.useFakeTimers();
+      if (kind === 'renewal') availableWithRenewal.value = '7.3.0';
+      else available.value = '7.3.0';
+      const wrapper = renderModal();
+      await wrapper.find('[role="switch"]').trigger('click');
+      const tooltip = wrapper.findAll('.tooltip').find((item) => item.text().includes('Close'))!;
+      expect(tooltip.find('.tooltip-content').text()).toBe(
+        testTranslate('updateOs.checkUpdateResponseModal.youCanOptBackInTo')
+      );
+      expect(mockUpdateOsIgnoreRelease).not.toHaveBeenCalled();
+      await tooltip.find('button').trigger('click');
+      expect(mockSetModalOpen).toHaveBeenCalledWith(false);
+      expect(mockUpdateOsIgnoreRelease).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(500);
+      expect(mockUpdateOsIgnoreRelease).toHaveBeenCalledWith('7.3.0');
+    }
+  );
+
+  it('restores update actions when ignored releases are cleared', async () => {
+    available.value = '7.3.0';
+    updateOsResponse.value = { changelog: 'release' };
+    updateOsIgnoredReleases.value = ['7.2.0'];
+    const wrapper = renderModal();
+    await wrapper.find('[role="switch"]').trigger('click');
+    expect(wrapper.text()).toContain('Close');
+    updateOsIgnoredReleases.value = [];
+    await nextTick();
+    expect(wrapper.find('[role="switch"]').attributes('aria-checked')).toBe('false');
+    expect(wrapper.text()).toContain('View Changelog to Start Update');
   });
 });

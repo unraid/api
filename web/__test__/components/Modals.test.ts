@@ -70,6 +70,32 @@ describe('Modals.standalone.vue', () => {
     vi.clearAllMocks();
   });
 
+  it('leaves update and changelog rendering to the Tools page', async () => {
+    wrapper.unmount();
+    window.history.replaceState({}, '', '/Tools/Update');
+    try {
+      wrapper = mount(Modals, { global: { plugins: [pinia] } });
+      const update = useUpdateOsStore();
+      update.setModalOpen(true);
+      update.setReleaseForUpdate({
+        version: '7.3.0',
+        name: 'Unraid 7.3.0',
+        date: '2026-10-23',
+        isNewer: true,
+        isEligible: true,
+        changelog: null,
+        sha256: null,
+      });
+      await nextTick();
+      expect(wrapper.findComponent({ name: 'UpdateOsCheckUpdateResponseModal' }).exists()).toBe(false);
+      expect(wrapper.findComponent({ name: 'UpdateOsChangelogModal' }).exists()).toBe(false);
+      expect(wrapper.findComponent({ name: 'OnboardingModal' }).exists()).toBe(true);
+      expect(wrapper.findComponent({ name: 'UpcCallbackFeedback' }).exists()).toBe(true);
+    } finally {
+      window.history.replaceState({}, '', '/');
+    }
+  });
+
   it('should render modals container with correct id and ref', () => {
     const modalsDiv = wrapper.find('#modals');
     expect(modalsDiv.exists()).toBe(true);

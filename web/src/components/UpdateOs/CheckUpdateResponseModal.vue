@@ -284,170 +284,46 @@ const modalWidth = computed(() => {
 </script>
 
 <template>
-  <CardWrapper v-if="embedded && open" :increased-padding="true">
-    <div class="flex h-full flex-col gap-6">
-      <div v-if="modalCopy?.title" class="grid gap-y-2">
-        <h2 class="text-xl font-semibold">
+  <component
+    :is="embedded ? CardWrapper : ResponsiveModal"
+    v-if="!embedded || open"
+    v-bind="
+      embedded
+        ? { increasedPadding: true }
+        : {
+            open,
+            dialogClass: modalWidth,
+            sheetClass: 'h-full',
+            showCloseButton: !checkForUpdatesLoading,
+          }
+    "
+    @update:open="(value: boolean) => !value && close()"
+  >
+    <div :class="cn('flex h-full flex-col', embedded && 'gap-6')">
+      <component
+        :is="embedded ? 'div' : ResponsiveModalHeader"
+        v-if="modalCopy?.title"
+        :class="embedded ? 'grid gap-y-2' : undefined"
+      >
+        <component
+          :is="embedded ? 'h2' : ResponsiveModalTitle"
+          :class="embedded ? 'text-xl font-semibold' : undefined"
+        >
           {{ modalCopy.title }}
-        </h2>
-        <p v-if="modalCopy?.description" class="text-muted-foreground text-sm">
+        </component>
+        <component
+          :is="embedded ? 'p' : DialogDescription"
+          v-if="modalCopy?.description"
+          :class="embedded ? 'text-muted-foreground text-sm' : undefined"
+        >
           <span v-html="modalCopy.description" />
-        </p>
-      </div>
-
-      <div v-if="renderMainSlot" class="flex flex-1 flex-col gap-6 overflow-y-auto">
-        <BrandLoading v-if="checkForUpdatesLoading" class="mx-auto w-[150px]" />
-        <div v-else class="flex flex-col gap-y-6">
-          <div v-if="available || availableWithRenewal" class="flex flex-col items-center gap-4 py-4">
-            <div class="bg-primary/10 flex items-center justify-center rounded-full p-4">
-              <ArrowDownTrayIcon class="text-primary h-8 w-8" />
-            </div>
-            <div class="text-center">
-              <h2 class="text-foreground text-3xl font-bold">
-                {{ availableWithRenewal || available }}
-              </h2>
-              <p v-if="userFormattedReleaseDate" class="text-muted-foreground mt-2 text-center text-sm">
-                Released on {{ userFormattedReleaseDate }}
-              </p>
-              <p
-                v-if="availableRequiresAuth && !availableWithRenewal"
-                class="mt-2 text-center text-sm text-amber-500"
-              >
-                {{ t('updateOs.checkUpdateResponseModal.requiresVerificationToUpdate') }}
-              </p>
-            </div>
-            <div class="mt-4">
-              <div
-                class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
-                @click="ignoreThisRelease = !ignoreThisRelease"
-              >
-                <Switch v-model="ignoreThisRelease" @click.stop />
-                <Label class="text-muted-foreground cursor-pointer text-sm">
-                  {{ t('updateOs.checkUpdateResponseModal.ignoreThisReleaseUntilNextReboot') }}
-                </Label>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="showNoUpdateContent" class="flex flex-col items-center gap-4 py-6 text-center">
-            <div class="bg-primary/10 flex items-center justify-center rounded-full p-4">
-              <CheckCircleIcon class="text-primary h-10 w-10" />
-            </div>
-            <div class="space-y-2">
-              <p v-if="osVersion" class="text-muted-foreground text-center text-sm font-semibold">
-                {{ t('updateOs.checkUpdateResponseModal.currentVersion', [osVersion]) }}
-              </p>
-              <p
-                v-if="modalCopy?.description"
-                class="text-muted-foreground text-xs sm:text-sm"
-                v-html="modalCopy.description"
-              />
-            </div>
-          </div>
-
-          <div
-            v-if="extraLinks.length > 0"
-            :class="cn('xs:!flex-row flex flex-col justify-center gap-2')"
-          >
-            <BrandButton
-              v-for="item in extraLinks"
-              :key="item.text"
-              :variant="item.variant ?? undefined"
-              :href="item.href ?? undefined"
-              :icon="item.icon"
-              :icon-right="item.iconRight"
-              :icon-right-hover-display="item.iconRightHoverDisplay"
-              :text="t(item.text ?? '')"
-              :title="item.title ? t(item.title) : undefined"
-              @click="item.click?.()"
-            />
-          </div>
-
-          <div
-            v-if="updateOsIgnoredReleases.length > 0 && !(available || availableWithRenewal)"
-            class="mx-auto flex w-full max-w-[640px] flex-col gap-2"
-          >
-            <h3 class="text-left text-base font-semibold italic">
-              {{ t('updateOs.checkUpdateResponseModal.ignoredReleases') }}
-            </h3>
-            <UpdateOsIgnoredRelease
-              v-for="ignoredRelease in updateOsIgnoredReleases"
-              :key="ignoredRelease"
-              :label="ignoredRelease"
-              :t="t"
-            />
-          </div>
-        </div>
-      </div>
+        </component>
+      </component>
 
       <div
-        :class="
-          cn(
-            'mx-auto flex w-full gap-2',
-            actionButtons.length > 0 ? 'xs:!flex-row flex-col-reverse justify-between' : 'justify-center'
-          )
-        "
+        v-if="renderMainSlot"
+        :class="cn('flex flex-1 flex-col gap-6 overflow-y-auto', !embedded && 'px-6')"
       >
-        <div :class="cn('xs:!flex-row mt-2 flex flex-col-reverse justify-start gap-3')">
-          <TooltipProvider>
-            <Tooltip :delay-duration="0">
-              <TooltipTrigger as-child>
-                <Button variant="ghost" @click="accountStore.updateOs()">
-                  <ArrowTopRightOnSquareIcon class="mr-2 h-4 w-4" />
-                  {{ t('updateOs.checkUpdateResponseModal.moreOptions') }}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent class="max-w-xs">
-                <div class="flex items-start gap-2">
-                  <ArrowTopRightOnSquareIcon
-                    class="text-muted-foreground mt-0.5 h-4 w-4 flex-shrink-0"
-                  />
-                  <p class="text-left text-sm">
-                    {{
-                      t('updateOs.checkUpdateResponseModal.manageUpdatePreferencesIncludingBetaAccess')
-                    }}
-                  </p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-        <div v-if="actionButtons.length > 0" :class="cn('xs:!flex-row flex flex-col justify-end gap-3')">
-          <BrandButton
-            v-for="item in actionButtons"
-            :key="item.text"
-            :variant="item.variant ?? undefined"
-            :icon="item.icon"
-            :icon-right="item.iconRight"
-            :icon-right-hover-display="item.iconRightHoverDisplay"
-            :text="item.text ?? ''"
-            :title="item.title ? item.title : undefined"
-            @click="item.click?.()"
-          />
-        </div>
-      </div>
-    </div>
-  </CardWrapper>
-
-  <ResponsiveModal
-    v-else
-    :open="open"
-    :dialog-class="modalWidth"
-    :sheet-class="'h-full'"
-    :show-close-button="!checkForUpdatesLoading"
-    @update:open="(value) => !value && close()"
-  >
-    <div class="flex h-full flex-col">
-      <ResponsiveModalHeader v-if="modalCopy?.title">
-        <ResponsiveModalTitle>
-          {{ modalCopy.title }}
-        </ResponsiveModalTitle>
-        <DialogDescription v-if="modalCopy?.description">
-          <span v-html="modalCopy.description" />
-        </DialogDescription>
-      </ResponsiveModalHeader>
-
-      <div v-if="renderMainSlot" class="flex flex-1 flex-col gap-6 overflow-y-auto px-6">
         <BrandLoading v-if="checkForUpdatesLoading" class="mx-auto w-[150px]" />
         <div v-else class="flex flex-col gap-y-6">
           <!-- OS Update highlight section -->
@@ -533,7 +409,7 @@ const modalWidth = computed(() => {
         </div>
       </div>
 
-      <ResponsiveModalFooter>
+      <component :is="embedded ? 'div' : ResponsiveModalFooter">
         <div
           :class="
             cn(
@@ -606,7 +482,7 @@ const modalWidth = computed(() => {
             </template>
           </div>
         </div>
-      </ResponsiveModalFooter>
+      </component>
     </div>
-  </ResponsiveModal>
+  </component>
 </template>
