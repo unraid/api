@@ -21,6 +21,11 @@ export default defineConfig({
 
   test: {
     environment: 'happy-dom',
+    environmentOptions: {
+      happyDOM: {
+        url: 'http://localhost/',
+      },
+    },
     setupFiles: ['./vitest.setup.ts'],
     include: [
       'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',

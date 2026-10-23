@@ -494,6 +494,56 @@ describe('mount-engine', () => {
     });
   });
 
+  describe('placeholder preservation', () => {
+    it('preserves a meaningful boot placeholder, then removes it once content lands', async () => {
+      const element = document.createElement('div');
+      element.id = 'placeholder-app';
+      const placeholder = document.createElement('span');
+      placeholder.className = 'boot-placeholder';
+      element.appendChild(placeholder);
+      document.body.appendChild(element);
+
+      mockComponentMappings.push({
+        selector: '#placeholder-app',
+        appId: 'placeholder-app',
+        component: TestComponent,
+      });
+
+      await mountUnifiedApp();
+
+      // Once the client render lands, the observer swaps out the placeholder.
+      await vi.waitFor(() => {
+        expect(element.querySelector('.test-component')).toBeTruthy();
+        expect(element.querySelector('.boot-placeholder')).toBeFalsy();
+      });
+    });
+
+    it('takes the clear-then-render path for whitespace-only children (no buffer wrapper)', async () => {
+      const element = document.createElement('div');
+      element.id = 'whitespace-app';
+      // Multi-line custom-element markup leaves a whitespace text node — this is
+      // not a placeholder and must not trigger the display:contents buffer.
+      element.appendChild(document.createTextNode('\n  '));
+      document.body.appendChild(element);
+
+      mockComponentMappings.push({
+        selector: '#whitespace-app',
+        appId: 'whitespace-app',
+        component: TestComponent,
+      });
+
+      await mountUnifiedApp();
+
+      await vi.waitFor(() => {
+        expect(element.querySelector('.test-component')).toBeTruthy();
+      });
+
+      // Rendered directly into the host, with no intervening display:contents div.
+      expect(element.querySelector('div[style*="display: contents"]')).toBeFalsy();
+      expect(element.firstElementChild?.classList.contains('u-app')).toBe(true);
+    });
+  });
+
   describe('autoMountAllComponents', () => {
     it('should call mountUnifiedApp', async () => {
       const element = document.createElement('div');

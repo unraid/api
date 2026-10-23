@@ -38,6 +38,7 @@ const { mockDockerInstance, mockListContainers, mockGetContainer, mockListNetwor
             stop: vi.fn(),
             pause: vi.fn(),
             unpause: vi.fn(),
+            restart: vi.fn(),
             inspect: vi.fn(),
         };
 
@@ -75,6 +76,10 @@ vi.mock('@app/unraid-api/graph/resolvers/docker/utils/docker-client.js', () => (
 
 vi.mock('execa', () => ({
     execa: vi.fn(),
+}));
+
+vi.mock('@app/core/utils/misc/sleep.js', () => ({
+    sleep: vi.fn().mockResolvedValue(undefined),
 }));
 
 const { mockEmhttpGetter } = vi.hoisted(() => ({
@@ -168,6 +173,8 @@ describe('DockerService', () => {
     let service: DockerService;
 
     beforeEach(async () => {
+        (pubsub.publish as ReturnType<typeof vi.fn>).mockClear();
+
         // Reset mocks before each test
         mockListContainers.mockReset();
         mockListNetworks.mockReset();
@@ -175,6 +182,7 @@ describe('DockerService', () => {
         mockContainer.stop.mockReset();
         mockContainer.pause.mockReset();
         mockContainer.unpause.mockReset();
+        mockContainer.restart.mockReset();
         mockContainer.inspect.mockReset();
 
         statMock.mockReset();
@@ -373,6 +381,79 @@ describe('DockerService', () => {
             expect(mockDockerPortService.deduplicateContainerPorts).toHaveBeenCalledWith(
                 container.Ports
             );
+        });
+    });
+
+    describe('restart', () => {
+        const containerInfo = {
+            Id: 'abc123',
+            Names: ['/test-container'],
+            Image: 'test-image',
+            ImageID: 'sha256:abc',
+            Command: 'test',
+            Created: 1700000000,
+            Status: 'Up',
+            Ports: [],
+            Labels: {},
+            HostConfig: { NetworkMode: 'bridge' },
+            NetworkSettings: { Networks: {} },
+            Mounts: [],
+        };
+
+        it('returns the container when it reaches RUNNING state', async () => {
+            mockListContainers.mockResolvedValue([{ ...containerInfo, State: 'running' }]);
+            mockContainer.restart.mockResolvedValue(undefined);
+            mockContainer.inspect.mockResolvedValue({ State: { Status: 'running' } });
+
+            const result = await service.restart('abc123');
+
+            expect(mockContainer.restart).toHaveBeenCalledWith({ t: 10 });
+            expect(mockContainer.inspect).toHaveBeenCalled();
+            expect(result).toMatchObject({ id: 'abc123', state: ContainerState.RUNNING });
+            expect(pubsub.publish).toHaveBeenCalledWith(PUBSUB_CHANNEL.INFO, expect.anything());
+        });
+
+        it('stops polling as soon as the target state is observed', async () => {
+            mockListContainers.mockResolvedValue([{ ...containerInfo, State: 'running' }]);
+            mockContainer.restart.mockResolvedValue(undefined);
+            mockContainer.inspect
+                .mockResolvedValueOnce({ State: { Status: 'restarting' } })
+                .mockResolvedValueOnce({ State: { Status: 'running' } });
+
+            await service.restart('abc123');
+
+            expect(mockContainer.inspect).toHaveBeenCalledTimes(2);
+        });
+
+        it('throws when the container cannot be found after restart', async () => {
+            mockListContainers.mockResolvedValue([]);
+            mockContainer.restart.mockResolvedValue(undefined);
+            mockContainer.inspect.mockResolvedValue({ State: { Status: 'running' } });
+
+            await expect(service.restart('abc123')).rejects.toThrow();
+        });
+
+        it('warns and returns the container when it does not reach RUNNING state after retries', async () => {
+            mockListContainers.mockResolvedValue([{ ...containerInfo, State: 'exited' }]);
+            mockContainer.restart.mockResolvedValue(undefined);
+            mockContainer.inspect.mockResolvedValue({ State: { Status: 'exited' } });
+
+            const result = await service.restart('abc123');
+
+            expect(result).toMatchObject({ id: 'abc123', state: ContainerState.EXITED });
+            expect(pubsub.publish).toHaveBeenCalledWith(PUBSUB_CHANNEL.INFO, expect.anything());
+        });
+
+        it('tolerates inspect failures during polling', async () => {
+            mockListContainers.mockResolvedValue([{ ...containerInfo, State: 'running' }]);
+            mockContainer.restart.mockResolvedValue(undefined);
+            mockContainer.inspect
+                .mockRejectedValueOnce(new Error('temporary failure'))
+                .mockResolvedValueOnce({ State: { Status: 'running' } });
+
+            const result = await service.restart('abc123');
+
+            expect(result).toMatchObject({ id: 'abc123', state: ContainerState.RUNNING });
         });
     });
 });

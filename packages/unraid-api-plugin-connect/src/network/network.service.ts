@@ -17,9 +17,10 @@ export class NetworkService {
         private readonly connectConfigService: ConnectConfigService
     ) {}
 
-    async reloadNetworkStack() {
-        await this.nginxService.reload();
+    async reloadNetworkStack(): Promise<boolean> {
+        const reloaded = await this.nginxService.reload();
         await this.dnsService.update();
+        return reloaded;
     }
 
     /**

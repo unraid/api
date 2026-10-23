@@ -81,6 +81,24 @@ describe('OidcStateService', () => {
             expect(validation.clientState).toBe(clientState);
             expect(validation.redirectUri).toBe(redirectUri);
         });
+
+        it('should store and return the PKCE verifier with the state', async () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-state-123';
+            const redirectUri = 'https://example.com/callback';
+            const codeVerifier = 'pkce-code-verifier';
+
+            const state = await service.generateSecureState(
+                providerId,
+                clientState,
+                redirectUri,
+                codeVerifier
+            );
+            const validation = await service.validateSecureState(state, providerId);
+
+            expect(validation.isValid).toBe(true);
+            expect(validation.codeVerifier).toBe(codeVerifier);
+        });
     });
 
     describe('validateSecureState', () => {

@@ -1,7 +1,7 @@
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
 
-import { useCallback } from '@unraid/shared-callbacks';
+import { createCallback } from '@unraid/shared-callbacks/client';
 
 import type { ExternalActions, QueryPayloads } from '@unraid/shared-callbacks';
 import type { CallbackStatus } from '~/store/callbackActions.helpers';
@@ -24,14 +24,128 @@ import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
+const callbackEncryptionKey = import.meta.env.VITE_CALLBACK_KEY ?? '';
+const callbackNonceStoragePrefix = 'unraid-callback-nonce:';
+const callbackNonceTtlMs = 30 * 60 * 1000;
+
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const {
-    send,
+    send: sendCallback,
     watcher: providedWatcher,
-    generateUrl,
-  } = useCallback({
-    encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
+    generateUrl: generateCallbackUrl,
+  } = createCallback({
+    encryptionKey: callbackEncryptionKey,
   });
+
+  const createCallbackNonce = (): string => {
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  };
+
+  const createAndRememberCallbackNonce = (): string | undefined => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const nonce = createCallbackNonce();
+    localStorage.setItem(
+      `${callbackNonceStoragePrefix}${nonce}`,
+      String(Date.now() + callbackNonceTtlMs)
+    );
+    return nonce;
+  };
+
+  const getCallbackSender = (sender?: string): string | undefined => {
+    if (typeof window === 'undefined') {
+      return sender;
+    }
+
+    const senderUrl = new URL(sender ?? window.location.href, window.location.origin);
+    if (sender === undefined && senderUrl.pathname === '/Tools/Update') {
+      senderUrl.pathname = '/Tools';
+    }
+    senderUrl.hash = '';
+    senderUrl.searchParams.delete('data');
+    return senderUrl.toString();
+  };
+
+  const getCallbackDataInCurrentUrl = (): string | undefined => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    try {
+      const currentUrl = new URL(window.location.href);
+      const queryData = currentUrl.searchParams.get('data');
+      if (queryData) {
+        return queryData;
+      }
+      return currentUrl.hash.startsWith('#data=') ? currentUrl.hash.slice('#data='.length) : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+
+  const send = (...args: Parameters<typeof sendCallback>) => {
+    const [url, payload, redirectType, sendType, sender] = args;
+    return sendCallback(
+      url,
+      payload,
+      redirectType,
+      sendType,
+      getCallbackSender(sender),
+      createAndRememberCallbackNonce()
+    );
+  };
+
+  const generateUrl = (...args: Parameters<typeof generateCallbackUrl>) => {
+    const [url, payload, sendType, sender] = args;
+    return generateCallbackUrl(
+      url,
+      payload,
+      sendType,
+      getCallbackSender(sender),
+      createAndRememberCallbackNonce()
+    );
+  };
+
+  const validateAndConsumeCallbackNonce = (payload: QueryPayloads, requireNonce = false): boolean => {
+    if (!isExternalCallbackPayload(payload)) {
+      return true;
+    }
+
+    let senderUrl: URL;
+    try {
+      if (typeof payload.sender !== 'string') {
+        return false;
+      }
+      senderUrl = new URL(payload.sender, window.location.origin);
+    } catch {
+      return false;
+    }
+
+    const nonce = payload.nonce;
+    if (nonce === undefined) {
+      if (requireNonce) {
+        return false;
+      }
+
+      // Keep relative payloads compatible with direct in-process callers.
+      const isAbsoluteSender =
+        payload.sender.startsWith('//') || /^[a-z][a-z\d+.-]*:/i.test(payload.sender);
+      return !isAbsoluteSender && senderUrl.origin === window.location.origin;
+    }
+
+    if (typeof nonce !== 'string' || !/^[0-9a-f]{32}$/.test(nonce)) {
+      return false;
+    }
+
+    const storageKey = `${callbackNonceStoragePrefix}${nonce}`;
+    const expiresAt = Number(localStorage.getItem(storageKey));
+    localStorage.removeItem(storageKey);
+    return Number.isSafeInteger(expiresAt) && expiresAt >= Date.now();
+  };
 
   // Lazy store initialization - call stores inside functions to avoid circular dependencies
   const getAccountStore = () => useAccountStore();
@@ -45,6 +159,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const callbackActionsExecuting = ref(false);
   const callbackReconciliationPending = ref(false);
   const sendType = 'fromUpc';
+  let lastWatchedCallbackData: string | undefined;
 
   const getCallbackActionErrorMessage = (error: unknown): string => {
     if (error instanceof Error) {
@@ -57,13 +172,31 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   };
 
   const watcher = () => {
+    const callbackDataInCurrentUrl = getCallbackDataInCurrentUrl();
+    if (callbackDataInCurrentUrl && callbackDataInCurrentUrl === lastWatchedCallbackData) {
+      return;
+    }
+
     const result = providedWatcher();
     if (result) {
-      void saveCallbackData(result);
+      if (callbackDataInCurrentUrl) {
+        lastWatchedCallbackData = callbackDataInCurrentUrl;
+      }
+      void saveCallbackData(result, { requireNonce: Boolean(callbackDataInCurrentUrl) });
     }
   };
 
-  const saveCallbackData = async (decryptedData?: QueryPayloads) => {
+  const saveCallbackData = async (
+    decryptedData?: QueryPayloads,
+    options: { requireNonce?: boolean } = {}
+  ) => {
+    if (decryptedData && !validateAndConsumeCallbackNonce(decryptedData, options.requireNonce)) {
+      callbackData.value = undefined;
+      callbackError.value = 'Callback request is not active or has expired';
+      callbackStatus.value = 'error';
+      return;
+    }
+
     if (decryptedData) {
       callbackData.value = decryptedData;
     }
@@ -205,7 +338,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     generateUrl,
     // helpers
     sendType,
-    encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
+    encryptionKey: callbackEncryptionKey,
     callbackError,
   };
 });

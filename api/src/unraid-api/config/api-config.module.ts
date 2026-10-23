@@ -7,7 +7,7 @@ import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 import { csvStringToArray } from '@unraid/shared/util/data.js';
 
 import { isConnectPluginInstalled } from '@app/connect-plugin-cleanup.js';
-import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
+import { API_VERSION, environment, PATHS_CONFIG_MODULES } from '@app/environment.js';
 import { OnboardingTrackerModule } from '@app/unraid-api/config/onboarding-tracker.module.js';
 
 export { type ApiConfig };
@@ -31,8 +31,9 @@ export const loadApiConfig = async () => {
     const apiHandler = new ApiConfigPersistence(new ConfigService()).getFileHandler();
 
     const diskConfig: Partial<ApiConfig> = await apiHandler.loadConfig();
-    // Hack: cleanup stale connect plugin entry if necessary
-    if (!isConnectPluginInstalled()) {
+    // Hack: cleanup stale connect plugin entry if necessary.
+    // Keep config loading side-effect free for CLI plugin management commands.
+    if (environment.IS_MAIN_PROCESS && !isConnectPluginInstalled()) {
         diskConfig.plugins = diskConfig.plugins?.filter(
             (plugin) => plugin !== 'unraid-api-plugin-connect'
         );

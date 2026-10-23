@@ -4,6 +4,7 @@ import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { Type } from 'class-transformer';
 import {
     IsArray,
+    IsBoolean,
     IsEnum,
     IsNotEmpty,
     IsOptional,
@@ -76,6 +77,11 @@ export class OidcProvider {
     @IsString()
     @IsOptional()
     clientSecret?: string;
+
+    // Internal provider capability; the built-in Unraid.net client opts into PKCE.
+    @IsBoolean()
+    @IsOptional()
+    usePkce?: boolean;
 
     @Field(() => String, {
         description:

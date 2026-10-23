@@ -1,4 +1,4 @@
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from 'dompurify';
 import { Marked } from 'marked';
 
 import type { MarkedExtension } from 'marked';

@@ -19,7 +19,8 @@ export class OidcTokenExchangeService {
         code: string,
         state: string,
         redirectUri: string,
-        fullCallbackUrl?: string
+        fullCallbackUrl?: string,
+        codeVerifier?: string
     ): Promise<client.TokenEndpointResponse> {
         this.logger.debug(`Provider ${provider.id} config loaded`);
         this.logger.debug(`Redirect URI: ${redirectUri}`);
@@ -116,12 +117,14 @@ export class OidcTokenExchangeService {
 
             const requestChecks: ExtendedGrantChecks = {
                 expectedState: state,
+                ...(codeVerifier ? { pkceCodeVerifier: codeVerifier } : {}),
             };
 
             // Log what we're about to send
             this.logger.debug(`Executing authorizationCodeGrant with:`);
             this.logger.debug(`- Clean URL: ${cleanUrl.href}`);
             this.logger.debug(`- Expected state: ${state}`);
+            this.logger.debug(`- PKCE enabled: ${codeVerifier ? 'Yes' : 'No'}`);
             this.logger.debug(`- Grant type: authorization_code`);
 
             const tokens = await client.authorizationCodeGrant(config, cleanUrl, requestChecks);

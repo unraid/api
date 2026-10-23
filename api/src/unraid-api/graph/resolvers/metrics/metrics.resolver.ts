@@ -127,16 +127,28 @@ export class MetricsResolver implements OnModuleInit {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => CpuUtilization, { nullable: true })
     public async cpu(): Promise<CpuUtilization> {
         return this.cpuService.generateCpuLoad();
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => MemoryUtilization, { nullable: true })
     public async memory(): Promise<MemoryUtilization> {
         return this.memoryService.generateMemoryLoad();
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => [NetworkMetrics])
     public async network(): Promise<NetworkMetrics[]> {
         return this.networkMetricsService.getNetworkMetrics();
@@ -190,6 +202,10 @@ export class MetricsResolver implements OnModuleInit {
         return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.NETWORK_UTILIZATION);
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => TemperatureMetrics, { nullable: true })
     public async temperature(): Promise<TemperatureMetrics | null> {
         return this.temperatureService.getMetrics();

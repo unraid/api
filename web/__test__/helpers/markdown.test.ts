@@ -12,8 +12,10 @@ const parse = async (content: string) => ({
 describe('sanitization', () => {
   test('strips javascript', async () => {
     const parsed = await parse(`<img src=x onerror=alert(1)//><script>console.log('hello')</script>`);
-    expect(parsed.fromDefault).toMatchSnapshot();
-    expect(parsed.fromInstance).toMatchSnapshot();
+    expect(parsed.fromDefault).not.toContain('onerror');
+    expect(parsed.fromDefault).not.toContain('<script');
+    expect(parsed.fromInstance).not.toContain('onerror');
+    expect(parsed.fromInstance).not.toContain('<script');
   });
 
   test('strips various XSS vectors', async () => {

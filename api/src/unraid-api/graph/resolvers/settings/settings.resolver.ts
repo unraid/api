@@ -26,6 +26,10 @@ export class SettingsResolver {
         private readonly oidcConfig: OidcConfigPersistence
     ) {}
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @Query(() => Settings)
     async settings() {
         return {
@@ -33,6 +37,10 @@ export class SettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => ApiConfig, { description: 'The API setting values' })
     async api() {
         return {
@@ -41,6 +49,10 @@ export class SettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => UnifiedSettings)
     async unified() {
         return {
@@ -48,6 +60,10 @@ export class SettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => SsoSettings)
     async sso() {
         return {
@@ -72,6 +88,10 @@ export class UnifiedSettingsResolver {
         private readonly lifecycleService: LifecycleService
     ) {}
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => GraphQLJSON)
     async dataSchema() {
         const { properties } = await this.userSettings.getAllSettings(['api', 'sso']);
@@ -81,6 +101,10 @@ export class UnifiedSettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => GraphQLJSON)
     async uiSchema() {
         const { elements } = await this.userSettings.getAllSettings(['api', 'sso']);
@@ -90,8 +114,13 @@ export class UnifiedSettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => GraphQLJSON)
     async values() {
+        // Unified settings include persisted OIDC client secrets.
         return this.userSettings.getAllValues();
     }
 
@@ -118,6 +147,10 @@ export class UnifiedSettingsResolver {
 export class SsoSettingsResolver {
     constructor(private readonly oidcConfig: OidcConfigPersistence) {}
 
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => [OidcProvider], { description: 'List of configured OIDC providers' })
     async oidcProviders(): Promise<OidcProvider[]> {
         return this.oidcConfig.getProviders();

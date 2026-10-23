@@ -6,6 +6,14 @@ import { useServerStore } from '~/store/server';
 
 const serverStore = useServerStore();
 
+/**
+ * The webGUI embeds `csrf_token` as a page global and validates every plugin
+ * request against it. Prefer that synchronously-available value; the server
+ * store's `csrf` is only populated after async state hydration, so relying on
+ * it in onMounted sends a blank token and trips a "wrong csrf_token" log error.
+ */
+const resolveCsrfToken = () => serverStore.csrf || globalThis.csrf_token || '';
+
 const apiStatus = ref<string>('');
 const isRunning = ref<boolean>(false);
 const isLoading = ref<boolean>(false);
@@ -18,7 +26,7 @@ const checkStatus = async () => {
   statusMessage.value = '';
   try {
     const response = await WebguiUnraidApiCommand({
-      csrf_token: serverStore.csrf,
+      csrf_token: resolveCsrfToken(),
       command: 'status',
     });
 
@@ -53,7 +61,7 @@ const restartApi = async () => {
 
   try {
     const response = await WebguiUnraidApiCommand({
-      csrf_token: serverStore.csrf,
+      csrf_token: resolveCsrfToken(),
       command: 'restart',
     });
 

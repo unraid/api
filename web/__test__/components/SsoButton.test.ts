@@ -35,7 +35,15 @@ vi.mock('~/components/queries/public-oidc-providers.query.js', () => ({
 }));
 
 // Mock window APIs
-vi.stubGlobal('fetch', vi.fn());
+vi.stubGlobal(
+  'fetch',
+  Object.assign(
+    vi.fn(() => Promise.resolve(new Response('{}'))),
+    {
+      preconnect: vi.fn(),
+    }
+  )
+);
 vi.stubGlobal('sessionStorage', {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -104,7 +112,7 @@ describe('SsoButtons', () => {
     mockLocation.hash = '';
     mockLocationHref = 'http://mock-origin.com/login';
     mockLocation.pathname = '/login';
-    (fetch as Mock).mockClear();
+    vi.mocked(fetch).mockClear();
     mockUseQuery.mockClear();
 
     // Spy on document.querySelector and provide mock implementation

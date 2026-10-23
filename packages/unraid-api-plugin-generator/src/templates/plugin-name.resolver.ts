@@ -17,7 +17,8 @@ export class PluginNameResolver {
     const currentStatus = this.configService.get("plugin-name.enabled", true);
     const newStatus = !currentStatus;
     this.configService.set("plugin-name.enabled", newStatus);
-    // The config persister will automatically save the changes.
+    // This starter mutation is intentionally process-local. Add a host-backed
+    // persistence service before treating this value as durable configuration.
     return newStatus;
   }
 }

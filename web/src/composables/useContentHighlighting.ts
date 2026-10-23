@@ -1,6 +1,6 @@
 import { AnsiUp } from 'ansi_up';
+import DOMPurify from 'dompurify';
 import hljs from 'highlight.js/lib/core';
-import DOMPurify from 'isomorphic-dompurify';
 
 import 'highlight.js/styles/github-dark.css';
 

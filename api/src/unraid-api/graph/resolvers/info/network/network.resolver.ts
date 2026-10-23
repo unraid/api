@@ -20,6 +20,10 @@ export class InfoNetworkResolver {
         return this.networkService.getNetworkInterfaces();
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => [InfoNetworkInterface], {
         name: 'networkInterfaces',
         description: 'Network interfaces',
@@ -28,6 +32,10 @@ export class InfoNetworkResolver {
         return this.networkService.getNetworkInterfaces();
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => InfoNetworkInterface, {
         nullable: true,
         description: 'Primary management interface',

@@ -19,7 +19,6 @@ describe('ArrayResolver', () => {
                     useValue: {
                         updateArrayState: vi.fn(),
                         addDiskToArray: vi.fn(),
-                        removeDiskFromArray: vi.fn(),
                         mountArrayDisk: vi.fn(),
                         unmountArrayDisk: vi.fn(),
                         clearArrayDiskStatistics: vi.fn(),

@@ -279,6 +279,22 @@ export function generateAuthorizationUrl(params: AuthorizationLinkParams): strin
   return `${baseUrl}?${urlParams.toString()}`;
 }
 
+function parseValidRedirectUri(redirectUri: string): URL | undefined {
+  try {
+    const url = new URL(redirectUri);
+    const isHttps = url.protocol === 'https:';
+    const isLocalHttp = url.protocol === 'http:' && url.hostname === 'localhost';
+
+    return isHttps || isLocalHttp ? url : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function isValidRedirectUri(redirectUri: string): boolean {
+  return parseValidRedirectUri(redirectUri) !== undefined;
+}
+
 /**
  * Build callback URL with API key or error
  */
@@ -288,21 +304,21 @@ export function buildCallbackUrl(
   error?: string,
   state?: string
 ): string {
-  try {
-    const url = new URL(redirectUri);
-    if (apiKey) {
-      url.searchParams.set('api_key', apiKey);
-    }
-    if (error) {
-      url.searchParams.set('error', error);
-    }
-    if (state) {
-      url.searchParams.set('state', state);
-    }
-    return url.toString();
-  } catch {
+  const url = parseValidRedirectUri(redirectUri);
+  if (!url) {
     throw new Error('Invalid redirect URI');
   }
+
+  if (apiKey) {
+    url.searchParams.set('api_key', apiKey);
+  }
+  if (error) {
+    url.searchParams.set('error', error);
+  }
+  if (state) {
+    url.searchParams.set('state', state);
+  }
+  return url.toString();
 }
 
 // Alias for backward compatibility

@@ -366,6 +366,10 @@ export enum ArrayState {
 }
 
 export type ArrayStateInput = {
+  /** Optional keyfile contents used to unlock encrypted array disks when starting the array. Accepts a data URL or raw base64 payload. */
+  decryptionKeyfile?: InputMaybe<Scalars['String']['input']>;
+  /** Optional password used to unlock encrypted array disks when starting the array */
+  decryptionPassword?: InputMaybe<Scalars['String']['input']>;
   /** Array state */
   desiredState: ArrayStateInputState;
 };
@@ -948,6 +952,8 @@ export type DockerMutations = {
   pause: DockerContainer;
   /** Remove a container */
   removeContainer: Scalars['Boolean']['output'];
+  /** Restart a container */
+  restart: DockerContainer;
   /** Start a container */
   start: DockerContainer;
   /** Stop a container */
@@ -973,6 +979,11 @@ export type DockerMutationsPauseArgs = {
 export type DockerMutationsRemoveContainerArgs = {
   id: Scalars['PrefixedID']['input'];
   withImage?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type DockerMutationsRestartArgs = {
+  id: Scalars['PrefixedID']['input'];
 };
 
 
@@ -1311,31 +1322,69 @@ export type InfoNetworkInterface = Node & {
   __typename?: 'InfoNetworkInterface';
   /** Interface description/label */
   description?: Maybe<Scalars['String']['output']>;
+  /** Link duplex mode */
+  duplex?: Maybe<Scalars['String']['output']>;
   /** IPv4 Gateway */
   gateway?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
+  /** Whether this is an internal interface */
+  internal?: Maybe<Scalars['Boolean']['output']>;
   /** IPv4 Address */
   ipAddress?: Maybe<Scalars['String']['output']>;
+  /** IPv4 addresses assigned to this interface */
+  ipv4Addresses: Array<InfoNetworkIpv4Address>;
   /** IPv6 Address */
   ipv6Address?: Maybe<Scalars['String']['output']>;
+  /** IPv6 addresses assigned to this interface */
+  ipv6Addresses: Array<InfoNetworkIpv6Address>;
   /** IPv6 Gateway */
   ipv6Gateway?: Maybe<Scalars['String']['output']>;
   /** IPv6 Netmask */
   ipv6Netmask?: Maybe<Scalars['String']['output']>;
   /** MAC Address */
   macAddress?: Maybe<Scalars['String']['output']>;
+  /** Maximum transmission unit */
+  mtu?: Maybe<Scalars['Int']['output']>;
   /** Interface name (e.g. eth0) */
   name: Scalars['String']['output'];
   /** IPv4 Netmask */
   netmask?: Maybe<Scalars['String']['output']>;
+  /** Operational state */
+  operstate?: Maybe<Scalars['String']['output']>;
   /** IPv4 Protocol mode */
   protocol?: Maybe<Scalars['String']['output']>;
+  /** Link speed in Mbps */
+  speed?: Maybe<Scalars['Int']['output']>;
   /** Connection status */
   status?: Maybe<Scalars['String']['output']>;
+  /** Interface type */
+  type?: Maybe<Scalars['String']['output']>;
   /** Using DHCP for IPv4 */
   useDhcp?: Maybe<Scalars['Boolean']['output']>;
   /** Using DHCP for IPv6 */
   useDhcp6?: Maybe<Scalars['Boolean']['output']>;
+  /** Whether this is a virtual interface */
+  virtual?: Maybe<Scalars['Boolean']['output']>;
+  /** VLAN identifier parsed from the interface name */
+  vlanId?: Maybe<Scalars['Int']['output']>;
+};
+
+/** IPv4 address assigned to a network interface */
+export type InfoNetworkIpv4Address = {
+  __typename?: 'InfoNetworkIpv4Address';
+  /** IPv4 address */
+  address: Scalars['String']['output'];
+  /** IPv4 netmask */
+  netmask: Scalars['String']['output'];
+};
+
+/** IPv6 address assigned to a network interface */
+export type InfoNetworkIpv6Address = {
+  __typename?: 'InfoNetworkIpv6Address';
+  /** IPv6 address */
+  address: Scalars['String']['output'];
+  /** IPv6 prefix length */
+  prefixLength?: Maybe<Scalars['Int']['output']>;
 };
 
 export type InfoOs = Node & {
@@ -1576,6 +1625,8 @@ export type Metrics = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Current memory utilization metrics */
   memory?: Maybe<MemoryUtilization>;
+  /** Current network metrics for all interfaces */
+  network: Array<NetworkMetrics>;
   /** Temperature metrics */
   temperature?: Maybe<TemperatureMetrics>;
 };
@@ -1825,6 +1876,39 @@ export type Network = Node & {
   __typename?: 'Network';
   accessUrls?: Maybe<Array<AccessUrl>>;
   id: Scalars['PrefixedID']['output'];
+};
+
+export type NetworkMetrics = Node & {
+  __typename?: 'NetworkMetrics';
+  /** Total received bytes */
+  bytesReceived: Scalars['BigInt']['output'];
+  /** Total transmitted bytes */
+  bytesSent: Scalars['BigInt']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Metric collection timestamp */
+  lastUpdated: Scalars['DateTime']['output'];
+  /** Interface identifier */
+  name: Scalars['String']['output'];
+  /** Operational state */
+  operstate?: Maybe<Scalars['String']['output']>;
+  /** Total received packets */
+  packetsReceived: Scalars['BigInt']['output'];
+  /** Total transmitted packets */
+  packetsSent: Scalars['BigInt']['output'];
+  /** Dropped receive packets */
+  receiveDropped: Scalars['BigInt']['output'];
+  /** Receive errors */
+  receiveErrors: Scalars['BigInt']['output'];
+  /** Receive throughput in bytes per second */
+  rxSec: Scalars['Float']['output'];
+  /** Dropped transmit packets */
+  transmitDropped: Scalars['BigInt']['output'];
+  /** Transmit errors */
+  transmitErrors: Scalars['BigInt']['output'];
+  /** Transmit throughput in bytes per second */
+  txSec: Scalars['Float']['output'];
+  /** Estimated link utilization percentage */
+  utilizationPercent?: Maybe<Scalars['Float']['output']>;
 };
 
 export type Node = {
@@ -2327,6 +2411,8 @@ export type Query = {
   me: UserAccount;
   metrics: Metrics;
   network: Network;
+  /** Network interfaces */
+  networkInterfaces: Array<InfoNetworkInterface>;
   /** Get all notifications */
   notifications: Notifications;
   /** Get the full OIDC configuration (admin only) */
@@ -2736,6 +2822,7 @@ export type Subscription = {
   systemMetricsCpu: CpuUtilization;
   systemMetricsCpuTelemetry: CpuPackages;
   systemMetricsMemory: MemoryUtilization;
+  systemMetricsNetwork: Array<NetworkMetrics>;
   systemMetricsTemperature?: Maybe<TemperatureMetrics>;
   upsUpdates: UpsDevice;
 };
@@ -3758,6 +3845,11 @@ export type UpdateDockerViewPreferencesMutationVariables = Exact<{
 
 export type UpdateDockerViewPreferencesMutation = { __typename?: 'Mutation', updateDockerViewPreferences: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, prefs?: any | null, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string>, meta?: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, status: string, image: string, autoStart: boolean, created: number, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null } | null }> }> } };
 
+export type ArrayCapacityQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ArrayCapacityQuery = { __typename?: 'Query', array: { __typename?: 'UnraidArray', id: string, state: ArrayState, capacity: { __typename?: 'ArrayCapacity', kilobytes: { __typename?: 'Capacity', free: string, used: string, total: string } } } };
+
 export type LogFilesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -4123,6 +4215,7 @@ export const UpdateAllDockerContainersDocument = {"kind":"Document","definitions
 export const UpdateDockerAutostartConfigurationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerAutostartConfiguration"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"entries"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DockerAutostartEntryInput"}}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"persistUserPreferences"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateAutostartConfiguration"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"entries"},"value":{"kind":"Variable","name":{"kind":"Name","value":"entries"}}},{"kind":"Argument","name":{"kind":"Name","value":"persistUserPreferences"},"value":{"kind":"Variable","name":{"kind":"Name","value":"persistUserPreferences"}}}]}]}}]}}]} as unknown as DocumentNode<UpdateDockerAutostartConfigurationMutation, UpdateDockerAutostartConfigurationMutationVariables>;
 export const UpdateDockerContainersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerContainers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"ids"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateContainers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"ids"},"value":{"kind":"Variable","name":{"kind":"Name","value":"ids"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateDockerContainersMutation, UpdateDockerContainersMutationVariables>;
 export const UpdateDockerViewPreferencesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerViewPreferences"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"viewId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"prefs"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"JSON"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateDockerViewPreferences"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"viewId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"viewId"}}},{"kind":"Argument","name":{"kind":"Name","value":"prefs"},"value":{"kind":"Variable","name":{"kind":"Name","value":"prefs"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"prefs"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}},{"kind":"Field","name":{"kind":"Name","value":"meta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"ports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"autoStart"}},{"kind":"Field","name":{"kind":"Name","value":"hostConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"networkMode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"created"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<UpdateDockerViewPreferencesMutation, UpdateDockerViewPreferencesMutationVariables>;
+export const ArrayCapacityDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ArrayCapacity"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"array"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"capacity"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"kilobytes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"free"}},{"kind":"Field","name":{"kind":"Name","value":"used"}},{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ArrayCapacityQuery, ArrayCapacityQueryVariables>;
 export const LogFilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"modifiedAt"}}]}}]}}]} as unknown as DocumentNode<LogFilesQuery, LogFilesQueryVariables>;
 export const LogFileContentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFileContent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lines"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"startLine"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}},{"kind":"Argument","name":{"kind":"Name","value":"lines"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lines"}}},{"kind":"Argument","name":{"kind":"Name","value":"startLine"},"value":{"kind":"Variable","name":{"kind":"Name","value":"startLine"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"totalLines"}},{"kind":"Field","name":{"kind":"Name","value":"startLine"}}]}}]}}]} as unknown as DocumentNode<LogFileContentQuery, LogFileContentQueryVariables>;
 export const LogFileSubscriptionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"LogFileSubscription"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"totalLines"}}]}}]}}]} as unknown as DocumentNode<LogFileSubscriptionSubscription, LogFileSubscriptionSubscriptionVariables>;

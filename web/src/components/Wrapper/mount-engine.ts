@@ -20,6 +20,11 @@ const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || c
 const PORTAL_ROOT_ID = 'unraid-api-modals-virtual';
 const NAV_ELEMENT_IDS = ['header', 'menu', 'footer'] as const;
 
+// Upper bound for how long a preserved placeholder may stay before the safety net
+// removes it, in case the client render never lands. Generous: a normal client
+// render swaps in within a frame or two, so this only fires on a broken mount.
+const PLACEHOLDER_FALLBACK_MS = 5000;
+
 const hideNavIfEmbeddedInIFrame = () => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return;
@@ -260,11 +265,71 @@ export async function mountUnifiedApp() {
     const vnode = createVNode(wrappedComponent);
     vnode.appContext = app._context; // Share the app context
 
-    // Clear the element and render the component into it
-    // ensureUnapiScope(element);
-    // ensureContainerScope(element, mapping);
-    element.replaceChildren();
-    render(vnode, element);
+    // Preserve any server-rendered placeholder (e.g. the header boot logo) so the
+    // element is never visibly empty while the client render is in flight — that
+    // render can land a frame or more after this call, and clearing first leaves
+    // a blank flash. Vue needs a clean container to mount into, so render into a
+    // fresh, layout-transparent (display: contents) child appended AFTER the
+    // placeholder. The placeholder stays visible until the real content appears,
+    // at which point the observer removes it — a seamless swap.
+    //
+    // Only take this path for a *meaningful* placeholder (a real element or
+    // non-whitespace text). Multi-line custom-element markup leaves whitespace
+    // text nodes that are not a placeholder; those keep the original
+    // clear-then-render path so the shared mount stays unchanged for every
+    // component except the header, which is the only one with a boot placeholder.
+    const placeholderNodes = Array.from(element.childNodes);
+    const hasMeaningfulPlaceholder = placeholderNodes.some(
+      (node) =>
+        node.nodeType === Node.ELEMENT_NODE ||
+        (node.nodeType === Node.TEXT_NODE && (node.textContent ?? '').trim().length > 0)
+    );
+    let renderTarget: HTMLElement = element;
+    let placeholderCleanup: (() => void) | undefined;
+    if (hasMeaningfulPlaceholder) {
+      const buffer = document.createElement('div');
+      buffer.style.display = 'contents';
+      element.appendChild(buffer);
+      renderTarget = buffer;
+
+      const removePlaceholder = () => {
+        for (const node of placeholderNodes) {
+          if (node.parentNode === element) {
+            element.removeChild(node);
+          }
+        }
+      };
+      const fallback: { timer?: ReturnType<typeof setTimeout> } = {};
+      const observer = new MutationObserver(() => {
+        if (buffer.childElementCount > 0) {
+          observer.disconnect();
+          if (fallback.timer !== undefined) {
+            clearTimeout(fallback.timer);
+          }
+          removePlaceholder();
+        }
+      });
+      observer.observe(buffer, { childList: true });
+      // Safety net: never leave a stale placeholder if the render never lands.
+      fallback.timer = setTimeout(() => {
+        observer.disconnect();
+        removePlaceholder();
+      }, PLACEHOLDER_FALLBACK_MS);
+
+      placeholderCleanup = () => {
+        observer.disconnect();
+        if (fallback.timer !== undefined) {
+          clearTimeout(fallback.timer);
+        }
+        if (buffer.parentNode === element) {
+          element.removeChild(buffer);
+        }
+      };
+    } else {
+      element.replaceChildren();
+    }
+
+    render(vnode, renderTarget);
 
     // Mark as mounted
     element.setAttribute('data-vue-mounted', 'true');
@@ -277,7 +342,10 @@ export async function mountUnifiedApp() {
     // Store for cleanup
     mountedComponents.push({
       element,
-      unmount: () => render(null, element),
+      unmount: () => {
+        render(null, renderTarget);
+        placeholderCleanup?.();
+      },
     });
   });
 

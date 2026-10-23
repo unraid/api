@@ -15,6 +15,8 @@ import BrandAvatar from '~/components/Brand/Avatar.vue';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
+const { compact = false } = defineProps<{ compact?: boolean }>();
+
 const { t } = useI18n();
 
 const { errors } = storeToRefs(useErrorsStore());
@@ -59,14 +61,18 @@ const title = computed((): string => {
         class="text-unraid-red relative h-6 w-6 fill-current"
       />
     </template>
-    <span v-if="text" class="relative leading-none">
+    <!-- Hide the "Fix Error" label on mobile so the header shows just the alert
+         icon, keeping the compact header consistent and portable. -->
+    <span v-if="text" class="relative leading-none max-sm:hidden">
       <span>{{ text }}</span>
       <span
         class="from-unraid-red to-orange absolute inset-x-0 bottom-[-3px] h-0.5 w-full rounded bg-linear-to-r opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100"
       />
     </span>
 
-    <Bars3Icon class="w-5" />
+    <!-- In the combined mobile header, the alert replaces the menu glyph.
+         Keep the alert visible without adding another icon to the row. -->
+    <Bars3Icon class="w-5" :class="{ 'max-sm:!hidden': compact && errors.length && errors[0].level }" />
 
     <BrandAvatar v-if="connectPluginInstalled" />
   </Button>
