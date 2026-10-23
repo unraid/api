@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "{0}% af arrayet er brugt",
   "headerOsVersion.apiVersionCopiedToClipboard": "API-version kopieret til udklipsholder",
   "headerOsVersion.osVersionCopiedToClipboard": "OS-version kopieret til udklipsholder",
+  "headerOsVersion.rebootToUpdate": "Genstart for at opdatere",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} Udgivet",

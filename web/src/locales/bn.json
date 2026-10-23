@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "অ্যারের {0}% ব্যবহৃত",
   "headerOsVersion.apiVersionCopiedToClipboard": "API সংস্করণ ক্লিপবোর্ডে কপি করা হয়েছে",
   "headerOsVersion.osVersionCopiedToClipboard": "OS সংস্করণ ক্লিপবোর্ডে কপি করা হয়েছে",
+  "headerOsVersion.rebootToUpdate": "আপডেট করতে রিবুট করুন",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} প্রকাশিত",

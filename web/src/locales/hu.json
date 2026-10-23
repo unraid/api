@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "A lemeztömb {0}%-a van használatban.",
   "headerOsVersion.apiVersionCopiedToClipboard": "API-verzió vágólapra másolva",
   "headerOsVersion.osVersionCopiedToClipboard": "Unraid OS-verzió vágólapra másolva",
+  "headerOsVersion.rebootToUpdate": "Újraindítás a frissítéshez",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Megjelent az Unraid OS {0}",
