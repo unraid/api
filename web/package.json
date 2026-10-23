@@ -54,7 +54,7 @@
     "@graphql-codegen/introspection": "5.0.0",
     "@graphql-typed-document-node/core": "3.2.0",
     "@ianvs/prettier-plugin-sort-imports": "4.6.3",
-    "@pinia/testing": "1.0.2",
+    "@pinia/testing": "2.0.1",
     "@rollup/plugin-strip": "3.0.4",
     "@tailwindcss/typography": "0.5.16",
     "@tailwindcss/vite": "4.1.12",
