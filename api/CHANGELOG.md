@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.37.7](https://github.com/unraid/api/compare/v4.37.6...v4.37.7) (2026-10-23)
+
+
+### Bug Fixes
+
+* **runtime:** update bundled Node to 22.23.4 ([#2117](https://github.com/unraid/api/issues/2117)) ([8df285c](https://github.com/unraid/api/commit/8df285c9ad2aed90bb28032563e6987cacf0a18e))
+
 ## [4.37.6](https://github.com/unraid/api/compare/v4.37.5...v4.37.6) (2026-10-20)
 
 
