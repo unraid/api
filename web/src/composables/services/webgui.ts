@@ -119,13 +119,22 @@ export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | u
       .url('/plugins/dynamix.plugin.manager/include/UnraidCheckExec.php')
       .query(params)
       .get()
-      .json((json) => {
-        return json as ServerUpdateOsResponse;
-      })
+      .json<unknown>()
       .catch((error) => {
         console.error('[WebguiCheckForUpdate] catch failed to execute UpdateCheck', error);
         throw new Error('Error checking for updates');
       });
+    if (
+      !response ||
+      typeof response !== 'object' ||
+      !('version' in response) ||
+      typeof response.version !== 'string' ||
+      !response.version ||
+      !('isNewer' in response) ||
+      typeof response.isNewer !== 'boolean'
+    ) {
+      throw new Error('Invalid update check response');
+    }
     return response as ServerUpdateOsResponse;
   } catch (error) {
     console.error('[WebguiCheckForUpdate] catch failed to execute UpdateCheck', error);
