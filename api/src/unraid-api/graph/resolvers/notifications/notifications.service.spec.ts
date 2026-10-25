@@ -58,7 +58,6 @@ async function disableNotificationsWatcher(service: NotificationsService) {
         } | null;
         await watcher?.close?.();
         Reflect.set(NotificationsService, 'watcher', null);
-        Reflect.set(NotificationsService, 'overview', zeroOverview());
     }
 }
 
@@ -100,8 +99,8 @@ describe.sequential('NotificationsService', () => {
 
     // make sure each test is isolated (as much as possible)
     afterEach(async () => {
-        Reflect.set(NotificationsService, 'overview', zeroOverview());
         await service.deleteAllNotifications();
+        expect(service.getOverview()).toEqual(zeroOverview());
     });
 
     /**------------------------------------------------------------------------
