@@ -46,6 +46,7 @@ export class NotificationsService {
      */
     private path: string | null = null;
     private initialization: Promise<void> | null = null;
+    private initializationFailed = false;
     private overviewUpdate: Promise<unknown> = Promise.resolve();
     private notificationFiles = new Map<string, NotificationFileState>();
     private isHydratingOverview = false;
@@ -101,6 +102,9 @@ export class NotificationsService {
 
     private async waitForInitialization() {
         this.paths();
+        if (this.initializationFailed) {
+            this.initialization = this.initializeNotificationsState(this.getConfiguredPath(), true);
+        }
         await this.initialization;
     }
 
@@ -109,6 +113,7 @@ export class NotificationsService {
     }
 
     private initializeNotificationsState(basePath: string, recreate = false) {
+        this.initializationFailed = false;
         const initialize = async () => {
             await this.ensureNotificationDirectories(basePath);
             this.pendingNotificationEvents.clear();
@@ -137,7 +142,12 @@ export class NotificationsService {
         };
 
         const previousInitialization = this.initialization ?? Promise.resolve();
-        return previousInitialization.catch(() => undefined).then(initialize);
+        const initialization = previousInitialization.catch(() => undefined).then(initialize);
+        void initialization.catch((error) => {
+            if (this.initialization === initialization) this.initializationFailed = true;
+            this.logger.error(error);
+        });
+        return initialization;
     }
 
     private async ensureNotificationDirectories(basePath: string) {
@@ -170,18 +180,25 @@ export class NotificationsService {
             ignoreInitial: true,
         });
         NotificationsService.watcher = watcher;
+        watcher.on('error', (error) => this.logger.error(error));
         for (const event of ['add', 'change', 'unlink'] as const) {
             watcher.on(event, (path) => {
                 void this.handleNotificationEvent(path, event).catch((e) => this.logger.error(e));
             });
         }
-        await new Promise<void>((resolve, reject) => {
-            watcher.once('error', reject);
-            watcher.once('ready', () => {
-                watcher.off('error', reject);
-                resolve();
+        try {
+            await new Promise<void>((resolve, reject) => {
+                watcher.once('error', reject);
+                watcher.once('ready', () => {
+                    watcher.off('error', reject);
+                    resolve();
+                });
             });
-        });
+        } catch (error) {
+            if (NotificationsService.watcher === watcher) NotificationsService.watcher = null;
+            await watcher.close().catch((closeError) => this.logger.error(closeError));
+            throw error;
+        }
         return watcher;
     }
 

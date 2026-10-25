@@ -2,6 +2,7 @@
 
 import { ConfigService } from '@nestjs/config';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
+import { EventEmitter } from 'node:events';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -129,6 +130,36 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
                 ignoreInitial: true,
             })
         );
+    });
+
+    it('closes a watcher that fails before ready and retries on the next public read', async () => {
+        await Reflect.get(NotificationsService, 'watcher').close();
+        Reflect.set(NotificationsService, 'watcher', null);
+        const failedWatcher = Object.assign(new EventEmitter(), {
+            close: vi.fn().mockResolvedValue(undefined),
+        });
+        mockWatch.mockImplementationOnce(() => {
+            setImmediate(() => failedWatcher.emit('error', new Error('watch setup failed')));
+            return failedWatcher;
+        });
+        const recoveringService = createNotificationsService();
+        await expect(Reflect.get(recoveringService, 'initialization')).rejects.toThrow();
+        expect(failedWatcher.close).toHaveBeenCalledOnce();
+        expect(Reflect.get(NotificationsService, 'watcher')).toBeNull();
+        const attempts = mockWatch.mock.calls.length;
+        await expect(
+            Promise.all(
+                [0, 1].map(() =>
+                    recoveringService.getNotifications({
+                        type: NotificationType.UNREAD,
+                        offset: 0,
+                        limit: 10,
+                    })
+                )
+            )
+        ).resolves.toEqual([[], []]);
+        expect(mockWatch).toHaveBeenCalledTimes(attempts + 1);
+        expect(Reflect.get(NotificationsService, 'watcher')).not.toBe(failedWatcher);
     });
 
     it('should load and validate a valid notification file', async () => {

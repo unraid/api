@@ -146,6 +146,33 @@ describe.sequential('Notification filesystem and subscription integration', () =
         await expectCounts(3, 3);
     });
 
+    it('keeps handling real file changes after a runtime watcher error', async () => {
+        await start();
+        expect(() => watcher.emit('error', new Error('watch resource exhausted'))).not.toThrow();
+        await write(UNREAD, 'after-error.notify', 'warning');
+        await expectEvent('add', UNREAD, 'after-error.notify');
+        await expectCounts(1, 0);
+        await service.archiveNotification({ id: 'after-error.notify' });
+        await expectCounts(0, 1);
+    });
+
+    it('recovers a failed directory initialization on the next public request', async () => {
+        const blocked = join(basePath, 'blocked');
+        await writeFile(blocked, 'not a directory');
+        config.set('store.dynamix.notify.path', blocked);
+        service = new NotificationsService(config);
+        await expect(Reflect.get(service, 'initialization')).rejects.toThrow();
+        await unlink(blocked);
+        await expect(service.getNotifications({ type: UNREAD, offset: 0, limit: 10 })).resolves.toEqual(
+            []
+        );
+        await writeFile(
+            join(blocked, 'unread', 'recovered.notify'),
+            'timestamp=1700000000\nevent=Test\nsubject=Test\ndescription=Test\nimportance=alert\n'
+        );
+        await vi.waitFor(() => expect(service.getOverview().unread.alert).toBe(1));
+    });
+
     it.each([UNREAD, ARCHIVE])(
         'handles legacy files written %s first without recounting',
         async (first) => {
@@ -500,6 +527,55 @@ describe.sequential('Notification filesystem and subscription integration', () =
         await unlink(nextFile);
         await removed;
         await expectCounts(0, 0);
+    });
+
+    it('recovers a failed startup replay on the next public request', async () => {
+        const prototype = NotificationsService.prototype;
+        const snapshot = Reflect.get(prototype, 'buildOverviewSnapshot');
+        const handler = Reflect.get(prototype, 'handleNotificationEvent');
+        const captured = Promise.withResolvers<void>();
+        const release = Promise.withResolvers<void>();
+        let failReplay = true;
+        Reflect.set(prototype, 'buildOverviewSnapshot', async function (this: NotificationsService) {
+            const result = await snapshot.call(this);
+            captured.resolve();
+            await release.promise;
+            return result;
+        });
+        Reflect.set(
+            prototype,
+            'handleNotificationEvent',
+            async function (this: NotificationsService, path: string, event: string) {
+                if (
+                    failReplay &&
+                    path.endsWith('/replay.notify') &&
+                    !Reflect.get(this, 'isHydratingOverview')
+                ) {
+                    failReplay = false;
+                    throw new Error('replay read failed');
+                }
+                return handler.call(this, path, event);
+            }
+        );
+        const rejected = expect(start()).rejects.toThrow();
+        try {
+            await captured.promise;
+            const activeWatcher: FSWatcher = Reflect.get(NotificationsService, 'watcher');
+            const added = new Promise<void>((resolve) => activeWatcher.once('add', () => resolve()));
+            await write(UNREAD, 'replay.notify', 'alert');
+            await added;
+            release.resolve();
+            await rejected;
+            expect(failReplay).toBe(false);
+            await expect(
+                service.getNotifications({ type: UNREAD, offset: 0, limit: 10 })
+            ).resolves.toHaveLength(1);
+            await expectCounts(1, 0);
+        } finally {
+            release.resolve();
+            Reflect.set(prototype, 'buildOverviewSnapshot', snapshot);
+            Reflect.set(prototype, 'handleNotificationEvent', handler);
+        }
     });
 
     it('returns matching lists and counts through actual GraphQL queries and mutations', async () => {

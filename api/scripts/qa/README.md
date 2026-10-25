@@ -50,3 +50,31 @@ it excludes credentials, the endpoint, and existing notification contents.
 A syntax check is not appliance acceptance. Only a receipt with `status=passed`
 and `cleanup=complete`, plus the runner's package and VM lifecycle evidence,
 proves that this appliance test passed.
+
+## Adversarial appliance pass
+
+Set `QA_ADVERSARIAL=true` and `QA_ALLOW_SERVICE_RESTART=true` to run the extended
+pass. This requires a disposable guest, an isolated empty notification directory,
+and native notification settings `normal=1`, `warning=1`, and `alert=1`. The runner
+must prepare those settings before restarting the API, preserve the original
+configuration, and restore it afterward. The temporary API key also needs
+notification creation permission. With the current CLI, use an alphanumeric key
+name, an explicit `GUEST` role, and the four explicit notification permissions.
+
+The extended pass checks API creation through the installed native script,
+three authenticated GraphQL WebSocket subscriptions, content updates without
+count changes, selected-ID and severity-filtered bulk archive/restore, all-item
+archive/restore/deletion, persisted counts after service restart, subscription
+reconnection, and recovery from a real startup directory failure without
+another process restart.
+
+It also temporarily lowers the guest's inotify watch limit, creates a watched
+subdirectory, requires a logged `ENOSPC`, restores the original limit in
+`finally`, and proves that the same API process still counts native writes.
+The runner must restore and release the VM on every outcome. This fault test
+must never run on a shared or production guest.
+
+The receipt separately records whether the ID returned by native API creation
+matches the actual disk record. A mismatch produces `passed_with_findings`,
+which is not a clean regression verdict. The runner must report that finding
+and establish whether it predates the candidate before deciding its scope.
