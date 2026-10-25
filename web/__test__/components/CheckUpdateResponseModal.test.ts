@@ -59,7 +59,7 @@ vi.mock('@heroicons/vue/24/solid', () => ({
 }));
 
 vi.mock('@heroicons/vue/24/outline', () => ({
-  ArrowDownTrayIcon: { template: '<svg />' },
+  ArrowLongRightIcon: { template: '<svg />' },
 }));
 
 vi.mock('~/components/UpdateOs/IgnoredRelease.vue', () => ({
@@ -311,6 +311,26 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
 
     await viewChangelogButton!.trigger('click');
     expect(mockSetReleaseForUpdate).toHaveBeenCalledWith({ changelog: '### New release' });
+  });
+
+  it('shares the current-to-target version summary in card and dialog layouts', async () => {
+    osVersion.value = '7.2.0';
+    available.value = '7.3.0';
+    const wrapper = renderModal();
+    expect(wrapper.findAll('dt').map((term) => term.text())).toEqual([
+      'Current version',
+      'Target version',
+    ]);
+    expect(wrapper.findAll('dd').map((value) => value.text())).toEqual(['7.2.0', '7.3.0']);
+    expect(wrapper.text().match(/7\.2\.0/g)).toHaveLength(1);
+    expect(wrapper.text().match(/7\.3\.0/g)).toHaveLength(1);
+    osVersion.value = null;
+    await nextTick();
+    expect(wrapper.findAll('dt').map((term) => term.text())).toEqual(['Target version']);
+    expect(wrapper.find('[aria-hidden="true"]').exists()).toBe(false);
+    checkForUpdatesLoading.value = true;
+    await nextTick();
+    expect(wrapper.find('dl').exists()).toBe(false);
   });
 
   it('includes renew option when update requires license renewal', async () => {

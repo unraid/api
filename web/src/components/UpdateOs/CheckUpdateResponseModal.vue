@@ -3,7 +3,7 @@ import { computed, onBeforeMount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
-import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
+import { ArrowLongRightIcon } from '@heroicons/vue/24/outline';
 import {
   ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
@@ -81,6 +81,12 @@ const {
 } = storeToRefs(updateOsStore);
 const pendingReboot = computed(() => props.embedded && !!rebootType.value);
 const waitingForDrivers = computed(() => rebootType.value === 'thirdPartyDriversDownloading');
+const targetVersion = computed(() =>
+  pendingReboot.value ? rebootVersion.value : availableWithRenewal.value || available.value
+);
+const showVersionTransition = computed(
+  () => !checkForUpdatesLoading.value && !checkForUpdatesFailed.value && !!targetVersion.value
+);
 const checkedWhileWaiting = ref(false);
 const checkForUpdates = async () => {
   checkedWhileWaiting.value = false;
@@ -365,8 +371,11 @@ const modalWidth = computed(() => {
     "
     @update:open="(value: boolean) => !value && close()"
   >
-    <div :class="cn('flex h-full flex-col', embedded && 'gap-6')">
-      <p v-if="embedded && osVersion && !showNoUpdateContent" class="text-muted-foreground text-sm">
+    <div :class="cn('@container flex h-full flex-col', embedded && 'gap-6')">
+      <p
+        v-if="embedded && osVersion && !showNoUpdateContent && !showVersionTransition"
+        class="text-muted-foreground text-sm"
+      >
         {{ t('updateOs.checkUpdateResponseModal.currentVersion', [osVersion]) }}
       </p>
       <component
@@ -393,6 +402,31 @@ const modalWidth = computed(() => {
         v-if="renderMainSlot"
         :class="cn('flex flex-1 flex-col gap-6 overflow-y-auto', !embedded && 'px-6')"
       >
+        <div
+          v-if="showVersionTransition"
+          class="mx-auto flex w-full max-w-xl flex-col gap-3 @sm:flex-row @sm:items-center"
+        >
+          <dl
+            v-if="osVersion"
+            class="border-border bg-muted/40 block! min-w-0 flex-1 rounded-lg border px-4 py-3"
+          >
+            <dt class="text-muted-foreground text-left! text-xs font-medium">
+              {{ t('updateOs.checkUpdateResponseModal.currentVersionLabel') }}
+            </dt>
+            <dd class="text-foreground mt-1 text-lg font-semibold break-all">{{ osVersion }}</dd>
+          </dl>
+          <ArrowLongRightIcon
+            v-if="osVersion"
+            aria-hidden="true"
+            class="text-primary mx-auto h-5 w-5 shrink-0 rotate-90 @sm:rotate-0"
+          />
+          <dl class="border-primary/30 bg-primary/10 block! min-w-0 flex-1 rounded-lg border px-4 py-3">
+            <dt class="text-muted-foreground text-left! text-xs font-medium">
+              {{ t('updateOs.checkUpdateResponseModal.targetVersionLabel') }}
+            </dt>
+            <dd class="text-foreground mt-1 text-xl font-bold break-all">{{ targetVersion }}</dd>
+          </dl>
+        </div>
         <BrandLoading v-if="checkForUpdatesLoading" class="mx-auto w-[150px]" />
         <div v-else-if="checkForUpdatesFailed" role="alert" class="flex justify-center py-6">
           <span class="sr-only">{{ modalCopy?.title }}. {{ modalCopy?.description }}</span>
@@ -400,7 +434,6 @@ const modalWidth = computed(() => {
         </div>
         <div v-else-if="pendingReboot" class="flex flex-col items-center gap-4 py-6">
           <ArrowPathIcon class="text-primary h-12 w-12" />
-          <p class="text-foreground text-3xl font-bold">{{ rebootVersion }}</p>
           <p v-if="waitingForDrivers && checkedWhileWaiting" class="text-muted-foreground text-sm">
             {{
               available || availableWithRenewal
@@ -410,15 +443,8 @@ const modalWidth = computed(() => {
           </p>
         </div>
         <div v-else class="flex flex-col gap-y-6">
-          <!-- OS Update highlight section -->
           <div v-if="available || availableWithRenewal" class="flex flex-col items-center gap-4 py-4">
-            <div class="bg-primary/10 flex items-center justify-center rounded-full p-4">
-              <ArrowDownTrayIcon class="text-primary h-8 w-8" />
-            </div>
             <div class="text-center">
-              <h2 class="text-foreground text-3xl font-bold">
-                {{ availableWithRenewal || available }}
-              </h2>
               <p v-if="userFormattedReleaseDate" class="text-muted-foreground mt-2 text-center text-sm">
                 Released on {{ userFormattedReleaseDate }}
               </p>

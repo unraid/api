@@ -826,6 +826,8 @@
   "updateOs.checkUpdateResponseModal.checkFailed": "Unable to check for updates",
   "updateOs.checkUpdateResponseModal.checkFailedDescription": "Check your connection and try again.",
   "updateOs.checkUpdateResponseModal.currentVersion": "Current Version {0}",
+  "updateOs.checkUpdateResponseModal.currentVersionLabel": "Current version",
+  "updateOs.checkUpdateResponseModal.targetVersionLabel": "Target version",
   "updateOs.checkUpdateResponseModal.enableUpdateNotifications": "Enable update notifications",
   "updateOs.checkUpdateResponseModal.goToSettingsNotificationsToEnable": "Go to Settings > Notifications to enable automatic OS update notifications for future releases.",
   "updateOs.checkUpdateResponseModal.ignoredReleases": "Ignored Releases",
