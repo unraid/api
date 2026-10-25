@@ -60,6 +60,7 @@
         "@apollo/client": "3.14.0",
         "@apollo/server": "5.5.1",
         "@as-integrations/fastify": "3.1.0",
+        "@escape.tech/graphql-armor": "3.2.0",
         "@fastify/cookie": "11.0.2",
         "@fastify/helmet": "13.0.1",
         "@graphql-tools/merge": "9.1.1",
