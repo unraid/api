@@ -18,6 +18,11 @@ import { omitIfSchemaTransformer } from '@app/unraid-api/decorators/omit-if.deco
 import '@app/unraid-api/graph/auth/auth-action.enum.js';
 
 import { createDynamicIntrospectionPlugin } from '@app/unraid-api/graph/introspection-plugin.js';
+import {
+    graphqlWsOptions,
+    maxGraphqlTokens,
+    requestProtection,
+} from '@app/unraid-api/graph/request-protection.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { createSandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
 import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
@@ -42,6 +47,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                             : true,
                     introspection: true,
                     playground: false, // we handle this in the sandbox plugin
+                    parseOptions: { maxTokens: maxGraphqlTokens },
                     context: async ({ req, connectionParams, extra }) => {
                         return {
                             req,
@@ -51,14 +57,11 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                     },
                     fieldResolverEnhancers: ['guards'],
                     plugins: [
+                        ...requestProtection.plugins,
                         createDynamicIntrospectionPlugin(isSandboxEnabled),
                         createSandboxPlugin(),
                     ] as any[],
-                    subscriptions: {
-                        'graphql-ws': {
-                            path: '/graphql',
-                        },
-                    },
+                    subscriptions: { 'graphql-ws': graphqlWsOptions },
                     buildSchemaOptions: {
                         dateScalarMode: 'isoDate',
                         // Only add directive when not in test environment to avoid GraphQL version conflicts
@@ -72,7 +75,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                                   const schemaWithPermissions = usePermissionsSchemaTransformer(schema);
                                   return omitIfSchemaTransformer(schemaWithPermissions);
                               },
-                    validationRules: [NoUnusedVariablesRule],
+                    validationRules: [NoUnusedVariablesRule, ...requestProtection.validationRules],
                 };
             },
         }),
