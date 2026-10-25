@@ -97,7 +97,7 @@ describe('Modals.standalone.vue', () => {
     }
   });
 
-  it('shows update responses during a driver reboot without duplicating the page changelog', async () => {
+  it('leaves driver-reboot responses and changelogs to the Tools card', async () => {
     wrapper.unmount();
     window.history.replaceState({}, '', '/Tools/Update');
     try {
@@ -107,7 +107,7 @@ describe('Modals.standalone.vue', () => {
       server.rebootType = 'thirdPartyDriversDownloading';
       update.setModalOpen(true);
       await nextTick();
-      expect(wrapper.text()).toContain('CheckUpdateResponseModal');
+      expect(wrapper.findComponent({ name: 'UpdateOsCheckUpdateResponseModal' }).exists()).toBe(false);
       expect(wrapper.findComponent({ name: 'UpdateOsChangelogModal' }).exists()).toBe(false);
 
       server.rebootType = '';

@@ -175,6 +175,10 @@ describe('UpdateOs Store', () => {
       );
 
       expect(WebguiCheckForUpdate).toHaveBeenCalled();
+      expect(store.checkForUpdatesLoading).toBe(false);
+      expect(store.checkForUpdatesFailed).toBe(true);
+      await store.localCheckForUpdate();
+      expect(store.checkForUpdatesFailed).toBe(false);
     });
 
     it('should successfully cancel an update', async () => {

@@ -108,26 +108,6 @@ describe('Update OS status actions', () => {
     }
   );
 
-  it.each(['available', 'availableWithRenewal'] as const)(
-    'leaves the %s announcement to the visible inline response',
-    async (field) => {
-      const { wrapper, update } = mountStatus({ inlineResponseVisible: true });
-      update[field] = '7.3.0';
-      await wrapper.vm.$nextTick();
-      expect(wrapper.text()).not.toContain('7.3.0');
-      expect(wrapper.text()).toContain('Current Version 7.2.0');
-      const check = wrapper.findAll('button').find((button) => button.text() === 'Check for Update')!;
-      await check.trigger('click');
-      expect(update.localCheckForUpdate).toHaveBeenCalledTimes(1);
-
-      await wrapper.setProps({ inlineResponseVisible: false });
-      expect(wrapper.text()).toContain('7.3.0');
-      const release = wrapper.findAll('button').find((button) => button.text().includes('7.3.0'))!;
-      await release.trigger('click');
-      expect(update.setModalOpen).toHaveBeenCalledWith(true);
-    }
-  );
-
   it.each(['update', 'downgrade'] as const)(
     'hides refresh while a %s reboot is pending',
     async (rebootType) => {

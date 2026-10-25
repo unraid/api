@@ -49,7 +49,7 @@ Object.defineProperty(window, 'location', {
 
 const UpdateOsStatusStub = {
   template: '<div data-testid="update-os-status">Status</div>',
-  props: ['title', 'subtitle', 't', 'inlineResponseVisible'],
+  props: ['title', 'subtitle', 't'],
 };
 const UpdateOsThirdPartyDriversStub = {
   template: '<div data-testid="third-party-drivers">Third Party</div>',
@@ -108,17 +108,11 @@ describe('UpdateOs.standalone.vue', () => {
   });
 
   describe('Initial Rendering and onBeforeMount Logic', () => {
-    it.each([
-      ['/Tools/Update', '', true, true],
-      ['/Tools/Update', '', false, false],
-      ['/Tools/Update', 'thirdPartyDriversDownloading', true, false],
-      ['/some/other/path', '', true, false],
-    ])(
-      'coordinates inline summary ownership on %s with reboot=%s and open=%s',
-      async (path, reboot, open, inline) => {
-        window.location.pathname = path;
+    it.each(['', 'update', 'downgrade', 'thirdPartyDriversDownloading'])(
+      'uses only the card on Tools with reboot=%s',
+      async (reboot) => {
+        window.location.pathname = '/Tools/Update';
         mockRebootType.value = reboot;
-        mockUpdateOsStore.updateOsModalVisible = open;
         const wrapper = mount(UpdateOs, {
           global: {
             plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
@@ -131,7 +125,9 @@ describe('UpdateOs.standalone.vue', () => {
           },
         });
         await nextTick();
-        expect(wrapper.findComponent(UpdateOsStatusStub).props('inlineResponseVisible')).toBe(inline);
+        expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="third-party-drivers"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="update-os-check-response"]').exists()).toBe(true);
       }
     );
 
@@ -153,7 +149,7 @@ describe('UpdateOs.standalone.vue', () => {
 
       await nextTick();
 
-      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(false);
       expect(mockUpdateOsStore.localCheckForUpdate).toHaveBeenCalledTimes(1);
     });
 
@@ -198,7 +194,7 @@ describe('UpdateOs.standalone.vue', () => {
 
       await nextTick();
 
-      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(false);
       expect(mockUpdateOsStore.localCheckForUpdate).not.toHaveBeenCalled();
       expect(mockUpdateOsStore.setModalOpen).not.toHaveBeenCalled();
     });

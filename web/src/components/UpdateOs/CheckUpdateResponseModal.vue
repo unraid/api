@@ -5,12 +5,14 @@ import { storeToRefs } from 'pinia';
 
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 import {
+  ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
   CheckCircleIcon,
   CogIcon,
   EyeIcon,
   IdentificationIcon,
   KeyIcon,
+  XCircleIcon,
 } from '@heroicons/vue/24/solid';
 import {
   BrandButton,
@@ -39,13 +41,14 @@ import { useAccountStore } from '~/store/account';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 export interface Props {
   embedded?: boolean;
   open?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   embedded: false,
   open: false,
 });
@@ -55,6 +58,7 @@ const accountStore = useAccountStore();
 const purchaseStore = usePurchaseStore();
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
+const updateOsActionsStore = useUpdateOsActionsStore();
 
 const {
   regExp,
@@ -64,6 +68,8 @@ const {
   updateOsIgnoredReleases,
   updateOsNotificationsEnabled,
   updateOsResponse,
+  rebootType,
+  rebootVersion,
 } = storeToRefs(serverStore);
 const {
   available,
@@ -71,7 +77,20 @@ const {
   availableReleaseDate,
   availableRequiresAuth,
   checkForUpdatesLoading,
+  checkForUpdatesFailed,
 } = storeToRefs(updateOsStore);
+const pendingReboot = computed(() => props.embedded && !!rebootType.value);
+const waitingForDrivers = computed(() => rebootType.value === 'thirdPartyDriversDownloading');
+const checkedWhileWaiting = ref(false);
+const checkForUpdates = async () => {
+  checkedWhileWaiting.value = false;
+  try {
+    await updateOsStore.localCheckForUpdate();
+    checkedWhileWaiting.value = true;
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 /**
  * regExp may not have a value until we get a response from the refreshServerState action
@@ -119,6 +138,22 @@ const modalCopy = computed((): ModalCopy | null => {
     };
   }
 
+  if (checkForUpdatesFailed.value) {
+    return {
+      title: t('updateOs.checkUpdateResponseModal.checkFailed'),
+      description: t('updateOs.checkUpdateResponseModal.checkFailedDescription'),
+    };
+  }
+
+  if (pendingReboot.value) {
+    return {
+      title: updateOsActionsStore.rebootTypeText,
+      description: waitingForDrivers.value
+        ? t('updateOs.thirdPartyDrivers.duringTheUnraidOsUpdateProcess')
+        : undefined,
+    };
+  }
+
   if (availableWithRenewal.value) {
     const description = regUpdatesExpired.value
       ? `${t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [formattedRegExp.value])} ${t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
@@ -163,6 +198,29 @@ const extraLinks = computed((): BrandButtonProps[] => {
 });
 
 const actionButtons = computed((): BrandButtonProps[] => {
+  if (checkForUpdatesLoading.value) return [];
+  if (checkForUpdatesFailed.value)
+    return [
+      {
+        click: checkForUpdates,
+        icon: ArrowPathIcon,
+        text: t('common.retry'),
+      },
+    ];
+  if (pendingReboot.value) {
+    return waitingForDrivers.value
+      ? []
+      : [
+          {
+            click: () => updateOsActionsStore.rebootServer(),
+            icon: ArrowPathIcon,
+            text:
+              rebootType.value === 'downgrade'
+                ? t('updateOs.status.rebootNowToDowngradeTo', [rebootVersion.value])
+                : t('updateOs.status.rebootNowToUpdateTo', [rebootVersion.value]),
+          },
+        ];
+  }
   // If ignoring release, show close button as primary action
   if (ignoreThisRelease.value && (available.value || availableWithRenewal.value)) {
     return [
@@ -220,7 +278,13 @@ const actionButtons = computed((): BrandButtonProps[] => {
 });
 
 const showNoUpdateContent = computed(() => {
-  return !checkForUpdatesLoading.value && !available.value && !availableWithRenewal.value;
+  return (
+    !pendingReboot.value &&
+    !checkForUpdatesFailed.value &&
+    !checkForUpdatesLoading.value &&
+    !available.value &&
+    !availableWithRenewal.value
+  );
 });
 
 const close = () => {
@@ -238,6 +302,8 @@ const renderMainSlot = computed(() => {
   return (
     !!(
       checkForUpdatesLoading.value ||
+      checkForUpdatesFailed.value ||
+      pendingReboot.value ||
       available.value ||
       availableWithRenewal.value ||
       extraLinks.value?.length > 0 ||
@@ -300,6 +366,9 @@ const modalWidth = computed(() => {
     @update:open="(value: boolean) => !value && close()"
   >
     <div :class="cn('flex h-full flex-col', embedded && 'gap-6')">
+      <p v-if="embedded && osVersion && !showNoUpdateContent" class="text-muted-foreground text-sm">
+        {{ t('updateOs.checkUpdateResponseModal.currentVersion', [osVersion]) }}
+      </p>
       <component
         :is="embedded ? 'div' : ResponsiveModalHeader"
         v-if="modalCopy?.title"
@@ -325,6 +394,21 @@ const modalWidth = computed(() => {
         :class="cn('flex flex-1 flex-col gap-6 overflow-y-auto', !embedded && 'px-6')"
       >
         <BrandLoading v-if="checkForUpdatesLoading" class="mx-auto w-[150px]" />
+        <div v-else-if="checkForUpdatesFailed" role="alert" class="flex justify-center py-6">
+          <span class="sr-only">{{ modalCopy?.title }}. {{ modalCopy?.description }}</span>
+          <XCircleIcon class="text-destructive h-12 w-12" />
+        </div>
+        <div v-else-if="pendingReboot" class="flex flex-col items-center gap-4 py-6">
+          <ArrowPathIcon class="text-primary h-12 w-12" />
+          <p class="text-foreground text-3xl font-bold">{{ rebootVersion }}</p>
+          <p v-if="waitingForDrivers && checkedWhileWaiting" class="text-muted-foreground text-sm">
+            {{
+              available || availableWithRenewal
+                ? t('updateOs.status.unraidAvailable', [available || availableWithRenewal])
+                : t('updateOs.status.upToDate')
+            }}
+          </p>
+        </div>
         <div v-else class="flex flex-col gap-y-6">
           <!-- OS Update highlight section -->
           <div v-if="available || availableWithRenewal" class="flex flex-col items-center gap-4 py-4">
@@ -367,7 +451,7 @@ const modalWidth = computed(() => {
                 {{ t('updateOs.checkUpdateResponseModal.currentVersion', [osVersion]) }}
               </p>
               <p
-                v-if="modalCopy?.description"
+                v-if="!embedded && modalCopy?.description"
                 class="text-muted-foreground text-xs sm:text-sm"
                 v-html="modalCopy.description"
               />
@@ -421,6 +505,24 @@ const modalWidth = computed(() => {
           "
         >
           <div :class="cn('xs:!flex-row mt-2 flex flex-col-reverse justify-start gap-3')">
+            <Button
+              v-if="embedded && !checkForUpdatesFailed && (!pendingReboot || waitingForDrivers)"
+              variant="ghost"
+              :disabled="checkForUpdatesLoading"
+              @click="checkForUpdates"
+            >
+              <ArrowPathIcon class="mr-2 h-4 w-4" />
+              {{ t('userProfile.dropdownContent.checkForUpdate') }}
+            </Button>
+            <Button v-if="pendingReboot" variant="ghost" @click="updateOsStore.cancelUpdate()">
+              {{
+                t('updateOs.status.cancel', [
+                  rebootType === 'downgrade'
+                    ? t('updateOs.status.downgrade')
+                    : t('updateOs.status.update'),
+                ])
+              }}
+            </Button>
             <TooltipProvider>
               <Tooltip :delay-duration="0">
                 <TooltipTrigger as-child>

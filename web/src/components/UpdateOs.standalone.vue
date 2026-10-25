@@ -41,13 +41,9 @@ const props = withDefaults(defineProps<Props>(), {
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const { rebootType } = storeToRefs(serverStore);
-const updateOsModalVisible = computed(() => updateOsStore.updateOsModalVisible);
 
 const isToolsUpdatePage = computed(
   () => typeof window !== 'undefined' && window.location.pathname === WEBGUI_TOOLS_UPDATE
-);
-const inlineResponseVisible = computed(
-  () => isToolsUpdatePage.value && rebootType.value === '' && updateOsModalVisible.value
 );
 
 const subtitle = computed(() => {
@@ -84,16 +80,14 @@ onMounted(() => {
 <template>
   <PageContainer>
     <UpdateOsStatus
+      v-if="!isToolsUpdatePage"
       :title="t('updateOs.updateUnraidOs')"
       :subtitle="subtitle"
-      :inline-response-visible="inlineResponseVisible"
     />
-    <UpdateOsCheckUpdateResponseModal
-      v-if="isToolsUpdatePage && rebootType === ''"
-      :open="updateOsModalVisible"
-      embedded
-    />
+    <UpdateOsCheckUpdateResponseModal v-if="isToolsUpdatePage" :open="true" embedded />
     <UpdateOsChangelogModal v-if="isToolsUpdatePage" />
-    <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" />
+    <UpdateOsThirdPartyDrivers
+      v-if="!isToolsUpdatePage && rebootType === 'thirdPartyDriversDownloading'"
+    />
   </PageContainer>
 </template>

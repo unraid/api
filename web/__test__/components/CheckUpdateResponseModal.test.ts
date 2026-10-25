@@ -54,6 +54,8 @@ vi.mock('@heroicons/vue/24/solid', () => ({
   EyeIcon: { template: '<svg />' },
   IdentificationIcon: { template: '<svg />' },
   KeyIcon: { template: '<svg />' },
+  ArrowPathIcon: { template: '<svg />' },
+  XCircleIcon: { template: '<svg />' },
 }));
 
 vi.mock('@heroicons/vue/24/outline', () => ({
@@ -126,6 +128,15 @@ const availableWithRenewal = ref<string | null>(null);
 const availableReleaseDate = ref<number | null>(null);
 const availableRequiresAuth = ref(false);
 const checkForUpdatesLoading = ref(false);
+const checkForUpdatesFailed = ref(false);
+const mockLocalCheckForUpdate = vi.fn().mockResolvedValue(undefined);
+const mockRebootServer = vi.fn();
+const mockCancelUpdate = vi.fn();
+const rebootType = ref('');
+const rebootVersion = ref('');
+vi.mock('~/store/updateOsActions', () => ({
+  useUpdateOsActionsStore: () => ({ rebootTypeText: 'Reboot required', rebootServer: mockRebootServer }),
+}));
 
 vi.mock('~/store/updateOs', () => ({
   useUpdateOsStore: () => ({
@@ -134,6 +145,9 @@ vi.mock('~/store/updateOs', () => ({
     availableReleaseDate,
     availableRequiresAuth,
     checkForUpdatesLoading,
+    checkForUpdatesFailed,
+    localCheckForUpdate: mockLocalCheckForUpdate,
+    cancelUpdate: mockCancelUpdate,
     setReleaseForUpdate: mockSetReleaseForUpdate,
     setModalOpen: mockSetModalOpen,
     fetchAndConfirmInstall: mockFetchAndConfirmInstall,
@@ -159,6 +173,8 @@ vi.mock('~/store/server', () => ({
     updateOsIgnoredReleases,
     updateOsNotificationsEnabled,
     updateOsResponse,
+    rebootType,
+    rebootVersion,
     updateOsIgnoreRelease: mockUpdateOsIgnoreRelease,
   }),
 }));
@@ -187,6 +203,9 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
     availableReleaseDate.value = null;
     availableRequiresAuth.value = false;
     checkForUpdatesLoading.value = false;
+    checkForUpdatesFailed.value = false;
+    rebootType.value = '';
+    rebootVersion.value = '';
     regExp.value = null;
     regUpdatesExpired.value = false;
     osVersion.value = null;
@@ -200,6 +219,9 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
     mockSetReleaseForUpdate.mockClear();
     mockFetchAndConfirmInstall.mockClear();
     mockUpdateOsIgnoreRelease.mockClear();
+    mockRebootServer.mockClear();
+    mockCancelUpdate.mockClear();
+    mockLocalCheckForUpdate.mockClear();
   });
 
   it('renders loading state while checking for updates', () => {
@@ -212,8 +234,49 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
 
     expect(wrapper.find(titleSelector).text()).toBe('Checking for OS updates...');
     expect(wrapper.find('.brand-loading').exists()).toBe(true);
-    expect(wrapper.find('.ui-button').text()).toBe('More Options');
+    expect(wrapper.findAll('button').some((button) => button.text() === 'More Options')).toBe(true);
   });
+
+  it('shows a failed check with no stale release action', async () => {
+    available.value = '7.3.0';
+    updateOsResponse.value = { changelog: 'release' };
+    checkForUpdatesFailed.value = true;
+    const wrapper = renderModal();
+    expect(wrapper.text()).toContain('Unable to check for updates');
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true);
+    expect(wrapper.text()).not.toContain('View Changelog to Start Update');
+    if (embedded) {
+      await wrapper
+        .findAll('button')
+        .find((button) => button.text() === 'Retry')!
+        .trigger('click');
+      expect(mockLocalCheckForUpdate).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it.each(['update', 'downgrade', 'thirdPartyDriversDownloading'])(
+    'keeps %s actions inside the embedded card',
+    async (kind) => {
+      if (!embedded) return;
+      rebootType.value = kind;
+      rebootVersion.value = '7.3.0';
+      available.value = '7.3.0';
+      const wrapper = renderModal();
+      expect(wrapper.find('.card-wrapper').exists()).toBe(true);
+      expect(wrapper.text()).toContain('Reboot required');
+      expect(wrapper.find('[role="switch"]').exists()).toBe(false);
+      expect(wrapper.text()).not.toContain('View Changelog to Start Update');
+      if (kind !== 'thirdPartyDriversDownloading') {
+        await wrapper
+          .findAll('button')
+          .find((button) => button.text().startsWith('Reboot Now'))!
+          .trigger('click');
+        expect(mockRebootServer).toHaveBeenCalledTimes(1);
+      } else {
+        expect(wrapper.text()).toContain('Check for Update');
+      }
+    }
+  );
 
   it('shows up-to-date messaging when no updates are available', async () => {
     osVersion.value = '6.12.3';
@@ -228,7 +291,7 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
       'Go to Settings > Notifications to enable automatic OS update notifications for future releases.'
     );
 
-    expect(wrapper.find('.ui-button').text()).toBe('More Options');
+    expect(wrapper.findAll('button').some((button) => button.text() === 'More Options')).toBe(true);
     expect(wrapper.text()).toContain('Enable update notifications');
   });
 
@@ -288,7 +351,10 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
       .trigger('click');
     expect(mockAccountUpdateOs).toHaveBeenCalledTimes(1);
     expect(mockSetReleaseForUpdate).not.toHaveBeenCalled();
-    await wrapper.find('.ui-button').trigger('click');
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text() === 'More Options')!
+      .trigger('click');
     expect(mockAccountUpdateOs).toHaveBeenCalledTimes(2);
   });
 
