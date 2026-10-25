@@ -43,6 +43,12 @@ export class NotificationsService {
      */
     private path: string | null = null;
     private initialization: Promise<void> | null = null;
+    private overviewRefresh: Promise<unknown> = Promise.resolve();
+    private pendingOverviewRefresh: Promise<{
+        errorOccurred: boolean;
+        overview: NotificationOverview;
+        seenPaths: Set<string>;
+    }> | null = null;
     private isHydratingOverview = false;
     private pendingNotificationAdds = new Set<string>();
 
@@ -106,14 +112,13 @@ export class NotificationsService {
 
             try {
                 await this.getNotificationsWatcher(basePath, recreate);
-                const { errorOccurred, overview, seenPaths } = await this.buildOverviewSnapshot();
-                NotificationsService.overview = overview;
-                await this.publishOverview();
+                const { errorOccurred, seenPaths } = await this.refreshOverview();
 
                 const pendingAdds = [...this.pendingNotificationAdds].filter(
                     (path) => !seenPaths.has(path)
                 );
                 this.pendingNotificationAdds.clear();
+                this.isHydratingOverview = false;
 
                 for (const path of pendingAdds) {
                     await this.processNotificationAdd(path);
@@ -162,9 +167,13 @@ export class NotificationsService {
         NotificationsService.watcher = watch(basePath, {
             usePolling: CHOKIDAR_USEPOLLING,
             ignoreInitial: true,
-        }).on('add', (path) => {
-            void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
-        });
+        })
+            .on('add', (path) => {
+                void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
+            })
+            .on('unlink', () => {
+                void this.recalculateOverview().catch((e) => this.logger.error(e));
+            });
 
         return NotificationsService.watcher;
     }
@@ -200,10 +209,9 @@ export class NotificationsService {
             throw error;
         }
 
-        this.increment(notification.importance, NotificationsService.overview[type.toLowerCase()]);
+        await this.recalculateOverview();
 
         if (type === NotificationType.UNREAD) {
-            this.publishOverview();
             pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
                 notificationAdded: notification,
             });
@@ -248,16 +256,29 @@ export class NotificationsService {
         collector['total'] += 1;
     }
 
-    private decrement(importance: NotificationImportance, collector: NotificationCounts) {
-        collector[importance.toLowerCase()] -= 1;
-        collector['total'] -= 1;
+    public async recalculateOverview() {
+        const { errorOccurred, overview } = await this.refreshOverview();
+        return { error: errorOccurred, overview: structuredClone(overview) };
     }
 
-    public async recalculateOverview() {
-        const { errorOccurred, overview } = await this.buildOverviewSnapshot();
-        NotificationsService.overview = overview;
-        await this.publishOverview();
-        return { error: errorOccurred, overview: this.getOverview() };
+    private refreshOverview() {
+        if (this.pendingOverviewRefresh) {
+            return this.pendingOverviewRefresh;
+        }
+
+        const refresh = this.overviewRefresh
+            .catch(() => undefined)
+            .then(async () => {
+                // Coalesce queued events, but refresh again for changes during an active snapshot.
+                this.pendingOverviewRefresh = null;
+                const snapshot = await this.buildOverviewSnapshot();
+                NotificationsService.overview = snapshot.overview;
+                await this.publishOverview();
+                return snapshot;
+            });
+        this.overviewRefresh = refresh;
+        this.pendingOverviewRefresh = refresh;
+        return refresh;
     }
 
     private async buildOverviewSnapshot() {
@@ -282,9 +303,9 @@ export class NotificationsService {
         //
         // recalculates stats for a particular notification type
         const recalculate = async (type: NotificationType) => {
-            const ids = await this.listFilesInFolder(this.paths()[type]);
+            const ids = await this.listNotificationFiles(type);
             ids.forEach((id) => seenPaths.add(id));
-            const [notifications] = await this.loadNotificationsFromPaths(ids, {});
+            const [notifications] = await this.loadNotificationsFromPaths(ids, { type });
             notifications.forEach((n) => this.increment(n.importance, overview[type.toLowerCase()]));
         };
 
@@ -408,8 +429,7 @@ export class NotificationsService {
         const notification = await this.loadNotificationFile(path, type);
         await unlink(path);
 
-        this.decrement(notification.importance, NotificationsService.overview[type.toLowerCase()]);
-        await this.publishOverview();
+        await this.recalculateOverview();
         if (type === NotificationType.UNREAD) {
             void this.publishWarningsAndAlerts();
         }
@@ -427,13 +447,7 @@ export class NotificationsService {
      */
     public async deleteNotifications(type: NotificationType) {
         await emptyDir(this.paths()[type]);
-        NotificationsService.overview[type.toLowerCase()] = {
-            alert: 0,
-            info: 0,
-            warning: 0,
-            total: 0,
-        };
-        await this.publishOverview();
+        await this.recalculateOverview();
         if (type === NotificationType.UNREAD) {
             void this.publishWarningsAndAlerts();
         }
@@ -456,68 +470,14 @@ export class NotificationsService {
      *                           CRUD: Updating Notifications
      *------------------------------------------------------------------------**/
 
-    /**
-     * Returns a function that:
-     * 1. moves a notification from one category to another.
-     * 2. updates stats overview
-     * 3. updates the stats snapshot if provided
-     *
-     * Note: the returned function implicitly triggers a pubsub event via `fs.rename`,
-     * which is expected to trigger `NOTIFICATION_ADDED` & `NOTIFICATION_OVERVIEW`.
-     *
-     * The published overview will include the update from this operation.
-     *
-     * @param params
-     * @returns lambda function
-     */
-    private moveNotification(params: {
-        from: NotificationType;
-        to: NotificationType;
-        snapshot?: NotificationOverview;
-    }) {
-        const { from, to, snapshot } = params;
-        const fromStatKey = from.toLowerCase();
-        const toStatKey = to.toLowerCase();
+    private moveNotification(params: { from: NotificationType; to: NotificationType }) {
+        const { from, to } = params;
         return async (notification: Notification) => {
             const currentPath = this.notificationPath(notification.id, from);
             const targetPath = this.notificationPath(notification.id, to);
-
-            /**-----------------------
-             *     Event, PubSub, & Overview Update logic
-             *
-             * We assume `rename` kicks off 'unlink' and 'add' events
-             * in the chokidar file watcher (see `getNotificationsWatcher`).
-             *
-             * We assume the 'add' handler publishes to
-             * NOTIFICATION_ADDED & NOTIFICATION_OVERVIEW,
-             * and that no pubsub or overview updates occur upon 'unlink'.
-             *
-             * Thus, we explicitly update our state here via `decrement` and implicitly expect
-             * it to be updated (i.e. incremented & pubsub'd) via our filesystem changes.
-             *
-             * The reasons for this discrepancy are:
-             *  - Backwards compatibility: not every notification will be created through this API,
-             *    so we track state by watching the store (i.e. the file system).
-             *
-             *  - Technical Limitations: By the time the unlink event fires, the notification file
-             *    can no longer be read. This means we can only track overview totals accurately;
-             *    to track other stats, we have to update them manually, prior to file deletion.
-             *------------------------**/
-            this.decrement(notification.importance, NotificationsService.overview[fromStatKey]);
-            try {
-                await rename(currentPath, targetPath);
-            } catch (err) {
-                // revert our earlier decrement
-                // we do it this way (decrement -> try rename -> revert if error) to avoid
-                // a race condition between `rename` and `decrement`
-                this.increment(notification.importance, NotificationsService.overview[fromStatKey]);
-                throw err;
-            }
-
-            if (snapshot) {
-                this.decrement(notification.importance, snapshot[fromStatKey]);
-                this.increment(notification.importance, snapshot[toStatKey]);
-            }
+            await rename(currentPath, targetPath);
+            // A legacy archive copy may already exist, so rename need not emit an add event.
+            await this.recalculateOverview();
         };
     }
 
@@ -531,21 +491,10 @@ export class NotificationsService {
             throw new AppError(`Could not find notification in unreads: ${id}`, 404);
         }
 
-        /**-----------------------
-         *     Why we use a snapshot
-         *
-         * An implicit update to `overview` creates a race condition:
-         * it might be missing changes from the 'add' event (i.e. incrementing the notification's new category).
-         *
-         * So, we use & modify a snapshot of the overview to make sure we're returning accurate
-         * data to the client.
-         *------------------------**/
-        const snapshot = this.getOverview();
         const notification = await this.loadNotificationFile(unreadPath, NotificationType.UNREAD);
         const moveToArchive = this.moveNotification({
             from: NotificationType.UNREAD,
             to: NotificationType.ARCHIVE,
-            snapshot,
         });
         await moveToArchive(notification);
 
@@ -565,14 +514,10 @@ export class NotificationsService {
             throw new AppError(`Could not find notification in archive: ${id}`, 404);
         }
 
-        // we use a snapshot to provide an accurate overview update
-        // otherwise, we'd enter a race condition with the 'add' file watcher event handler
-        const snapshot = this.getOverview();
         const notification = await this.loadNotificationFile(archivePath, NotificationType.ARCHIVE);
         const moveToUnread = this.moveNotification({
             from: NotificationType.ARCHIVE,
             to: NotificationType.UNREAD,
-            snapshot,
         });
 
         await moveToUnread(notification);
@@ -591,18 +536,16 @@ export class NotificationsService {
             return { overview: NotificationsService.overview };
         }
 
-        const overviewSnapshot = this.getOverview();
         const unreads = await this.listFilesInFolder(UNREAD);
         const [notifications] = await this.loadNotificationsFromPaths(unreads, { importance });
         const archive = this.moveNotification({
             from: NotificationType.UNREAD,
             to: NotificationType.ARCHIVE,
-            snapshot: overviewSnapshot,
         });
 
         const stats = await batchProcess(notifications, archive);
         void this.publishWarningsAndAlerts();
-        return { ...stats, overview: overviewSnapshot };
+        return { ...stats, overview: this.getOverview() };
     }
 
     public async unarchiveAll(importance?: NotificationImportance) {
@@ -614,18 +557,16 @@ export class NotificationsService {
             return { overview: NotificationsService.overview };
         }
 
-        const overviewSnapshot = this.getOverview();
         const archives = await this.listFilesInFolder(ARCHIVE);
         const [notifications] = await this.loadNotificationsFromPaths(archives, { importance });
         const unArchive = this.moveNotification({
             from: NotificationType.ARCHIVE,
             to: NotificationType.UNREAD,
-            snapshot: overviewSnapshot,
         });
 
         const stats = await batchProcess(notifications, unArchive);
         void this.publishWarningsAndAlerts();
-        return { ...stats, overview: overviewSnapshot };
+        return { ...stats, overview: this.getOverview() };
     }
 
     /**
@@ -669,23 +610,23 @@ export class NotificationsService {
         this.logger.verbose('Getting Notifications');
 
         const { type = NotificationType.UNREAD } = filters;
-        const { ARCHIVE, UNREAD } = this.paths();
-        let files: string[];
-
-        if (type === NotificationType.UNREAD) {
-            files = await this.listFilesInFolder(UNREAD);
-        } else {
-            // Exclude notifications present in both unread & archive from archive.
-            //* this is necessary because the legacy script writes new notifications to both places.
-            //* this should be a temporary measure.
-            const unreads = new Set(await readdir(UNREAD));
-            files = await this.listFilesInFolder(ARCHIVE, (archives) => {
-                return archives.filter((file) => !unreads.has(file));
-            });
-        }
+        const files = await this.listNotificationFiles(type);
 
         const [notifications] = await this.loadNotificationsFromPaths(files, filters);
         return notifications;
+    }
+
+    private async listNotificationFiles(type: NotificationType): Promise<string[]> {
+        const { ARCHIVE, UNREAD } = this.paths();
+        if (type === NotificationType.UNREAD) {
+            return this.listFilesInFolder(UNREAD);
+        }
+
+        // The legacy notifier writes each new notification to both directories.
+        const unreads = new Set(await readdir(UNREAD));
+        return this.listFilesInFolder(ARCHIVE, (archives) =>
+            archives.filter((file) => !unreads.has(file))
+        );
     }
 
     /**
