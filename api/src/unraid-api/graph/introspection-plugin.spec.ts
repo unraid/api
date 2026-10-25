@@ -1,3 +1,4 @@
+import { getOperationAST, parse } from 'graphql';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createDynamicIntrospectionPlugin } from '@app/unraid-api/graph/introspection-plugin.js';
@@ -33,6 +34,20 @@ describe('Dynamic Introspection Plugin', () => {
         return response;
     };
 
+    const runParsedOperation = async (query: string, sandboxEnabled: boolean) => {
+        const plugin = createDynamicIntrospectionPlugin(() => sandboxEnabled);
+        const document = parse(query);
+        const operation = getOperationAST(document);
+        if (!operation) throw new Error('Expected one operation');
+
+        const requestListener = await (plugin as any).requestDidStart();
+        return requestListener.responseForOperation({
+            document,
+            operation,
+            response: { http: { headers: new Map() } },
+        } as any);
+    };
+
     describe('when sandbox is enabled', () => {
         it('should allow introspection query with IntrospectionQuery operation name', async () => {
             const response = await runPlugin(
@@ -65,6 +80,31 @@ describe('Dynamic Introspection Plugin', () => {
     });
 
     describe('when sandbox is disabled', () => {
+        it('blocks aliased schema metadata before execution', async () => {
+            const response = await runParsedOperation(
+                '{ schemaAlias: __schema { queryType { name } } }',
+                false
+            );
+
+            expect(response?.http.status).toBe(400);
+            expect(response?.body.singleResult.errors?.[0]?.extensions?.code).toBe(
+                'INTROSPECTION_DISABLED'
+            );
+        });
+
+        it('blocks schema metadata through fragments before execution', async () => {
+            const response = await runParsedOperation(
+                '{ ...SchemaFields } fragment SchemaFields on Query { __schema { queryType { name } } }',
+                false
+            );
+
+            expect(response?.http.status).toBe(400);
+        });
+
+        it('allows ordinary parsed operations before execution', async () => {
+            expect(await runParsedOperation('{ __typename }', false)).toBeNull();
+        });
+
         it('should block introspection query with IntrospectionQuery operation name', async () => {
             const response = await runPlugin(
                 'query IntrospectionQuery { __schema { queryType { name } } }',
