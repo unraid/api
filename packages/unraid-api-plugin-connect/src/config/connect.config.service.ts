@@ -1,8 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
+import { unlink } from 'node:fs/promises';
+
+import { isMatch } from 'lodash-es';
 
 import { EVENTS } from '../helper/nest-tokens.js';
+import { ConnectConfigPersister } from './config.persistence.js';
 import { ConfigType, emptyMyServersConfig, MyServersConfig } from './connect.config.js';
 
 @Injectable()
@@ -40,18 +44,36 @@ export class ConnectConfigService {
      * This is used when the user logs out.
      * It retains the existing config, but resets identity-related fields.
      */
-    resetUser() {
+    async resetUser() {
         // overwrite identity fields, but retain destructured fields
         const { wanaccess, wanport, upnpEnabled, ...identity } = emptyMyServersConfig();
-        this.configService.set(this.configKey, {
+        const config = {
             ...this.getConfig(),
             ...identity,
-        });
+        };
+        this.configService.set(this.configKey, config);
+
+        const persister = new ConnectConfigPersister(this.configService);
+        await persister.persist(config);
+        const savedConfig = await persister.getFileHandler().readConfigFile();
+        if (!isMatch(savedConfig, identity)) {
+            throw new Error('Connect sign-out could not persist cleared identity');
+        }
+
+        const legacyPath = this.configService.get<string>(
+            'PATHS_MY_SERVERS_CONFIG',
+            '/boot/config/plugins/dynamix.my.servers/myservers.cfg'
+        );
+        if (legacyPath) {
+            await unlink(legacyPath).catch((error: NodeJS.ErrnoException) => {
+                if (error.code !== 'ENOENT') throw error;
+            });
+        }
         this.logger.verbose('Reset Connect user identity');
     }
 
     @OnEvent(EVENTS.LOGOUT, { async: true })
     async onLogout() {
-        this.resetUser();
+        await this.resetUser();
     }
 }

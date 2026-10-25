@@ -267,6 +267,32 @@ exit 0
       MAINNAME="&name;"
       <![CDATA[
       echo "Removing Plugin"
+
+      # The packaged cleanup script is not invoked by the plugin remove hook.
+      # Stop the API before deleting its Connect configuration so a pending
+      # persistence write cannot recreate the credentials on flash.
+      if [ -f /boot/config/plugins/dynamix.my.servers/configs/connect.json ] || \
+         [ -f /boot/config/plugins/dynamix.my.servers/myservers.cfg ]; then
+        if [ -x /etc/rc.d/rc.unraid-api ]; then
+          /etc/rc.d/rc.unraid-api stop || true
+        elif command -v unraid-api >/dev/null 2>&1; then
+          unraid-api stop || true
+        fi
+
+        if pgrep -f '[n]ode /usr/local/unraid-api/dist/main.js' >/dev/null 2>&1; then
+          echo "Error: Unraid API is still running; Connect credentials were not removed"
+          exit 1
+        fi
+
+        rm -f /boot/config/plugins/dynamix.my.servers/configs/connect.json \
+              /boot/config/plugins/dynamix.my.servers/myservers.cfg || exit 1
+        if [ -x /etc/rc.d/rc.nginx ]; then
+          /etc/rc.d/rc.nginx reload || {
+            echo "Error: Could not reload nginx after clearing Connect credentials"
+            exit 1
+          }
+        fi
+      fi
       
       # Check Unraid version
       UNRAID_VERSION=""

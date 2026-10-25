@@ -118,7 +118,7 @@ export class ConnectSettingsResolver {
         resource: Resource.CONNECT,
     })
     public async connectSignOut() {
-        this.eventEmitter.emit(EVENTS.LOGOUT, { reason: 'Manual Sign Out Using API' });
+        await this.eventEmitter.emitAsync(EVENTS.LOGOUT, { reason: 'Manual Sign Out Using API' });
         return true;
     }
 
