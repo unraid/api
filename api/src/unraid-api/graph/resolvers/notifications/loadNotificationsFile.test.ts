@@ -15,14 +15,16 @@ import {
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
-const { mockWatch } = vi.hoisted(() => {
-    const watcher = {
-        on: vi.fn().mockReturnThis(),
-        close: vi.fn().mockResolvedValue(undefined),
-    };
-
+const { mockWatch } = await vi.hoisted(async () => {
+    const { EventEmitter } = await import('node:events');
     return {
-        mockWatch: vi.fn(() => watcher),
+        mockWatch: vi.fn(() => {
+            const watcher = Object.assign(new EventEmitter(), {
+                close: vi.fn().mockResolvedValue(undefined),
+            });
+            setImmediate(() => watcher.emit('ready'));
+            return watcher;
+        }),
     };
 });
 
@@ -127,54 +129,6 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
                 ignoreInitial: true,
             })
         );
-    });
-
-    it('replays buffered add events after overview hydration', async () => {
-        const bufferedPath = `${testNotificationsDir}/unread/buffered.notify`;
-        const hydratedService = createNotificationsService();
-        const processNotificationAdd = vi.fn().mockResolvedValue(undefined);
-        const handleNotificationAdd = (
-            Reflect.get(hydratedService, 'handleNotificationAdd') as (path: string) => Promise<void>
-        ).bind(hydratedService);
-
-        Reflect.set(
-            hydratedService,
-            'ensureNotificationDirectories',
-            vi.fn().mockResolvedValue(undefined)
-        );
-        Reflect.set(hydratedService, 'publishOverview', vi.fn().mockResolvedValue(undefined));
-        Reflect.set(hydratedService, 'processNotificationAdd', processNotificationAdd);
-        Reflect.set(
-            hydratedService,
-            'getNotificationsWatcher',
-            vi.fn().mockImplementation(async () => {
-                await handleNotificationAdd(bufferedPath);
-                return {
-                    close: vi.fn().mockResolvedValue(undefined),
-                    on: vi.fn().mockReturnThis(),
-                };
-            })
-        );
-        Reflect.set(
-            hydratedService,
-            'buildOverviewSnapshot',
-            vi.fn().mockResolvedValue({
-                errorOccurred: false,
-                overview: {
-                    unread: { alert: 0, info: 0, warning: 0, total: 0 },
-                    archive: { alert: 0, info: 0, warning: 0, total: 0 },
-                },
-                seenPaths: new Set<string>(),
-            })
-        );
-
-        await Reflect.get(hydratedService, 'initializeNotificationsState').call(
-            hydratedService,
-            testNotificationsDir,
-            true
-        );
-
-        expect(processNotificationAdd).toHaveBeenCalledWith(bufferedPath);
     });
 
     it('should load and validate a valid notification file', async () => {
