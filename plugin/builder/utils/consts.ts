@@ -11,15 +11,16 @@ export interface TxzNameParams {
   build?: string;
 }
 
-// Get the txz name following Slackware naming convention: name-version-arch-build.txz
-export const getTxzName = ({
+export const getPackageName = ({
   version,
   arch = defaultArch,
   build = defaultBuild,
 }: TxzNameParams) =>
   version
-    ? `${pluginName}-${version}-${arch}-${build}.txz`
-    : `${pluginName}.txz`;
+    ? `${pluginName}-${version}-${arch}-${build}`
+    : pluginName;
+
+export const getTxzName = (params: TxzNameParams) => `${getPackageName(params)}.txz`;
 export const startingDir = process.cwd();
 
 export const BASE_URLS = {

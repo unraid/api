@@ -1,8 +1,8 @@
 import { join } from "path";
 import { $, cd } from "zx";
 import { existsSync } from "node:fs";
-import { readdir } from "node:fs/promises";
-import { getTxzName, pluginName, startingDir } from "./utils/consts";
+import { readdir, writeFile } from "node:fs/promises";
+import { getPackageName, pluginName, startingDir } from "./utils/consts";
 import { ensureNodeJs } from "./utils/nodejs-helper";
 
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
@@ -182,7 +182,8 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   const version = validatedEnv.apiVersion;
   
   // Always use version when getting txz name
-  const txzName = getTxzName({ version, build: validatedEnv.buildNumber.toString() });
+  const packageName = getPackageName({ version, build: validatedEnv.buildNumber.toString() });
+  const txzName = `${packageName}.txz`;
   console.log(`Package name: ${txzName}`);
   const txzPath = join(validatedEnv.txzOutputDir, txzName);
   
@@ -196,6 +197,11 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   
   console.log(`Storing vendor archive information: ${vendorUrl} -> ${vendorFilename}`);
   await storeVendorArchiveInfo(version, vendorUrl, vendorFilename);
+  await writeFile(
+    join(startingDir, "source", pluginName, "usr/local/share/dynamix.unraid.net/config/package-name"),
+    `${packageName}\n`,
+    "utf8"
+  );
   
   await Promise.all([
     ensureNodeJs(),

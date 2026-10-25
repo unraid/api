@@ -1,5 +1,26 @@
 # Changelog
 
+## [4.37.7](https://github.com/unraid/api/compare/v4.37.6...v4.37.7) (2026-10-23)
+
+
+### Bug Fixes
+
+* **runtime:** update bundled Node to 22.23.4 ([#2117](https://github.com/unraid/api/issues/2117)) ([8df285c](https://github.com/unraid/api/commit/8df285c9ad2aed90bb28032563e6987cacf0a18e))
+
+## [4.37.6](https://github.com/unraid/api/compare/v4.37.5...v4.37.6) (2026-10-20)
+
+
+### Bug Fixes
+
+* **api:** stop temperature metrics from spinning up array disks ([#2091](https://github.com/unraid/api/issues/2091)) ([b15af83](https://github.com/unraid/api/commit/b15af83c3bf91454cac2f988cd81118cffa2e4d8))
+* **callback:** validate callback requests ([#2097](https://github.com/unraid/api/issues/2097)) ([1bda4d2](https://github.com/unraid/api/commit/1bda4d28ba75b7deb93d348b5f5cc86aae9de2af))
+* **connect:** avoid restarting active static remote access ([#2110](https://github.com/unraid/api/issues/2110)) ([d19a6f4](https://github.com/unraid/api/commit/d19a6f4e5fa2a9d2142595022931b5743f2cb24d))
+* **deps:** refresh vulnerable API and web packages ([#2098](https://github.com/unraid/api/issues/2098)) ([64eac12](https://github.com/unraid/api/commit/64eac12c94039b681fd42e8afa0cfdcd2fb3cb5b))
+* **plugin:** bind component cleanup to the exact package manifest ([#2107](https://github.com/unraid/api/issues/2107)) ([89b1395](https://github.com/unraid/api/commit/89b13957c2d68b0df8150fb1b8df79edbcb5c02c))
+* **web:** align mobile header identity and update actions ([#2111](https://github.com/unraid/api/issues/2111)) ([6582cc1](https://github.com/unraid/api/commit/6582cc1eb4526a7ed7ac69655425be2322c25e1a))
+* **web:** align registration license action buttons ([#2101](https://github.com/unraid/api/issues/2101)) ([b638d29](https://github.com/unraid/api/commit/b638d29214187f13574edc50d90812dcb6ec3aa9))
+* **web:** polish combined header on mobile and desktop ([#2109](https://github.com/unraid/api/issues/2109)) ([64f1e81](https://github.com/unraid/api/commit/64f1e81006a4af791c8970f21fbdd7f429016842))
+
 ## [4.37.5](https://github.com/unraid/api/compare/v4.37.4...v4.37.5) (2026-09-16)
 
 

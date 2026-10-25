@@ -274,7 +274,6 @@ const actionItems = computed((): RegistrationItemProps[] => {
     ...(showManageLicenseAction.value
       ? [
           {
-            label: t('onboarding.licenseStep.actions.manageLicense'),
             component: RegistrationManageLicenseAction,
           },
         ]
@@ -285,6 +284,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
             component: KeyActions,
             componentProps: {
               filterOut: ['renew'],
+              maxWidth: true,
               t,
             },
           },
@@ -395,7 +395,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
                 {{ t('registration.partnerActivationDetected') }}
               </p>
             </blockquote>
-            <SettingsGrid>
+            <div class="flex flex-col gap-4">
               <template
                 v-for="item in actionItems"
                 :key="item.label || 'action-' + actionItems.indexOf(item)"
@@ -444,7 +444,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
                   </div>
                 </template>
               </template>
-            </SettingsGrid>
+            </div>
           </div>
         </div>
       </CardWrapper>

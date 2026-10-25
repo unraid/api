@@ -128,6 +128,28 @@ jobs:
           pnpm run build:txz --tag="${{ inputs.TAG }}" --base-url="${{ inputs.BASE_URL }}" --api-version="${{ steps.vars.outputs.API_VERSION }}" --build-number="${{ inputs.BUILD_NUMBER }}"
           pnpm run build:plugin --tag="${{ inputs.TAG }}" --base-url="${{ inputs.BASE_URL }}" --api-version="${{ steps.vars.outputs.API_VERSION }}" --build-number="${{ inputs.BUILD_NUMBER }}"
 
+      - name: Validate built TXZ with Slackware pkgtools
+        run: |
+          pkgtools_dir="$(mktemp -d)"
+          for script in installpkg upgradepkg removepkg; do
+            curl --fail --silent --show-error --location --max-time 60 \
+              "https://mirrors.slackware.com/slackware/slackware64-current/source/a/pkgtools/scripts/$script" \
+              --output "$pkgtools_dir/$script"
+          done
+          (
+            cd "$pkgtools_dir"
+            sha256sum --check <<'CHECKSUMS'
+          c84bbc795536d243640fcc466f14330742cbfaafd11de0b147ada2892f2b1448  installpkg
+          82810f31402b2edadcb0f7da8e452ffe87d590963b0b942e00393c3c55416da2  upgradepkg
+          6fb41b9b74e9f0421766bcba576c95de648e85f03712237581e15b6f5183520b  removepkg
+          CHECKSUMS
+          )
+          sudo install -m 755 "$pkgtools_dir/"* /sbin/
+          for archive in deploy/*.txz; do
+            sudo bash tests/test-built-txz-install.sh "$archive"
+          done
+          rm -rf "$pkgtools_dir"
+
       - name: Ensure Plugin Files Exist
         run: |
           ls -al ./deploy

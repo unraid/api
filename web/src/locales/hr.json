@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "{0}% polja je iskorišteno",
   "headerOsVersion.apiVersionCopiedToClipboard": "API verzija kopirana u međuspremnik",
   "headerOsVersion.osVersionCopiedToClipboard": "OS verzija kopirana u međuspremnik",
+  "headerOsVersion.rebootToUpdate": "Ponovno pokreni za ažuriranje",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} objavljen",
