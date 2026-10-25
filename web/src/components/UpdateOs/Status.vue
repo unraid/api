@@ -44,10 +44,11 @@ const LoadingIcon = () => h(BrandLoading, { variant: 'white', style: 'width: 16p
 
 const { dateTimeFormat, osVersion, rebootType, rebootVersion, regExp, regUpdatesExpired } =
   storeToRefs(serverStore);
-const { available, availableWithRenewal } = storeToRefs(updateOsStore);
+const { available, availableWithRenewal, checkForUpdatesLoading } = storeToRefs(updateOsStore);
 const { ineligibleText, rebootTypeText, status } = storeToRefs(updateOsActionsStore);
 
 const updateAvailable = computed(() => available.value || availableWithRenewal.value);
+const checkingForUpdates = computed(() => checkForUpdatesLoading.value || status.value === 'checking');
 
 const { outputDateTimeReadableDiff: readableDiffRegExp, outputDateTimeFormatted: formattedRegExp } =
   useDateTimeHelper(dateTimeFormat.value, t, true, regExp.value);
@@ -240,7 +241,7 @@ const navigateToRegistration = () => {
           v-if="showRefreshButton"
           variant="pill-gray"
           :title="t('userProfile.dropdownContent.checkForUpdate')"
-          :disabled="status === 'checking'"
+          :disabled="checkingForUpdates"
           @click="checkForUpdates"
         >
           <ArrowPathIcon class="shrink-0" style="width: 16px; height: 16px" />
@@ -250,7 +251,7 @@ const navigateToRegistration = () => {
         <Button
           :variant="checkButton.variant === 'fill' ? 'pill-orange' : 'pill-gray'"
           :title="checkButton.text"
-          :disabled="status === 'checking'"
+          :disabled="checkingForUpdates"
           @click="checkButton.click"
         >
           <component :is="checkButton.icon" class="shrink-0" style="width: 16px; height: 16px" />

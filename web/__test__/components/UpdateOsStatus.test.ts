@@ -29,6 +29,7 @@ const useUpdateOsStore = defineStore('updateOs', {
   state: () => ({
     available: undefined as string | undefined,
     availableWithRenewal: undefined as string | undefined,
+    checkForUpdatesLoading: false,
   }),
   actions: { localCheckForUpdate: vi.fn(), setModalOpen: vi.fn(), cancelUpdate: vi.fn() },
 });
@@ -86,22 +87,26 @@ describe('Update OS status actions', () => {
     }
   );
 
-  it('disables refresh and release actions while checking', async () => {
-    const { wrapper, update, actions } = mountStatus();
-    update.available = '7.3.0';
-    actions.status = 'checking';
-    await wrapper.vm.$nextTick();
-    const buttons = wrapper
-      .findAll('button')
-      .filter((button) => button.text() === 'Check for Update' || button.text().includes('7.3.0'));
-    expect(buttons).toHaveLength(2);
-    for (const button of buttons) {
-      expect(button.attributes('disabled')).toBeDefined();
-      await button.trigger('click');
+  it.each(['action', 'local'])(
+    'disables refresh and release actions during a %s check',
+    async (source) => {
+      const { wrapper, update, actions } = mountStatus();
+      update.available = '7.3.0';
+      if (source === 'action') actions.status = 'checking';
+      else update.checkForUpdatesLoading = true;
+      await wrapper.vm.$nextTick();
+      const buttons = wrapper
+        .findAll('button')
+        .filter((button) => button.text() === 'Check for Update' || button.text().includes('7.3.0'));
+      expect(buttons).toHaveLength(2);
+      for (const button of buttons) {
+        expect(button.attributes('disabled')).toBeDefined();
+        await button.trigger('click');
+      }
+      expect(update.localCheckForUpdate).not.toHaveBeenCalled();
+      expect(update.setModalOpen).not.toHaveBeenCalled();
     }
-    expect(update.localCheckForUpdate).not.toHaveBeenCalled();
-    expect(update.setModalOpen).not.toHaveBeenCalled();
-  });
+  );
 
   it.each(['update', 'downgrade'] as const)(
     'hides refresh while a %s reboot is pending',
