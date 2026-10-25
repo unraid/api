@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { Test } from '@nestjs/testing';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { emptyMyServersConfig } from '../config/connect.config.js';
 import { ConnectConfigService } from '../config/connect.config.service.js';
+import { ConnectConfigPersister } from '../config/config.persistence.js';
 import { ConnectSettingsResolver } from '../unraid-connect/connect-settings.resolver.js';
 import { ConnectSettingsService } from '../unraid-connect/connect-settings.service.js';
 
@@ -71,6 +72,32 @@ describe('ConnectConfigService sign-out', () => {
         await expect(new ConnectConfigService(configService).resetUser()).rejects.toThrow();
         expect(await readFile(legacyPath, 'utf8')).toContain('legacy-key');
         expect(configService.get('connect.config.apikey')).toBe('current-key');
+    });
+
+    it('does not restore the key on shutdown when legacy cleanup fails', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'connect-sign-out-'));
+        temporaryDirectories.push(directory);
+        const legacyPath = join(directory, 'myservers.cfg');
+        await mkdir(legacyPath);
+        const configService = new ConfigService({
+            connect: {
+                config: {
+                    ...emptyMyServersConfig(),
+                    apikey: 'current-key',
+                    email: 'signed-in@example.com',
+                },
+            },
+            PATHS_CONFIG_MODULES: directory,
+            PATHS_MY_SERVERS_CONFIG: legacyPath,
+        });
+
+        await expect(new ConnectConfigService(configService).resetUser()).rejects.toThrow();
+        expect(configService.get('connect.config.apikey')).toBe('');
+        expect(configService.get('connect.config.email')).toBe('');
+        await new ConnectConfigPersister(configService).onModuleDestroy();
+        const persisted = JSON.parse(await readFile(join(directory, 'connect.json'), 'utf8'));
+        expect(persisted.apikey).toBe('');
+        expect(persisted.email).toBe('');
     });
 
     it('finishes disk cleanup before the sign-out mutation succeeds', async () => {

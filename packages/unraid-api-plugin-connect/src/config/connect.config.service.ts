@@ -60,6 +60,9 @@ export class ConnectConfigService {
         if (!isMatch(savedConfig, identity)) {
             throw new Error('Connect sign-out could not persist cleared identity');
         }
+        // Keep memory aligned with the cleared file before legacy cleanup. If
+        // that cleanup fails, shutdown persistence must not restore the key.
+        this.configService.set(this.configKey, config);
 
         const legacyPath = this.configService.get<string>(
             'PATHS_MY_SERVERS_CONFIG',
@@ -70,7 +73,6 @@ export class ConnectConfigService {
                 if (error.code !== 'ENOENT') throw error;
             });
         }
-        this.configService.set(this.configKey, config);
         this.logger.verbose('Reset Connect user identity');
     }
 
