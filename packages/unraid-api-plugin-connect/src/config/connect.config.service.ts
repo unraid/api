@@ -46,13 +46,14 @@ export class ConnectConfigService {
      */
     async resetUser() {
         // overwrite identity fields, but retain destructured fields
-        const { wanaccess, wanport, upnpEnabled, ...identity } = emptyMyServersConfig();
+        const { wanaccess, wanport, upnpEnabled, ...identity } = {
+            ...emptyMyServersConfig(),
+            email: '',
+        };
         const config = {
             ...this.getConfig(),
             ...identity,
         };
-        this.configService.set(this.configKey, config);
-
         const persister = new ConnectConfigPersister(this.configService);
         await persister.persist(config);
         const savedConfig = await persister.getFileHandler().readConfigFile();
@@ -69,6 +70,7 @@ export class ConnectConfigService {
                 if (error.code !== 'ENOENT') throw error;
             });
         }
+        this.configService.set(this.configKey, config);
         this.logger.verbose('Reset Connect user identity');
     }
 

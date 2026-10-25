@@ -279,8 +279,11 @@ exit 0
           unraid-api stop || true
         fi
 
-        if pgrep -f '[n]ode /usr/local/unraid-api/dist/main.js' >/dev/null 2>&1; then
-          echo "Error: Unraid API is still running; Connect credentials were not removed"
+        # `unraid-api status` reports the PM2 app even when its worker command
+        # does not contain the application script path. An empty successful
+        # status is the stopped state on Unraid 7.
+        if ! api_status=$(unraid-api status 2>&1) || [ -n "$api_status" ]; then
+          echo "Error: Could not verify Unraid API stopped; Connect credentials were not removed"
           exit 1
         fi
 
@@ -322,6 +325,9 @@ exit 0
         echo "Unraid 7.2+ detected. Using safe removal method."
         if ! /etc/rc.d/rc.unraid-api plugins remove unraid-api-plugin-connect -b; then
           echo "Warning: Failed to remove connect API plugin"
+          if ! /etc/rc.d/rc.unraid-api start; then
+            echo "Warning: Failed to restart Unraid API after Connect plugin removal failure"
+          fi
         fi
 
         # Send notification to user

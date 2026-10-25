@@ -34,6 +34,7 @@ describe('ConnectConfigService sign-out', () => {
                     ...emptyMyServersConfig(),
                     apikey: 'current-key',
                     username: 'signed-in-user',
+                    email: 'signed-in@example.com',
                     wanaccess: true,
                     wanport: 33443,
                 },
@@ -47,6 +48,8 @@ describe('ConnectConfigService sign-out', () => {
         const persisted = JSON.parse(await readFile(join(directory, 'connect.json'), 'utf8'));
         expect(persisted.apikey).toBe('');
         expect(persisted.username).toBe('');
+        expect(persisted.email).toBe('');
+        expect(configService.get('connect.config.email')).toBe('');
         expect(persisted.wanaccess).toBe(true);
         expect(persisted.wanport).toBe(33443);
         await expect(readFile(legacyPath)).rejects.toThrow();
@@ -67,6 +70,7 @@ describe('ConnectConfigService sign-out', () => {
 
         await expect(new ConnectConfigService(configService).resetUser()).rejects.toThrow();
         expect(await readFile(legacyPath, 'utf8')).toContain('legacy-key');
+        expect(configService.get('connect.config.apikey')).toBe('current-key');
     });
 
     it('finishes disk cleanup before the sign-out mutation succeeds', async () => {
