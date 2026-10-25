@@ -1,0 +1,20 @@
+{
+  "disposition": "NOT_REQUIRED",
+  "expected_structural_delta": "No new owners, caches, dependencies or public contracts; two production files and one integration suite.",
+  "minimum_design": "Use existing Casbin synchronized enforcer and apply only changed custom permissions.",
+  "outcome": "Concurrent custom API key authorization remains correct during permission synchronization.",
+  "reuse_decisions": [
+    {
+      "decision": "reuse",
+      "name": "Casbin newSyncedEnforcer",
+      "rationale": "Installed dependency already serializes policy readers and writers"
+    },
+    {
+      "decision": "extend",
+      "name": "AuthZService permission methods",
+      "rationale": "Compute deltas instead of clearing unchanged grants"
+    }
+  ],
+  "schema": "limetech.ai-review-marker.v2",
+  "stage": "forecast"
+}
