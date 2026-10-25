@@ -1,5 +1,5 @@
 import { nextTick, ref } from 'vue';
-import { enableAutoUnmount, mount } from '@vue/test-utils';
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -265,6 +265,41 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
       expect(mockLocalCheckForUpdate).toHaveBeenCalledTimes(1);
     }
   });
+
+  it('keeps the error and retry action available when retry fails', async () => {
+    checkForUpdatesFailed.value = true;
+    mockLocalCheckForUpdate.mockRejectedValueOnce(new Error('Offline'));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const wrapper = renderModal();
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text() === 'Retry')!
+      .trigger('click');
+    await flushPromises();
+    expect(mockLocalCheckForUpdate).toHaveBeenCalledTimes(1);
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true);
+    expect(wrapper.findAll('button').some((button) => button.text() === 'Retry')).toBe(true);
+  });
+
+  it.each([true, false])(
+    'shows the manual check result while drivers prepare, newer=%s',
+    async (newer) => {
+      if (!embedded) return;
+      rebootType.value = 'thirdPartyDriversDownloading';
+      rebootVersion.value = '7.3.0';
+      available.value = newer ? '7.3.0' : null;
+      const wrapper = renderModal();
+      expect(wrapper.find('[role="status"] p').exists()).toBe(false);
+      await wrapper
+        .findAll('button')
+        .find((button) => button.text() === 'Check for updates')!
+        .trigger('click');
+      await flushPromises();
+      expect(wrapper.find('[role="status"] p').text()).toContain(
+        newer ? '7.3.0' : testTranslate('updateOs.status.upToDate')
+      );
+    }
+  );
 
   it.each(['update', 'downgrade', 'thirdPartyDriversDownloading'])(
     'keeps %s actions inside the embedded card',

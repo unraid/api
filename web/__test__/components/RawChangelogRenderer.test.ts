@@ -3,7 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import RawChangelogRenderer from '~/components/UpdateOs/RawChangelogRenderer.vue';
-import { createTestI18n } from '../utils/i18n';
+import { createTestI18n, testTranslate } from '../utils/i18n';
 
 vi.mock('@unraid/ui', () => ({
   BrandButton: { template: '<a><slot /></a>' },
@@ -13,6 +13,23 @@ vi.mock('@unraid/ui', () => ({
 afterEach(() => vi.unstubAllGlobals());
 
 describe('RawChangelogRenderer', () => {
+  it('leaves the loading state when no release-note content is returned', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(async () => new Response(''))
+    );
+    const wrapper = mount(RawChangelogRenderer, {
+      props: { changelog: '/empty.md', version: '7.3.0' },
+      global: { plugins: [createTestI18n()] },
+    });
+    await flushPromises();
+    expect(wrapper.find('[role="status"]').exists()).toBe(false);
+    expect(wrapper.text()).toContain(
+      testTranslate('updateOs.rawChangelogRenderer.noChangelogContentAvailable')
+    );
+    wrapper.unmount();
+  });
+
   it('shows the Unraid loader, then release sections without duplicating the modal title', async () => {
     let finish: (response: Response) => void = () => {};
     const pending = new Promise<Response>((resolve) => {
