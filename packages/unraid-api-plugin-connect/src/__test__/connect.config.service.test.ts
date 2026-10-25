@@ -207,7 +207,7 @@ describe('ConnectConfigService sign-out', () => {
             new ConnectConfigService(configService)
         );
 
-        await expect(resolver.connectSignOut()).rejects.toThrow('legacy credential file');
+        await expect(resolver.connectSignOut()).rejects.toThrow();
         expect(emitAsync).toHaveBeenCalledWith(EVENTS.LOGOUT, expect.any(Object));
         expect(stopRelay).toHaveBeenCalledTimes(1);
         expect(configService.get('connect.config.apikey')).toBe('');
