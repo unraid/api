@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
 
-import { Model as CasbinModel, Enforcer, newEnforcer, StringAdapter } from 'casbin';
+import { Model as CasbinModel, Enforcer, newSyncedEnforcer, StringAdapter } from 'casbin';
 
 import { LOG_LEVEL } from '@app/environment.js';
 
@@ -19,7 +19,8 @@ export class CasbinService {
         casbinModel.loadModelFromText(model);
         const casbinPolicy = new StringAdapter(policy);
         try {
-            const enforcer = await newEnforcer(casbinModel, casbinPolicy);
+            // Authentication refreshes policies while other GraphQL fields are authorizing.
+            const enforcer = await newSyncedEnforcer(casbinModel, casbinPolicy);
             if (LOG_LEVEL === 'TRACE') {
                 enforcer.enableLog(true);
             }
