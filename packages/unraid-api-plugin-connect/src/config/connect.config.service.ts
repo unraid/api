@@ -9,6 +9,13 @@ import { EVENTS } from '../helper/nest-tokens.js';
 import { ConnectConfigPersister } from './config.persistence.js';
 import { ConfigType, emptyMyServersConfig, MyServersConfig } from './connect.config.js';
 
+/** The identity was cleared, but removal of the legacy credential file failed. */
+export class ConnectLegacyCleanupError extends Error {
+    constructor(cause: unknown) {
+        super('Connect sign-out could not remove the legacy credential file', { cause });
+    }
+}
+
 @Injectable()
 export class ConnectConfigService {
     public readonly configKey = 'connect.config';
@@ -70,7 +77,7 @@ export class ConnectConfigService {
         );
         if (legacyPath) {
             await unlink(legacyPath).catch((error: NodeJS.ErrnoException) => {
-                if (error.code !== 'ENOENT') throw error;
+                if (error.code !== 'ENOENT') throw new ConnectLegacyCleanupError(error);
             });
         }
         this.logger.verbose('Reset Connect user identity');

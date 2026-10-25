@@ -9,7 +9,7 @@ import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
-import { ConnectConfigService } from '../config/connect.config.service.js';
+import { ConnectConfigService, ConnectLegacyCleanupError } from '../config/connect.config.service.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 import { ConnectSettingsService } from './connect-settings.service.js';
 import {
@@ -120,7 +120,23 @@ export class ConnectSettingsResolver {
         resource: Resource.CONNECT,
     })
     public async connectSignOut() {
-        await this.connectConfigService.resetUser();
+        try {
+            await this.connectConfigService.resetUser();
+        } catch (error) {
+            if (error instanceof ConnectLegacyCleanupError) {
+                // The cleared identity is already durable. Tear down the relay
+                // even though the stale legacy file still needs cleanup.
+                try {
+                    await this.eventEmitter.emitAsync(EVENTS.LOGOUT, {
+                        reason: 'Manual Sign Out Using API',
+                        configResetCompleted: true,
+                    });
+                } finally {
+                    throw error;
+                }
+            }
+            throw error;
+        }
         await this.eventEmitter.emitAsync(EVENTS.LOGOUT, {
             reason: 'Manual Sign Out Using API',
             configResetCompleted: true,

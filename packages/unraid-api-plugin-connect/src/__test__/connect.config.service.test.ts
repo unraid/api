@@ -7,9 +7,10 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { ConnectConfigPersister } from '../config/config.persistence.js';
 import { emptyMyServersConfig } from '../config/connect.config.js';
 import { ConnectConfigService } from '../config/connect.config.service.js';
-import { ConnectConfigPersister } from '../config/config.persistence.js';
+import { EVENTS } from '../helper/nest-tokens.js';
 import { ConnectSettingsResolver } from '../unraid-connect/connect-settings.resolver.js';
 import { ConnectSettingsService } from '../unraid-connect/connect-settings.service.js';
 
@@ -184,5 +185,33 @@ describe('ConnectConfigService sign-out', () => {
         } finally {
             await module.close();
         }
+    });
+
+    it('tears down the relay when legacy cleanup fails after clearing the identity', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'connect-sign-out-'));
+        temporaryDirectories.push(directory);
+        const legacyPath = join(directory, 'myservers.cfg');
+        await mkdir(legacyPath);
+        const configService = new ConfigService({
+            connect: { config: { ...emptyMyServersConfig(), apikey: 'current-key' } },
+            PATHS_CONFIG_MODULES: directory,
+            PATHS_MY_SERVERS_CONFIG: legacyPath,
+        });
+        const emitter = new EventEmitter2();
+        const emitAsync = vi.spyOn(emitter, 'emitAsync');
+        const stopRelay = vi.fn().mockResolvedValue(undefined);
+        emitter.on(EVENTS.LOGOUT, stopRelay);
+        const resolver = new ConnectSettingsResolver(
+            {} as ConnectSettingsService,
+            emitter,
+            new ConnectConfigService(configService)
+        );
+
+        await expect(resolver.connectSignOut()).rejects.toThrow('legacy credential file');
+        expect(emitAsync).toHaveBeenCalledWith(EVENTS.LOGOUT, expect.any(Object));
+        expect(stopRelay).toHaveBeenCalledTimes(1);
+        expect(configService.get('connect.config.apikey')).toBe('');
+        const persisted = JSON.parse(await readFile(join(directory, 'connect.json'), 'utf8'));
+        expect(persisted.apikey).toBe('');
     });
 });
