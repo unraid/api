@@ -120,38 +120,25 @@ perform_connect_cleanup() {
       echo "⚠️ Warning: Neither /etc/rc.d/rc.unraid-api nor unraid-api command found"
     fi
     
-    # Sign out of Unraid Connect (we'll use curl directly from shell)
-    # We need to extract the username from connect.json or myservers.cfg and the registration key
-    has_username=false
-    
-    # Check connect.json first (newer format)
-    if [ -f "/boot/config/plugins/dynamix.my.servers/configs/connect.json" ] && command -v jq >/dev/null 2>&1; then
-      username=$(jq -r '.username' "/boot/config/plugins/dynamix.my.servers/configs/connect.json" 2>/dev/null)
-      if [ -n "$username" ] && [ "$username" != "null" ]; then
-        has_username=true
-      fi
+    connect_key=""
+    if [ -f "/boot/config/plugins/dynamix.my.servers/configs/connect.json" ]; then
+      connect_key=$(jq -r '.apikey // empty' "/boot/config/plugins/dynamix.my.servers/configs/connect.json" 2>/dev/null) || return 1
     fi
-    
-    # Fallback to myservers.cfg (legacy format)
-    if [ "$has_username" = false ] && [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
-      if grep -q 'username' "/boot/config/plugins/dynamix.my.servers/myservers.cfg"; then
-        has_username=true
-      fi
+    if [ -z "$connect_key" ] && [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
+      connect_key=$(sed -nE 's/^[[:space:]]*apikey[[:space:]]*=[[:space:]]*"?([^"[:space:]]+)"?[[:space:]]*$/\1/p' \
+        "/boot/config/plugins/dynamix.my.servers/myservers.cfg" | head -n 1)
     fi
-    
-    if [ "$has_username" = true ]; then
-      printf "\nSigning out of Unraid Connect\n"
-      # Check if regFILE exists in var.ini
-      if [ -f "/var/local/emhttp/var.ini" ]; then
-        regfile=$(grep "regFILE" "/var/local/emhttp/var.ini" | cut -d= -f2)
-        if [ -n "$regfile" ] && [ -f "$regfile" ]; then
-          # Base64 encode the key file and send to server
-          encoded_key=$(base64 "$regfile" | tr -d '\n')
-          if [ -n "$encoded_key" ]; then
-            curl -s -X POST "https://keys.lime-technology.com/account/server/unregister" \
-              -d "keyfile=$encoded_key" >/dev/null 2>&1
-          fi
-        fi
+    if [ -n "$connect_key" ]; then
+      if [[ ! "$connect_key" =~ ^unraid_[A-Za-z0-9]{57}$ ]] || ! (
+        set -o pipefail
+        printf 'header = "x-api-key: %s"\n' "$connect_key" |
+          curl --config - --silent --show-error --fail \
+            --connect-timeout 5 --max-time 15 --proto '=https' \
+            --request POST https://mothership.unraid.net/ks/server/self-unregister |
+          jq -e '.revoked == true' >/dev/null
+      ); then
+        echo "Error: Connect cloud key revocation failed; credentials were retained for retry"
+        return 1
       fi
     fi
     
@@ -165,7 +152,7 @@ perform_connect_cleanup() {
   fi
 }
 
-perform_connect_cleanup
+perform_connect_cleanup || exit 1
 echo "Done. Please uninstall the Connect plugin to complete the cleanup."
 # Exit with error to clarify that further user action--either uninstalling the plugin or upgrading to a newer version of Unraid--is required.
 exit 1;
@@ -283,6 +270,31 @@ exit 0
       # persistence write cannot recreate the credentials on flash.
       if [ -f /boot/config/plugins/dynamix.my.servers/configs/connect.json ] || \
          [ -f /boot/config/plugins/dynamix.my.servers/myservers.cfg ]; then
+        connect_key=""
+        if [ -f /boot/config/plugins/dynamix.my.servers/configs/connect.json ]; then
+          connect_key=$(jq -r '.apikey // empty' /boot/config/plugins/dynamix.my.servers/configs/connect.json 2>/dev/null) || {
+            echo "Error: Could not read Connect credentials for cloud revocation"
+            exit 1
+          }
+        fi
+        if [ -z "$connect_key" ] && [ -f /boot/config/plugins/dynamix.my.servers/myservers.cfg ]; then
+          connect_key=$(sed -nE 's/^[[:space:]]*apikey[[:space:]]*=[[:space:]]*"?([^"[:space:]]+)"?[[:space:]]*$/\1/p' \
+            /boot/config/plugins/dynamix.my.servers/myservers.cfg | head -n 1)
+        fi
+        if [ -n "$connect_key" ]; then
+          if [[ ! "$connect_key" =~ ^unraid_[A-Za-z0-9]{57}$ ]] || ! (
+            set -o pipefail
+            printf 'header = "x-api-key: %s"\n' "$connect_key" |
+              curl --config - --silent --show-error --fail \
+                --connect-timeout 5 --max-time 15 --proto '=https' \
+                --request POST https://mothership.unraid.net/ks/server/self-unregister |
+              jq -e '.revoked == true' >/dev/null
+          ); then
+            echo "Error: Connect cloud key revocation failed; credentials were retained for retry"
+            exit 1
+          fi
+        fi
+
         if [ -x /etc/rc.d/rc.unraid-api ]; then
           /etc/rc.d/rc.unraid-api stop || true
         elif command -v unraid-api >/dev/null 2>&1; then

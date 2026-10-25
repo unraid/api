@@ -18,11 +18,36 @@ describe('ConnectConfigService sign-out', () => {
     const temporaryDirectories: string[] = [];
 
     afterEach(async () => {
+        vi.unstubAllGlobals();
         await Promise.all(
             temporaryDirectories
                 .splice(0)
                 .map((directory) => rm(directory, { recursive: true, force: true }))
         );
+    });
+
+    it('revokes the cloud key before local sign-out and keeps it on cloud failure', async () => {
+        const configService = new ConfigService({
+            connect: { config: { ...emptyMyServersConfig(), apikey: 'current-key' } },
+            MOTHERSHIP_GRAPHQL_LINK: 'https://mothership.unraid.net/ws',
+        });
+        const service = new ConnectConfigService(configService);
+        const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ revoked: true }) });
+        vi.stubGlobal('fetch', fetchMock);
+
+        await service.revokeCloudKey();
+        expect(fetchMock).toHaveBeenCalledWith(
+            new URL('https://mothership.unraid.net/ks/server/self-unregister'),
+            expect.objectContaining({
+                method: 'POST',
+                headers: { 'x-api-key': 'current-key' },
+                redirect: 'error',
+            })
+        );
+
+        fetchMock.mockResolvedValue({ ok: false });
+        await expect(service.revokeCloudKey()).rejects.toThrow();
+        expect(configService.get('connect.config.apikey')).toBe('current-key');
     });
 
     it('persists the cleared identity and removes the legacy source of the key', async () => {
@@ -55,6 +80,32 @@ describe('ConnectConfigService sign-out', () => {
         expect(persisted.wanaccess).toBe(true);
         expect(persisted.wanport).toBe(33443);
         await expect(readFile(legacyPath)).rejects.toThrow();
+    });
+
+    it('retains local credentials when cloud revocation fails during sign-out', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'connect-sign-out-'));
+        temporaryDirectories.push(directory);
+        const legacyPath = join(directory, 'myservers.cfg');
+        await writeFile(legacyPath, '[remote]\napikey="legacy-key"\n');
+        const configService = new ConfigService({
+            connect: { config: { ...emptyMyServersConfig(), apikey: 'current-key' } },
+            PATHS_CONFIG_MODULES: directory,
+            PATHS_MY_SERVERS_CONFIG: legacyPath,
+        });
+        const emitter = new EventEmitter2();
+        const connectConfig = new ConnectConfigService(configService);
+        vi.spyOn(connectConfig, 'revokeCloudKey').mockRejectedValue(new Error('cloud unavailable'));
+        const resetUser = vi.spyOn(connectConfig, 'resetUser');
+        const resolver = new ConnectSettingsResolver(
+            {} as ConnectSettingsService,
+            emitter,
+            connectConfig
+        );
+
+        await expect(resolver.connectSignOut()).rejects.toThrow('cloud unavailable');
+        expect(resetUser).not.toHaveBeenCalled();
+        expect(configService.get('connect.config.apikey')).toBe('current-key');
+        expect(await readFile(legacyPath, 'utf8')).toContain('legacy-key');
     });
 
     it('keeps the legacy config when the cleared identity cannot be persisted', async () => {
@@ -135,6 +186,7 @@ describe('ConnectConfigService sign-out', () => {
 
         try {
             const resetUser = vi.spyOn(module.get(ConnectConfigService), 'resetUser');
+            vi.spyOn(module.get(ConnectConfigService), 'revokeCloudKey').mockResolvedValue();
             await expect(module.get(ConnectSettingsResolver).connectSignOut()).resolves.toBe(true);
             expect(resetUser).toHaveBeenCalledTimes(1);
             const persisted = JSON.parse(await readFile(join(directory, 'connect.json'), 'utf8'));
@@ -180,6 +232,7 @@ describe('ConnectConfigService sign-out', () => {
         await module.init();
 
         try {
+            vi.spyOn(module.get(ConnectConfigService), 'revokeCloudKey').mockResolvedValue();
             await expect(module.get(ConnectSettingsResolver).connectSignOut()).rejects.toThrow();
             expect(await readFile(legacyPath, 'utf8')).toContain('legacy-key');
         } finally {
@@ -201,10 +254,12 @@ describe('ConnectConfigService sign-out', () => {
         const emitAsync = vi.spyOn(emitter, 'emitAsync');
         const stopRelay = vi.fn().mockResolvedValue(undefined);
         emitter.on(EVENTS.LOGOUT, stopRelay);
+        const connectConfig = new ConnectConfigService(configService);
+        vi.spyOn(connectConfig, 'revokeCloudKey').mockResolvedValue();
         const resolver = new ConnectSettingsResolver(
             {} as ConnectSettingsService,
             emitter,
-            new ConnectConfigService(configService)
+            connectConfig
         );
 
         await expect(resolver.connectSignOut()).rejects.toThrow();

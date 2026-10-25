@@ -26,6 +26,35 @@ export class ConnectConfigService {
         return this.configService.getOrThrow<MyServersConfig>(this.configKey);
     }
 
+    async revokeCloudKey(): Promise<void> {
+        const apiKey = this.getConfig().apikey;
+        if (!apiKey) return;
+
+        const mothership = new URL(this.configService.getOrThrow<string>('MOTHERSHIP_GRAPHQL_LINK'));
+        if (mothership.protocol !== 'https:') {
+            throw new Error('Connect key revocation requires HTTPS');
+        }
+
+        const endpoint = new URL('/ks/server/self-unregister', mothership);
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'x-api-key': apiKey },
+            redirect: 'error',
+            signal: AbortSignal.timeout(15_000),
+        });
+        if (!response.ok) throw new Error('Connect cloud key revocation failed');
+
+        const result: unknown = await response.json();
+        if (
+            !result ||
+            typeof result !== 'object' ||
+            !('revoked' in result) ||
+            result.revoked !== true
+        ) {
+            throw new Error('Connect cloud key revocation was not confirmed');
+        }
+    }
+
     getExtraOrigins(): string[] {
         const extraOrigins = this.configService.get<string>('store.config.api.extraOrigins');
         if (extraOrigins) {

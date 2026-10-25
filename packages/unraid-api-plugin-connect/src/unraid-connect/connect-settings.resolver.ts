@@ -120,6 +120,7 @@ export class ConnectSettingsResolver {
         resource: Resource.CONNECT,
     })
     public async connectSignOut() {
+        await this.connectConfigService.revokeCloudKey();
         try {
             await this.connectConfigService.resetUser();
         } catch (error) {
