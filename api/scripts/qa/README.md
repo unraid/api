@@ -25,15 +25,21 @@ Watcher metadata reads and other processes are outside this measurement.
 Assertions check final counters against full lists, final warning payloads,
 deduplicated additions, no history recount, no reads of unrelated archived
 payloads, and no more than two count reads per event plus the unread payload
-scans. Archive-only bursts must trigger no warning/alert scans.
+scans. They require at most one active payload scan and at most four scans for
+each large-history test burst. Archive-only bursts must trigger no warning/alert
+scans. This limits the fixture's total read budget rather than only its counter
+reads. Separate broadcast tests hold reads/publication open to prove that
+overlapping requests combine, a mid-scan request produces a fresh final payload,
+and read/publication failures do not block later requests.
 
-**These are cost-characterization tests, not a burst-performance approval.**
-The current implementation starts a warning/alert scan per unread event. With
-1,000 unread history files, a burst of 100 changes produced 110,200 content-read
-attempts and 100 scans in a local run. Passing tests preserve notification
-correctness and expose that amplification; they do not establish an acceptable
-server latency or a constant read budget per burst. Elapsed times are diagnostic,
-not machine-dependent CI limits. Appliance acceptance remains a separate step.
+Before refresh scheduling, 100 changes with 1,000 unread history files caused
+110,200 content-read attempts and 100 overlapping scans. With scheduling, the
+same native-watcher workload used 1,300 attempts and one scan in a local run;
+polling used 2,400 attempts and two sequential scans. Incoming events during a
+scan can require a follow-up scan; there is no fixed scan-count guarantee for an
+unbounded stream of events. Elapsed times remain diagnostic, not machine-dependent
+CI limits. These local tests do not establish appliance latency or physical disk
+I/O performance. Appliance acceptance remains a separate step.
 
 ## Appliance setup
 

@@ -157,6 +157,8 @@ describe.sequential('Notification burst read costs', () => {
                 ).toEqual([]);
                 const unreadEvents = events.filter((event) => event.path.includes('/unread/'));
                 expect(scans.mock.calls.length).toBeLessThanOrEqual(unreadEvents.length);
+                expect(peakActiveScans).toBeLessThanOrEqual(1);
+                if (historySize) expect(scans.mock.calls.length).toBeLessThanOrEqual(4);
                 const maximumUnread = historySize + (operation === 'archive-only' ? 0 : burstSize);
                 expect(measuredReads.length).toBeLessThanOrEqual(
                     2 * expectedEvents + maximumUnread * scans.mock.calls.length

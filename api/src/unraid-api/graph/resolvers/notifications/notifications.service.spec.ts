@@ -100,6 +100,7 @@ describe.sequential('NotificationsService', () => {
     // make sure each test is isolated (as much as possible)
     afterEach(async () => {
         await service.deleteAllNotifications();
+        await Reflect.get(service, 'warningsUpdate');
         expect(service.getOverview()).toEqual(zeroOverview());
     });
 

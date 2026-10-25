@@ -125,7 +125,10 @@ describe.sequential('Notification filesystem and subscription integration', () =
         const activeWatcher: FSWatcher | null = Reflect.get(NotificationsService, 'watcher');
         await activeWatcher?.close();
         Reflect.set(NotificationsService, 'watcher', null);
-        if (service) await Reflect.get(service, 'overviewUpdate');
+        if (service) {
+            await Reflect.get(service, 'overviewUpdate');
+            await Reflect.get(service, 'warningsUpdate');
+        }
         subscriptions.forEach((subscription) => pubsub.unsubscribe(subscription));
         vi.restoreAllMocks();
         vi.unstubAllGlobals();

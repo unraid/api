@@ -48,6 +48,8 @@ export class NotificationsService {
     private initialization: Promise<void> | null = null;
     private initializationFailed = false;
     private overviewUpdate: Promise<unknown> = Promise.resolve();
+    private warningsUpdate: Promise<void> | null = null;
+    private warningsUpdateRequested = false;
     private notificationFiles = new Map<string, NotificationFileState>();
     private isHydratingOverview = false;
     private pendingNotificationEvents = new Map<string, NotificationFileEvent>();
@@ -303,18 +305,32 @@ export class NotificationsService {
         });
     }
 
-    private async publishWarningsAndAlerts() {
-        try {
-            const warningsAndAlerts = await this.getWarningsAndAlerts();
-            await pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_WARNINGS_AND_ALERTS, {
-                notificationsWarningsAndAlerts: warningsAndAlerts,
-            });
-        } catch (error) {
-            this.logger.error(
-                '[publishWarningsAndAlerts] Failed to broadcast warnings and alerts snapshot',
-                error as Error
-            );
-        }
+    private publishWarningsAndAlerts(): Promise<void> {
+        this.warningsUpdateRequested = true;
+        if (this.warningsUpdate) return this.warningsUpdate;
+
+        this.warningsUpdate = Promise.resolve().then(async () => {
+            try {
+                while (this.warningsUpdateRequested) {
+                    await this.overviewUpdate.catch(() => undefined);
+                    this.warningsUpdateRequested = false;
+                    try {
+                        const warningsAndAlerts = await this.getWarningsAndAlerts();
+                        await pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_WARNINGS_AND_ALERTS, {
+                            notificationsWarningsAndAlerts: warningsAndAlerts,
+                        });
+                    } catch (error) {
+                        this.logger.error(
+                            '[publishWarningsAndAlerts] Failed to broadcast warnings and alerts snapshot',
+                            error as Error
+                        );
+                    }
+                }
+            } finally {
+                this.warningsUpdate = null;
+            }
+        });
+        return this.warningsUpdate;
     }
 
     private increment(importance: NotificationImportance, collector: NotificationCounts) {
