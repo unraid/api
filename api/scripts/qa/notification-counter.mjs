@@ -297,6 +297,7 @@ async function adversarial() {
         const saved = join(notificationPath, `${prefix}_saved_unread`);
         await rename(unread, saved);
         await writeFile(unread, 'blocked directory');
+        let startupError;
         try {
             execFileSync('/etc/rc.d/rc.unraid-api', ['restart'], { timeout: 60000, stdio: 'pipe' });
             const failedProcess = apiProcess();
@@ -309,9 +310,17 @@ async function adversarial() {
             await rename(saved, unread);
             await verify('recovers startup directory failure without another restart', { unread: 2, archive: 0 });
             assert.deepEqual(apiProcess(), failedProcess, 'Process restarted instead of recovering');
+        } catch (error) {
+            startupError = error;
+            throw error;
         } finally {
             try { await access(saved); await rm(unread, { recursive: true, force: true }); await rename(saved, unread); }
-            catch (error) { if (error.code !== 'ENOENT') throw error; }
+            catch (error) {
+                if (error.code !== 'ENOENT') {
+                    report.startupCleanupErrorType = error.name;
+                    if (!startupError) throw error;
+                }
+            }
         }
         await mutation('archiveNotification', persistent);
         await verify('mutation after initialization recovery', { unread: 1, archive: 1 });
@@ -326,7 +335,7 @@ async function adversarial() {
         try {
             await writeFile(limitPath, '1\n');
             await mkdir(faultDirectory);
-            await waitUntil(async () => (await readFile(logPath, 'utf8')).slice(oldLogLength).includes('ENOSPC'),
+            await waitUntil(async () => (await readFile(logPath)).subarray(oldLogLength).toString('utf8').includes('ENOSPC'),
                 'actual inotify resource exhaustion');
         } finally {
             await writeFile(limitPath, originalLimit);
