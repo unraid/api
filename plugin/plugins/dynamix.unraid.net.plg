@@ -279,10 +279,13 @@ exit 0
           unraid-api stop || true
         fi
 
-        # `unraid-api status` reports the PM2 app even when its worker command
-        # does not contain the application script path. An empty successful
-        # status is the stopped state on Unraid 7.
-        if ! api_status=$(unraid-api status 2>&1) || [ -n "$api_status" ]; then
+        # Inspect only the API app. `unraid-api status` lists every PM2 app,
+        # so an unrelated app must not block Connect credential removal.
+        if ! (
+          set -o pipefail
+          PM2_HOME=/var/log/.pm2 /usr/local/unraid-api/node_modules/pm2/bin/pm2 --no-color jlist |
+            jq -e 'type == "array" and all(.[]; .name != "unraid-api")' >/dev/null
+        ) 2>/dev/null; then
           echo "Error: Could not verify Unraid API stopped; Connect credentials were not removed"
           exit 1
         fi
