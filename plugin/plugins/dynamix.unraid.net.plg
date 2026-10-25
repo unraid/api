@@ -306,13 +306,16 @@ exit 0
           restore_api
           exit 1
         }
-        if [ -x /etc/rc.d/rc.nginx ]; then
-          /etc/rc.d/rc.nginx reload || {
-            echo "Error: Could not reload nginx after clearing Connect credentials"
-            restore_api
-            exit 1
-          }
-        fi
+      fi
+
+      # Retry the reload even if an earlier removal attempt already cleared
+      # credentials but failed before nginx accepted the new configuration.
+      if [ -x /etc/rc.d/rc.nginx ]; then
+        /etc/rc.d/rc.nginx reload || {
+          echo "Error: Could not reload nginx after clearing Connect credentials"
+          restore_api
+          exit 1
+        }
       fi
       
       # Check Unraid version
