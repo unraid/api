@@ -49,7 +49,7 @@ Object.defineProperty(window, 'location', {
 
 const UpdateOsStatusStub = {
   template: '<div data-testid="update-os-status">Status</div>',
-  props: ['title', 'subtitle', 't'],
+  props: ['title', 'subtitle', 't', 'inlineResponseVisible'],
 };
 const UpdateOsThirdPartyDriversStub = {
   template: '<div data-testid="third-party-drivers">Third Party</div>',
@@ -108,6 +108,33 @@ describe('UpdateOs.standalone.vue', () => {
   });
 
   describe('Initial Rendering and onBeforeMount Logic', () => {
+    it.each([
+      ['/Tools/Update', '', true, true],
+      ['/Tools/Update', '', false, false],
+      ['/Tools/Update', 'thirdPartyDriversDownloading', true, false],
+      ['/some/other/path', '', true, false],
+    ])(
+      'coordinates inline summary ownership on %s with reboot=%s and open=%s',
+      async (path, reboot, open, inline) => {
+        window.location.pathname = path;
+        mockRebootType.value = reboot;
+        mockUpdateOsStore.updateOsModalVisible = open;
+        const wrapper = mount(UpdateOs, {
+          global: {
+            plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
+            stubs: {
+              UpdateOsStatus: UpdateOsStatusStub,
+              UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+              UpdateOsCheckUpdateResponseModal: UpdateOsCheckUpdateResponseModalStub,
+              UpdateOsChangelogModal: UpdateOsChangelogModalStub,
+            },
+          },
+        });
+        await nextTick();
+        expect(wrapper.findComponent(UpdateOsStatusStub).props('inlineResponseVisible')).toBe(inline);
+      }
+    );
+
     it('checks for updates on the Tools page when no reboot is pending', async () => {
       window.location.pathname = '/Tools/Update';
       mockRebootType.value = '';

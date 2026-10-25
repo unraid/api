@@ -22,12 +22,14 @@ import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 export interface Props {
+  inlineResponseVisible?: boolean;
   downgradeNotAvailable?: boolean;
   showExternalDowngrade?: boolean;
   title?: string;
   subtitle?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
+  inlineResponseVisible: false,
   downgradeNotAvailable: false,
   showExternalDowngrade: false,
   title: undefined,
@@ -179,12 +181,16 @@ const navigateToRegistration = () => {
           {{ t('updateOs.status.keyIneligibleFor', [availableWithRenewal]) }}
         </Badge>
 
-        <Badge v-if="status === 'checking'" variant="orange" :icon="LoadingIcon">
+        <Badge
+          v-if="status === 'checking' && !inlineResponseVisible"
+          variant="orange"
+          :icon="LoadingIcon"
+        >
           {{ t('updateOs.status.checking') }}
         </Badge>
         <template v-else>
           <Badge
-            v-if="rebootType === ''"
+            v-if="rebootType === '' && !inlineResponseVisible"
             :variant="updateAvailable ? 'orange' : 'green'"
             :icon="
               updateAvailable
@@ -201,7 +207,7 @@ const navigateToRegistration = () => {
             }}
           </Badge>
           <Badge
-            v-else
+            v-else-if="rebootType !== ''"
             variant="yellow"
             :icon="() => h(ExclamationTriangleIcon, { style: 'width: 16px; height: 16px;' })"
           >
@@ -249,6 +255,7 @@ const navigateToRegistration = () => {
         </Button>
 
         <Button
+          v-if="!inlineResponseVisible || !updateAvailable"
           :variant="checkButton.variant === 'fill' ? 'pill-orange' : 'pill-gray'"
           :title="checkButton.text"
           :disabled="checkingForUpdates"

@@ -46,6 +46,9 @@ const updateOsModalVisible = computed(() => updateOsStore.updateOsModalVisible);
 const isToolsUpdatePage = computed(
   () => typeof window !== 'undefined' && window.location.pathname === WEBGUI_TOOLS_UPDATE
 );
+const inlineResponseVisible = computed(
+  () => isToolsUpdatePage.value && rebootType.value === '' && updateOsModalVisible.value
+);
 
 const subtitle = computed(() => {
   if (rebootType.value === 'downgrade') {
@@ -80,7 +83,11 @@ onMounted(() => {
 
 <template>
   <PageContainer>
-    <UpdateOsStatus :title="t('updateOs.updateUnraidOs')" :subtitle="subtitle" />
+    <UpdateOsStatus
+      :title="t('updateOs.updateUnraidOs')"
+      :subtitle="subtitle"
+      :inline-response-visible="inlineResponseVisible"
+    />
     <UpdateOsCheckUpdateResponseModal
       v-if="isToolsUpdatePage && rebootType === ''"
       :open="updateOsModalVisible"
