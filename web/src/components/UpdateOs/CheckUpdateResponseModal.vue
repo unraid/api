@@ -3,7 +3,7 @@ import { computed, onBeforeMount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
-import { ArrowLongRightIcon } from '@heroicons/vue/24/outline';
+import { ArrowLongRightIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 import {
   ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
@@ -84,6 +84,12 @@ const waitingForDrivers = computed(() => rebootType.value === 'thirdPartyDrivers
 const targetVersion = computed(() =>
   pendingReboot.value ? rebootVersion.value : availableWithRenewal.value || available.value
 );
+const targetVersionLabel = computed(() => {
+  if (!pendingReboot.value) return t('updateOs.checkUpdateResponseModal.availableVersionLabel');
+  return rebootType.value === 'downgrade'
+    ? t('updateOs.checkUpdateResponseModal.downgradingTo')
+    : t('updateOs.checkUpdateResponseModal.updatingTo');
+});
 const showVersionTransition = computed(
   () => !checkForUpdatesLoading.value && !checkForUpdatesFailed.value && !!targetVersion.value
 );
@@ -153,7 +159,9 @@ const modalCopy = computed((): ModalCopy | null => {
 
   if (pendingReboot.value) {
     return {
-      title: updateOsActionsStore.rebootTypeText,
+      title: waitingForDrivers.value
+        ? t('updateOs.checkUpdateResponseModal.preparingDrivers')
+        : t('updateOs.checkUpdateResponseModal.rebootRequired'),
       description: waitingForDrivers.value
         ? t('updateOs.thirdPartyDrivers.duringTheUnraidOsUpdateProcess')
         : undefined,
@@ -167,12 +175,12 @@ const modalCopy = computed((): ModalCopy | null => {
           formattedRegExp.value,
         ]);
     return {
-      title: t('headerOsVersion.updateAvailable2'),
+      title: t('updateOs.checkUpdateResponseModal.updateAvailable'),
       description: description,
     };
   } else if (available.value) {
     return {
-      title: t('headerOsVersion.updateAvailable2'),
+      title: t('updateOs.checkUpdateResponseModal.updateAvailable'),
       description: undefined,
     };
   } else if (!available.value && !availableWithRenewal.value) {
@@ -220,10 +228,7 @@ const actionButtons = computed((): BrandButtonProps[] => {
           {
             click: () => updateOsActionsStore.rebootServer(),
             icon: ArrowPathIcon,
-            text:
-              rebootType.value === 'downgrade'
-                ? t('updateOs.status.rebootNowToDowngradeTo', [rebootVersion.value])
-                : t('updateOs.status.rebootNowToUpdateTo', [rebootVersion.value]),
+            text: t('updateOs.checkUpdateResponseModal.rebootNow'),
           },
         ];
   }
@@ -263,7 +268,7 @@ const actionButtons = computed((): BrandButtonProps[] => {
       click: async () => await updateOsStore.setReleaseForUpdate(updateOsResponse.value ?? null),
       icon: EyeIcon,
       text: availableWithRenewal.value
-        ? t('updateOs.updateIneligible.viewChangelog')
+        ? t('updateOs.checkUpdateResponseModal.reviewReleaseNotes')
         : t('updateOs.checkUpdateResponseModal.viewChangelogToStartUpdate'),
     });
   }
@@ -361,80 +366,71 @@ const modalWidth = computed(() => {
     v-if="!embedded || open"
     v-bind="
       embedded
-        ? { increasedPadding: true }
+        ? { increasedPadding: true, class: '@container gap-6' }
         : {
             open,
-            dialogClass: modalWidth,
-            sheetClass: 'h-full',
-            showCloseButton: !checkForUpdatesLoading,
+            dialogClass: cn(modalWidth, 'max-h-[90dvh] p-0'),
+            sheetClass: 'h-full gap-6',
           }
     "
     @update:open="(value: boolean) => !value && close()"
   >
-    <div :class="cn('@container flex h-full flex-col', embedded && 'gap-6')">
-      <p
-        v-if="embedded && osVersion && !showNoUpdateContent && !showVersionTransition"
-        class="text-muted-foreground text-sm"
-      >
-        {{ t('updateOs.checkUpdateResponseModal.currentVersion', [osVersion]) }}
-      </p>
-      <component
-        :is="embedded ? 'div' : ResponsiveModalHeader"
-        v-if="modalCopy?.title"
-        :class="embedded ? 'grid gap-y-2' : undefined"
-      >
-        <component
-          :is="embedded ? 'h2' : ResponsiveModalTitle"
-          :class="embedded ? 'text-xl font-semibold' : undefined"
-        >
-          {{ modalCopy.title }}
-        </component>
-        <component
-          :is="embedded ? 'p' : DialogDescription"
-          v-if="modalCopy?.description"
-          :class="embedded ? 'text-muted-foreground text-sm' : undefined"
-        >
-          <span v-html="modalCopy.description" />
-        </component>
+    <component
+      :is="embedded ? 'div' : ResponsiveModalHeader"
+      v-if="modalCopy?.title"
+      :class="embedded ? 'grid gap-y-2' : 'pr-16 text-left!'"
+    >
+      <component :is="embedded ? 'h2' : ResponsiveModalTitle" class="text-xl font-semibold">
+        {{ modalCopy.title }}
       </component>
-
-      <div
-        v-if="renderMainSlot"
-        :class="cn('flex flex-1 flex-col gap-6 overflow-y-auto', !embedded && 'px-6')"
+      <component
+        :is="embedded ? 'p' : DialogDescription"
+        v-if="modalCopy?.description"
+        :class="embedded ? 'text-muted-foreground text-sm' : undefined"
       >
-        <div
-          v-if="showVersionTransition"
-          class="mx-auto flex w-full max-w-xl flex-col gap-3 @sm:flex-row @sm:items-center"
-        >
-          <dl
-            v-if="osVersion"
-            class="border-border bg-muted/40 block! min-w-0 flex-1 rounded-lg border px-4 py-3"
-          >
-            <dt class="text-muted-foreground text-left! text-xs font-medium">
-              {{ t('updateOs.checkUpdateResponseModal.currentVersionLabel') }}
-            </dt>
-            <dd class="text-foreground mt-1 text-lg font-semibold break-all">{{ osVersion }}</dd>
-          </dl>
-          <ArrowLongRightIcon
-            v-if="osVersion"
-            aria-hidden="true"
-            class="text-primary mx-auto h-5 w-5 shrink-0 rotate-90 @sm:rotate-0"
-          />
-          <dl class="border-primary/30 bg-primary/10 block! min-w-0 flex-1 rounded-lg border px-4 py-3">
-            <dt class="text-muted-foreground text-left! text-xs font-medium">
-              {{ t('updateOs.checkUpdateResponseModal.targetVersionLabel') }}
-            </dt>
-            <dd class="text-foreground mt-1 text-xl font-bold break-all">{{ targetVersion }}</dd>
-          </dl>
-        </div>
-        <BrandLoading v-if="checkForUpdatesLoading" class="mx-auto w-[150px]" />
-        <div v-else-if="checkForUpdatesFailed" role="alert" class="flex justify-center py-6">
-          <span class="sr-only">{{ modalCopy?.title }}. {{ modalCopy?.description }}</span>
-          <XCircleIcon class="text-destructive h-12 w-12" />
-        </div>
-        <div v-else-if="pendingReboot" class="flex flex-col items-center gap-4 py-6">
-          <ArrowPathIcon class="text-primary h-12 w-12" />
-          <p v-if="waitingForDrivers && checkedWhileWaiting" class="text-muted-foreground text-sm">
+        <span v-html="modalCopy.description" />
+      </component>
+    </component>
+
+    <div
+      v-if="renderMainSlot"
+      :class="cn('flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto', !embedded && 'px-6')"
+    >
+      <div
+        v-if="showVersionTransition"
+        class="mx-auto flex w-full flex-col items-center gap-2 text-center"
+      >
+        <dl v-if="osVersion" class="flex! items-baseline justify-center gap-2 p-0! text-sm">
+          <dt class="text-muted-foreground text-left! text-sm font-normal!">
+            {{ t('updateOs.checkUpdateResponseModal.currentVersionLabel') }}
+          </dt>
+          <dd class="text-muted-foreground m-0! font-medium break-all">{{ osVersion }}</dd>
+        </dl>
+        <ArrowLongRightIcon
+          v-if="osVersion"
+          aria-hidden="true"
+          class="text-muted-foreground h-4 w-4 shrink-0 rotate-90"
+        />
+        <dl class="block! p-0! text-center">
+          <dt class="text-muted-foreground text-center! text-sm font-normal!">
+            {{ targetVersionLabel }}
+          </dt>
+          <dd class="text-foreground mt-1 block! text-3xl font-bold break-all">{{ targetVersion }}</dd>
+        </dl>
+      </div>
+      <div v-if="checkForUpdatesLoading" role="status" class="flex min-h-32 items-center justify-center">
+        <BrandLoading aria-hidden="true" class="mx-auto w-24" />
+        <span class="sr-only">{{ modalCopy?.title }}</span>
+      </div>
+      <div v-else-if="checkForUpdatesFailed" role="alert" class="flex justify-center py-6">
+        <span class="sr-only">{{ modalCopy?.title }}. {{ modalCopy?.description }}</span>
+        <XCircleIcon class="text-destructive h-12 w-12" />
+      </div>
+      <template v-else-if="pendingReboot">
+        <div v-if="waitingForDrivers" role="status" class="flex flex-col items-center gap-3">
+          <BrandLoading aria-hidden="true" class="mx-auto w-24" />
+          <span class="sr-only">{{ modalCopy?.title }}</span>
+          <p v-if="checkedWhileWaiting" class="text-muted-foreground text-sm">
             {{
               available || availableWithRenewal
                 ? t('updateOs.status.unraidAvailable', [available || availableWithRenewal])
@@ -442,175 +438,174 @@ const modalWidth = computed(() => {
             }}
           </p>
         </div>
-        <div v-else class="flex flex-col gap-y-6">
-          <div v-if="available || availableWithRenewal" class="flex flex-col items-center gap-4 py-4">
-            <div class="text-center">
-              <p v-if="userFormattedReleaseDate" class="text-muted-foreground mt-2 text-center text-sm">
-                Released on {{ userFormattedReleaseDate }}
-              </p>
-              <p
-                v-if="availableRequiresAuth && !availableWithRenewal"
-                class="mt-2 text-center text-sm text-amber-500"
-              >
-                {{ t('updateOs.checkUpdateResponseModal.requiresVerificationToUpdate') }}
-              </p>
-            </div>
-            <div class="mt-4">
-              <div
-                class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
-                @click="ignoreThisRelease = !ignoreThisRelease"
-              >
-                <Switch v-model="ignoreThisRelease" @click.stop />
-                <Label class="text-muted-foreground cursor-pointer text-sm">
-                  {{ t('updateOs.checkUpdateResponseModal.ignoreThisReleaseUntilNextReboot') }}
-                </Label>
-              </div>
-            </div>
+      </template>
+      <div v-else class="flex flex-col gap-y-6">
+        <div v-if="available || availableWithRenewal" class="flex flex-col items-center gap-3">
+          <div class="text-center">
+            <p v-if="userFormattedReleaseDate" class="text-muted-foreground mt-2 text-center text-sm">
+              Released on {{ userFormattedReleaseDate }}
+            </p>
+            <p
+              v-if="availableRequiresAuth && !availableWithRenewal"
+              class="mt-2 text-center text-sm text-amber-500"
+            >
+              {{ t('updateOs.checkUpdateResponseModal.requiresVerificationToUpdate') }}
+            </p>
           </div>
-
-          <div v-if="showNoUpdateContent" class="flex flex-col items-center gap-4 py-6 text-center">
-            <div class="bg-primary/10 flex items-center justify-center rounded-full p-4">
-              <CheckCircleIcon class="text-primary h-10 w-10" />
+          <div>
+            <div
+              class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
+              @click="ignoreThisRelease = !ignoreThisRelease"
+            >
+              <Switch v-model="ignoreThisRelease" @click.stop />
+              <Label class="text-muted-foreground cursor-pointer text-sm">
+                {{ t('updateOs.checkUpdateResponseModal.ignoreThisReleaseUntilNextReboot') }}
+              </Label>
             </div>
-            <div class="space-y-2">
-              <p v-if="osVersion" class="text-muted-foreground text-center text-sm font-semibold">
-                {{ t('updateOs.checkUpdateResponseModal.currentVersion', [osVersion]) }}
-              </p>
-              <p
-                v-if="!embedded && modalCopy?.description"
-                class="text-muted-foreground text-xs sm:text-sm"
-                v-html="modalCopy.description"
-              />
-            </div>
-          </div>
-
-          <div
-            v-if="extraLinks.length > 0"
-            :class="cn('xs:!flex-row flex flex-col justify-center gap-2')"
-          >
-            <BrandButton
-              v-for="item in extraLinks"
-              :key="item.text"
-              :variant="item.variant ?? undefined"
-              :href="item.href ?? undefined"
-              :icon="item.icon"
-              :icon-right="item.iconRight"
-              :icon-right-hover-display="item.iconRightHoverDisplay"
-              :text="t(item.text ?? '')"
-              :title="item.title ? t(item.title) : undefined"
-              @click="item.click?.()"
-            />
-          </div>
-
-          <div
-            v-if="updateOsIgnoredReleases.length > 0 && !(available || availableWithRenewal)"
-            class="mx-auto flex w-full max-w-[640px] flex-col gap-2"
-          >
-            <h3 class="text-left text-base font-semibold italic">
-              {{ t('updateOs.checkUpdateResponseModal.ignoredReleases') }}
-            </h3>
-            <UpdateOsIgnoredRelease
-              v-for="ignoredRelease in updateOsIgnoredReleases"
-              :key="ignoredRelease"
-              :label="ignoredRelease"
-              :t="t"
-            />
           </div>
         </div>
-      </div>
 
-      <component :is="embedded ? 'div' : ResponsiveModalFooter">
+        <div v-if="showNoUpdateContent" class="flex flex-col items-center gap-4 py-6 text-center">
+          <div class="bg-primary/10 flex items-center justify-center rounded-full p-4">
+            <CheckCircleIcon class="text-primary h-10 w-10" />
+          </div>
+          <div class="space-y-2">
+            <p v-if="osVersion" class="text-muted-foreground text-center text-sm font-semibold">
+              {{ t('updateOs.checkUpdateResponseModal.currentVersion', [osVersion]) }}
+            </p>
+          </div>
+        </div>
+
+        <div v-if="extraLinks.length > 0" :class="cn('xs:!flex-row flex flex-col justify-center gap-2')">
+          <BrandButton
+            v-for="item in extraLinks"
+            :key="item.text"
+            :variant="item.variant ?? undefined"
+            :href="item.href ?? undefined"
+            :icon="item.icon"
+            :icon-right="item.iconRight"
+            :icon-right-hover-display="item.iconRightHoverDisplay"
+            :text="t(item.text ?? '')"
+            :title="item.title ? t(item.title) : undefined"
+            @click="item.click?.()"
+          />
+        </div>
+
         <div
-          :class="
-            cn(
-              'mx-auto flex w-full gap-2',
-              actionButtons.length > 0
-                ? 'xs:!flex-row flex-col-reverse justify-between'
-                : 'justify-center'
-            )
-          "
+          v-if="updateOsIgnoredReleases.length > 0 && !(available || availableWithRenewal)"
+          class="mx-auto flex w-full max-w-[640px] flex-col gap-2"
         >
-          <div :class="cn('xs:!flex-row mt-2 flex flex-col-reverse justify-start gap-3')">
-            <Button
-              v-if="embedded && !checkForUpdatesFailed && (!pendingReboot || waitingForDrivers)"
-              variant="ghost"
-              :disabled="checkForUpdatesLoading"
-              @click="checkForUpdates"
-            >
-              <ArrowPathIcon class="mr-2 h-4 w-4" />
-              {{ t('userProfile.dropdownContent.checkForUpdate') }}
-            </Button>
-            <Button v-if="pendingReboot" variant="ghost" @click="updateOsStore.cancelUpdate()">
-              {{
-                t('updateOs.status.cancel', [
-                  rebootType === 'downgrade'
-                    ? t('updateOs.status.downgrade')
-                    : t('updateOs.status.update'),
-                ])
-              }}
-            </Button>
-            <TooltipProvider>
-              <Tooltip :delay-duration="0">
+          <h3 class="text-left text-base font-semibold italic">
+            {{ t('updateOs.checkUpdateResponseModal.ignoredReleases') }}
+          </h3>
+          <UpdateOsIgnoredRelease
+            v-for="ignoredRelease in updateOsIgnoredReleases"
+            :key="ignoredRelease"
+            :label="ignoredRelease"
+            :t="t"
+          />
+        </div>
+      </div>
+    </div>
+
+    <component
+      :is="embedded ? 'div' : ResponsiveModalFooter"
+      :class="cn('@container', !embedded && 'px-6 pb-6')"
+    >
+      <div
+        class="mx-auto flex w-full flex-col gap-3 @min-[512px]:flex-row @min-[512px]:items-center @min-[512px]:justify-between"
+      >
+        <div
+          class="flex w-full flex-wrap items-stretch gap-2 @min-[512px]:w-auto @min-[512px]:flex-nowrap @min-[512px]:gap-3"
+        >
+          <Button
+            v-if="embedded && !checkForUpdatesFailed && (!pendingReboot || waitingForDrivers)"
+            variant="outline"
+            class="h-auto min-h-10 min-w-0 flex-1 basis-[calc((100%_-_8px)/2)] justify-center px-2 text-sm @min-[512px]:h-10 @min-[512px]:flex-none @min-[512px]:basis-auto @min-[512px]:px-4 @min-[512px]:text-base"
+            :disabled="checkForUpdatesLoading"
+            @click="checkForUpdates"
+          >
+            <ArrowPathIcon class="mr-2 hidden h-4 w-4 @min-[512px]:block" />
+            {{ t('updateOs.checkUpdateResponseModal.checkForUpdatesAction') }}
+          </Button>
+          <Button
+            v-if="pendingReboot"
+            variant="outline"
+            class="h-auto min-h-10 min-w-0 flex-1 basis-[calc((100%_-_8px)/2)] justify-center px-2 text-sm @min-[512px]:h-10 @min-[512px]:flex-none @min-[512px]:basis-auto @min-[512px]:px-4 @min-[512px]:text-base"
+            @click="updateOsStore.cancelUpdate()"
+          >
+            <XMarkIcon class="mr-2 hidden h-4 w-4 @min-[512px]:block" />
+            {{
+              rebootType === 'downgrade'
+                ? t('updateOs.checkUpdateResponseModal.cancelDowngrade')
+                : t('updateOs.checkUpdateResponseModal.cancelUpdate')
+            }}
+          </Button>
+          <TooltipProvider>
+            <Tooltip :delay-duration="0">
+              <TooltipTrigger as-child>
+                <Button
+                  variant="outline"
+                  class="h-auto min-h-10 min-w-0 flex-1 basis-[calc((100%_-_8px)/2)] justify-center px-2 text-sm @min-[512px]:h-10 @min-[512px]:flex-none @min-[512px]:basis-auto @min-[512px]:px-4 @min-[512px]:text-base"
+                  @click="accountStore.updateOs()"
+                >
+                  <ArrowTopRightOnSquareIcon class="mr-2 hidden h-4 w-4 @min-[512px]:block" />
+                  {{ t('updateOs.checkUpdateResponseModal.moreOptions') }}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent class="max-w-xs">
+                <div class="flex items-start gap-2">
+                  <ArrowTopRightOnSquareIcon
+                    class="text-muted-foreground mt-0.5 h-4 w-4 flex-shrink-0"
+                  />
+                  <p class="text-left text-sm">
+                    {{
+                      t('updateOs.checkUpdateResponseModal.manageUpdatePreferencesIncludingBetaAccess')
+                    }}
+                  </p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        <div
+          v-if="actionButtons.length > 0"
+          class="flex w-full flex-col justify-end gap-3 @min-[512px]:w-auto @min-[512px]:flex-row"
+        >
+          <template v-for="item in actionButtons" :key="item.text">
+            <TooltipProvider v-if="ignoreThisRelease && item.text === localizedCloseText">
+              <Tooltip :delay-duration="300">
                 <TooltipTrigger as-child>
-                  <Button variant="ghost" @click="accountStore.updateOs()">
-                    <ArrowTopRightOnSquareIcon class="mr-2 h-4 w-4" />
-                    {{ t('updateOs.checkUpdateResponseModal.moreOptions') }}
-                  </Button>
+                  <BrandButton
+                    :variant="item.variant ?? undefined"
+                    :icon="item.icon"
+                    :icon-right="item.iconRight"
+                    :icon-right-hover-display="item.iconRightHoverDisplay"
+                    :text="item.text ?? ''"
+                    :title="item.title ? item.title : undefined"
+                    @click="item.click?.()"
+                  />
                 </TooltipTrigger>
-                <TooltipContent class="max-w-xs">
-                  <div class="flex items-start gap-2">
-                    <ArrowTopRightOnSquareIcon
-                      class="text-muted-foreground mt-0.5 h-4 w-4 flex-shrink-0"
-                    />
-                    <p class="text-left text-sm">
-                      {{
-                        t('updateOs.checkUpdateResponseModal.manageUpdatePreferencesIncludingBetaAccess')
-                      }}
-                    </p>
-                  </div>
+                <TooltipContent>
+                  <p>
+                    {{ t('updateOs.checkUpdateResponseModal.youCanOptBackInTo') }}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-          </div>
-          <div
-            v-if="actionButtons.length > 0"
-            :class="cn('xs:!flex-row flex flex-col justify-end gap-3')"
-          >
-            <template v-for="item in actionButtons" :key="item.text">
-              <TooltipProvider v-if="ignoreThisRelease && item.text === localizedCloseText">
-                <Tooltip :delay-duration="300">
-                  <TooltipTrigger as-child>
-                    <BrandButton
-                      :variant="item.variant ?? undefined"
-                      :icon="item.icon"
-                      :icon-right="item.iconRight"
-                      :icon-right-hover-display="item.iconRightHoverDisplay"
-                      :text="item.text ?? ''"
-                      :title="item.title ? item.title : undefined"
-                      @click="item.click?.()"
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      {{ t('updateOs.checkUpdateResponseModal.youCanOptBackInTo') }}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <BrandButton
-                v-else
-                :variant="item.variant ?? undefined"
-                :icon="item.icon"
-                :icon-right="item.iconRight"
-                :icon-right-hover-display="item.iconRightHoverDisplay"
-                :text="item.text ?? ''"
-                :title="item.title ? item.title : undefined"
-                @click="item.click?.()"
-              />
-            </template>
-          </div>
+            <BrandButton
+              v-else
+              :variant="item.variant ?? undefined"
+              :icon="item.icon"
+              :icon-right="item.iconRight"
+              :icon-right-hover-display="item.iconRightHoverDisplay"
+              :text="item.text ?? ''"
+              :title="item.title ? item.title : undefined"
+              @click="item.click?.()"
+            />
+          </template>
         </div>
-      </component>
-    </div>
+      </div>
+    </component>
   </component>
 </template>

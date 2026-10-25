@@ -143,18 +143,19 @@ const showRawChangelog = computed<boolean>(() => {
     :open="modalVisible"
     sheet-side="bottom"
     sheet-padding="none"
-    :dialog-class="'max-w-[80rem] p-0'"
+    :dialog-class="'max-h-[90dvh] max-w-[80rem] p-0'"
+    sheet-class="h-full gap-6"
     :show-close-button="true"
     @update:open="(value: boolean) => !value && handleClose()"
   >
-    <ResponsiveModalHeader>
-      <ResponsiveModalTitle>
+    <ResponsiveModalHeader class="pr-16 text-left!">
+      <ResponsiveModalTitle class="text-xl font-semibold">
         {{ t('updateOs.changelogModal.unraidOsChangelog', [currentRelease.version]) }}
       </ResponsiveModalTitle>
     </ResponsiveModalHeader>
 
-    <div class="flex-1 px-3">
-      <div class="flex flex-col gap-4 sm:min-w-[40rem]">
+    <div class="min-h-0 flex-1 overflow-y-auto px-6">
+      <div class="flex min-w-0 flex-col gap-4">
         <!-- iframe for changelog if available -->
         <div v-if="iframeSrc" class="h-[calc(100vh-15rem)] w-full overflow-hidden sm:h-[45rem]">
           <iframe
@@ -180,16 +181,19 @@ const showRawChangelog = computed<boolean>(() => {
         <!-- Loading state -->
         <div
           v-else
-          class="flex min-h-[25rem] w-full flex-col justify-center text-center sm:min-w-[40rem]"
+          role="status"
+          class="flex min-h-32 w-full flex-col items-center justify-center gap-3 text-center"
         >
-          <BrandLoading class="mx-auto mt-6 w-[15rem]" />
-          <p>{{ t('updateOs.changelogModal.loadingChangelog') }}</p>
+          <BrandLoading aria-hidden="true" class="mx-auto w-24" />
+          <p class="text-muted-foreground text-sm">
+            {{ t('updateOs.changelogModal.loadingChangelog') }}
+          </p>
         </div>
       </div>
     </div>
 
-    <ResponsiveModalFooter>
-      <div :class="cn('flex w-full flex-wrap justify-between gap-3 md:gap-4')">
+    <ResponsiveModalFooter class="px-6 pb-6">
+      <div :class="cn('xs:!flex-row flex w-full flex-col justify-between gap-3')">
         <div :class="cn('flex flex-wrap justify-start gap-3 md:gap-4')">
           <!-- View on docs button -->
           <BrandButton

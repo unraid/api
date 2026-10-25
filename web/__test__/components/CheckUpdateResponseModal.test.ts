@@ -60,6 +60,7 @@ vi.mock('@heroicons/vue/24/solid', () => ({
 
 vi.mock('@heroicons/vue/24/outline', () => ({
   ArrowLongRightIcon: { template: '<svg />' },
+  XMarkIcon: { template: '<svg />' },
 }));
 
 vi.mock('~/components/UpdateOs/IgnoredRelease.vue', () => ({
@@ -224,17 +225,28 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
     mockLocalCheckForUpdate.mockClear();
   });
 
+  it('places the heading and footer directly in the modal shell', () => {
+    if (embedded) return;
+    available.value = '7.3.0';
+    const wrapper = renderModal();
+    expect(
+      wrapper.find('.responsive-modal > .responsive-modal-header .responsive-modal-title').exists()
+    ).toBe(true);
+    expect(wrapper.find('.responsive-modal > .responsive-modal-footer').exists()).toBe(true);
+  });
+
   it('renders loading state while checking for updates', () => {
     expect(testTranslate('updateOs.checkUpdateResponseModal.checkingForOsUpdates')).toBe(
-      'Checking for OS updates...'
+      'Checking for updates'
     );
     checkForUpdatesLoading.value = true;
 
     const wrapper = renderModal();
 
-    expect(wrapper.find(titleSelector).text()).toBe('Checking for OS updates...');
-    expect(wrapper.find('.brand-loading').exists()).toBe(true);
-    expect(wrapper.findAll('button').some((button) => button.text() === 'More Options')).toBe(true);
+    expect(wrapper.find(titleSelector).text()).toBe('Checking for updates');
+    expect(wrapper.find('[role="status"]').exists()).toBe(true);
+    expect(wrapper.find('[role="status"] .brand-loading').exists()).toBe(true);
+    expect(wrapper.findAll('button').some((button) => button.text() === 'More options')).toBe(true);
   });
 
   it('shows a failed check with no stale release action', async () => {
@@ -244,7 +256,7 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
     const wrapper = renderModal();
     expect(wrapper.text()).toContain('Unable to check for updates');
     expect(wrapper.find('[role="alert"]').exists()).toBe(true);
-    expect(wrapper.text()).not.toContain('View Changelog to Start Update');
+    expect(wrapper.text()).not.toContain('Review update');
     if (embedded) {
       await wrapper
         .findAll('button')
@@ -263,17 +275,21 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
       available.value = '7.3.0';
       const wrapper = renderModal();
       expect(wrapper.find('.card-wrapper').exists()).toBe(true);
-      expect(wrapper.text()).toContain('Reboot required');
+      expect(wrapper.text()).toContain(
+        kind === 'thirdPartyDriversDownloading' ? 'Preparing drivers' : 'Reboot required'
+      );
+      expect(wrapper.text()).toContain(kind === 'downgrade' ? 'Downgrading to' : 'Updating to');
+      expect(wrapper.text()).not.toContain('Available version');
       expect(wrapper.find('[role="switch"]').exists()).toBe(false);
-      expect(wrapper.text()).not.toContain('View Changelog to Start Update');
+      expect(wrapper.text()).not.toContain('Review update');
       if (kind !== 'thirdPartyDriversDownloading') {
         await wrapper
           .findAll('button')
-          .find((button) => button.text().startsWith('Reboot Now'))!
+          .find((button) => button.text() === 'Reboot now')!
           .trigger('click');
         expect(mockRebootServer).toHaveBeenCalledTimes(1);
       } else {
-        expect(wrapper.text()).toContain('Check for Update');
+        expect(wrapper.text()).toContain('Check for updates');
       }
     }
   );
@@ -285,13 +301,13 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
     const wrapper = renderModal();
     await nextTick();
 
-    expect(wrapper.find(titleSelector).text()).toBe('Unraid OS is up-to-date');
+    expect(wrapper.find(titleSelector).text()).toBe('Up to date');
     expect(wrapper.text()).toContain('Current Version 6.12.3');
     expect(wrapper.text()).toContain(
       'Go to Settings > Notifications to enable automatic OS update notifications for future releases.'
     );
 
-    expect(wrapper.findAll('button').some((button) => button.text() === 'More Options')).toBe(true);
+    expect(wrapper.findAll('button').some((button) => button.text() === 'More options')).toBe(true);
     expect(wrapper.text()).toContain('Enable update notifications');
   });
 
@@ -304,9 +320,7 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
     await nextTick();
 
     const actionButtons = wrapper.findAll('.brand-button');
-    const viewChangelogButton = actionButtons.find((button) =>
-      button.text().includes('View Changelog to Start Update')
-    );
+    const viewChangelogButton = actionButtons.find((button) => button.text().includes('Review update'));
     expect(viewChangelogButton).toBeDefined();
 
     await viewChangelogButton!.trigger('click');
@@ -319,14 +333,14 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
     const wrapper = renderModal();
     expect(wrapper.findAll('dt').map((term) => term.text())).toEqual([
       'Current version',
-      'Target version',
+      'Available version',
     ]);
     expect(wrapper.findAll('dd').map((value) => value.text())).toEqual(['7.2.0', '7.3.0']);
     expect(wrapper.text().match(/7\.2\.0/g)).toHaveLength(1);
     expect(wrapper.text().match(/7\.3\.0/g)).toHaveLength(1);
     osVersion.value = null;
     await nextTick();
-    expect(wrapper.findAll('dt').map((term) => term.text())).toEqual(['Target version']);
+    expect(wrapper.findAll('dt').map((term) => term.text())).toEqual(['Available version']);
     expect(wrapper.find('[aria-hidden="true"]').exists()).toBe(false);
     checkForUpdatesLoading.value = true;
     await nextTick();
@@ -343,7 +357,7 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
 
     const actionButtons = wrapper.findAll('.brand-button');
     const labels = actionButtons.map((button) => button.text());
-    expect(labels).toContain('View Changelog');
+    expect(labels).toContain('Review release notes');
     expect(labels).toContain('Extend License');
 
     await actionButtons.find((btn) => btn.text() === 'Extend License')?.trigger('click');
@@ -373,7 +387,7 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
     expect(mockSetReleaseForUpdate).not.toHaveBeenCalled();
     await wrapper
       .findAll('button')
-      .find((button) => button.text() === 'More Options')!
+      .find((button) => button.text() === 'More options')!
       .trigger('click');
     expect(mockAccountUpdateOs).toHaveBeenCalledTimes(2);
   });
@@ -440,6 +454,6 @@ describe.each([false, true])('CheckUpdateResponseModal (embedded=%s)', (embedded
     updateOsIgnoredReleases.value = [];
     await nextTick();
     expect(wrapper.find('[role="switch"]').attributes('aria-checked')).toBe('false');
-    expect(wrapper.text()).toContain('View Changelog to Start Update');
+    expect(wrapper.text()).toContain('Review update');
   });
 });
