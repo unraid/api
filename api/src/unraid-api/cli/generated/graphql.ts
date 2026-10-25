@@ -2383,7 +2383,7 @@ export type Query = {
   disk: Disk;
   disks: Array<Disk>;
   display: InfoDisplay;
-  docker: Docker;
+  docker?: Maybe<Docker>;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
   getApiKeyCreationFormSchema: ApiKeyFormSettings;
@@ -2447,7 +2447,7 @@ export type Query = {
   validateOidcSession: OidcSessionValidation;
   vars: Vars;
   /** Get information about all VMs on the system */
-  vms: Vms;
+  vms?: Maybe<Vms>;
 };
 
 
