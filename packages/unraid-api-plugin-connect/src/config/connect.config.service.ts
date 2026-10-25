@@ -73,7 +73,8 @@ export class ConnectConfigService {
     }
 
     @OnEvent(EVENTS.LOGOUT, { async: true })
-    async onLogout() {
+    async onLogout({ configResetCompleted = false }: { configResetCompleted?: boolean } = {}) {
+        if (configResetCompleted) return;
         await this.resetUser();
     }
 }
