@@ -1,5 +1,42 @@
 # Notification counter appliance test
 
+## Local burst and read-cost tests
+
+From the repository root, run:
+
+```sh
+pnpm --filter ./api test src/unraid-api/graph/resolvers/notifications/notifications.load.spec.ts
+CHOKIDAR_USEPOLLING=true pnpm --filter ./api test src/unraid-api/graph/resolvers/notifications/notifications.load.spec.ts
+```
+
+These tests use real temporary files, Chokidar events, notification readers,
+and PubSub subscriptions. They cover creation of both native file copies,
+content/severity changes, unread deletion revealing archive copies, and
+archive-only creation. Fixtures include 1,000 unread plus 1,000 archive history
+files and bursts of 24 or 100 notifications.
+
+Each `notification-load` record reports file-content read attempts, warning/alert
+scan count, peak simultaneous scans, and elapsed time. Measurement starts after
+hydration and ends after handlers and payload publications finish. Ground-truth
+list queries run afterward and do not inflate the recorded event cost. Read
+attempts include missing-copy reads; they are not physical disk I/O measurements.
+Watcher metadata reads and other processes are outside this measurement.
+
+Assertions check final counters against full lists, final warning payloads,
+deduplicated additions, no history recount, no reads of unrelated archived
+payloads, and no more than two count reads per event plus the unread payload
+scans. Archive-only bursts must trigger no warning/alert scans.
+
+**These are cost-characterization tests, not a burst-performance approval.**
+The current implementation starts a warning/alert scan per unread event. With
+1,000 unread history files, a burst of 100 changes produced 110,200 content-read
+attempts and 100 scans in a local run. Passing tests preserve notification
+correctness and expose that amplification; they do not establish an acceptable
+server latency or a constant read budget per burst. Elapsed times are diagnostic,
+not machine-dependent CI limits. Appliance acceptance remains a separate step.
+
+## Appliance setup
+
 `notification-counter.mjs` tests the installed API against Unraid's native
 `/usr/local/emhttp/webGui/scripts/notify`. Run it inside a disposable, managed
 QA guest after installing the production-shaped plugin for the selected commit.
