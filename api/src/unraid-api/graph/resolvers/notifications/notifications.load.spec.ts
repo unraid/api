@@ -39,8 +39,8 @@ describe.sequential('Notification burst read costs', () => {
         [1000, 24],
         [1000, 100],
     ]) {
-        it.each(['create', 'change', 'delete', 'archive-only'] as const)(
-            `measures ${burstSize} %s events with ${historySize} unread and archived history files`,
+        it.each(['create', 'change', 'repeated-change', 'delete', 'archive-only'] as const)(
+            `measures ${burstSize} %s operations with ${historySize} unread and archived history files`,
             async (operation) => {
                 basePath = await mkdtemp(join(tmpdir(), 'notification-load-'));
                 const path = (type: NotificationType, id: string) =>
@@ -59,7 +59,8 @@ describe.sequential('Notification burst read costs', () => {
                     );
                 }
                 const ids = Array.from({ length: burstSize }, (_, index) => `burst-${index}.notify`);
-                if (operation === 'change' || operation === 'delete') {
+                const changesExisting = operation === 'change' || operation === 'repeated-change';
+                if (changesExisting || operation === 'delete') {
                     await Promise.all(
                         ids.map(async (id) => {
                             await write(UNREAD, id);
@@ -73,6 +74,10 @@ describe.sequential('Notification burst read costs', () => {
                 );
                 await Reflect.get(service, 'initialization');
                 watcher = Reflect.get(NotificationsService, 'watcher');
+                // Measure a fixed handler workload. OS watchers can split or coalesce file writes.
+                // Real watcher delivery is covered by notifications.overview.spec.ts.
+                await watcher.close();
+                Reflect.set(NotificationsService, 'watcher', null);
                 const reads: string[] = [];
                 const events: { kind: string; path: string }[] = [];
                 const failures: unknown[] = [];
@@ -95,13 +100,10 @@ describe.sequential('Notification burst read costs', () => {
                     reads.push(file);
                     return load(file, type);
                 });
-                const handle = Reflect.get(service, 'handleNotificationEvent').bind(service);
-                Reflect.set(service, 'handleNotificationEvent', (file: string, kind: string) => {
-                    events.push({ kind, path: file });
-                    const pending = handle(file, kind).catch((error: unknown) => failures.push(error));
-                    handlers.push(pending);
-                    return pending;
-                });
+                const handle: (file: string, kind: string) => Promise<void> = Reflect.get(
+                    service,
+                    'handleNotificationEvent'
+                ).bind(service);
                 const publish = Reflect.get(service, 'publishWarningsAndAlerts').bind(service);
                 Reflect.set(service, 'publishWarningsAndAlerts', () => {
                     const pending = publish();
@@ -128,24 +130,37 @@ describe.sequential('Notification burst read costs', () => {
                             case 'create':
                                 await write(UNREAD, id, 'warning');
                                 await copyFile(path(UNREAD, id), path(ARCHIVE, id));
+                                events.push(
+                                    { kind: 'add', path: path(UNREAD, id) },
+                                    { kind: 'add', path: path(ARCHIVE, id) }
+                                );
                                 break;
                             case 'change':
+                            case 'repeated-change':
                                 await write(UNREAD, id, 'warning');
+                                events.push({ kind: 'change', path: path(UNREAD, id) });
+                                if (operation === 'repeated-change') {
+                                    events.push({ kind: 'change', path: path(UNREAD, id) });
+                                }
                                 break;
                             case 'delete':
                                 await unlink(path(UNREAD, id));
+                                events.push({ kind: 'unlink', path: path(UNREAD, id) });
                                 break;
                             case 'archive-only':
                                 await write(ARCHIVE, id, 'warning');
+                                events.push({ kind: 'add', path: path(ARCHIVE, id) });
                                 break;
                         }
                     })
                 );
-                const expectedEvents = burstSize * (operation === 'create' ? 2 : 1);
-                await vi.waitFor(() => expect(events).toHaveLength(expectedEvents), {
-                    timeout: 15000,
-                });
-                await watcher.close();
+                const expectedEvents =
+                    burstSize * (operation === 'create' || operation === 'repeated-change' ? 2 : 1);
+                for (const event of events) {
+                    handlers.push(
+                        handle(event.path, event.kind).catch((error: unknown) => failures.push(error))
+                    );
+                }
                 await Promise.all(handlers);
                 await Promise.all(publications);
                 const elapsedMs = performance.now() - started;
@@ -172,7 +187,7 @@ describe.sequential('Notification burst read costs', () => {
                 expect(service.getOverview()).toMatchObject({
                     unread: {
                         total: unreadTotal,
-                        warning: operation === 'create' || operation === 'change' ? burstSize : 0,
+                        warning: operation === 'create' || changesExisting ? burstSize : 0,
                     },
                     archive: { total: archiveTotal, alert: operation === 'delete' ? burstSize : 0 },
                 });
@@ -210,7 +225,7 @@ describe.sequential('Notification burst read costs', () => {
                         operation,
                         historySize,
                         burstSize,
-                        events: expectedEvents,
+                        events: events.length,
                         fileReadAttempts: measuredReads.length,
                         warningScans: scans.mock.calls.length,
                         peakActiveScans,
