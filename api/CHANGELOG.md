@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.37.8](https://github.com/unraid/api/compare/v4.37.7...v4.37.8) (2026-10-26)
+
+
+### Bug Fixes
+
+* **api:** preserve partial results and accurate notification counts ([#2123](https://github.com/unraid/api/issues/2123)) ([3371fd4](https://github.com/unraid/api/commit/3371fd43a354259aa2527f006d1f3d561fa3923a))
+* **auth:** limit repeated authorization requests ([#2094](https://github.com/unraid/api/issues/2094)) ([e160a4e](https://github.com/unraid/api/commit/e160a4ea136e56f7bab68ce9e3b6b8cc73b3aac7))
+* **auth:** prevent custom permission checks racing policy refresh ([#2125](https://github.com/unraid/api/issues/2125)) ([05ba1bf](https://github.com/unraid/api/commit/05ba1bfb7e4f1f1c2ba3c6af3a1037d336334b0a))
+* **graphql:** bound request size and expanded selections ([#2121](https://github.com/unraid/api/issues/2121)) ([0c60d9d](https://github.com/unraid/api/commit/0c60d9d34c88b5b146a6fc930304b3c32c5617f0))
+* **graphql:** filter schema metadata requests ([#2095](https://github.com/unraid/api/issues/2095)) ([dcd396e](https://github.com/unraid/api/commit/dcd396ede36de067724d456505924c690f0b1ee0))
+* **settings:** omit internal provider values ([#2096](https://github.com/unraid/api/issues/2096)) ([30e8d6a](https://github.com/unraid/api/commit/30e8d6a374aaffa044dcfaf6821dc08c7459cda5))
+* **updates:** embed internal OS checks on Tools page ([#2020](https://github.com/unraid/api/issues/2020)) ([b95ae92](https://github.com/unraid/api/commit/b95ae924a73b63e07d6010a09f901b8ccec1b77c))
+* **web:** restore right-side banner fade on legacy headers ([#2126](https://github.com/unraid/api/issues/2126)) ([da7b87d](https://github.com/unraid/api/commit/da7b87de9511134ec15080b7cde53a7a6bfc9a56))
+
 ## [4.37.7](https://github.com/unraid/api/compare/v4.37.6...v4.37.7) (2026-10-23)
 
 
