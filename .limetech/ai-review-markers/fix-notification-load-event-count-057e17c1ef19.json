@@ -1,15 +1,8 @@
 {
   "disposition": "NOT_REQUIRED",
-  "expected_structural_delta": "One existing test file. Zero production owners, modules, dependencies or contracts.",
-  "minimum_design": "Close the watcher after initialization and deliver bounded event batches to the existing real handler. Retain filesystem integration tests and all read-cost and outcome assertions.",
-  "outcome": "Notification load tests measure fixed event workloads without relying on OS watcher event counts.",
-  "reuse_decisions": [
-    {
-      "decision": "reuse",
-      "name": "Existing notification test boundary",
-      "rationale": "The broadcast tests already close the real watcher after hydration. The load test already instruments handleNotificationEvent and retains real files, counts, reads and subscriptions."
-    }
-  ],
+  "forecast_commit": "05afdf4950007bf8d7ef88bc16ae7653bee35671",
+  "reviewed_sha": "6d11f3a14a28a9159340ab78d38422ca737820c6",
   "schema": "limetech.ai-review-marker.v2",
-  "stage": "forecast"
+  "stage": "final",
+  "unresolved_proportionality_findings": []
 }
