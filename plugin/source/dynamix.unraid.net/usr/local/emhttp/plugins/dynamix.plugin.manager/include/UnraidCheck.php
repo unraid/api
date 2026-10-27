@@ -16,7 +16,7 @@
  * $unraidOsCheck = new UnraidOsCheck();
  * $unraidOsCheck->checkForUpdate();
  *
- * 2. Unraid webgui web components can GET this file with action params to get updates, ignore updates, etc.
+ * 2. Unraid webgui web components can GET this file to check for updates and POST action params to change ignored releases.
  * - EX: Unraid webgui web components can check for updates via a GET request and receive a response with the json file directly
  *  - this is useful for the UPC to check for updates and display a model based on the value
  *  - `/plugins/dynamix.plugin.manager/scripts/unraidcheck.php?json=true`
@@ -41,17 +41,29 @@ class UnraidOsCheck
 
     public function __construct()
     {
-        $isGetRequest = !empty($_SERVER) && isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'GET';
-        $getHasAction = $_GET !== null && !empty($_GET) && isset($_GET['action']);
+        $method = $_SERVER['REQUEST_METHOD'] ?? '';
+        $params = $method === 'POST' ? $_POST : $_GET;
+        $action = $params['action'] ?? null;
 
-        if ($isGetRequest && $getHasAction) {
-            $this->handleGetRequestWithActions();
+        if ($action === null) {
+            return;
         }
+
+        $getActions = ['check'];
+        $postActions = ['removeAllIgnored', 'removeIgnoredVersion', 'ignoreVersion'];
+        if (($method === 'GET' && in_array($action, $getActions, true)) ||
+            ($method === 'POST' && in_array($action, $postActions, true))) {
+            $this->handleRequestWithActions($params);
+            return;
+        }
+
+        header('Allow: GET, POST');
+        $this->respondWithError(405, 'Method not allowed');
     }
 
-    private function handleGetRequestWithActions()
+    private function handleRequestWithActions(array $params)
     {
-        switch ($_GET['action']) {
+        switch ($params['action']) {
             case 'check':
                 $this->checkForUpdate();
                 break;
@@ -61,14 +73,14 @@ class UnraidOsCheck
                 break;
 
             case 'removeIgnoredVersion':
-                if (isset($_GET['version'])) {
-                    $this->removeIgnoredVersion($_GET['version']);
+                if (isset($params['version'])) {
+                    $this->removeIgnoredVersion($params['version']);
                 }
                 break;
 
             case 'ignoreVersion':
-                if (isset($_GET['version'])) {
-                    $this->ignoreVersion($_GET['version']);
+                if (isset($params['version'])) {
+                    $this->ignoreVersion($params['version']);
                 }
                 break;
 
@@ -109,6 +121,8 @@ class UnraidOsCheck
      * @return string|false $out The fetched content
      */
     private function safe_http_get_contents(string $url, array $opts = [], ?array &$getinfo = NULL) {
+        $opts[CURLOPT_FOLLOWLOCATION] = false;
+
         // Use system http_get_contents if it exists
         if (function_exists('http_get_contents')) {
             return http_get_contents($url, $opts, $getinfo);
@@ -125,7 +139,9 @@ class UnraidOsCheck
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
         curl_setopt($ch, CURLOPT_TIMEOUT, 45);
         curl_setopt($ch, CURLOPT_ENCODING, "");
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+        curl_setopt($ch, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
         curl_setopt($ch, CURLOPT_REFERER, "");
         curl_setopt($ch, CURLOPT_FAILONERROR, true);
         // Explicitly enforce TLS verification
@@ -136,6 +152,7 @@ class UnraidOsCheck
                 curl_setopt($ch, $key, $val);
             }
         }
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
         $out = curl_exec($ch);
         if(isset($getinfo)) {
             $getinfo = curl_getinfo($ch);
@@ -180,7 +197,7 @@ class UnraidOsCheck
         if (_var($var,'regExp')) $params['update_exp'] = date('Y-m-d', _var($var,'regExp')*1);
         $defaultUrl = self::BASE_RELEASES_URL;
         // pass a param of altUrl to use the provided url instead of the default
-        $parsedAltUrl = (array_key_exists('altUrl',$_GET) && $_GET['altUrl']) ? $_GET['altUrl'] : null;
+        $parsedAltUrl = $this->validateReleaseUrl($_GET['altUrl'] ?? null);
         // if $parsedAltUrl pass to params
         if ($parsedAltUrl) $params['altUrl'] = $parsedAltUrl;
 
@@ -189,16 +206,16 @@ class UnraidOsCheck
         $curlinfo = [];
         $response = $this->safe_http_get_contents($url,[],$curlinfo);
         if (array_key_exists('error', $curlinfo)) {
-            $response = json_encode(array('error' => $curlinfo['error']), JSON_PRETTY_PRINT);
+            $response = json_encode(['error' => 'Unable to fetch release information'], JSON_PRETTY_PRINT);
         }
-        $responseMutated = json_decode($response, true);
-        if (!$responseMutated) {
-            $response = json_encode(array('error' => 'Invalid response from '.$urlbase), JSON_PRETTY_PRINT);
-            $responseMutated = json_decode($response, true);
+        $responseMutated = is_string($response) ? json_decode($response, true) : null;
+        if (!is_array($responseMutated)) {
+            $responseMutated = ['error' => 'Invalid response from '.$urlbase];
         }
 
         // add params that were used for debugging
         $responseMutated['params'] = $params;
+        $encodedResponse = json_encode($responseMutated, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         // store locally for UPC to access
         $this->writeJsonFile(self::JSON_FILE_RESULT, $responseMutated);
@@ -206,7 +223,7 @@ class UnraidOsCheck
         // if we have a query param of json=true then just output the json
         if (array_key_exists('json',$_GET) && $_GET['json']) {
             header('Content-Type: application/json');
-            echo $response;
+            echo $encodedResponse;
             exit(0);
         }
 
@@ -226,6 +243,27 @@ class UnraidOsCheck
         }
 
         exit(0);
+    }
+
+    private function validateReleaseUrl($url): ?string
+    {
+        if (!is_string($url) || trim($url) === '') {
+            return null;
+        }
+
+        $url = trim($url);
+        $parts = parse_url($url);
+        if ($parts === false || filter_var($url, FILTER_VALIDATE_URL) === false) {
+            return null;
+        }
+
+        if (strtolower($parts['scheme'] ?? '') !== 'https' ||
+            strtolower($parts['host'] ?? '') !== 'releases.unraid.net' ||
+            isset($parts['user']) || isset($parts['pass']) || isset($parts['port'])) {
+            return null;
+        }
+
+        return $url;
     }
 
     private function removeAllIgnored()
@@ -314,9 +352,9 @@ class UnraidOsCheck
     }
 }
 
-// Instantiate and handle the request for GET requests with actions – vars are duplicated here for multi-use of this file
-$isGetRequest = !empty($_SERVER) && isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'GET';
-$getHasAction = $_GET !== null && !empty($_GET) && isset($_GET['action']);
-if ($isGetRequest && $getHasAction) {
+// Instantiate and handle web requests with actions – vars are duplicated here for multi-use of this file
+$method = $_SERVER['REQUEST_METHOD'] ?? '';
+$params = $method === 'POST' ? $_POST : $_GET;
+if (($method === 'GET' || $method === 'POST') && isset($params['action'])) {
     new UnraidOsCheck();
 }
