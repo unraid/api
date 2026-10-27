@@ -13,6 +13,7 @@ import {
   TrashIcon,
 } from '@heroicons/vue/24/solid';
 import { Button } from '@unraid/ui';
+import DOMPurify from 'dompurify';
 import { Markdown } from '@/helpers/markdown';
 
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
@@ -33,7 +34,7 @@ const descriptionMarkup = computedAsync(async () => {
     return await Markdown.parse(props.description);
   } catch (e) {
     console.error(e);
-    return props.description;
+    return DOMPurify.sanitize(props.description);
   }
 }, '');
 
