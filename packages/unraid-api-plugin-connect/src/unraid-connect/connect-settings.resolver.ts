@@ -9,6 +9,11 @@ import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
+import {
+    ConnectConfigService,
+    ConnectIdentityVerificationError,
+    ConnectLegacyCleanupError,
+} from '../config/connect.config.service.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 import { ConnectSettingsService } from './connect-settings.service.js';
 import {
@@ -28,7 +33,8 @@ export class ConnectSettingsResolver {
 
     constructor(
         private readonly connectSettingsService: ConnectSettingsService,
-        private readonly eventEmitter: EventEmitter2
+        private readonly eventEmitter: EventEmitter2,
+        private readonly connectConfigService: ConnectConfigService
     ) {}
 
     @UsePermissions({
@@ -118,7 +124,32 @@ export class ConnectSettingsResolver {
         resource: Resource.CONNECT,
     })
     public async connectSignOut() {
-        this.eventEmitter.emit(EVENTS.LOGOUT, { reason: 'Manual Sign Out Using API' });
+        await this.connectConfigService.revokeCloudKey();
+        try {
+            await this.connectConfigService.resetUser();
+        } catch (error) {
+            if (
+                error instanceof ConnectLegacyCleanupError ||
+                error instanceof ConnectIdentityVerificationError
+            ) {
+                // The write completed, so keep the identity cleared and tear
+                // down the relay even if cleanup or verification failed.
+                try {
+                    await this.eventEmitter.emitAsync(EVENTS.LOGOUT, {
+                        reason: 'Manual Sign Out Using API',
+                        configResetCompleted: true,
+                    });
+                } catch (emitError) {
+                    this.logger.error('Logout listeners failed after sign-out cleanup error', emitError);
+                }
+                throw error;
+            }
+            throw error;
+        }
+        await this.eventEmitter.emitAsync(EVENTS.LOGOUT, {
+            reason: 'Manual Sign Out Using API',
+            configResetCompleted: true,
+        });
         return true;
     }
 

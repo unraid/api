@@ -30,10 +30,7 @@ export class MothershipHandler {
     @OnEvent(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED, { async: true })
     async onMothershipConnectionStatusChanged() {
         const state = this.connectionService.getConnectionState();
-        if (
-            state &&
-            [MinigraphStatus.PING_FAILURE].includes(state.status)
-        ) {
+        if (state && [MinigraphStatus.PING_FAILURE].includes(state.status)) {
             this.logger.verbose(
                 'Mothership connection status changed to %s; setting up mothership subscription',
                 state.status
@@ -52,11 +49,13 @@ export class MothershipHandler {
     @OnEvent(EVENTS.LOGOUT, { async: true, prependListener: true })
     async logout({ reason }: { reason?: string }) {
         this.logger.log('Logging out user: %s', reason ?? 'No reason provided');
-        // publish to the 'servers' and 'owner' endpoints
-        await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.SERVERS, { servers: [] });
-        await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.OWNER, {
-            owner: { username: 'root', url: '', avatar: '' },
-        });
-        await this.mothershipController.stop();
+        try {
+            await this.mothershipController.stop();
+        } finally {
+            await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.SERVERS, { servers: [] });
+            await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.OWNER, {
+                owner: { username: 'root', url: '', avatar: '' },
+            });
+        }
     }
 }
