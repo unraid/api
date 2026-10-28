@@ -5,11 +5,15 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { ConfigFileHandler } from '@unraid/shared/util/config-file-handler.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ConnectConfigPersister } from '../config/config.persistence.js';
 import { emptyMyServersConfig } from '../config/connect.config.js';
-import { ConnectConfigService } from '../config/connect.config.service.js';
+import {
+    ConnectConfigService,
+    ConnectIdentityVerificationError,
+} from '../config/connect.config.service.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 import { ConnectSettingsResolver } from '../unraid-connect/connect-settings.resolver.js';
 import { ConnectSettingsService } from '../unraid-connect/connect-settings.service.js';
@@ -61,7 +65,8 @@ describe('ConnectConfigService sign-out', () => {
             PATHS_MY_SERVERS_CONFIG: legacyPath,
             MOTHERSHIP_GRAPHQL_LINK: 'https://mothership.unraid.net/ws',
         });
-        const fetchMock = vi.fn()
+        const fetchMock = vi
+            .fn()
             .mockResolvedValueOnce({ ok: true, json: async () => ({ revoked: true }) })
             .mockResolvedValueOnce({ ok: false });
         vi.stubGlobal('fetch', fetchMock);
@@ -95,10 +100,9 @@ describe('ConnectConfigService sign-out', () => {
         const service = new ConnectConfigService(configService);
 
         await service.revokeCloudKey();
-        expect(fetchMock.mock.calls.map(([url, options]) => [
-            url.toString(),
-            options.headers['x-api-key'],
-        ])).toEqual([
+        expect(
+            fetchMock.mock.calls.map(([url, options]) => [url.toString(), options.headers['x-api-key']])
+        ).toEqual([
             ['https://staging.mothership.unraid.net/ks/server/self-unregister', 'current-key'],
             ['https://staging.mothership.unraid.net/ks/server/self-unregister', 'legacy-key'],
         ]);
@@ -152,8 +156,12 @@ describe('ConnectConfigService sign-out', () => {
         const writeConfigFile = handler.writeConfigFile.bind(handler);
         let releaseWrite!: () => void;
         let writeStarted!: () => void;
-        const holdWrite = new Promise<void>((resolve) => { releaseWrite = resolve; });
-        const started = new Promise<void>((resolve) => { writeStarted = resolve; });
+        const holdWrite = new Promise<void>((resolve) => {
+            releaseWrite = resolve;
+        });
+        const started = new Promise<void>((resolve) => {
+            writeStarted = resolve;
+        });
         vi.spyOn(handler, 'writeConfigFile').mockImplementationOnce(async (config) => {
             writeStarted();
             await holdWrite;
@@ -213,6 +221,34 @@ describe('ConnectConfigService sign-out', () => {
         await expect(new ConnectConfigService(configService).resetUser()).rejects.toThrow();
         expect(await readFile(legacyPath, 'utf8')).toContain('legacy-key');
         expect(configService.get('connect.config.apikey')).toBe('current-key');
+    });
+
+    it('does not restore a revoked key if reading back the cleared file fails', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'connect-sign-out-'));
+        temporaryDirectories.push(directory);
+        const configService = new ConfigService({
+            connect: { config: { ...emptyMyServersConfig(), apikey: 'revoked-key' } },
+            PATHS_CONFIG_MODULES: directory,
+            PATHS_MY_SERVERS_CONFIG: '',
+        });
+        const originalRead = ConfigFileHandler.prototype.readConfigFile;
+        const read = vi.spyOn(ConfigFileHandler.prototype, 'readConfigFile');
+        read.mockImplementationOnce(function (
+            this: ConfigFileHandler<ReturnType<typeof emptyMyServersConfig>>
+        ) {
+            return originalRead.call(this);
+        }).mockRejectedValueOnce(new Error('read failed'));
+        try {
+            await expect(new ConnectConfigService(configService).resetUser()).rejects.toThrow(
+                ConnectIdentityVerificationError
+            );
+            expect(configService.get('connect.config.apikey')).toBe('');
+            await new ConnectConfigPersister(configService).onModuleDestroy();
+            const persisted = JSON.parse(await readFile(join(directory, 'connect.json'), 'utf8'));
+            expect(persisted.apikey).toBe('');
+        } finally {
+            read.mockRestore();
+        }
     });
 
     it('does not restore the key on shutdown when legacy cleanup fails', async () => {
@@ -357,5 +393,40 @@ describe('ConnectConfigService sign-out', () => {
         expect(configService.get('connect.config.apikey')).toBe('');
         const persisted = JSON.parse(await readFile(join(directory, 'connect.json'), 'utf8'));
         expect(persisted.apikey).toBe('');
+    });
+
+    it('tears down the relay when the cleared identity cannot be read back', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'connect-sign-out-'));
+        temporaryDirectories.push(directory);
+        const configService = new ConfigService({
+            connect: { config: { ...emptyMyServersConfig(), apikey: 'current-key' } },
+            PATHS_CONFIG_MODULES: directory,
+            PATHS_MY_SERVERS_CONFIG: '',
+        });
+        const originalRead = ConfigFileHandler.prototype.readConfigFile;
+        const read = vi.spyOn(ConfigFileHandler.prototype, 'readConfigFile');
+        read.mockImplementationOnce(function (
+            this: ConfigFileHandler<ReturnType<typeof emptyMyServersConfig>>
+        ) {
+            return originalRead.call(this);
+        }).mockRejectedValueOnce(new Error('read failed'));
+        const emitter = new EventEmitter2();
+        const stopRelay = vi.fn().mockResolvedValue(undefined);
+        emitter.on(EVENTS.LOGOUT, stopRelay);
+        const connectConfig = new ConnectConfigService(configService);
+        vi.spyOn(connectConfig, 'revokeCloudKey').mockResolvedValue();
+        const resolver = new ConnectSettingsResolver(
+            {} as ConnectSettingsService,
+            emitter,
+            connectConfig
+        );
+
+        try {
+            await expect(resolver.connectSignOut()).rejects.toThrow(ConnectIdentityVerificationError);
+            expect(stopRelay).toHaveBeenCalledTimes(1);
+            expect(configService.get('connect.config.apikey')).toBe('');
+        } finally {
+            read.mockRestore();
+        }
     });
 });

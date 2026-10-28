@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import { readFile, unlink } from 'node:fs/promises';
 
-import { isMatch } from 'lodash-es';
 import { parse as parseIni } from 'ini';
+import { isMatch } from 'lodash-es';
 
 import { EVENTS } from '../helper/nest-tokens.js';
 import { ConnectConfigPersister } from './config.persistence.js';
@@ -14,6 +14,13 @@ import { ConfigType, emptyMyServersConfig, MyServersConfig } from './connect.con
 export class ConnectLegacyCleanupError extends Error {
     constructor(cause: unknown) {
         super('Connect sign-out could not remove the legacy credential file', { cause });
+    }
+}
+
+/** The cleared identity was written, but its durable state could not be verified. */
+export class ConnectIdentityVerificationError extends Error {
+    constructor(cause: unknown) {
+        super('Connect sign-out could not verify the cleared identity', { cause });
     }
 }
 
@@ -119,15 +126,21 @@ export class ConnectConfigService {
         };
         const persister = new ConnectConfigPersister(this.configService);
         this.configService.set(this.configKey, config);
+        let writeCompleted = false;
         try {
-            await persister.persist(config);
+            writeCompleted = await persister.persist(config);
             const savedConfig = await persister.getFileHandler().readConfigFile();
             if (!isMatch(savedConfig, identity)) {
                 throw new Error('Connect sign-out could not persist cleared identity');
             }
         } catch (error) {
-            this.configService.set(this.configKey, previousConfig);
-            throw error;
+            if (!writeCompleted) {
+                this.configService.set(this.configKey, previousConfig);
+                throw error;
+            }
+            // The disk may already contain the cleared identity. Keep memory
+            // cleared so shutdown persistence cannot restore the revoked key.
+            throw new ConnectIdentityVerificationError(error);
         }
 
         const legacyPath = this.configService.get<string>(
