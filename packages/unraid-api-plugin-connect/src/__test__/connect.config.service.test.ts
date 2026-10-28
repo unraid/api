@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { Test } from '@nestjs/testing';
@@ -427,6 +428,35 @@ describe('ConnectConfigService sign-out', () => {
             expect(configService.get('connect.config.apikey')).toBe('');
         } finally {
             read.mockRestore();
+        }
+    });
+
+    it('keeps the cleanup error and logs a logout listener failure', async () => {
+        const configService = new ConfigService({
+            connect: { config: { ...emptyMyServersConfig(), apikey: 'current-key' } },
+        });
+        const connectConfig = new ConnectConfigService(configService);
+        vi.spyOn(connectConfig, 'revokeCloudKey').mockResolvedValue();
+        const cleanupError = new ConnectIdentityVerificationError(new Error('read failed'));
+        vi.spyOn(connectConfig, 'resetUser').mockRejectedValue(cleanupError);
+        const emitter = new EventEmitter2();
+        const listenerError = new Error('relay stop failed');
+        vi.spyOn(emitter, 'emitAsync').mockRejectedValue(listenerError);
+        const logError = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+        const resolver = new ConnectSettingsResolver(
+            {} as ConnectSettingsService,
+            emitter,
+            connectConfig
+        );
+
+        try {
+            await expect(resolver.connectSignOut()).rejects.toBe(cleanupError);
+            expect(logError).toHaveBeenCalledWith(
+                'Logout listeners failed after sign-out cleanup error',
+                listenerError
+            );
+        } finally {
+            logError.mockRestore();
         }
     });
 });

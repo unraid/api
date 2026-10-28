@@ -139,9 +139,10 @@ export class ConnectSettingsResolver {
                         reason: 'Manual Sign Out Using API',
                         configResetCompleted: true,
                     });
-                } finally {
-                    throw error;
+                } catch (emitError) {
+                    this.logger.error('Logout listeners failed after sign-out cleanup error', emitError);
                 }
+                throw error;
             }
             throw error;
         }
