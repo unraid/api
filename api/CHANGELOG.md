@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.37.9](https://github.com/unraid/api/compare/v4.37.8...v4.37.9) (2026-10-28)
+
+
+### Bug Fixes
+
+* **graphql:** enforce introspection policy on websocket operations ([#2129](https://github.com/unraid/api/issues/2129)) ([5481db9](https://github.com/unraid/api/commit/5481db92147e2a61b91e037ee01c23cc63dfd4e3))
+
 ## [4.37.8](https://github.com/unraid/api/compare/v4.37.7...v4.37.8) (2026-10-26)
 
 
