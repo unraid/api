@@ -149,9 +149,6 @@ export class AuthService {
 
     public async syncApiKeyPermissions(apiKeyId: string, permissions: Array<Permission>): Promise<void> {
         try {
-            // Clear existing permissions first
-            await this.authzService.deletePermissionsForUser(apiKeyId);
-
             // Create array of permission-action pairs for processing
             // Filter out any permissions with empty or undefined resources
             const permissionActions = permissions
@@ -184,8 +181,25 @@ export class AuthService {
                         })
                 );
 
+            const existing = await this.authzService.getPermissionsForUser(apiKeyId);
+            const matches = (policy: string[], permission: { resource: string; action: string }) =>
+                policy[1] === permission.resource && policy[2] === permission.action;
+
+            // Keep unchanged grants available to other requests while this key authenticates.
+            await Promise.all(
+                existing
+                    .filter(
+                        (policy) => !permissionActions.some((permission) => matches(policy, permission))
+                    )
+                    .map(([, resource, action]) =>
+                        this.authzService.deletePermissionForUser(apiKeyId, resource, action)
+                    )
+            );
+
             const { errors, errorOccurred: errorOccured } = await batchProcess(
-                permissionActions,
+                permissionActions.filter(
+                    (permission) => !existing.some((policy) => matches(policy, permission))
+                ),
                 ({ resource, action }) =>
                     this.authzService.addPermissionForUser(apiKeyId, resource, action)
             );

@@ -4,6 +4,8 @@ import type { DocumentNode, GraphQLSchema } from 'graphql';
 import type { SubscribePayload } from 'graphql-ws';
 import { ApolloArmor } from '@escape.tech/graphql-armor';
 
+import { isBlockedIntrospectionOperation } from '@app/unraid-api/graph/introspection-plugin.js';
+
 export const maxGraphqlTokens = 5_000;
 
 const graphqlForWs: typeof import('graphql') = createRequire(import.meta.url)('graphql');
@@ -26,11 +28,24 @@ export const requestProtection = new ApolloArmor({
 
 const websocketValidationRules = [...graphqlForWs.specifiedRules, ...requestProtection.validationRules];
 
-export const graphqlWsOptions = {
+export const createGraphqlWsOptions = (isSandboxEnabled: () => boolean) => ({
     path: '/graphql',
     onSubscribe: (_context: unknown, _id: string, payload: SubscribePayload) => {
         try {
-            graphqlForWs.parse(payload.query, { maxTokens: maxGraphqlTokens });
+            const document = graphqlForWs.parse(payload.query, { maxTokens: maxGraphqlTokens });
+            const operation = graphqlForWs.getOperationAST(document, payload.operationName);
+            if (
+                !isSandboxEnabled() &&
+                operation &&
+                isBlockedIntrospectionOperation(operation, document)
+            ) {
+                return [
+                    new graphqlForWs.GraphQLError(
+                        'GraphQL introspection is not allowed, but the current request is for introspection.',
+                        { extensions: { code: 'INTROSPECTION_DISABLED' } }
+                    ),
+                ];
+            }
         } catch (error) {
             if (error instanceof graphqlForWs.GraphQLError) return [error];
             throw error;
@@ -40,4 +55,4 @@ export const graphqlWsOptions = {
     // Nest passes this option to graphql-ws, although its subscription config omits the type.
     validate: (schema: GraphQLSchema, document: DocumentNode) =>
         graphqlForWs.validate(schema, document, websocketValidationRules),
-};
+});

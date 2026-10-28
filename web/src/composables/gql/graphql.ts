@@ -2390,7 +2390,7 @@ export type Query = {
   disk: Disk;
   disks: Array<Disk>;
   display: InfoDisplay;
-  docker: Docker;
+  docker?: Maybe<Docker>;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
   getApiKeyCreationFormSchema: ApiKeyFormSettings;
@@ -2454,7 +2454,7 @@ export type Query = {
   validateOidcSession: OidcSessionValidation;
   vars: Vars;
   /** Get information about all VMs on the system */
-  vms: Vms;
+  vms?: Maybe<Vms>;
 };
 
 
@@ -3690,14 +3690,14 @@ export type SetThemeMutation = { __typename?: 'Mutation', customization: { __typ
 export type GetDockerContainerSizesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetDockerContainerSizesQuery = { __typename?: 'Query', docker: { __typename?: 'Docker', id: string, containers: Array<{ __typename?: 'DockerContainer', id: string, names: Array<string>, sizeRootFs?: number | null, sizeRw?: number | null, sizeLog?: number | null }> } };
+export type GetDockerContainerSizesQuery = { __typename?: 'Query', docker?: { __typename?: 'Docker', id: string, containers: Array<{ __typename?: 'DockerContainer', id: string, names: Array<string>, sizeRootFs?: number | null, sizeRw?: number | null, sizeLog?: number | null }> } | null };
 
 export type GetDockerContainersQueryVariables = Exact<{
   skipCache?: InputMaybe<Scalars['Boolean']['input']>;
 }>;
 
 
-export type GetDockerContainersQuery = { __typename?: 'Query', docker: { __typename?: 'Docker', id: string, portConflicts: { __typename?: 'DockerPortConflicts', containerPorts: Array<{ __typename?: 'DockerContainerPortConflict', privatePort: number, type: ContainerPortType, containers: Array<{ __typename?: 'DockerPortConflictContainer', id: string, name: string }> }>, lanPorts: Array<{ __typename?: 'DockerLanPortConflict', lanIpPort: string, publicPort?: number | null, type: ContainerPortType, containers: Array<{ __typename?: 'DockerPortConflictContainer', id: string, name: string }> }> }, containers: Array<{ __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, status: string, image: string, created: number, lanIpPorts?: Array<string> | null, autoStart: boolean, autoStartOrder?: number | null, autoStartWait?: number | null, networkSettings?: any | null, mounts?: Array<any> | null, isOrphaned: boolean, projectUrl?: string | null, registryUrl?: string | null, supportUrl?: string | null, iconUrl?: string | null, webUiUrl?: string | null, shell?: string | null, tailscaleEnabled: boolean, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null, templatePorts?: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }> | null }>, organizer: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, prefs?: any | null, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string>, meta?: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, status: string, image: string, lanIpPorts?: Array<string> | null, autoStart: boolean, autoStartWait?: number | null, networkSettings?: any | null, mounts?: Array<any> | null, created: number, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null, templatePath?: string | null, isOrphaned: boolean, projectUrl?: string | null, registryUrl?: string | null, supportUrl?: string | null, iconUrl?: string | null, webUiUrl?: string | null, shell?: string | null, tailscaleEnabled: boolean, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null, templatePorts?: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }> | null } | null }> }> } } };
+export type GetDockerContainersQuery = { __typename?: 'Query', docker?: { __typename?: 'Docker', id: string, portConflicts: { __typename?: 'DockerPortConflicts', containerPorts: Array<{ __typename?: 'DockerContainerPortConflict', privatePort: number, type: ContainerPortType, containers: Array<{ __typename?: 'DockerPortConflictContainer', id: string, name: string }> }>, lanPorts: Array<{ __typename?: 'DockerLanPortConflict', lanIpPort: string, publicPort?: number | null, type: ContainerPortType, containers: Array<{ __typename?: 'DockerPortConflictContainer', id: string, name: string }> }> }, containers: Array<{ __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, status: string, image: string, created: number, lanIpPorts?: Array<string> | null, autoStart: boolean, autoStartOrder?: number | null, autoStartWait?: number | null, networkSettings?: any | null, mounts?: Array<any> | null, isOrphaned: boolean, projectUrl?: string | null, registryUrl?: string | null, supportUrl?: string | null, iconUrl?: string | null, webUiUrl?: string | null, shell?: string | null, tailscaleEnabled: boolean, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null, templatePorts?: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }> | null }>, organizer: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, prefs?: any | null, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string>, meta?: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, status: string, image: string, lanIpPorts?: Array<string> | null, autoStart: boolean, autoStartWait?: number | null, networkSettings?: any | null, mounts?: Array<any> | null, created: number, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null, templatePath?: string | null, isOrphaned: boolean, projectUrl?: string | null, registryUrl?: string | null, supportUrl?: string | null, iconUrl?: string | null, webUiUrl?: string | null, shell?: string | null, tailscaleEnabled: boolean, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null, templatePorts?: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }> | null } | null }> }> } } | null };
 
 export type CreateDockerFolderWithItemsMutationVariables = Exact<{
   name: Scalars['String']['input'];
@@ -3732,7 +3732,7 @@ export type GetDockerContainerLogsQueryVariables = Exact<{
 }>;
 
 
-export type GetDockerContainerLogsQuery = { __typename?: 'Query', docker: { __typename?: 'Docker', logs: { __typename?: 'DockerContainerLogs', containerId: string, cursor?: string | null, lines: Array<{ __typename?: 'DockerContainerLogLine', timestamp: string, message: string }> } } };
+export type GetDockerContainerLogsQuery = { __typename?: 'Query', docker?: { __typename?: 'Docker', logs: { __typename?: 'DockerContainerLogs', containerId: string, cursor?: string | null, lines: Array<{ __typename?: 'DockerContainerLogLine', timestamp: string, message: string }> } } | null };
 
 export type MoveDockerEntriesToFolderMutationVariables = Exact<{
   destinationFolderId: Scalars['String']['input'];
@@ -3808,7 +3808,7 @@ export type GetContainerTailscaleStatusQueryVariables = Exact<{
 }>;
 
 
-export type GetContainerTailscaleStatusQuery = { __typename?: 'Query', docker: { __typename?: 'Docker', container?: { __typename?: 'DockerContainer', id: string, tailscaleStatus?: { __typename?: 'TailscaleStatus', online: boolean, version?: string | null, latestVersion?: string | null, updateAvailable: boolean, hostname?: string | null, dnsName?: string | null, relay?: string | null, relayName?: string | null, tailscaleIps?: Array<string> | null, primaryRoutes?: Array<string> | null, isExitNode: boolean, webUiUrl?: string | null, keyExpiry?: string | null, keyExpiryDays?: number | null, keyExpired: boolean, backendState?: string | null, authUrl?: string | null, exitNodeStatus?: { __typename?: 'TailscaleExitNodeStatus', online: boolean, tailscaleIps?: Array<string> | null } | null } | null } | null } };
+export type GetContainerTailscaleStatusQuery = { __typename?: 'Query', docker?: { __typename?: 'Docker', container?: { __typename?: 'DockerContainer', id: string, tailscaleStatus?: { __typename?: 'TailscaleStatus', online: boolean, version?: string | null, latestVersion?: string | null, updateAvailable: boolean, hostname?: string | null, dnsName?: string | null, relay?: string | null, relayName?: string | null, tailscaleIps?: Array<string> | null, primaryRoutes?: Array<string> | null, isExitNode: boolean, webUiUrl?: string | null, keyExpiry?: string | null, keyExpiryDays?: number | null, keyExpired: boolean, backendState?: string | null, authUrl?: string | null, exitNodeStatus?: { __typename?: 'TailscaleExitNodeStatus', online: boolean, tailscaleIps?: Array<string> | null } | null } | null } | null } | null };
 
 export type UnpauseDockerContainerMutationVariables = Exact<{
   id: Scalars['PrefixedID']['input'];

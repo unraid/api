@@ -9,6 +9,7 @@ import type { Pinia } from 'pinia';
 
 import Modals from '~/components/Modals.standalone.vue';
 import { useCallbackActionsStore } from '~/store/callbackActions';
+import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 
 // Mock child components
@@ -68,6 +69,53 @@ describe('Modals.standalone.vue', () => {
   afterEach(() => {
     wrapper?.unmount();
     vi.clearAllMocks();
+  });
+
+  it('leaves update and changelog rendering to the Tools page', async () => {
+    wrapper.unmount();
+    window.history.replaceState({}, '', '/Tools/Update');
+    try {
+      wrapper = mount(Modals, { global: { plugins: [pinia] } });
+      const update = useUpdateOsStore();
+      update.setModalOpen(true);
+      update.setReleaseForUpdate({
+        version: '7.3.0',
+        name: 'Unraid 7.3.0',
+        date: '2026-10-23',
+        isNewer: true,
+        isEligible: true,
+        changelog: null,
+        sha256: null,
+      });
+      await nextTick();
+      expect(wrapper.findComponent({ name: 'UpdateOsCheckUpdateResponseModal' }).exists()).toBe(false);
+      expect(wrapper.findComponent({ name: 'UpdateOsChangelogModal' }).exists()).toBe(false);
+      expect(wrapper.findComponent({ name: 'OnboardingModal' }).exists()).toBe(true);
+      expect(wrapper.findComponent({ name: 'UpcCallbackFeedback' }).exists()).toBe(true);
+    } finally {
+      window.history.replaceState({}, '', '/');
+    }
+  });
+
+  it('leaves driver-reboot responses and changelogs to the Tools card', async () => {
+    wrapper.unmount();
+    window.history.replaceState({}, '', '/Tools/Update');
+    try {
+      wrapper = mount(Modals, { global: { plugins: [pinia] } });
+      const server = useServerStore();
+      const update = useUpdateOsStore();
+      server.rebootType = 'thirdPartyDriversDownloading';
+      update.setModalOpen(true);
+      await nextTick();
+      expect(wrapper.findComponent({ name: 'UpdateOsCheckUpdateResponseModal' }).exists()).toBe(false);
+      expect(wrapper.findComponent({ name: 'UpdateOsChangelogModal' }).exists()).toBe(false);
+
+      server.rebootType = '';
+      await nextTick();
+      expect(wrapper.findComponent({ name: 'UpdateOsCheckUpdateResponseModal' }).exists()).toBe(false);
+    } finally {
+      window.history.replaceState({}, '', '/');
+    }
   });
 
   it('should render modals container with correct id and ref', () => {
