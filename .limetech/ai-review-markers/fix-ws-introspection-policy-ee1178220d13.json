@@ -1,20 +1,8 @@
 {
   "disposition": "PATCH",
-  "expected_structural_delta": "Retained G2 base-first forecast from prior independent Architecture review: three existing production modules, one existing test file and feature root; zero new modules, owners, dependencies, stores or hops. HTTP policy gains one transport consumer.",
-  "minimum_design": "Reuse the existing HTTP introspection AST predicate in the existing graphql-ws subscription admission hook; read the existing sandbox configuration per operation.",
-  "outcome": "G2: Sandbox-disabled schema introspection is rejected before execution on HTTP and WebSocket transports, including aliases, fragments and selected operations; normal queries and dynamic sandbox behavior remain supported.",
-  "reuse_decisions": [
-    {
-      "decision": "extend",
-      "name": "Existing introspection policy",
-      "rationale": "The same selected-operation AST policy serves HTTP and WebSocket execution."
-    },
-    {
-      "decision": "extend",
-      "name": "Existing graphql-ws configuration and GraphModule",
-      "rationale": "Supply the existing dynamic sandbox getter to transport admission without a new owner or store."
-    }
-  ],
+  "forecast_commit": "5322e5d57d50618c837b371412f766492b02633c",
+  "reviewed_sha": "8f2ead51e46f37ebe8f07835f5a6895005b3fdc3",
   "schema": "limetech.ai-review-marker.v2",
-  "stage": "forecast"
+  "stage": "final",
+  "unresolved_proportionality_findings": []
 }
