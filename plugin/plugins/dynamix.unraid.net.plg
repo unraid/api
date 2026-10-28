@@ -305,7 +305,7 @@ exit 0
         # so an unrelated app must not block Connect credential removal.
         if ! (
           set -o pipefail
-          PM2_HOME=/var/log/.pm2 /usr/local/unraid-api/node_modules/pm2/bin/pm2 --no-color jlist |
+          PM2_HOME=/var/log/.pm2 /usr/local/unraid-api/node_modules/pm2/bin/pm2 --silent --no-color jlist |
             jq -e 'type == "array" and all(.[]; .name != "unraid-api")' >/dev/null
         ) 2>/dev/null; then
           echo "Error: Could not verify Unraid API stopped; Connect credentials were not removed"

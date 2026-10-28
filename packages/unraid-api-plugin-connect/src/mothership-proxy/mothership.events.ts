@@ -49,11 +49,13 @@ export class MothershipHandler {
     @OnEvent(EVENTS.LOGOUT, { async: true, prependListener: true })
     async logout({ reason }: { reason?: string }) {
         this.logger.log('Logging out user: %s', reason ?? 'No reason provided');
-        await this.mothershipController.stop();
-        // publish to the 'servers' and 'owner' endpoints
-        await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.SERVERS, { servers: [] });
-        await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.OWNER, {
-            owner: { username: 'root', url: '', avatar: '' },
-        });
+        try {
+            await this.mothershipController.stop();
+        } finally {
+            await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.SERVERS, { servers: [] });
+            await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.OWNER, {
+                owner: { username: 'root', url: '', avatar: '' },
+            });
+        }
     }
 }
