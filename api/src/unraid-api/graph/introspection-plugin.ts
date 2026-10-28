@@ -64,7 +64,7 @@ const hasBlockedIntrospectionField = (
         return blocked;
     });
 
-const isBlockedIntrospectionOperation = (
+export const isBlockedIntrospectionOperation = (
     operation: OperationDefinitionNode,
     document: DocumentNode
 ): boolean => {
