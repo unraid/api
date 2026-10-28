@@ -123,7 +123,12 @@ perform_connect_cleanup() {
     connect_keys=()
     current_key=""
     if [ -f "/boot/config/plugins/dynamix.my.servers/configs/connect.json" ]; then
-      current_key=$(jq -r '.apikey // empty' "/boot/config/plugins/dynamix.my.servers/configs/connect.json" 2>/dev/null) || return 1
+      current_key=$(/usr/bin/php -r '
+        $config = json_decode(@file_get_contents($argv[1]), true);
+        if (!is_array($config) || json_last_error() !== JSON_ERROR_NONE ||
+            !is_string($config["apikey"] ?? "")) exit(1);
+        echo $config["apikey"] ?? "";
+      ' "/boot/config/plugins/dynamix.my.servers/configs/connect.json" 2>/dev/null) || return 1
       [ -z "$current_key" ] || connect_keys+=("$current_key")
     fi
     if [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
@@ -157,7 +162,10 @@ perform_connect_cleanup() {
           curl --config - --silent --show-error --fail \
             --connect-timeout 5 --max-time 15 --proto '=https' \
             --request POST "$revoke_endpoint" |
-          jq -e '.revoked == true' >/dev/null
+          /usr/bin/php -r '
+            $response = json_decode(stream_get_contents(STDIN), true);
+            exit(is_array($response) && ($response["revoked"] ?? null) === true ? 0 : 1);
+          '
       ); then
         echo "Error: Connect cloud key revocation failed; credentials were retained for retry"
         return 1
