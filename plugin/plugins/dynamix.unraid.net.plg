@@ -282,7 +282,12 @@ exit 0
             /boot/config/plugins/dynamix.my.servers/myservers.cfg | head -n 1)
         fi
         if [ -n "$connect_key" ]; then
-          if [[ ! "$connect_key" =~ ^unraid_[A-Za-z0-9]{57}$ ]] || ! (
+          if [[ ! "$connect_key" =~ ^unraid_[A-Za-z0-9]{57}$ ]]; then
+            echo "Error: Connect key format is invalid; automatic cloud revocation is unavailable"
+            echo "Contact Unraid Support to verify revocation before removing the retained credentials"
+            exit 1
+          fi
+          if ! (
             set -o pipefail
             printf 'header = "x-api-key: %s"\n' "$connect_key" |
               curl --config - --silent --show-error --fail \
