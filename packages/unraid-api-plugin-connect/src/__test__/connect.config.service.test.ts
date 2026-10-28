@@ -50,6 +50,63 @@ describe('ConnectConfigService sign-out', () => {
         expect(configService.get('connect.config.apikey')).toBe('current-key');
     });
 
+    it('revokes distinct current and legacy keys before clearing either credential', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'connect-sign-out-'));
+        temporaryDirectories.push(directory);
+        const legacyPath = join(directory, 'myservers.cfg');
+        await writeFile(legacyPath, '[remote]\napikey="legacy-key"\n');
+        const configService = new ConfigService({
+            connect: { config: { ...emptyMyServersConfig(), apikey: 'current-key' } },
+            PATHS_CONFIG_MODULES: directory,
+            PATHS_MY_SERVERS_CONFIG: legacyPath,
+            MOTHERSHIP_GRAPHQL_LINK: 'https://mothership.unraid.net/ws',
+        });
+        const fetchMock = vi.fn()
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ revoked: true }) })
+            .mockResolvedValueOnce({ ok: false });
+        vi.stubGlobal('fetch', fetchMock);
+        const service = new ConnectConfigService(configService);
+
+        await expect(service.revokeCloudKey()).rejects.toThrow();
+        expect(fetchMock.mock.calls.map(([, options]) => options.headers['x-api-key'])).toEqual([
+            'current-key',
+            'legacy-key',
+        ]);
+        expect(configService.get('connect.config.apikey')).toBe('current-key');
+        expect(await readFile(legacyPath, 'utf8')).toContain('legacy-key');
+    });
+
+    it('confirms both distinct keys before sign-out removes their local copies', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'connect-sign-out-'));
+        temporaryDirectories.push(directory);
+        const legacyPath = join(directory, 'myservers.cfg');
+        await writeFile(legacyPath, '[remote]\napikey="legacy-key"\n');
+        const configService = new ConfigService({
+            connect: { config: { ...emptyMyServersConfig(), apikey: 'current-key' } },
+            PATHS_CONFIG_MODULES: directory,
+            PATHS_MY_SERVERS_CONFIG: legacyPath,
+            MOTHERSHIP_GRAPHQL_LINK: 'https://staging.mothership.unraid.net/ws',
+        });
+        const fetchMock = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ revoked: true }),
+        });
+        vi.stubGlobal('fetch', fetchMock);
+        const service = new ConnectConfigService(configService);
+
+        await service.revokeCloudKey();
+        expect(fetchMock.mock.calls.map(([url, options]) => [
+            url.toString(),
+            options.headers['x-api-key'],
+        ])).toEqual([
+            ['https://staging.mothership.unraid.net/ks/server/self-unregister', 'current-key'],
+            ['https://staging.mothership.unraid.net/ks/server/self-unregister', 'legacy-key'],
+        ]);
+        await service.resetUser();
+        expect(configService.get('connect.config.apikey')).toBe('');
+        await expect(readFile(legacyPath)).rejects.toThrow();
+    });
+
     it('persists the cleared identity and removes the legacy source of the key', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'connect-sign-out-'));
         temporaryDirectories.push(directory);
@@ -80,6 +137,38 @@ describe('ConnectConfigService sign-out', () => {
         expect(persisted.wanaccess).toBe(true);
         expect(persisted.wanport).toBe(33443);
         await expect(readFile(legacyPath)).rejects.toThrow();
+    });
+
+    it('waits for an earlier key write before persisting sign-out', async () => {
+        const directory = await mkdtemp(join(tmpdir(), 'connect-sign-out-'));
+        temporaryDirectories.push(directory);
+        const configService = new ConfigService({
+            connect: { config: { ...emptyMyServersConfig(), apikey: 'current-key' } },
+            PATHS_CONFIG_MODULES: directory,
+            PATHS_MY_SERVERS_CONFIG: join(directory, 'absent.cfg'),
+        });
+        const persister = new ConnectConfigPersister(configService);
+        const handler = persister.getFileHandler();
+        const writeConfigFile = handler.writeConfigFile.bind(handler);
+        let releaseWrite!: () => void;
+        let writeStarted!: () => void;
+        const holdWrite = new Promise<void>((resolve) => { releaseWrite = resolve; });
+        const started = new Promise<void>((resolve) => { writeStarted = resolve; });
+        vi.spyOn(handler, 'writeConfigFile').mockImplementationOnce(async (config) => {
+            writeStarted();
+            await holdWrite;
+            return writeConfigFile(config);
+        });
+
+        const oldWrite = persister.persist(persister.getConfig());
+        await started;
+        const signOut = new ConnectConfigService(configService).resetUser();
+        releaseWrite();
+        await Promise.all([oldWrite, signOut]);
+
+        const persisted = JSON.parse(await readFile(join(directory, 'connect.json'), 'utf8'));
+        expect(persisted.apikey).toBe('');
+        expect(configService.get('connect.config.apikey')).toBe('');
     });
 
     it('retains local credentials when cloud revocation fails during sign-out', async () => {

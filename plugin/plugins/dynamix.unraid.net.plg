@@ -120,27 +120,49 @@ perform_connect_cleanup() {
       echo "⚠️ Warning: Neither /etc/rc.d/rc.unraid-api nor unraid-api command found"
     fi
     
-    connect_key=""
+    connect_keys=()
+    current_key=""
     if [ -f "/boot/config/plugins/dynamix.my.servers/configs/connect.json" ]; then
-      connect_key=$(jq -r '.apikey // empty' "/boot/config/plugins/dynamix.my.servers/configs/connect.json" 2>/dev/null) || return 1
+      current_key=$(jq -r '.apikey // empty' "/boot/config/plugins/dynamix.my.servers/configs/connect.json" 2>/dev/null) || return 1
+      [ -z "$current_key" ] || connect_keys+=("$current_key")
     fi
-    if [ -z "$connect_key" ] && [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
-      connect_key=$(sed -nE 's/^[[:space:]]*apikey[[:space:]]*=[[:space:]]*"?([^"[:space:]]+)"?[[:space:]]*$/\1/p' \
+    if [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
+      legacy_key=$(sed -nE 's/^[[:space:]]*apikey[[:space:]]*=[[:space:]]*"?([^"[:space:]]+)"?[[:space:]]*$/\1/p' \
         "/boot/config/plugins/dynamix.my.servers/myservers.cfg" | head -n 1)
+      [ -z "$legacy_key" ] || [ "$legacy_key" = "${current_key:-}" ] || connect_keys+=("$legacy_key")
     fi
-    if [ -n "$connect_key" ]; then
+    # Match the endpoint used by the installed API. An unknown environment
+    # must retain the key rather than treating another cluster's 200 as proof.
+    mothership_link=""
+    api_environment="production"
+    if [ -f /usr/local/unraid-api/.env ]; then
+      mothership_link=$(sed -nE 's/^[[:space:]]*MOTHERSHIP_GRAPHQL_LINK[[:space:]]*=[[:space:]]*"?([^"[:space:]#]+)"?[[:space:]]*$/\1/p' /usr/local/unraid-api/.env | tail -n 1)
+      api_environment=$(sed -nE 's/^[[:space:]]*ENVIRONMENT[[:space:]]*=[[:space:]]*"?([^"[:space:]#]+)"?[[:space:]]*$/\1/p' /usr/local/unraid-api/.env | tail -n 1)
+    fi
+    case "$mothership_link" in
+      "")
+        case "$api_environment" in
+          ""|production) revoke_endpoint=https://mothership.unraid.net/ks/server/self-unregister ;;
+          staging) revoke_endpoint=https://staging.mothership.unraid.net/ks/server/self-unregister ;;
+          *) echo "Error: Unknown Connect cloud environment; credentials were retained"; return 1 ;;
+        esac ;;
+      https://mothership.unraid.net/ws) revoke_endpoint=https://mothership.unraid.net/ks/server/self-unregister ;;
+      https://staging.mothership.unraid.net/ws) revoke_endpoint=https://staging.mothership.unraid.net/ks/server/self-unregister ;;
+      *) echo "Error: Unknown Connect cloud endpoint; credentials were retained"; return 1 ;;
+    esac
+    for connect_key in "${connect_keys[@]}"; do
       if [[ ! "$connect_key" =~ ^unraid_[A-Za-z0-9]{57}$ ]] || ! (
         set -o pipefail
         printf 'header = "x-api-key: %s"\n' "$connect_key" |
           curl --config - --silent --show-error --fail \
             --connect-timeout 5 --max-time 15 --proto '=https' \
-            --request POST https://mothership.unraid.net/ks/server/self-unregister |
+            --request POST "$revoke_endpoint" |
           jq -e '.revoked == true' >/dev/null
       ); then
         echo "Error: Connect cloud key revocation failed; credentials were retained for retry"
         return 1
       fi
-    fi
+    done
     
     # Remove config files
     rm -f /boot/config/plugins/dynamix.my.servers/myservers.cfg
@@ -270,18 +292,38 @@ exit 0
       # persistence write cannot recreate the credentials on flash.
       if [ -f /boot/config/plugins/dynamix.my.servers/configs/connect.json ] || \
          [ -f /boot/config/plugins/dynamix.my.servers/myservers.cfg ]; then
-        connect_key=""
+        connect_keys=()
+        current_key=""
         if [ -f /boot/config/plugins/dynamix.my.servers/configs/connect.json ]; then
-          connect_key=$(jq -r '.apikey // empty' /boot/config/plugins/dynamix.my.servers/configs/connect.json 2>/dev/null) || {
+          current_key=$(jq -r '.apikey // empty' /boot/config/plugins/dynamix.my.servers/configs/connect.json 2>/dev/null) || {
             echo "Error: Could not read Connect credentials for cloud revocation"
             exit 1
           }
+          [ -z "$current_key" ] || connect_keys+=("$current_key")
         fi
-        if [ -z "$connect_key" ] && [ -f /boot/config/plugins/dynamix.my.servers/myservers.cfg ]; then
-          connect_key=$(sed -nE 's/^[[:space:]]*apikey[[:space:]]*=[[:space:]]*"?([^"[:space:]]+)"?[[:space:]]*$/\1/p' \
+        if [ -f /boot/config/plugins/dynamix.my.servers/myservers.cfg ]; then
+          legacy_key=$(sed -nE 's/^[[:space:]]*apikey[[:space:]]*=[[:space:]]*"?([^"[:space:]]+)"?[[:space:]]*$/\1/p' \
             /boot/config/plugins/dynamix.my.servers/myservers.cfg | head -n 1)
+          [ -z "$legacy_key" ] || [ "$legacy_key" = "${current_key:-}" ] || connect_keys+=("$legacy_key")
         fi
-        if [ -n "$connect_key" ]; then
+        mothership_link=""
+        api_environment="production"
+        if [ -f /usr/local/unraid-api/.env ]; then
+          mothership_link=$(sed -nE 's/^[[:space:]]*MOTHERSHIP_GRAPHQL_LINK[[:space:]]*=[[:space:]]*"?([^"[:space:]#]+)"?[[:space:]]*$/\1/p' /usr/local/unraid-api/.env | tail -n 1)
+          api_environment=$(sed -nE 's/^[[:space:]]*ENVIRONMENT[[:space:]]*=[[:space:]]*"?([^"[:space:]#]+)"?[[:space:]]*$/\1/p' /usr/local/unraid-api/.env | tail -n 1)
+        fi
+        case "$mothership_link" in
+          "")
+            case "$api_environment" in
+              ""|production) revoke_endpoint=https://mothership.unraid.net/ks/server/self-unregister ;;
+              staging) revoke_endpoint=https://staging.mothership.unraid.net/ks/server/self-unregister ;;
+              *) echo "Error: Unknown Connect cloud environment; credentials were retained"; exit 1 ;;
+            esac ;;
+          https://mothership.unraid.net/ws) revoke_endpoint=https://mothership.unraid.net/ks/server/self-unregister ;;
+          https://staging.mothership.unraid.net/ws) revoke_endpoint=https://staging.mothership.unraid.net/ks/server/self-unregister ;;
+          *) echo "Error: Unknown Connect cloud endpoint; credentials were retained"; exit 1 ;;
+        esac
+        for connect_key in "${connect_keys[@]}"; do
           if [[ ! "$connect_key" =~ ^unraid_[A-Za-z0-9]{57}$ ]]; then
             echo "Error: Connect key format is invalid; automatic cloud revocation is unavailable"
             echo "Contact Unraid Support to verify revocation before removing the retained credentials"
@@ -292,13 +334,13 @@ exit 0
             printf 'header = "x-api-key: %s"\n' "$connect_key" |
               curl --config - --silent --show-error --fail \
                 --connect-timeout 5 --max-time 15 --proto '=https' \
-                --request POST https://mothership.unraid.net/ks/server/self-unregister |
+                --request POST "$revoke_endpoint" |
               jq -e '.revoked == true' >/dev/null
           ); then
             echo "Error: Connect cloud key revocation failed; credentials were retained for retry"
             exit 1
           fi
-        fi
+        done
 
         if [ -x /etc/rc.d/rc.unraid-api ]; then
           /etc/rc.d/rc.unraid-api stop || true
