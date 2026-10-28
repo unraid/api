@@ -1,25 +1,8 @@
 {
   "disposition": "PATCH",
-  "expected_structural_delta": "Five existing production TypeScript modules plus nginx patch asset; zero new runtime owners, dependencies or state stores. About 80-160 added production lines, 10-35 removed; 1-2 new test files and 2-4 extended files with 180-320 test lines.",
-  "minimum_design": "Extend the existing nginx script modification and throttler guard to preserve trusted client identity; reuse the selected-operation introspection check in graphql-ws before execution.",
-  "outcome": "Independent OIDC client limits through the supported nginx socket path and consistent disabled-sandbox introspection policy on HTTP and WebSocket.",
-  "reuse_decisions": [
-    {
-      "decision": "extend",
-      "name": "RcNginxModification",
-      "rationale": "Existing owner for rc.nginx patching and reload lifecycle; update static and generated patch on current OS versions."
-    },
-    {
-      "decision": "extend",
-      "name": "FastifyThrottlerGuard",
-      "rationale": "Select raw TCP peer or one validated nginx-provided Unix socket client address."
-    },
-    {
-      "decision": "reuse",
-      "name": "Introspection AST policy and graphqlWsOptions",
-      "rationale": "Apply one selected-operation predicate with dynamic sandbox policy before both transports execute."
-    }
-  ],
+  "forecast_commit": "ee919505185a59be4ac687f6452d0db18520be50",
+  "reviewed_sha": "d7f2783a69c21fa3ccab91a6dc78f73d5823381a",
   "schema": "limetech.ai-review-marker.v2",
-  "stage": "forecast"
+  "stage": "final",
+  "unresolved_proportionality_findings": []
 }
