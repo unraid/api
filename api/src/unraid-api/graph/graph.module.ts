@@ -19,7 +19,7 @@ import '@app/unraid-api/graph/auth/auth-action.enum.js';
 
 import { createDynamicIntrospectionPlugin } from '@app/unraid-api/graph/introspection-plugin.js';
 import {
-    graphqlWsOptions,
+    createGraphqlWsOptions,
     maxGraphqlTokens,
     requestProtection,
 } from '@app/unraid-api/graph/request-protection.js';
@@ -61,7 +61,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                         createDynamicIntrospectionPlugin(isSandboxEnabled),
                         createSandboxPlugin(),
                     ] as any[],
-                    subscriptions: { 'graphql-ws': graphqlWsOptions },
+                    subscriptions: { 'graphql-ws': createGraphqlWsOptions(isSandboxEnabled) },
                     buildSchemaOptions: {
                         dateScalarMode: 'isoDate',
                         // Only add directive when not in test environment to avoid GraphQL version conflicts
