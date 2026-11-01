@@ -1,16 +1,29 @@
-import { gql } from '@apollo/client/core';
 import { createApolloCache } from '~/helpers/apollo-cache';
 import { describe, expect, it } from 'vitest';
 
-import { notificationsOverview } from '~/components/Notifications/graphql/notification.query';
+import {
+  archiveNotification,
+  NOTIFICATION_FRAGMENT,
+  notificationsOverview,
+} from '~/components/Notifications/graphql/notification.query';
+import { makeFragmentData } from '~/composables/gql/fragment-masking';
+import { NotificationImportance, NotificationType } from '~/composables/gql/graphql';
 
-const archiveMutation = gql`
-  mutation ArchiveNotification($id: PrefixedID!) {
-    archiveNotification(id: $id) {
-      id
-    }
-  }
-`;
+const archivedNotification = makeFragmentData(
+  {
+    __typename: 'Notification',
+    id: 'n1',
+    title: 'Unraid Status',
+    subject: 'Mover finished',
+    description: 'Mover finished',
+    importance: NotificationImportance.INFO,
+    link: null,
+    type: NotificationType.ARCHIVE,
+    timestamp: '2026-10-31T19:06:09.000Z',
+    formattedTimestamp: '31-10-2026 19:06',
+  },
+  NOTIFICATION_FRAGMENT
+);
 
 const counts = (total: number) => ({
   __typename: 'NotificationCounts' as const,
@@ -35,9 +48,9 @@ const overview = (unread: number, archive: number) => ({
 const writeArchiveResult = (cache: ReturnType<typeof createApolloCache>) =>
   cache.write({
     dataId: 'ROOT_MUTATION',
-    query: archiveMutation,
+    query: archiveNotification,
     variables: { id: 'n1' },
-    result: { archiveNotification: { __typename: 'Notification', id: 'n1' } },
+    result: { archiveNotification: archivedNotification },
   });
 
 const readOverview = (cache: ReturnType<typeof createApolloCache>) =>
