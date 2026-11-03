@@ -307,6 +307,7 @@ const copyLanIp = async () => {
   .uh-name > span,
   .uh-name :deep(button) {
     font-size: inherit;
+    line-height: inherit;
   }
 
   .uh-version {
