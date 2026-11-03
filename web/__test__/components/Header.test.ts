@@ -226,6 +226,18 @@ describe('Header.standalone.vue', () => {
     withUsage.unmount();
   });
 
+  it('renders the original gradient asset and switches to the theme wordmark when requested', async () => {
+    const logo = wrapper.get('.uh-logo');
+    expect(logo.attributes('aria-label')).toBe('headerOsVersion.visitUnraidWebsite');
+    expect(logo.get('img').attributes('src')).toMatch(/^data:image\/svg\+xml,/);
+    expect(logo.get('img').attributes('width')).toBe('222.36');
+    expect(logo.get('img').attributes('height')).toBe('39.04');
+
+    await wrapper.setProps({ headerLogoStyle: 'theme' });
+    expect(logo.find('img').exists()).toBe(false);
+    expect(logo.get('svg').attributes('viewBox')).toBe('0 0 222.36 39.04');
+  });
+
   it('copies the LAN IP when the server name is clicked', async () => {
     mockIsSupported.value = true;
     await wrapper.find('button').trigger('click');
