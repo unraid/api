@@ -176,7 +176,7 @@ const copyLanIp = async () => {
   column-gap: 0.75rem;
   align-items: stretch;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: minmax(16px, auto) minmax(40px, 1fr) auto;
+  grid-template-rows: minmax(18px, auto) minmax(40px, 1fr) auto;
 }
 
 .unraid-banner-gradient-layer {
@@ -249,7 +249,7 @@ const copyLanIp = async () => {
   .unraid-header-shell {
     --uh-header-inset: var(--unraid-header-inset, calc(var(--spacing) * 2));
     grid-template-columns: fit-content(60vw) minmax(0, 1fr);
-    grid-template-rows: minmax(16px, auto) minmax(44px, auto) minmax(21px, auto);
+    grid-template-rows: minmax(18px, auto) minmax(44px, auto) minmax(21px, auto);
     column-gap: var(--spacing);
     row-gap: var(--spacing);
     padding-block: var(--unraid-header-padding-block, var(--spacing));
