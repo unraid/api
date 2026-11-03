@@ -157,9 +157,7 @@ const copyLanIp = async () => {
             <UpcDropdownTrigger compact />
           </template>
           <template #content>
-            <div class="w-auto max-w-full min-w-0">
-              <UpcDropdownContent @close-dropdown="dropdownOpen = false" />
-            </div>
+            <UpcDropdownContent class="w-auto min-w-0" @close-dropdown="dropdownOpen = false" />
           </template>
         </DropdownMenu>
       </div>
