@@ -151,7 +151,7 @@ const copyLanIp = async () => {
           align="end"
           side="bottom"
           :side-offset="4"
-          content-class="box-border w-[350px] min-w-0 max-w-[calc(100vw-16px)] max-h-[var(--reka-dropdown-menu-content-available-height)] overflow-y-auto"
+          content-class="box-border flex flex-col w-[350px] min-w-0 max-w-[calc(100vw-16px)] max-h-[var(--reka-dropdown-menu-content-available-height)] overflow-y-auto"
         >
           <template #trigger>
             <UpcDropdownTrigger compact />
