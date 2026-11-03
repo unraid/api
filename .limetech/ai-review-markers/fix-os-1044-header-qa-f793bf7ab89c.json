@@ -1,20 +1,8 @@
 {
   "disposition": "PATCH",
-  "expected_structural_delta": "Two existing feature roots across API/WebGUI; seven production modules modified, zero new modules, state owners or hops. Approximately +100/-55 production lines and +80 test lines.",
-  "minimum_design": "Extend existing header layout, array slot and account dropdown sizing; pair with WebGUI placeholder geometry. No new runtime owner.",
-  "outcome": "OS-1044: keep sidebar header controls reachable, reserve loading geometry, and contain account menu at mobile widths.",
-  "reuse_decisions": [
-    {
-      "decision": "extend",
-      "name": "Header grid and WebGUI inset",
-      "rationale": "Preserve sidebar ownership and loading dimensions"
-    },
-    {
-      "decision": "extend",
-      "name": "Existing Reka dropdown and account rows",
-      "rationale": "Constrain content without replacing positioning"
-    }
-  ],
+  "forecast_commit": "4119767e7066280cbdf9dc0c3a0b06b2029ef5a7",
+  "reviewed_sha": "24105317071a679eb4ee3f32fde43356e28f3b75",
   "schema": "limetech.ai-review-marker.v2",
-  "stage": "forecast"
+  "stage": "final",
+  "unresolved_proportionality_findings": []
 }
