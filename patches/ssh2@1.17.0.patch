@@ -1,0 +1,40 @@
+diff --git a/lib/protocol/constants.js b/lib/protocol/constants.js
+index ad7759257d6bdbcafa353dec8946258d64c14eb0..fe15c3cc1f7af26bf628d494ef263dc96e946f8f 100644
+--- a/lib/protocol/constants.js
++++ b/lib/protocol/constants.js
+@@ -2,12 +2,7 @@
+ 
+ const crypto = require('crypto');
+ 
+-let cpuInfo;
+-try {
+-  cpuInfo = require('cpu-features')();
+-} catch {}
+-
+-const { bindingAvailable, CIPHER_INFO, MAC_INFO } = require('./crypto.js');
++const { CIPHER_INFO, MAC_INFO } = require('./crypto.js');
+ 
+ const eddsaSupported = (() => {
+   if (typeof crypto.sign === 'function'
+@@ -90,19 +85,8 @@ let DEFAULT_CIPHER = [
+   'aes192-ctr',
+   'aes256-ctr',
+ ];
+-if (cpuInfo && cpuInfo.flags && !cpuInfo.flags.aes) {
+-  // We know for sure the CPU does not support AES acceleration
+-  if (bindingAvailable)
+-    DEFAULT_CIPHER.unshift('chacha20-poly1305@openssh.com');
+-  else
+-    DEFAULT_CIPHER.push('chacha20-poly1305@openssh.com');
+-} else if (bindingAvailable && cpuInfo && cpuInfo.arch === 'x86') {
+-  // Places chacha20-poly1305 immediately after GCM ciphers since GCM ciphers
+-  // seem to outperform it on x86, but it seems to be faster than CTR ciphers
+-  DEFAULT_CIPHER.splice(4, 0, 'chacha20-poly1305@openssh.com');
+-} else {
+-  DEFAULT_CIPHER.push('chacha20-poly1305@openssh.com');
+-}
++// Use the default cipher order without native CPU probing, which can cause SIGILL.
++DEFAULT_CIPHER.push('chacha20-poly1305@openssh.com');
+ DEFAULT_CIPHER = DEFAULT_CIPHER.filter(canUseCipher);
+ const SUPPORTED_CIPHER = DEFAULT_CIPHER.concat([
+   'aes256-cbc',
