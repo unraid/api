@@ -1,20 +1,8 @@
 {
   "disposition": "NOT_REQUIRED",
-  "expected_structural_delta": "No new production modules, dependencies, owners, APIs, stores, or fallback paths. One dependency patch, two existing registrations and one regression test.",
-  "minimum_design": "Patch the pinned ssh2 module to retain its standard cipher order without cpu-features. Reuse existing workspace and production dependency patch mechanisms and exercise Docker import plus SSH negotiation.",
-  "outcome": "API and CLI imports do not execute optional native CPU probing through the Docker transport dependency.",
-  "reuse_decisions": [
-    {
-      "decision": "extend",
-      "name": "pnpm patchedDependencies",
-      "rationale": "Apply the same pinned ssh2 patch in workspace installs."
-    },
-    {
-      "decision": "extend",
-      "name": "LOCAL_PATCHED_DEPENDENCIES",
-      "rationale": "Existing release owner reapplies patches after npm installs and workspace vendoring."
-    }
-  ],
+  "forecast_commit": "3d158912f5ecd5715ae035634a653aa00f54664d",
+  "reviewed_sha": "fe4b9af09677bdc660dbd76739b218e0c28ac6c9",
   "schema": "limetech.ai-review-marker.v2",
-  "stage": "forecast"
+  "stage": "final",
+  "unresolved_proportionality_findings": []
 }
