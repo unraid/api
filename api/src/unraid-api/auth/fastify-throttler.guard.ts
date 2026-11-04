@@ -1,4 +1,4 @@
-import { ExecutionContext, Inject, Injectable, Optional } from '@nestjs/common';
+import { BadRequestException, ExecutionContext, Inject, Injectable, Optional } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import {
@@ -9,6 +9,7 @@ import {
     ThrottlerStorage,
     ThrottlerStorageService,
 } from '@nestjs/throttler';
+import { isIP } from 'node:net';
 
 import { type FastifyRequest } from 'fastify';
 
@@ -26,9 +27,17 @@ export class FastifyThrottlerGuard extends ThrottlerGuard {
         );
     }
 
-    protected async getTracker(req: Record<string, any>): Promise<string> {
-        const request = req as unknown as FastifyRequest;
-        return request.ip ?? request.ips?.[0] ?? request.headers?.['x-forwarded-for'] ?? '0.0.0.0';
+    protected async getTracker(request: FastifyRequest): Promise<string> {
+        const peerAddress = request.raw.socket.remoteAddress;
+        if (peerAddress) return peerAddress;
+
+        // Unix sockets have no peer IP. nginx overwrites this header with its TCP client address.
+        const forwardedAddress = request.headers['x-forwarded-for'];
+        if (typeof forwardedAddress === 'string' && isIP(forwardedAddress)) {
+            return forwardedAddress;
+        }
+
+        throw new BadRequestException('Client IP address is unavailable');
     }
 
     getRequestResponse(context: ExecutionContext) {
