@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.37.11](https://github.com/unraid/api/compare/v4.37.10...v4.37.11) (2026-11-04)
+
+
+### Bug Fixes
+
+* **api:** avoid native CPU probing in Docker transport ([#2143](https://github.com/unraid/api/issues/2143)) ([0866820](https://github.com/unraid/api/commit/08668203b1e9108a26967a81ad6b23cf457ca39e))
+* **web:** stop double-counting notification overview after archive ([#2137](https://github.com/unraid/api/issues/2137)) ([793bbd7](https://github.com/unraid/api/commit/793bbd758c82629826ccb8408bb69c774b1d915e))
+
 ## [4.37.10](https://github.com/unraid/api/compare/v4.37.9...v4.37.10) (2026-11-04)
 
 
