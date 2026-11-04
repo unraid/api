@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.37.10](https://github.com/unraid/api/compare/v4.37.9...v4.37.10) (2026-11-04)
+
+
+### Bug Fixes
+
+* **connect:** revoke cloud key on sign-out and plugin removal ([#2124](https://github.com/unraid/api/issues/2124)) ([2dd9895](https://github.com/unraid/api/commit/2dd98958d5934f0af045aea17981c69d235b9cb7))
+* **web:** resolve OS-1044 combined header QA blockers ([#2141](https://github.com/unraid/api/issues/2141)) ([cb362f4](https://github.com/unraid/api/commit/cb362f49c70694fb7e356caf84e6771743bfb75c))
+
 ## [4.37.9](https://github.com/unraid/api/compare/v4.37.8...v4.37.9) (2026-10-28)
 
 
