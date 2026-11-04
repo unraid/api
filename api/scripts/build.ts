@@ -205,5 +205,5 @@ try {
         console.log(`Error: ${error.message}`);
     }
 
-    exit(error.exitCode);
+    exit(error.exitCode || 1);
 }
