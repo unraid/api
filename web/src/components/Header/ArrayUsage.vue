@@ -41,19 +41,20 @@ const barColorClass = computed(() => {
   return 'bg-unraid-green';
 });
 
-// Only render once the array field has resolved to avoid a flash of an empty bar.
+// Reserve the resolved footprint while loading, without announcing an offline array.
 const hasData = computed(() => array.value != null);
 </script>
 
 <template>
   <div
-    v-if="hasData"
     class="flex gap-x-2 gap-y-0.5"
-    :class="
+    :class="[
+      { invisible: !hasData },
       compact
         ? 'w-32 max-w-full shrink-0 items-center'
-        : 'w-full items-center sm:w-40 sm:flex-col sm:items-stretch'
-    "
+        : 'w-full items-center sm:w-40 sm:flex-col sm:items-stretch',
+    ]"
+    :aria-hidden="!hasData || undefined"
     :title="started ? t('headerArrayUsage.usedOfArray', [usedPercent]) : undefined"
   >
     <div
@@ -73,7 +74,7 @@ const hasData = computed(() => array.value != null);
         :style="{ width: `${usedPercent}%` }"
       />
     </div>
-    <span v-if="!started" class="text-header-text-secondary text-xs leading-none">
+    <span v-if="hasData && !started" class="text-header-text-secondary text-xs leading-none">
       {{ t('headerArrayUsage.offline') }}
     </span>
   </div>

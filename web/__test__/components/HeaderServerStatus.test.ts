@@ -41,7 +41,7 @@ describe('header uptime and expiry states', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-10-10T12:00:00Z'));
+    vi.setSystemTime(new Date('2026-06-15T12:00:00Z'));
     setActivePinia(createPinia());
   });
 

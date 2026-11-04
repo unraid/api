@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import type { HTMLAttributes } from 'vue';
 
 export interface DropdownMenuItemData {
   type?: 'item' | 'label' | 'separator';
@@ -22,6 +23,7 @@ export interface DropdownMenuProps {
   align?: 'start' | 'center' | 'end';
   side?: 'top' | 'right' | 'bottom' | 'left';
   sideOffset?: number;
+  contentClass?: HTMLAttributes['class'];
 }
 
 const props = withDefaults(defineProps<DropdownMenuProps>(), {
@@ -52,7 +54,12 @@ function handleItemClick(item: DropdownMenuItemData) {
       <slot name="trigger" />
     </DropdownMenuTrigger>
 
-    <DropdownMenuContent :align="props.align" :side="props.side" :side-offset="props.sideOffset">
+    <DropdownMenuContent
+      :align="props.align"
+      :side="props.side"
+      :side-offset="props.sideOffset"
+      :class="props.contentClass"
+    >
       <!--Slot for direct composition -->
       <slot name="content" />
 
