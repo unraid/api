@@ -36,20 +36,20 @@ export class NotificationsResolver {
         } as Notifications;
     }
 
+    @ResolveField(() => NotificationOverview)
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.NOTIFICATIONS,
     })
-    @ResolveField(() => NotificationOverview)
     public async overview(): Promise<NotificationOverview> {
         return this.notificationsService.getOverview();
     }
 
+    @ResolveField(() => [Notification])
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.NOTIFICATIONS,
     })
-    @ResolveField(() => [Notification])
     public async list(
         @Args('filter', { type: () => NotificationFilter })
         filters: NotificationFilter
@@ -57,12 +57,12 @@ export class NotificationsResolver {
         return await this.notificationsService.getNotifications(filters);
     }
 
+    @ResolveField(() => [Notification], {
+        description: 'Deduplicated list of unread warning and alert notifications.',
+    })
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.NOTIFICATIONS,
-    })
-    @ResolveField(() => [Notification], {
-        description: 'Deduplicated list of unread warning and alert notifications.',
     })
     public async warningsAndAlerts(): Promise<Notification[]> {
         return this.notificationsService.getWarningsAndAlerts();
@@ -72,11 +72,11 @@ export class NotificationsResolver {
      *               Mutations
      *=============================================**/
 
+    @Mutation(() => Notification, { description: 'Creates a new notification record' })
     @UsePermissions({
         action: AuthAction.CREATE_ANY,
         resource: Resource.NOTIFICATIONS,
     })
-    @Mutation(() => Notification, { description: 'Creates a new notification record' })
     public createNotification(
         @Args('input', { type: () => NotificationData })
         data: NotificationData
@@ -84,11 +84,11 @@ export class NotificationsResolver {
         return this.notificationsService.createNotification(data);
     }
 
+    @Mutation(() => NotificationOverview)
     @UsePermissions({
         action: AuthAction.DELETE_ANY,
         resource: Resource.NOTIFICATIONS,
     })
-    @Mutation(() => NotificationOverview)
     public async deleteNotification(
         @Args('id', { type: () => PrefixedID })
         id: string,
@@ -99,22 +99,22 @@ export class NotificationsResolver {
         return overview;
     }
 
+    @Mutation(() => NotificationOverview, {
+        description: 'Deletes all archived notifications on server.',
+    })
     @UsePermissions({
         action: AuthAction.DELETE_ANY,
         resource: Resource.NOTIFICATIONS,
-    })
-    @Mutation(() => NotificationOverview, {
-        description: 'Deletes all archived notifications on server.',
     })
     public async deleteArchivedNotifications(): Promise<NotificationOverview> {
         return this.notificationsService.deleteNotifications(NotificationType.ARCHIVE);
     }
 
+    @Mutation(() => Notification, { description: 'Marks a notification as archived.' })
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.NOTIFICATIONS,
     })
-    @Mutation(() => Notification, { description: 'Marks a notification as archived.' })
     public archiveNotification(
         @Args('id', { type: () => PrefixedID })
         id: string
@@ -122,11 +122,11 @@ export class NotificationsResolver {
         return this.notificationsService.archiveNotification({ id });
     }
 
+    @Mutation(() => NotificationOverview)
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.NOTIFICATIONS,
     })
-    @Mutation(() => NotificationOverview)
     public async archiveNotifications(
         @Args('ids', { type: () => [PrefixedID] })
         ids: string[]
@@ -135,14 +135,14 @@ export class NotificationsResolver {
         return this.notificationsService.getOverview();
     }
 
-    @UsePermissions({
-        action: AuthAction.CREATE_ANY,
-        resource: Resource.NOTIFICATIONS,
-    })
     @Mutation(() => Notification, {
         nullable: true,
         description:
             'Creates a notification if an equivalent unread notification does not already exist.',
+    })
+    @UsePermissions({
+        action: AuthAction.CREATE_ANY,
+        resource: Resource.NOTIFICATIONS,
     })
     public notifyIfUnique(
         @Args('input', { type: () => NotificationData })
@@ -151,11 +151,11 @@ export class NotificationsResolver {
         return this.notificationsService.notifyIfUnique(data);
     }
 
+    @Mutation(() => NotificationOverview)
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.NOTIFICATIONS,
     })
-    @Mutation(() => NotificationOverview)
     public async archiveAll(
         @Args('importance', { type: () => NotificationImportance, nullable: true })
         importance?: NotificationImportance
@@ -164,11 +164,11 @@ export class NotificationsResolver {
         return overview;
     }
 
+    @Mutation(() => Notification, { description: 'Marks a notification as unread.' })
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.NOTIFICATIONS,
     })
-    @Mutation(() => Notification, { description: 'Marks a notification as unread.' })
     public unreadNotification(
         @Args('id', { type: () => PrefixedID })
         id: string
@@ -176,11 +176,11 @@ export class NotificationsResolver {
         return this.notificationsService.markAsUnread({ id });
     }
 
+    @Mutation(() => NotificationOverview)
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.NOTIFICATIONS,
     })
-    @Mutation(() => NotificationOverview)
     public async unarchiveNotifications(
         @Args('ids', { type: () => [PrefixedID] })
         ids: string[]
@@ -189,11 +189,11 @@ export class NotificationsResolver {
         return this.notificationsService.getOverview();
     }
 
+    @Mutation(() => NotificationOverview)
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.NOTIFICATIONS,
     })
-    @Mutation(() => NotificationOverview)
     public async unarchiveAll(
         @Args('importance', { type: () => NotificationImportance, nullable: true })
         importance?: NotificationImportance
@@ -202,12 +202,12 @@ export class NotificationsResolver {
         return overview;
     }
 
+    @Mutation(() => NotificationOverview, {
+        description: 'Reads each notification to recompute & update the overview.',
+    })
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.NOTIFICATIONS,
-    })
-    @Mutation(() => NotificationOverview, {
-        description: 'Reads each notification to recompute & update the overview.',
     })
     public async recalculateOverview(): Promise<NotificationOverview> {
         const { overview, error } = await this.notificationsService.recalculateOverview();
