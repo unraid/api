@@ -149,8 +149,8 @@ export const WebguiUpdateIgnore = async (
   try {
     const response = await request
       .url('/plugins/dynamix.plugin.manager/include/UnraidCheck.php')
-      .query(payload)
-      .get()
+      .formUrl(payload)
+      .post()
       .json((json) => {
         console.debug('[WebguiUpdateIgnore] response', json);
         return json;
