@@ -171,7 +171,7 @@ export class ApiKeyService implements OnModuleInit {
         };
 
         apiKey.description = description;
-        apiKey.roles = roles;
+        apiKey.roles = roles ?? [];
         apiKey.permissions = permissions ?? [];
         // Update createdAt date
         apiKey.createdAt = new Date().toISOString();
