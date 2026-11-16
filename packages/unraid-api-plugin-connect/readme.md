@@ -144,19 +144,3 @@ The vendor script verifies the toolchain, binary checksum, and shared-contract c
 It omits VCS build metadata so the pinned source produces the same binary in any clean worktree.
 The TXZ builder checks the binary before packaging. Tests use temporary files and a
 loopback service; they do not establish a live Connect tunnel.
-
-### Same-hostname LAN access
-
-For a server with split DNS, an administrator can set `gatewayLanListenAddress`
-in the persisted `connect.json`, for example `"10.20.30.40:443"`. The plugin passes
-this opt-in address to the shared Go gateway as `lanListenAddress`. The default
-remains a loopback-only listener. The Go gateway accepts only a private or
-loopback IP literal with a nonzero port, and the configured port must be free.
-
-Validate direct HTTPS and authentication with a temporary client-side DNS
-override before adding a local DNS suffix override for this server's managed
-hostnames. Keep public authoritative DNS pointed at the Connect relay. The
-same hostname and managed certificate then serve local and remote connections.
-This does not change route authorization or application sign-in. Local Connect
-access still requires enabled routes and a current route authorization lease.
-Remove the DNS override before disabling the listener or changing its address.
