@@ -64,7 +64,7 @@ export class DockerResolver {
         action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
     })
-    @Query(() => Docker)
+    @Query(() => Docker, { nullable: true })
     public docker() {
         return {
             id: 'docker',

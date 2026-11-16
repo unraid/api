@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { BrandButton, BrandLoading } from '@unraid/ui';
 import { Markdown } from '@/helpers/markdown';
 
 const props = defineProps<{
@@ -15,7 +15,6 @@ const props = defineProps<{
 const { t } = useI18n();
 
 const parsedChangelog = ref<string>('');
-const parsedChangelogTitle = ref<string>('');
 const parseChangelogFailed = ref<string>('');
 const isLoading = ref<boolean>(false);
 
@@ -59,11 +58,10 @@ const fetchAndParseChangelog = async () => {
     };
     // Add heading renderer
     renderer.heading = ({ text, depth }) => {
-      // Capture the first h1 title
+      // The modal header already identifies the release.
       if (depth === 1 && firstHeading) {
         firstHeading = false;
-        parsedChangelogTitle.value = `Version ${props.version} ${props.date ? `(${props.date})` : ''}`;
-        return `<br />`;
+        return '';
       }
       // Only add IDs for h2 and above (depth > 1)
       if (depth > 1) {
@@ -105,7 +103,7 @@ const mutatedParsedChangelog = computed(() => {
 
 <template>
   <div
-    class="prose prose-sm dark:prose-invert max-w-none overflow-auto p-4 [&_.grid]:!flex [&_.grid]:!flex-wrap [&_.grid]:!gap-8 [&_.grid>*]:!flex-1 [&_.grid>*]:!basis-full md:[&_.grid>*]:!basis-[calc(50%-1rem)]"
+    class="prose prose-sm dark:prose-invert max-w-none overflow-auto [&_.grid]:!flex [&_.grid]:!flex-wrap [&_.grid]:!gap-8 [&_.grid>*]:!flex-1 [&_.grid>*]:!basis-full md:[&_.grid>*]:!basis-[calc(50%-1rem)]"
   >
     <div v-if="parseChangelogFailed" class="prose flex flex-col gap-4 text-center">
       <h2 class="text-unraid-red text-lg font-semibold italic">
@@ -125,15 +123,17 @@ const mutatedParsedChangelog = computed(() => {
         </BrandButton>
       </div>
     </div>
-    <div v-else-if="parsedChangelogTitle" class="mb-4">
-      <h1>{{ parsedChangelogTitle }}</h1>
-    </div>
+    <p v-else-if="props.date && !isLoading" class="text-muted-foreground text-sm">{{ props.date }}</p>
     <div v-if="mutatedParsedChangelog" v-html="mutatedParsedChangelog" />
-    <div v-else-if="isLoading" class="flex flex-col items-center justify-center py-8">
-      <span
-        class="border-t-unraid-red mx-auto h-8 w-8 animate-spin rounded-full border-2 border-gray-300"
-      />
-      <p class="ml-2">{{ t('updateOs.rawChangelogRenderer.loadingChangelog') }}</p>
+    <div
+      v-else-if="isLoading"
+      role="status"
+      class="flex min-h-32 flex-col items-center justify-center gap-3"
+    >
+      <BrandLoading aria-hidden="true" class="mx-auto w-24" />
+      <p class="text-muted-foreground text-sm">
+        {{ t('updateOs.rawChangelogRenderer.loadingChangelog') }}
+      </p>
     </div>
     <div v-else class="py-8 text-center">
       <p>{{ t('updateOs.rawChangelogRenderer.noChangelogContentAvailable') }}</p>

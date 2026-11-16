@@ -52,6 +52,7 @@ const KEYFRAME_AT_RULES = new Set(['keyframes']);
 const NON_SCOPED_AT_RULES = new Set(['font-face', 'page']);
 const MERGE_WITH_SCOPE_PATTERNS: RegExp[] = [/^\.has-custom-/, /^\.dark\b/];
 const UNSCOPED_PATTERNS: RegExp[] = [/^\.Theme--/];
+const WEBGUI_BANNER_SELECTOR = /^(?:\.has-banner-gradient\s+)?#header\.image(?=$|[:\s>+~])/;
 
 function shouldScopeRule(rule: Rule, targetLayers: Set<string>, includeRootRules: boolean): boolean {
   const hasSelectorString = typeof rule.selector === 'string' && rule.selector.length > 0;
@@ -117,6 +118,11 @@ function prefixSelector(selector: string, scope: string): string {
 
   // Do not prefix :host selectors – they are only valid at the top level
   if (trimmed.startsWith(':host')) {
+    return trimmed;
+  }
+
+  // The native WebGUI header contains .unapi components, rather than living inside their scope.
+  if (WEBGUI_BANNER_SELECTOR.test(trimmed)) {
     return trimmed;
   }
 

@@ -4,6 +4,7 @@ import {
   buildCallbackUrl as buildUrl,
   decodeScopesToPermissions,
   generateAuthorizationUrl as generateUrl,
+  isValidRedirectUri,
   scopesToFormData,
 } from '~/utils/authorizationScopes';
 
@@ -52,13 +53,7 @@ export function useAuthorizationLink(urlSearchParams?: URLSearchParams) {
   // Validate redirect URI
   const hasValidRedirectUri = computed(() => {
     const uri = authParams.value.redirectUri;
-    if (!uri) return false;
-    try {
-      new URL(uri);
-      return true;
-    } catch {
-      return false;
-    }
+    return uri ? isValidRedirectUri(uri) : false;
   });
 
   // Get display name (remove " API Key" suffix if present)

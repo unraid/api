@@ -17,7 +17,40 @@ import {
 import { ApiSettings } from '@app/unraid-api/graph/resolvers/settings/settings.service.js';
 import { SsoSettings } from '@app/unraid-api/graph/resolvers/settings/sso-settings.model.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
-import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
+import {
+    OidcProvider,
+    redactOidcClientSecret,
+} from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
+
+const redactOidcClientSecrets = (values: Record<string, unknown>): Record<string, unknown> => {
+    const sso = values.sso;
+    if (!sso || typeof sso !== 'object' || Array.isArray(sso)) {
+        return values;
+    }
+
+    const providers = (sso as Record<string, unknown>).providers;
+    if (!Array.isArray(providers)) {
+        return values;
+    }
+
+    return {
+        ...values,
+        sso: {
+            ...(sso as Record<string, unknown>),
+            providers: providers.map((provider) => {
+                if (!provider || typeof provider !== 'object' || Array.isArray(provider)) {
+                    return provider;
+                }
+
+                const { clientSecret: _clientSecret, ...safeProvider } = provider as Record<
+                    string,
+                    unknown
+                >;
+                return safeProvider;
+            }),
+        },
+    };
+};
 
 @Resolver(() => Settings)
 export class SettingsResolver {
@@ -26,6 +59,10 @@ export class SettingsResolver {
         private readonly oidcConfig: OidcConfigPersistence
     ) {}
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @Query(() => Settings)
     async settings() {
         return {
@@ -33,6 +70,10 @@ export class SettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => ApiConfig, { description: 'The API setting values' })
     async api() {
         return {
@@ -41,6 +82,10 @@ export class SettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => UnifiedSettings)
     async unified() {
         return {
@@ -48,6 +93,10 @@ export class SettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => SsoSettings)
     async sso() {
         return {
@@ -72,6 +121,10 @@ export class UnifiedSettingsResolver {
         private readonly lifecycleService: LifecycleService
     ) {}
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => GraphQLJSON)
     async dataSchema() {
         const { properties } = await this.userSettings.getAllSettings(['api', 'sso']);
@@ -81,6 +134,10 @@ export class UnifiedSettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => GraphQLJSON)
     async uiSchema() {
         const { elements } = await this.userSettings.getAllSettings(['api', 'sso']);
@@ -90,9 +147,13 @@ export class UnifiedSettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => GraphQLJSON)
     async values() {
-        return this.userSettings.getAllValues();
+        return redactOidcClientSecrets(await this.userSettings.getAllValues());
     }
 
     @Mutation(() => UpdateSettingsResponse)
@@ -103,14 +164,14 @@ export class UnifiedSettingsResolver {
     async updateSettings(
         @Args('input', { type: () => GraphQLJSON }) input: Record<string, unknown>
     ): Promise<UpdateSettingsResponse> {
-        this.logger.verbose('Updating Settings %O', input);
+        this.logger.verbose('Updating Settings %O', redactOidcClientSecrets(input));
         const { restartRequired, values } = await this.userSettings.updateNamespacedValues(input);
-        this.logger.verbose('Updated Setting Values %O', values);
+        this.logger.verbose('Updated Setting Values %O', redactOidcClientSecrets(values));
         if (restartRequired) {
             // hack: allow time for pending writes to flush
             this.lifecycleService.restartApi({ delayMs: 300 });
         }
-        return { restartRequired, values };
+        return { restartRequired, values: redactOidcClientSecrets(values) };
     }
 }
 
@@ -118,8 +179,13 @@ export class UnifiedSettingsResolver {
 export class SsoSettingsResolver {
     constructor(private readonly oidcConfig: OidcConfigPersistence) {}
 
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.CONFIG,
+    })
     @ResolveField(() => [OidcProvider], { description: 'List of configured OIDC providers' })
     async oidcProviders(): Promise<OidcProvider[]> {
-        return this.oidcConfig.getProviders();
+        const providers = await this.oidcConfig.getProviders();
+        return providers.map(redactOidcClientSecret);
     }
 }

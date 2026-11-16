@@ -487,7 +487,7 @@ describe('Connect page save handler', () => {
 });
 
 describe('service editor', () => {
-  type ServiceTarget = ConnectServiceTargetsQuery['docker']['containers'][number];
+  type ServiceTarget = NonNullable<ConnectServiceTargetsQuery['docker']>['containers'][number];
   function services(
     value = state(),
     providers: { id: string; name: string }[] = [],

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
+
 import OnboardingModal from '~/components/Onboarding/OnboardingModal.vue';
 import UpdateOsChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
 import UpdateOsCheckUpdateResponseModal from '~/components/UpdateOs/CheckUpdateResponseModal.vue';
@@ -13,6 +15,10 @@ import { useUpdateOsStore } from '~/store/updateOs';
 const callbackStore = useCallbackActionsStore();
 const updateOsStore = useUpdateOsStore();
 
+const isToolsUpdatePage = computed(
+  () => typeof window !== 'undefined' && window.location.pathname === WEBGUI_TOOLS_UPDATE
+);
+
 const callbackStatus = computed(() => callbackStore.callbackStatus);
 const updateOsModalVisible = computed(() => updateOsStore.updateOsModalVisible);
 const changelogModalVisible = computed(() => updateOsStore.changelogModalVisible);
@@ -21,8 +27,8 @@ const changelogModalVisible = computed(() => updateOsStore.changelogModalVisible
 <template>
   <div id="modals" ref="modals" class="relative z-[999999]">
     <UpcCallbackFeedback :open="callbackStatus !== 'ready'" />
-    <UpdateOsCheckUpdateResponseModal :open="updateOsModalVisible" />
-    <UpdateOsChangelogModal :open="changelogModalVisible" />
+    <UpdateOsCheckUpdateResponseModal v-if="!isToolsUpdatePage" :open="updateOsModalVisible" />
+    <UpdateOsChangelogModal v-if="!isToolsUpdatePage" :open="changelogModalVisible" />
     <OnboardingModal />
   </div>
 </template>

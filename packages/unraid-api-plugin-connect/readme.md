@@ -2,8 +2,8 @@
 
 The API hosts the vendored `presence-connector` executable. Go owns presence reconnects,
 tunnel transport, certificate issuance and renewal, and overview transmission. The API
-starts or stops the process when settings or identity change. It does not restart an
-exited connector automatically.
+starts or stops the process when settings or identity change. Transient client exits
+retry with bounded backoff after the API rereads the shared settings.
 
 ## Settings and overview data
 
@@ -49,8 +49,13 @@ identifiers, credentials, device paths, and SMART data are excluded.
 The API refreshes this input file every five minutes. Go reads and transmits it.
 Disabling sharing first stops the process and clears the local file, then requests
 remote deletion. Failed deletion remains visible as pending and retries on the next
-refresh. Sign-out stops the process, clears local shared data, and retains preferences.
-It does not claim that remote data was deleted.
+refresh. Sign-out first requires cloud confirmation that the current and selected
+legacy server keys are revoked. A cloud failure retains local credentials for retry.
+After revocation, sign-out durably clears identity, removes the selected legacy
+credential file, stops the connector, and clears local shared data. Application routes,
+feature preferences, and forwarding preferences are retained. A failure after the
+identity is cleared still stops the connector and reports the cleanup failure.
+Sign-out does not claim that remote overview data was deleted.
 
 ## Runtime configuration
 

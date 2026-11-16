@@ -42,7 +42,7 @@ const time = computed(() => {
   if (props.forExpire && expireTime.value) {
     return expireTime.value;
   }
-  return (state.value === 'TRIAL' || state.value === 'EEXPIRED') &&
+  return (state.value === 'TRIAL' || state.value === 'EEXPIRED' || state.value === 'ENOCONN') &&
     expireTime.value &&
     expireTime.value > 0
     ? expireTime.value
@@ -76,10 +76,10 @@ const output = computed(() => {
       text:
         state.value === 'EEXPIRED'
           ? props.shortText
-            ? t('userProfile.uptimeExpire.expired', [readableDiff.value])
+            ? t('userProfile.uptimeExpire.expired', [readableDiffShort.value])
             : t('userProfile.uptimeExpire.trialKeyExpired', [readableDiff.value])
           : props.shortText
-            ? t('userProfile.uptimeExpire.expiresIn', [readableDiff.value])
+            ? t('userProfile.uptimeExpire.expiresIn', [readableDiffShort.value])
             : t('userProfile.uptimeExpire.trialKeyExpiresIn', [readableDiff.value]),
     };
   }

@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "{0}% din array utilizat",
   "headerOsVersion.apiVersionCopiedToClipboard": "Versiune API copiată în clipboard",
   "headerOsVersion.osVersionCopiedToClipboard": "Versiunea OS copiată în clipboard",
+  "headerOsVersion.rebootToUpdate": "Reporniți pentru a actualiza",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} Lansat",

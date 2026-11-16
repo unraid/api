@@ -538,7 +538,9 @@ export type ConnectGatewayServiceInput = {
   auth?: Scalars['String']['input'];
   enabled?: Scalars['Boolean']['input'];
   id: Scalars['String']['input'];
+  ingress?: Scalars['String']['input'];
   name: Scalars['String']['input'];
+  protocol?: Scalars['String']['input'];
   providerId?: Scalars['String']['input'];
   subjects?: Array<Scalars['String']['input']>;
   tlsServerName?: Scalars['String']['input'];
@@ -550,7 +552,9 @@ export type ConnectGatewayServiceStatus = {
   auth: Scalars['String']['output'];
   enabled: Scalars['Boolean']['output'];
   id: Scalars['String']['output'];
+  ingress: Scalars['String']['output'];
   name: Scalars['String']['output'];
+  protocol: Scalars['String']['output'];
   providerId: Scalars['String']['output'];
   subjects: Array<Scalars['String']['output']>;
   tlsServerName: Scalars['String']['output'];
@@ -2475,7 +2479,7 @@ export type Query = {
   disk: Disk;
   disks: Array<Disk>;
   display: InfoDisplay;
-  docker: Docker;
+  docker?: Maybe<Docker>;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
   getApiKeyCreationFormSchema: ApiKeyFormSettings;
@@ -2539,7 +2543,7 @@ export type Query = {
   validateOidcSession: OidcSessionValidation;
   vars: Vars;
   /** Get information about all VMs on the system */
-  vms: Vms;
+  vms?: Maybe<Vms>;
 };
 
 

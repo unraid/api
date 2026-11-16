@@ -1,10 +1,19 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
+
 import { cn } from '@unraid/ui';
 
 import type { ClassValue } from '@unraid/ui';
 
 import UpcServerState from '~/components/UserProfile/ServerState.vue';
 import UpcUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
+import { useServerStore } from '~/store/server';
+
+const { state, uptime, expireTime } = storeToRefs(useServerStore());
+// The date helper captures its starting timestamp. Refresh it when server data
+// changes from uptime to a trial expiry (or the expiry itself changes).
+const uptimeKey = computed(() => `${state.value}:${uptime.value}:${expireTime.value}`);
 </script>
 
 <template>
@@ -19,7 +28,7 @@ import UpcUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
       )
     "
   >
-    <UpcUptimeExpire :as="'span'" :short-text="true" class="text-xs" />
+    <UpcUptimeExpire :key="uptimeKey" :as="'span'" :short-text="true" class="text-xs" />
     <span class="xs:!inline hidden">&bull;</span>
     <UpcServerState class="text-xs" />
   </div>

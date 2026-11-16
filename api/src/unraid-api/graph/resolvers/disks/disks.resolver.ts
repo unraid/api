@@ -38,11 +38,19 @@ export class DisksResolver {
         return this.disksService.getDisk(id);
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DISK,
+    })
     @ResolveField(() => Int)
     public async temperature(@Parent() disk: Disk) {
         return this.disksService.getTemperature(disk.device);
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DISK,
+    })
     @ResolveField(() => Boolean)
     public async isSpinning(@Parent() disk: Disk) {
         return disk.isSpinning;

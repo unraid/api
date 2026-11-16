@@ -2,12 +2,13 @@
  * KeyActions Component Test Coverage
  */
 
-import { mount } from '@vue/test-utils';
+import { disposePinia, getActivePinia, setActivePinia } from 'pinia';
+import { enableAutoUnmount, mount } from '@vue/test-utils';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import { createTestingPinia } from '@pinia/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ServerStateDataAction } from '~/types/server';
 
@@ -27,9 +28,16 @@ vi.mock('@unraid/shared-callbacks', () => ({
   })),
 }));
 
+enableAutoUnmount(afterEach);
+afterEach(() => {
+  const pinia = getActivePinia();
+  if (pinia) disposePinia(pinia);
+});
+
 describe('KeyActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setActivePinia(createTestingPinia({ createSpy: vi.fn }));
   });
 
   it('renders buttons from props when actions prop is provided', () => {

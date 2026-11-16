@@ -10,7 +10,7 @@ import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
 export class VmsResolver {
     constructor(private readonly vmsService: VmsService) {}
 
-    @Query(() => Vms, { description: 'Get information about all VMs on the system' })
+    @Query(() => Vms, { nullable: true, description: 'Get information about all VMs on the system' })
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.VMS,
@@ -21,6 +21,10 @@ export class VmsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.VMS,
+    })
     @ResolveField(() => [VmDomain])
     public async domains(): Promise<Array<VmDomain>> {
         try {
@@ -32,6 +36,10 @@ export class VmsResolver {
         }
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.VMS,
+    })
     @ResolveField(() => [VmDomain])
     public async domain(): Promise<Array<VmDomain>> {
         return this.domains();

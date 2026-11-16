@@ -22,6 +22,10 @@ export interface OidcCallbackResult extends OidcFlowResult {
  * between authorize and callback endpoints
  */
 export class OidcRequestHandler {
+    private static readonly MAX_PROVIDER_ID_LENGTH = 128;
+    private static readonly MAX_STATE_LENGTH = 256;
+    private static readonly MAX_REDIRECT_URI_LENGTH = 2048;
+
     /**
      * Extract request information from Fastify request headers
      */
@@ -104,18 +108,25 @@ export class OidcRequestHandler {
      * Validate required parameters for authorization flow
      */
     static validateAuthorizeParams(
-        providerId: string | undefined,
-        state: string | undefined,
-        redirectUri: string | undefined
+        providerId: string | string[] | undefined,
+        state: string | string[] | undefined,
+        redirectUri: string | string[] | undefined
     ): { providerId: string; state: string; redirectUri: string } {
-        if (!providerId) {
+        if (typeof providerId !== 'string' || !providerId) {
             throw new Error('Provider ID is required');
         }
-        if (!state) {
+        if (typeof state !== 'string' || !state) {
             throw new Error('State parameter is required');
         }
-        if (!redirectUri) {
+        if (typeof redirectUri !== 'string' || !redirectUri) {
             throw new Error('Redirect URI is required');
+        }
+        if (
+            providerId.length > OidcRequestHandler.MAX_PROVIDER_ID_LENGTH ||
+            state.length > OidcRequestHandler.MAX_STATE_LENGTH ||
+            redirectUri.length > OidcRequestHandler.MAX_REDIRECT_URI_LENGTH
+        ) {
+            throw new Error('Invalid OIDC authorization parameters');
         }
 
         return { providerId, state, redirectUri };
@@ -125,10 +136,10 @@ export class OidcRequestHandler {
      * Validate required parameters for callback flow
      */
     static validateCallbackParams(
-        code: string | undefined,
-        state: string | undefined
+        code: string | string[] | undefined,
+        state: string | string[] | undefined
     ): { code: string; state: string } {
-        if (!code || !state) {
+        if (typeof code !== 'string' || !code || typeof state !== 'string' || !state) {
             throw new Error('Missing required parameters');
         }
 

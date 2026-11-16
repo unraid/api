@@ -11,10 +11,11 @@ import { useUpdateOsStore } from '~/store/updateOs';
 
 const mockSend = vi.fn();
 
-vi.mock('@unraid/shared-callbacks', () => ({
-  useCallback: vi.fn(() => ({
+vi.mock('@unraid/shared-callbacks/client', () => ({
+  createCallback: vi.fn(() => ({
     send: mockSend,
     watcher: vi.fn(),
+    generateUrl: vi.fn(),
   })),
 }));
 
@@ -153,7 +154,9 @@ describe('UpdateOs Store', () => {
           },
         ],
         undefined,
-        'forUpc'
+        'forUpc',
+        'https://littlebox.tail45affd.ts.net/Plugins',
+        expect.stringMatching(/^[0-9a-f]{32}$/)
       );
 
       Object.defineProperty(window, 'location', {
@@ -172,6 +175,10 @@ describe('UpdateOs Store', () => {
       );
 
       expect(WebguiCheckForUpdate).toHaveBeenCalled();
+      expect(store.checkForUpdatesLoading).toBe(false);
+      expect(store.checkForUpdatesFailed).toBe(true);
+      await store.localCheckForUpdate();
+      expect(store.checkForUpdatesFailed).toBe(false);
     });
 
     it('should successfully cancel an update', async () => {

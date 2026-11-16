@@ -1,9 +1,9 @@
-import { flushPromises, mount } from '@vue/test-utils';
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils';
 
 import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Onboarding/graphql/availableLanguages.query';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
 import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Onboarding/graphql/timeZoneOptions.query';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import OnboardingCoreSettingsStep from '~/components/Onboarding/steps/OnboardingCoreSettingsStep.vue';
 import { createTestI18n } from '../../utils/i18n';
@@ -193,9 +193,17 @@ const mountComponent = (props: Record<string, unknown> = {}) => {
   return { wrapper, onComplete };
 };
 
+enableAutoUnmount(afterEach);
+afterEach(() => vi.restoreAllMocks());
+const defaultDateTimeOptions = new Intl.DateTimeFormat().resolvedOptions();
+
 describe('OnboardingCoreSettingsStep', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(Intl.DateTimeFormat.prototype, 'resolvedOptions').mockReturnValue({
+      ...defaultDateTimeOptions,
+      timeZone: 'UTC',
+    });
     setupQueryMocks();
     coreOnResultHandlers.length = 0;
 

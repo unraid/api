@@ -1,6 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import { ResolveField, Resolver } from '@nestjs/graphql';
 
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { versions } from 'systeminformation';
 
 import {
@@ -13,6 +15,10 @@ import {
 export class VersionsResolver {
     constructor(private readonly configService: ConfigService) {}
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => CoreVersions)
     core(): CoreVersions {
         const unraid = this.configService.get<string>('store.emhttp.var.version') || 'unknown';
@@ -25,6 +31,10 @@ export class VersionsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
     @ResolveField(() => PackageVersions, { nullable: true })
     async packages(): Promise<PackageVersions | null> {
         try {

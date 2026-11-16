@@ -1,4 +1,15 @@
-import { Controller, Get, Logger, Param, Query, Req, Res, UnauthorizedException } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Logger,
+    Param,
+    Query,
+    Req,
+    Res,
+    UnauthorizedException,
+    UseGuards,
+} from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
@@ -6,6 +17,7 @@ import escapeHtml from 'escape-html';
 
 import type { CustomizationType } from '@app/unraid-api/rest/rest.service.js';
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
+import { FastifyThrottlerGuard } from '@app/unraid-api/auth/fastify-throttler.guard.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
 import { OidcService } from '@app/unraid-api/graph/resolvers/sso/core/oidc.service.js';
@@ -58,6 +70,8 @@ export class RestController {
             : ['/graphql/api/auth/oidc/authorize/:providerId']
     )
     @Public()
+    @UseGuards(FastifyThrottlerGuard)
+    @Throttle({ default: { limit: 10, ttl: 60_000 } })
     async oidcAuthorize(
         @Param('providerId') providerId: string,
         @Query('state') state: string,
@@ -136,6 +150,8 @@ export class RestController {
             : ['/graphql/api/auth/oidc/callback']
     )
     @Public()
+    @UseGuards(FastifyThrottlerGuard)
+    @Throttle({ default: { limit: 10, ttl: 60_000 } })
     async oidcCallback(
         @Query('code') code: string,
         @Query('state') state: string,

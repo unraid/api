@@ -26,11 +26,19 @@ export class ConnectSettingsResolver {
 
     constructor(private readonly connectSettingsService: ConnectSettingsService) {}
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONNECT,
+    })
     @ResolveField(() => PrefixedID)
     public async id(): Promise<string> {
         return 'connectSettingsForm';
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONNECT,
+    })
     @ResolveField(() => GraphQLJSON)
     public async dataSchema(): Promise<{ properties: DataSlice; type: 'object' }> {
         const { properties } = await this.connectSettingsService.buildRemoteAccessSlice();
@@ -40,6 +48,10 @@ export class ConnectSettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONNECT,
+    })
     @ResolveField(() => GraphQLJSON)
     public async uiSchema(): Promise<Layout> {
         const { elements } = await this.connectSettingsService.buildRemoteAccessSlice();
@@ -49,6 +61,10 @@ export class ConnectSettingsResolver {
         };
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONNECT,
+    })
     @ResolveField(() => ConnectSettingsValues)
     public async values(): Promise<ConnectSettingsValues> {
         return await this.connectSettingsService.getCurrentSettings();

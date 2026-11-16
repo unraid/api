@@ -1,15 +1,86 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { readFile, unlink } from 'node:fs/promises';
 
+import { parse as parseIni } from 'ini';
+import { isMatch } from 'lodash-es';
+
+import { ConnectConfigPersister } from './config.persistence.js';
 import { ConfigType, MyServersConfig } from './connect.config.js';
+
+/** The identity was cleared, but removal of the legacy credential file failed. */
+export class ConnectLegacyCleanupError extends Error {
+    constructor(cause: unknown) {
+        super('Connect sign-out could not remove the legacy credential file', { cause });
+    }
+}
+
+/** The cleared identity was written, but its durable state could not be verified. */
+export class ConnectIdentityVerificationError extends Error {
+    constructor(cause: unknown) {
+        super('Connect sign-out could not verify the cleared identity', { cause });
+    }
+}
 
 @Injectable()
 export class ConnectConfigService {
     public readonly configKey = 'connect.config';
+    private readonly logger = new Logger(ConnectConfigService.name);
     constructor(private readonly configService: ConfigService<ConfigType>) {}
 
     getConfig(): MyServersConfig {
         return this.configService.getOrThrow<MyServersConfig>(this.configKey);
+    }
+
+    async revokeCloudKey(): Promise<void> {
+        const apiKeys = new Set<string>();
+        const currentKey = this.getConfig().apikey;
+        if (currentKey) apiKeys.add(currentKey);
+
+        const legacyPath = this.legacyPath();
+        if (legacyPath) {
+            const legacyContent = await readFile(legacyPath, 'utf8').catch(
+                (error: NodeJS.ErrnoException) => {
+                    if (error.code === 'ENOENT') return null;
+                    throw error;
+                }
+            );
+            if (legacyContent !== null) {
+                const legacyConfig = parseIni(legacyContent);
+                const legacyKey: unknown = legacyConfig.remote?.apikey;
+                if (legacyKey != null && typeof legacyKey !== 'string') {
+                    throw new Error('Connect legacy key could not be read');
+                }
+                if (legacyKey) apiKeys.add(legacyKey);
+            }
+        }
+        if (apiKeys.size === 0) return;
+
+        const mothership = new URL(this.configService.getOrThrow<string>('MOTHERSHIP_GRAPHQL_LINK'));
+        if (mothership.protocol !== 'https:') {
+            throw new Error('Connect key revocation requires HTTPS');
+        }
+
+        const endpoint = new URL('/ks/server/self-unregister', mothership);
+        for (const apiKey of apiKeys) {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'x-api-key': apiKey },
+                redirect: 'error',
+                signal: AbortSignal.timeout(15_000),
+            });
+            if (!response.ok) throw new Error('Connect cloud key revocation failed');
+
+            const result: unknown = await response.json();
+            if (
+                !result ||
+                typeof result !== 'object' ||
+                !('revoked' in result) ||
+                result.revoked !== true
+            ) {
+                throw new Error('Connect cloud key revocation was not confirmed');
+            }
+        }
     }
 
     getExtraOrigins(): string[] {
@@ -29,5 +100,57 @@ export class ConnectConfigService {
             return ['https://studio.apollographql.com'];
         }
         return [];
+    }
+
+    /**
+     * Clear the user's identity from the config.
+     *
+     * This is used when the user logs out.
+     * It retains the existing config, but resets identity-related fields.
+     */
+    async resetUser(
+        persister = new ConnectConfigPersister(this.configService),
+        expectedApiKey = this.getConfig().apikey
+    ) {
+        const identity = {
+            apikey: '',
+            localApiKey: '',
+            username: '',
+            avatar: '',
+            regWizTime: '',
+            email: '',
+        };
+        let writeCompleted = false;
+        try {
+            await persister.updateIfApiKey(expectedApiKey, identity);
+            writeCompleted = true;
+            const savedConfig = await persister.getFileHandler().readConfigFile();
+            if (!isMatch(savedConfig, identity)) {
+                throw new Error('Connect sign-out could not persist cleared identity');
+            }
+        } catch (error) {
+            if (!writeCompleted) throw error;
+            // The disk may already contain the cleared identity. Keep memory
+            // cleared so shutdown persistence cannot restore the revoked key.
+            throw new ConnectIdentityVerificationError(error);
+        }
+
+        const legacyPath = this.legacyPath();
+        if (legacyPath) {
+            await unlink(legacyPath).catch((error: NodeJS.ErrnoException) => {
+                if (error.code !== 'ENOENT') throw new ConnectLegacyCleanupError(error);
+            });
+        }
+        this.logger.verbose('Reset Connect user identity');
+    }
+
+    private legacyPath(): string {
+        return (
+            this.configService.get<string>('CONNECT_LEGACY_PATH') ??
+            this.configService.get<string>(
+                'PATHS_MY_SERVERS_CONFIG',
+                '/boot/config/plugins/dynamix.my.servers/myservers.cfg'
+            )
+        );
     }
 }

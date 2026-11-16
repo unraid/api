@@ -11,6 +11,12 @@ interface StateData {
     codeVerifier?: string;
 }
 
+interface ActiveState {
+    expiresAt: number;
+    providerId: string;
+    scopeKey: string;
+}
+
 @Injectable()
 export class OidcStateService {
     private static instanceCount = 0;
@@ -19,6 +25,14 @@ export class OidcStateService {
     private readonly hmacSecret: string;
     private readonly STATE_TTL_MS = 600000; // 10 minutes in milliseconds (cache-manager v7+ expects milliseconds, not seconds)
     private readonly STATE_CACHE_PREFIX = 'oidc_state:';
+    private readonly MAX_ACTIVE_STATES = 256;
+    private readonly MAX_ACTIVE_STATES_PER_PROVIDER = 64;
+    private readonly MAX_ACTIVE_STATES_PER_SCOPE = 32;
+    private readonly MAX_CLIENT_STATE_LENGTH = 256;
+    private readonly MAX_REDIRECT_URI_LENGTH = 2048;
+    private readonly activeStates = new Map<string, ActiveState>();
+    private readonly activeStatesByProvider = new Map<string, number>();
+    private readonly activeStatesByScope = new Map<string, number>();
 
     constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
         // Track instance creation
@@ -37,8 +51,44 @@ export class OidcStateService {
         redirectUri?: string,
         codeVerifier?: string
     ): Promise<string> {
+        if (
+            typeof providerId !== 'string' ||
+            !providerId ||
+            providerId.length > 128 ||
+            typeof clientState !== 'string' ||
+            !clientState ||
+            clientState.length > this.MAX_CLIENT_STATE_LENGTH ||
+            (redirectUri !== undefined &&
+                (typeof redirectUri !== 'string' ||
+                    redirectUri.length > this.MAX_REDIRECT_URI_LENGTH)) ||
+            (codeVerifier !== undefined && typeof codeVerifier !== 'string')
+        ) {
+            throw new Error('Invalid OIDC authorization parameters');
+        }
+
+        this.pruneExpiredStates();
+
         const nonce = crypto.randomBytes(16).toString('hex');
         const timestamp = Date.now();
+
+        const providerStateCount = this.activeStatesByProvider.get(providerId) ?? 0;
+        const scopeKey = this.getStateScopeKey(providerId, redirectUri);
+        const scopeStateCount = this.activeStatesByScope.get(scopeKey) ?? 0;
+        if (
+            this.activeStates.size >= this.MAX_ACTIVE_STATES ||
+            providerStateCount >= this.MAX_ACTIVE_STATES_PER_PROVIDER ||
+            scopeStateCount >= this.MAX_ACTIVE_STATES_PER_SCOPE
+        ) {
+            throw new Error('Too many pending OIDC authorization requests');
+        }
+
+        this.activeStates.set(nonce, {
+            expiresAt: timestamp + this.STATE_TTL_MS,
+            providerId,
+            scopeKey,
+        });
+        this.activeStatesByProvider.set(providerId, providerStateCount + 1);
+        this.activeStatesByScope.set(scopeKey, scopeStateCount + 1);
 
         // Store state data in cache
         const stateData: StateData = {
@@ -53,14 +103,19 @@ export class OidcStateService {
         // Store in cache with TTL (in milliseconds for cache-manager v7)
         const cacheKey = `${this.STATE_CACHE_PREFIX}${nonce}`;
         this.logger.debug(`Storing state with key: ${cacheKey}, TTL: ${this.STATE_TTL_MS}ms`);
-        await this.cacheManager.set(cacheKey, stateData, this.STATE_TTL_MS);
+        try {
+            await this.cacheManager.set(cacheKey, stateData, this.STATE_TTL_MS);
 
-        // Verify it was stored
-        const verifyStored = await this.cacheManager.get(cacheKey);
-        if (verifyStored) {
+            // Verify it was stored
+            const verifyStored = await this.cacheManager.get(cacheKey);
+            if (!verifyStored) {
+                throw new Error('Unable to persist OIDC authorization state');
+            }
+
             this.logger.debug(`State successfully stored and verified for key: ${cacheKey}`);
-        } else {
-            this.logger.error(`CRITICAL: State was NOT stored in cache for key: ${cacheKey}`);
+        } catch (error) {
+            this.releaseState(nonce);
+            throw error;
         }
 
         // Create signed state: nonce.timestamp.signature
@@ -88,7 +143,22 @@ export class OidcStateService {
         codeVerifier?: string;
         error?: string;
     }> {
+        let parsedNonce: string | undefined;
+
         try {
+            if (
+                typeof state !== 'string' ||
+                !state ||
+                state.length > 4096 ||
+                typeof expectedProviderId !== 'string' ||
+                !expectedProviderId
+            ) {
+                return {
+                    isValid: false,
+                    error: 'Invalid state format',
+                };
+            }
+
             // Extract provider ID and signed state
             const parts = state.split(':');
             if (parts.length < 2) {
@@ -122,7 +192,15 @@ export class OidcStateService {
             }
 
             const [nonce, timestampStr, signature] = stateParts;
+            parsedNonce = nonce;
             const timestamp = parseInt(timestampStr, 10);
+
+            if (!Number.isSafeInteger(timestamp)) {
+                return {
+                    isValid: false,
+                    error: 'Invalid state format',
+                };
+            }
 
             // Verify signature
             const dataToSign = `${nonce}.${timestampStr}`;
@@ -142,7 +220,8 @@ export class OidcStateService {
             // Check timestamp expiration
             const now = Date.now();
             const age = now - timestamp;
-            if (age > this.STATE_TTL_MS) {
+            if (age < 0 || age > this.STATE_TTL_MS) {
+                this.releaseState(nonce);
                 this.logger.warn(`State validation failed: token expired (age: ${age}ms)`);
                 return {
                     isValid: false,
@@ -161,6 +240,7 @@ export class OidcStateService {
             const cachedState = await this.cacheManager.get<StateData>(cacheKey);
 
             if (!cachedState) {
+                this.releaseState(nonce);
                 this.logger.warn(
                     `State validation failed: nonce ${nonce} not found in cache (possible replay attack)`
                 );
@@ -174,6 +254,7 @@ export class OidcStateService {
 
             // Verify the cached provider ID matches
             if (cachedState.providerId !== expectedProviderId) {
+                this.releaseState(nonce);
                 this.logger.warn(`State validation failed: cached provider mismatch`);
                 return {
                     isValid: false,
@@ -183,6 +264,7 @@ export class OidcStateService {
 
             // Remove from cache to prevent reuse
             await this.cacheManager.del(cacheKey);
+            this.releaseState(nonce);
 
             this.logger.debug(`State validation successful for provider ${expectedProviderId}`);
             return {
@@ -192,6 +274,9 @@ export class OidcStateService {
                 codeVerifier: cachedState.codeVerifier,
             };
         } catch (error) {
+            if (parsedNonce) {
+                this.releaseState(parsedNonce);
+            }
             this.logger.error(
                 `State validation error: ${error instanceof Error ? error.message : 'Unknown error'}`
             );
@@ -199,6 +284,40 @@ export class OidcStateService {
                 isValid: false,
                 error: 'Invalid state token',
             };
+        }
+    }
+
+    private pruneExpiredStates(now = Date.now()): void {
+        for (const [nonce, state] of this.activeStates) {
+            if (state.expiresAt <= now) {
+                this.releaseState(nonce);
+            }
+        }
+    }
+
+    private getStateScopeKey(providerId: string, redirectUri?: string): string {
+        return JSON.stringify([providerId, redirectUri ?? '']);
+    }
+
+    private releaseState(nonce: string): void {
+        const state = this.activeStates.get(nonce);
+        if (!state) {
+            return;
+        }
+
+        this.activeStates.delete(nonce);
+        const providerStateCount = this.activeStatesByProvider.get(state.providerId) ?? 0;
+        if (providerStateCount <= 1) {
+            this.activeStatesByProvider.delete(state.providerId);
+        } else {
+            this.activeStatesByProvider.set(state.providerId, providerStateCount - 1);
+        }
+
+        const scopeStateCount = this.activeStatesByScope.get(state.scopeKey) ?? 0;
+        if (scopeStateCount <= 1) {
+            this.activeStatesByScope.delete(state.scopeKey);
+        } else {
+            this.activeStatesByScope.set(state.scopeKey, scopeStateCount - 1);
         }
     }
 

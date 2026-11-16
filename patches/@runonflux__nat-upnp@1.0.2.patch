@@ -1,0 +1,432 @@
+diff --git a/build/src/index.d.ts b/build/src/index.d.ts
+index 8cebe0aad01e1a8de72402fa3511d7064ce4cebf..c2a5c9f7706631d6cdbb3a5e48c4a7c522c85655 100644
+--- a/build/src/index.d.ts
++++ b/build/src/index.d.ts
+@@ -8,10 +8,10 @@ declare namespace natupnp {
+ }
+ export { Device } from "./nat-upnp/device";
+ export type { Service, RawService, RawDevice } from "./nat-upnp/device";
+-export { Ssdp } from "./nat-upnp/ssdp";
++export { Ssdp, parseSsdpResponse } from "./nat-upnp/ssdp";
+ export type { SearchCallback, ISsdp, SsdpEmitter } from "./nat-upnp/ssdp";
+ export { Client } from "./nat-upnp/client";
+-export type { GetMappingOpts, Mapping, DeletePortMappingOpts, NewPortMappingOpts, StandardOpts, } from "./nat-upnp/client";
++export type { ClientOptions, GatewayAddressProvider, GetMappingOpts, Mapping, DeletePortMappingOpts, NewPortMappingOpts, StandardOpts, } from "./nat-upnp/client";
+ export default natupnp;
+ /**
+  * Raw SSDP/UPNP repsonse
+diff --git a/build/src/index.js b/build/src/index.js
+index d69ef308a88c6ac9cbd5bee60e980b74a45be3ea..5ff9f54ff269e51df6e43c6b812ceb2db4098073 100644
+--- a/build/src/index.js
++++ b/build/src/index.js
+@@ -1,6 +1,6 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.Client = exports.Ssdp = exports.Device = void 0;
++exports.Client = exports.parseSsdpResponse = exports.Ssdp = exports.Device = void 0;
+ const device_1 = require("./nat-upnp/device");
+ const client_1 = require("./nat-upnp/client");
+ const ssdp_1 = require("./nat-upnp/ssdp");
+@@ -14,6 +14,7 @@ var device_2 = require("./nat-upnp/device");
+ Object.defineProperty(exports, "Device", { enumerable: true, get: function () { return device_2.Device; } });
+ var ssdp_2 = require("./nat-upnp/ssdp");
+ Object.defineProperty(exports, "Ssdp", { enumerable: true, get: function () { return ssdp_2.Ssdp; } });
++Object.defineProperty(exports, "parseSsdpResponse", { enumerable: true, get: function () { return ssdp_2.parseSsdpResponse; } });
+ var client_2 = require("./nat-upnp/client");
+ Object.defineProperty(exports, "Client", { enumerable: true, get: function () { return client_2.Client; } });
+ exports.default = natupnp;
+diff --git a/build/src/nat-upnp/client.d.ts b/build/src/nat-upnp/client.d.ts
+index ecd7619875dcd7e46634e05736772c174360fdfa..2454c6b7baf97ee19c6b6846457e39260021a2e3 100644
+--- a/build/src/nat-upnp/client.d.ts
++++ b/build/src/nat-upnp/client.d.ts
+@@ -1,12 +1,11 @@
+ import { RawResponse } from "../index";
+ import Device from "./device";
+-import Ssdp from "./ssdp";
++import { type ISsdp } from "./ssdp";
+ export declare class Client implements IClient {
+     readonly timeout: number;
+-    readonly ssdp: Ssdp;
+-    constructor(options?: {
+-        timeout?: number;
+-    });
++    readonly ssdp: ISsdp;
++    private readonly gatewayAddresses?;
++    constructor(options?: ClientOptions);
+     createMapping(options: NewPortMappingOpts): Promise<RawResponse>;
+     removeMapping(options: DeletePortMappingOpts): Promise<RawResponse>;
+     getMappings(options?: GetMappingOpts): Promise<Mapping[]>;
+@@ -14,7 +13,9 @@ export declare class Client implements IClient {
+     getGateway(): Promise<{
+         gateway: Device;
+         address: string;
++        gatewayAddress: string;
+     }>;
++    private getAllowedGatewayAddresses;
+     close(): void;
+ }
+ export default Client;
+@@ -56,6 +57,12 @@ export interface GetMappingOpts {
+     local?: boolean;
+     description?: RegExp | string;
+ }
++export declare type GatewayAddressProvider = readonly string[] | (() => readonly string[] | Promise<readonly string[]>);
++export interface ClientOptions {
++    timeout?: number;
++    gatewayAddresses?: GatewayAddressProvider;
++    ssdp?: ISsdp;
++}
+ /**
+  * Main client interface.
+  */
+@@ -85,6 +92,7 @@ export interface IClient {
+     getGateway(): Promise<{
+         gateway: Device;
+         address: string;
++        gatewayAddress: string;
+     }>;
+     /**
+      * Close the underlaying sockets and resources
+diff --git a/build/src/nat-upnp/client.js b/build/src/nat-upnp/client.js
+index 55335e888b88cefc9571041a85ef5aa0bec88c6a..06077ff94b1caaf10a2fe0953277528bdb157e19 100644
+--- a/build/src/nat-upnp/client.js
++++ b/build/src/nat-upnp/client.js
+@@ -17,8 +17,11 @@ const device_1 = __importDefault(require("./device"));
+ const ssdp_1 = __importDefault(require("./ssdp"));
++const url_1 = require("url");
+ class Client {
+     constructor(options = {}) {
+-        this.ssdp = new ssdp_1.default();
++        var _a;
+         this.timeout = options.timeout || 1800;
++        this.ssdp = (_a = options.ssdp) !== null && _a !== void 0 ? _a : new ssdp_1.default();
++        this.gatewayAddresses = options.gatewayAddresses;
+     }
+     createMapping(options) {
+         return __awaiter(this, void 0, void 0, function* () {
+@@ -132,6 +134,7 @@ class Client {
+     }
+     getGateway() {
+         return __awaiter(this, void 0, void 0, function* () {
++            const allowedGatewayAddresses = yield this.getAllowedGatewayAddresses();
+             let timeouted = false;
+             const p = this.ssdp.search("urn:schemas-upnp-org:device:InternetGatewayDevice:1");
+             return new Promise((s, r) => {
+@@ -140,17 +143,42 @@ class Client {
+                     p.emit("end");
+                     r(new Error("Connection timed out while searching for the gateway."));
+                 }, this.timeout);
+-                p.on("device", (info, address) => {
++                p.on("device", (info, gatewayAddress, localAddress) => {
+                     if (timeouted)
+                         return;
+-                    p.emit("end");
+-                    clearTimeout(timeout);
+-                    // Create gateway
+-                    s({ gateway: new device_1.default(info.location), address });
++                    if (allowedGatewayAddresses &&
++                        !allowedGatewayAddresses.has(normalizeAddress(gatewayAddress))) {
++                        return;
++                    }
++                    try {
++                        const gateway = new device_1.default(info.location, {
++                            allowedAddress: gatewayAddress,
++                        });
++                        p.emit("end");
++                        clearTimeout(timeout);
++                        s({ gateway, address: localAddress, gatewayAddress });
++                    }
++                    catch (_a) {
++                        // Ignore invalid device descriptions and continue searching.
++                    }
+                 });
+             });
+         });
+     }
++    getAllowedGatewayAddresses() {
++        return __awaiter(this, void 0, void 0, function* () {
++            if (!this.gatewayAddresses)
++                return;
++            const addresses = typeof this.gatewayAddresses === "function"
++                ? yield this.gatewayAddresses()
++                : this.gatewayAddresses;
++            const normalized = new Set(addresses.map(normalizeAddress));
++            if (normalized.size === 0) {
++                throw new Error("No trusted gateway addresses found.");
++            }
++            return normalized;
++        });
++    }
+     close() {
+         this.ssdp.close();
+     }
+@@ -172,3 +200,12 @@ function normalizeOptions(options) {
+     };
+ }
+ exports.default = Client;
++function normalizeAddress(address) {
++    const unbracketed = address.replace(/^\[|\]$/g, "");
++    try {
++        return new url_1.URL(`http://[${unbracketed}]/`).hostname;
++    }
++    catch (_a) {
++        return unbracketed.toLowerCase();
++    }
++}
+diff --git a/build/src/nat-upnp/device.d.ts b/build/src/nat-upnp/device.d.ts
+index b8d2073e35c5844d8c1e986cddd81b26db10a951..e01c11218d0a33d81a24a08f54f3fbfc8e42965d 100644
+--- a/build/src/nat-upnp/device.d.ts
++++ b/build/src/nat-upnp/device.d.ts
+@@ -2,7 +2,8 @@ import { RawResponse } from "../index";
+ export declare class Device implements IDevice {
+     readonly description: string;
+     readonly services: string[];
+-    constructor(url: string);
++    private readonly descriptionOrigin;
++    constructor(url: string, options?: DeviceOptions);
+     private getXML;
+     getService(types: string[]): Promise<{
+         service: string;
+@@ -16,6 +17,7 @@ export declare class Device implements IDevice {
+         services: RawService[];
+         devices: RawDevice[];
+     };
++    private assertSameOrigin;
+ }
+ export default Device;
+ export interface Service {
+@@ -75,3 +77,6 @@ export interface IDevice {
+      */
+     run(action: string, kvpairs: (string | number)[][]): Promise<RawResponse>;
+ }
++interface DeviceOptions {
++    allowedAddress?: string;
++}
+diff --git a/build/src/nat-upnp/device.js b/build/src/nat-upnp/device.js
+index 2b92c7c90ba0ed525dcb6a4d751fbccc05e7baa6..3ee8b3a2bb98aa6b64004f65db88109d03a6eb8e 100644
+--- a/build/src/nat-upnp/device.js
++++ b/build/src/nat-upnp/device.js
+@@ -17,8 +17,15 @@ const axios_1 = __importDefault(require("axios"));
+ const url_1 = require("url");
+ const fast_xml_parser_1 = require("fast-xml-parser");
+ class Device {
+-    constructor(url) {
+-        this.description = url;
++    constructor(url, options = {}) {
++        const description = new url_1.URL(url);
++        assertHttpUrl(description);
++        if (options.allowedAddress &&
++            !sameAddress(description.hostname, options.allowedAddress)) {
++            throw new Error("Device description is not hosted by the SSDP sender");
++        }
++        this.description = description.toString();
++        this.descriptionOrigin = description.origin;
+         this.services = [
+             "urn:schemas-upnp-org:service:WANIPConnection:1",
+             "urn:schemas-upnp-org:service:WANIPConnection:2",
+@@ -27,10 +34,14 @@ class Device {
+     }
+     getXML(url) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            return axios_1.default
+-                .get(url)
+-                .then(({ data }) => new fast_xml_parser_1.XMLParser().parse(data))
+-                .catch(() => new Error("Failed to lookup device description"));
++            try {
++                const safeUrl = this.assertSameOrigin(url, this.description);
++                const { data } = yield axios_1.default.get(safeUrl, { maxRedirects: 0 });
++                return new fast_xml_parser_1.XMLParser().parse(data);
++            }
++            catch (_a) {
++                throw new Error("Failed to lookup device description");
++            }
+         });
+     }
+     getService(types) {
+@@ -42,8 +53,10 @@ class Device {
+                     !services[0].SCPDURL) {
+                     throw new Error("Service not found");
+                 }
+-                const baseUrl = new url_1.URL(xml.baseURL, this.description);
+-                const prefix = (url) => new url_1.URL(url, baseUrl.toString()).toString();
++                const baseUrl = xml.baseURL
++                    ? this.assertSameOrigin(xml.baseURL, this.description)
++                    : this.description;
++                const prefix = (url) => this.assertSameOrigin(url, baseUrl);
+                 return {
+                     service: services[0].serviceType,
+                     SCPDURL: prefix(services[0].SCPDURL),
+@@ -73,6 +86,7 @@ class Device {
+                 "</s:Envelope>";
+             return axios_1.default
+                 .post(info.controlURL, body, {
++                maxRedirects: 0,
+                 headers: {
+                     "Content-Type": 'text/xml; charset="utf-8"',
+                     "Content-Length": "" + Buffer.byteLength(body),
+@@ -112,6 +126,34 @@ class Device {
+             devices,
+         };
+     }
++    assertSameOrigin(url, baseUrl) {
++        const parsed = new url_1.URL(url, baseUrl);
++        assertHttpUrl(parsed);
++        if (parsed.origin !== this.descriptionOrigin) {
++            throw new Error("UPnP URL changed origin");
++        }
++        return parsed.toString();
++    }
+ }
+ exports.Device = Device;
+ exports.default = Device;
++function assertHttpUrl(url) {
++    if (url.protocol !== "http:" && url.protocol !== "https:") {
++        throw new Error("UPnP URL must use HTTP or HTTPS");
++    }
++    if (url.username || url.password) {
++        throw new Error("UPnP URL must not contain credentials");
++    }
++}
++function sameAddress(hostname, address) {
++    return normalizeAddress(hostname) === normalizeAddress(address);
++}
++function normalizeAddress(address) {
++    const unbracketed = address.replace(/^\[|\]$/g, "");
++    try {
++        return new url_1.URL(`http://[${unbracketed}]/`).hostname;
++    }
++    catch (_a) {
++        return unbracketed.toLowerCase();
++    }
++}
+diff --git a/build/src/nat-upnp/ssdp.d.ts b/build/src/nat-upnp/ssdp.d.ts
+index 2e903410d67f8c607e4fc394b39a06342aa18643..a844762818bf965be097efe4e0015b8b4b7ba334 100644
+--- a/build/src/nat-upnp/ssdp.d.ts
++++ b/build/src/nat-upnp/ssdp.d.ts
+@@ -19,8 +19,9 @@ export declare class Ssdp implements ISsdp {
+     search(device: string, emitter?: SsdpEmitter): SsdpEmitter;
+     close(): void;
+ }
++export declare function parseSsdpResponse(response: string): Record<string, string> | undefined;
+ export default Ssdp;
+-declare type SearchArgs = [Record<string, string>, string];
++declare type SearchArgs = [Record<string, string>, string, string];
+ export declare type SearchCallback = (...args: SearchArgs) => void;
+ declare type SearchEvent = <E extends Events>(ev: E, ...args: E extends "device" ? SearchArgs : []) => boolean;
+ declare type Events = "device" | "end";
+diff --git a/build/src/nat-upnp/ssdp.js b/build/src/nat-upnp/ssdp.js
+index 40bce5c6983b385655ee0dcf346d056be8a4c7bb..54c0ceaf85717e329c60b600f357ff89a784a480 100644
+--- a/build/src/nat-upnp/ssdp.js
++++ b/build/src/nat-upnp/ssdp.js
+@@ -3,7 +3,7 @@
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.Ssdp = void 0;
++exports.parseSsdpResponse = exports.Ssdp = void 0;
+ const dgram_1 = __importDefault(require("dgram"));
+ const os_1 = __importDefault(require("os"));
+ const events_1 = __importDefault(require("events"));
+@@ -23,17 +23,20 @@
+         const interfaces = os_1.default.networkInterfaces();
+         this.sockets = Object.keys(interfaces).reduce((arr, key) => {
+             var _a, _b;
+-            return arr.concat((_b = (_a = interfaces[key]) === null || _a === void 0 ? void 0 : _a.filter((item) => !item.internal).map((item) => this.createSocket(item))) !== null && _b !== void 0 ? _b : []);
++            return arr.concat((_b = (_a = interfaces[key]) === null || _a === void 0 ? void 0 : _a.filter((item) => !item.internal).map((item) => this.createSocket(item, key))) !== null && _b !== void 0 ? _b : []);
+         }, []);
+     }
+-    createSocket(iface) {
++    createSocket(iface, interfaceName) {
+         const socket = dgram_1.default.createSocket(iface.family === "IPv4" ? "udp4" : "udp6");
+-        socket.on("message", (message) => {
++        const multicast = iface.family === "IPv4" ? "239.255.255.250" : `FF02::C%${interfaceName}`;
++        socket.multicast = multicast;
++        socket.multicastHost = iface.family === "IPv4" ? multicast : "[FF02::C]";
++        socket.on("message", (message, rinfo) => {
+             // Ignore messages after closing sockets
+             if (this.closed)
+                 return;
+             // Parse response
+-            this.parseResponse(message.toString(), socket.address);
++            this.parseResponse(message.toString(), rinfo.address, iface.address);
+         });
+         // Bind in next tick (sockets should be me in this.sockets array)
+         process.nextTick(() => {
+@@ -59,16 +62,11 @@
+         });
+         return socket;
+     }
+-    parseResponse(response, addr) {
+-        // Ignore incorrect packets
+-        if (!/^(HTTP|NOTIFY)/m.test(response))
++    parseResponse(response, remoteAddress, localAddress) {
++        const headers = parseSsdpResponse(response);
++        if (!headers)
+             return;
+-        const headers = parseMimeHeader(response);
+-        // We are only interested in messages that can be matched against the original
+-        // search target
+-        if (!headers.st)
+-            return;
+-        this.ssdpEmitter.emit("device", headers, addr);
++        this.ssdpEmitter.emit("device", headers, remoteAddress, localAddress);
+     }
+     search(device, emitter) {
+         if (!emitter) {
+@@ -82,24 +80,26 @@
+             this.queue.push([device, emitter]);
+             return emitter;
+         }
+-        const query = Buffer.from("M-SEARCH * HTTP/1.1\r\n" +
+-            "HOST: " +
+-            this.multicast +
+-            ":" +
+-            this.port +
+-            "\r\n" +
+-            'MAN: "ssdp:discover"\r\n' +
+-            "MX: 1\r\n" +
+-            "ST: " +
+-            device +
+-            "\r\n" +
+-            "\r\n");
+-        // Send query on each socket
+-        this.sockets.forEach((socket) => socket.send(query, 0, query.length, this.port, this.multicast));
+-        const ondevice = (headers, address) => {
++        // Send the family-specific SSDP query on each interface.
++        this.sockets.forEach((socket) => {
++            const query = Buffer.from("M-SEARCH * HTTP/1.1\r\n" +
++                "HOST: " +
++                socket.multicastHost +
++                ":" +
++                this.port +
++                "\r\n" +
++                'MAN: "ssdp:discover"\r\n' +
++                "MX: 1\r\n" +
++                "ST: " +
++                device +
++                "\r\n" +
++                "\r\n");
++            socket.send(query, 0, query.length, this.port, socket.multicast);
++        });
++        const ondevice = (headers, remoteAddress, localAddress) => {
+             if (!emitter || emitter._ended || headers.st !== device)
+                 return;
+-            emitter.emit("device", headers, address);
++            emitter.emit("device", headers, remoteAddress, localAddress);
+         };
+         this.ssdpEmitter.on("device", ondevice);
+         // Detach listener after receiving 'end' event
+@@ -124,4 +124,13 @@
+         return headers;
+     }, {});
+ }
++function parseSsdpResponse(response) {
++    if (!/^HTTP\/\d(?:\.\d)?\s+200(?:\s|$)/.test(response))
++        return;
++    const headers = parseMimeHeader(response);
++    if (!headers.st || !headers.location)
++        return;
++    return headers;
++}
++exports.parseSsdpResponse = parseSsdpResponse;
+ exports.default = Ssdp;

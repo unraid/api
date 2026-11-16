@@ -107,6 +107,23 @@ describe('direct remote access alongside the native tunnel', () => {
         expect(upnp.enabled).toBe(false);
         expect(persistence.getConfig().tunnelRemoteAccessEnabled).toBe(true);
     });
+    it('retries static access after nginx rejects its first reload', async () => {
+        network.reloadNetworkStack.mockRejectedValueOnce(new Error('Nginx reload failed'));
+        await expect(
+            service.update({ accessType: always, forwardType: manual, port: 4443 })
+        ).rejects.toThrow();
+        expect(persistence.getConfig().wanaccess).toBe(false);
+        await service.update({ accessType: always, forwardType: manual, port: 4443 });
+        expect(persistence.getConfig().wanaccess).toBe(true);
+    });
+    it('does not interrupt active static access when the same settings are saved again', async () => {
+        const settings = { accessType: always, forwardType: manual, port: 4443 };
+        await service.update(settings);
+        network.reloadNetworkStack.mockClear();
+        await service.update(settings);
+        expect(network.reloadNetworkStack).not.toHaveBeenCalled();
+        expect(persistence.getConfig().wanaccess).toBe(true);
+    });
     it('resumes saved UPnP settings and port on startup', async () => {
         await persistence.update({ wanaccess: true, upnpEnabled: true, wanport: 54321 });
         await service.reload();

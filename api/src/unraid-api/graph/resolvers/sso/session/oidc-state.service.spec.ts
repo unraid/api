@@ -59,6 +59,39 @@ describe('OidcStateService', () => {
             expect(state1).not.toBe(state2);
         });
 
+        it('limits pending states for a provider and redirect URI, then releases a completed state', async () => {
+            const providerId = 'test-provider';
+            const redirectUri = 'https://example.com/callback';
+            const states = await Promise.all(
+                Array.from({ length: 32 }, (_, index) =>
+                    service.generateSecureState(providerId, `client-state-${index}`, redirectUri)
+                )
+            );
+
+            await expect(
+                service.generateSecureState(providerId, 'overflow', redirectUri)
+            ).rejects.toThrow('Too many pending OIDC authorization requests');
+
+            expect((await service.validateSecureState(states[0], providerId)).isValid).toBe(true);
+            await expect(
+                service.generateSecureState(providerId, 'replacement', redirectUri)
+            ).resolves.toMatch(/^test-provider:/);
+        });
+
+        it('reclaims expired pending state capacity', async () => {
+            const providerId = 'test-provider';
+            const redirectUri = 'https://example.com/callback';
+            for (let index = 0; index < 32; index++) {
+                await service.generateSecureState(providerId, `client-state-${index}`, redirectUri);
+            }
+
+            vi.advanceTimersByTime(10 * 60 * 1000 + 1);
+
+            await expect(
+                service.generateSecureState(providerId, 'new-client-state', redirectUri)
+            ).resolves.toMatch(/^test-provider:/);
+        });
+
         it('should work without redirectUri parameter (backwards compatibility)', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';

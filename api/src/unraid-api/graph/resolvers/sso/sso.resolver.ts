@@ -8,7 +8,10 @@ import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
 import { OidcConfiguration } from '@app/unraid-api/graph/resolvers/sso/models/oidc-configuration.model.js';
-import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
+import {
+    OidcProvider,
+    redactOidcClientSecret,
+} from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 import { OidcSessionValidation } from '@app/unraid-api/graph/resolvers/sso/models/oidc-session-validation.model.js';
 import { PublicOidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/public-oidc-provider.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-session.service.js';
@@ -69,35 +72,38 @@ export class SsoResolver {
         }));
     }
 
+    // Persisted provider configuration includes secrets and requires configuration-write access.
     @Query(() => [OidcProvider], { description: 'Get all configured OIDC providers (admin only)' })
     @UsePermissions({
-        action: AuthAction.READ_ANY,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONFIG,
     })
     public async oidcProviders(): Promise<OidcProvider[]> {
-        return this.oidcConfig.getProviders();
+        const providers = await this.oidcConfig.getProviders();
+        return providers.map(redactOidcClientSecret);
     }
 
     @Query(() => OidcProvider, { nullable: true, description: 'Get a specific OIDC provider by ID' })
     @UsePermissions({
-        action: AuthAction.READ_ANY,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONFIG,
     })
     public async oidcProvider(
         @Args('id', { type: () => PrefixedID }) id: string
     ): Promise<OidcProvider | null> {
-        return this.oidcConfig.getProvider(id);
+        const provider = await this.oidcConfig.getProvider(id);
+        return provider ? redactOidcClientSecret(provider) : null;
     }
 
     @Query(() => OidcConfiguration, { description: 'Get the full OIDC configuration (admin only)' })
     @UsePermissions({
-        action: AuthAction.READ_ANY,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONFIG,
     })
     public async oidcConfiguration(): Promise<OidcConfiguration> {
         const config = await this.oidcConfig.getConfig();
         return {
-            providers: config?.providers || [],
+            providers: (config?.providers || []).map(redactOidcClientSecret),
             defaultAllowedOrigins: config?.defaultAllowedOrigins || [],
         };
     }

@@ -27,7 +27,7 @@ import type {
   ConnectTunnelPageQuery,
 } from '~/composables/gql/graphql';
 
-type ServiceTarget = ConnectServiceTargetsQuery['docker']['containers'][number];
+type ServiceTarget = NonNullable<ConnectServiceTargetsQuery['docker']>['containers'][number];
 type TargetMode = 'container' | 'manual';
 type TargetProtocol = 'http' | 'https';
 type ServiceKind = 'web' | 'tcp';

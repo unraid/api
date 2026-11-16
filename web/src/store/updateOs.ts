@@ -20,6 +20,7 @@ extend(relativeTime);
 export const useUpdateOsStore = defineStore('updateOs', () => {
   // state
   const checkForUpdatesLoading = ref<boolean>(false);
+  const checkForUpdatesFailed = ref(false);
   const updateOsModalVisible = ref<boolean>(false);
   const releaseForUpdate = ref<ServerUpdateOsResponse | null>(null);
   const changelogModalVisible = computed(() => !!releaseForUpdate.value);
@@ -89,14 +90,17 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
   // actions
   const localCheckForUpdate = async (): Promise<void> => {
     checkForUpdatesLoading.value = true;
+    checkForUpdatesFailed.value = false;
     setModalOpen(true);
     try {
       const response = await WebguiCheckForUpdate();
       console.debug('[localCheckForUpdate] response', response);
       serverStore.setUpdateOsResponse(response as ServerUpdateOsResponse);
-      checkForUpdatesLoading.value = false;
     } catch (error) {
+      checkForUpdatesFailed.value = true;
       throw new Error('[localCheckForUpdate] Error checking for updates\n' + JSON.stringify(error));
+    } finally {
+      checkForUpdatesLoading.value = false;
     }
   };
 
@@ -130,6 +134,7 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     available,
     availableWithRenewal,
     checkForUpdatesLoading,
+    checkForUpdatesFailed,
     updateOsModalVisible,
     changelogModalVisible,
     releaseForUpdate,

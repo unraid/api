@@ -69,7 +69,7 @@ const allowActivationSkip = computed(
   () => hasKeyfile.value || activationRequired.value || showActivationStep.value
 );
 const showKeyfileHint = computed(() => activationRequired.value && hasKeyfile.value);
-const activateHref = computed(() => purchaseStore.generateUrl('activate'));
+const getActivateHref = () => purchaseStore.generateUrl('activate');
 const activateExternal = computed(() => purchaseStore.openInNewTab);
 
 // Hardcoded step definitions - order matters for UI flow
@@ -591,7 +591,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         modalDescription: modalDescription.value,
         docsButtons: docsButtons.value,
         canGoBack: canGoBack.value,
-        activateHref: activateHref.value,
+        activateHref: getActivateHref,
         activateExternal: activateExternal.value,
         allowSkip: allowActivationSkip.value,
         showKeyfileHint: showKeyfileHint.value,

@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import type { Server } from 'node:http';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -14,10 +14,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { makeCertificate } from '../__test__/certificate.fixture.js';
 import { ConnectConfigPersister } from '../config/config.persistence.js';
 import { emptyMyServersConfig } from '../config/connect.config.js';
-import { ConnectConfigService } from '../config/connect.config.service.js';
+import {
+    ConnectConfigService,
+    ConnectIdentityVerificationError,
+    ConnectLegacyCleanupError,
+} from '../config/connect.config.service.js';
 import { CloudResolver } from '../connection-status/cloud.resolver.js';
 import { CloudService } from '../connection-status/cloud.service.js';
 import { ConnectStatusWriterService } from '../connection-status/connect-status-writer.service.js';
+import { EVENTS } from '../helper/nest-tokens.js';
 import { DnsService } from '../network/dns.service.js';
 import { NetworkService } from '../network/network.service.js';
 import { UpnpService } from '../network/upnp.service.js';
@@ -105,6 +110,8 @@ describe('native connector host integration', () => {
     let serviceRequests: unknown[];
     let serviceStatus: number;
     let nginx: { reload: ReturnType<typeof vi.fn> };
+    let identity: ConnectConfigService;
+    let events: EventEmitter2;
     beforeEach(async () => {
         directory = await mkdtemp(join(tmpdir(), 'connect-host-'));
         requests = [];
@@ -185,6 +192,7 @@ describe('native connector host integration', () => {
         config = new ConfigService({
             UNRAID_PREVIEW: true,
             PATHS_CONFIG_MODULES: directory,
+            CONNECT_LEGACY_PATH: join(directory, 'myservers.cfg'),
             CONNECT_CONTROL_PLANE_URL: `http://127.0.0.1:${address.port}`,
             CONNECT_CONNECTOR_PATH: executable,
             CONNECT_CERT_BUNDLE_PATH: makeCertificate(directory),
@@ -215,12 +223,16 @@ describe('native connector host integration', () => {
         persister = new ConnectConfigPersister(config);
         await persister.save(persister.getConfig());
         nginx = { reload: vi.fn().mockResolvedValue(true) };
+        identity = new ConnectConfigService(config);
+        vi.spyOn(identity, 'revokeCloudKey').mockResolvedValue();
+        events = new EventEmitter2();
         tunnel = new ConnectTunnelService(
             config,
             persister,
             new UrlResolverService(config),
-            new EventEmitter2(),
-            nginx
+            events,
+            nginx,
+            identity
         );
     });
     afterEach(async () => {
@@ -1069,6 +1081,96 @@ emit({event:'cert_migration_result', request_id:request.request_id, outcome:'fai
         expect(await tunnel.processEnvironment()).toBeNull();
         expect(await readFile(tunnel.statePath, 'utf8')).not.toContain('Tower');
         expect(tunnel.status().presence).toBe('disconnected');
+    });
+    it('retains the running connector and credentials when cloud revocation fails', async () => {
+        await setFeatures({ serverDataReportingEnabled: true });
+        await tunnel.start();
+        await vi.waitFor(() => expect(tunnel.status().presence).toBe('connected'));
+        vi.mocked(identity.revokeCloudKey).mockRejectedValueOnce(new Error('cloud unavailable'));
+        await expect(tunnel.signOut()).rejects.toThrow();
+        expect(tunnel.settings().apikey).toBe('test-key');
+        expect(tunnel.status().presence).toBe('connected');
+    });
+    it('stops the connector and publishes identity cleanup after a partial disk failure', async () => {
+        await setFeatures({ serverDataReportingEnabled: true });
+        await tunnel.start();
+        await vi.waitFor(() => expect(tunnel.status().presence).toBe('connected'));
+        const changed = vi.fn();
+        events.on(EVENTS.IDENTITY_CHANGED, changed);
+        vi.spyOn(persister.getFileHandler(), 'readConfigFile').mockRejectedValueOnce(
+            new Error('read failed')
+        );
+        await expect(tunnel.signOut()).rejects.toThrow(ConnectIdentityVerificationError);
+        expect(tunnel.settings().apikey).toBe('');
+        expect(tunnel.status().presence).toBe('disconnected');
+        expect(changed).toHaveBeenCalledOnce();
+        expect(await tunnel.processEnvironment()).toBeNull();
+    });
+    it('preserves the legacy cleanup error while still publishing identity after overview failure', async () => {
+        await mkdir(join(directory, 'myservers.cfg'));
+        const blockedState = join(directory, 'blocked-state');
+        await mkdir(blockedState);
+        const previousState = tunnel.statePath;
+        config.set('CONNECT_STATE_PATH', blockedState);
+        const changed = vi.fn();
+        events.on(EVENTS.IDENTITY_CHANGED, changed);
+        try {
+            await expect(tunnel.signOut()).rejects.toThrow(ConnectLegacyCleanupError);
+            expect(tunnel.settings().apikey).toBe('');
+            expect(changed).toHaveBeenCalledOnce();
+        } finally {
+            config.set('CONNECT_STATE_PATH', previousState);
+        }
+    });
+    it('serializes a new sign-in behind revocation and cleanup of the previous identity', async () => {
+        let release!: () => void;
+        let started!: () => void;
+        const hold = new Promise<void>((resolve) => {
+            release = resolve;
+        });
+        const revoking = new Promise<void>((resolve) => {
+            started = resolve;
+        });
+        vi.mocked(identity.revokeCloudKey).mockImplementationOnce(async () => {
+            expect(tunnel.settings().apikey).toBe('test-key');
+            started();
+            await hold;
+            expect(tunnel.settings().apikey).toBe('test-key');
+        });
+        const signOut = tunnel.signOut();
+        await revoking;
+        const signIn = tunnel.signIn('new-key', {
+            preferred_username: 'new-user',
+            email: 'new@example.com',
+        });
+        release();
+        await Promise.all([signOut, signIn]);
+        expect(tunnel.settings()).toMatchObject({ apikey: 'new-key', username: 'new-user' });
+        expect(identity.revokeCloudKey).toHaveBeenCalledOnce();
+    });
+    it('preserves a new shared identity written while the previous key is being revoked', async () => {
+        let release!: () => void;
+        let started!: () => void;
+        const hold = new Promise<void>((resolve) => {
+            release = resolve;
+        });
+        const revoking = new Promise<void>((resolve) => {
+            started = resolve;
+        });
+        vi.mocked(identity.revokeCloudKey).mockImplementationOnce(async () => {
+            started();
+            await hold;
+        });
+        const signOut = tunnel.signOut();
+        await revoking;
+        const otherClient = new ConnectConfigPersister(config);
+        await otherClient.update({ apikey: 'new-shared-key', username: 'new-user' });
+        release();
+        await expect(signOut).rejects.toThrow();
+        expect(JSON.parse(await readFile(persister.configPath(), 'utf8'))).toMatchObject({
+            apikey: 'new-shared-key',
+            username: 'new-user',
+        });
     });
     it('reconnects after a shared connector handoff', async () => {
         const starts = join(directory, 'starts');

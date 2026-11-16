@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "%{0} من المصفوفة مستخدم",
   "headerOsVersion.apiVersionCopiedToClipboard": "إصدار API تم نسخه إلى الحافظة",
   "headerOsVersion.osVersionCopiedToClipboard": "إصدار نظام التشغيل تم نسخه إلى الحافظة",
+  "headerOsVersion.rebootToUpdate": "إعادة التشغيل للتحديث",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid نظام تشغيل",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} تم الإصدار",

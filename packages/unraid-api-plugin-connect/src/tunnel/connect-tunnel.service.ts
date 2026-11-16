@@ -18,6 +18,11 @@ import type { ConnectTunnelEntitlement } from './connect-tunnel-settings.model.j
 import type { WorkloadStates } from './overview.js';
 import { ConnectConfigPersister } from '../config/config.persistence.js';
 import { MyServersConfig } from '../config/connect.config.js';
+import {
+    ConnectConfigService,
+    ConnectIdentityVerificationError,
+    ConnectLegacyCleanupError,
+} from '../config/connect.config.service.js';
 import { writePrivateJson } from '../config/private-json-file.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 import { UrlResolverService } from '../network/url-resolver.service.js';
@@ -92,6 +97,7 @@ export class ConnectTunnelService implements OnModuleDestroy {
         private readonly urls: UrlResolverService,
         private readonly events: EventEmitter2,
         @Inject(NGINX_SERVICE_TOKEN) private readonly nginx: NginxService,
+        private readonly identity: ConnectConfigService,
         @Optional()
         @Inject(CANONICAL_INTERNAL_CLIENT_TOKEN)
         private readonly internalClient?: CanonicalInternalClientService
@@ -291,17 +297,32 @@ export class ConnectTunnelService implements OnModuleDestroy {
     @OnEvent(EVENTS.LOGOUT, { async: true })
     async signOut(): Promise<void> {
         await this.serial(async () => {
-            await this.save({
-                apikey: '',
-                localApiKey: '',
-                username: '',
-                avatar: '',
-                email: null,
-                regWizTime: '',
-            });
+            await this.persistence.refresh();
+            const expectedApiKey = this.settings().apikey;
+            await this.identity.revokeCloudKey();
+            let cleanupError: unknown;
+            try {
+                await this.identity.resetUser(this.persistence, expectedApiKey);
+            } catch (error) {
+                if (
+                    !(error instanceof ConnectLegacyCleanupError) &&
+                    !(error instanceof ConnectIdentityVerificationError)
+                )
+                    throw error;
+                cleanupError = error;
+            }
             await this.stopChild();
-            await this.writeState();
-            await this.events.emitAsync(EVENTS.IDENTITY_CHANGED);
+            try {
+                await this.writeState();
+            } catch (error) {
+                cleanupError ??= error;
+            }
+            try {
+                await this.events.emitAsync(EVENTS.IDENTITY_CHANGED);
+            } catch (error) {
+                cleanupError ??= error;
+            }
+            if (cleanupError) throw cleanupError;
         });
     }
 

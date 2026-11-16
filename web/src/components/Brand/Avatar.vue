@@ -22,11 +22,7 @@ const { avatar, connectPluginInstalled, registered, username } = storeToRefs(ser
       class="absolute inset-0 z-10 h-9 w-9 overflow-hidden rounded-full object-cover"
     />
     <template v-else>
-      <BrandMark
-        gradient-start="#fff"
-        gradient-stop="#fff"
-        class="absolute z-10 h-9 w-9 p-[6px] opacity-100"
-      />
+      <BrandMark gradient-start="#fff" gradient-stop="#fff" class="absolute z-10 h-6 w-6 opacity-100" />
     </template>
   </figure>
 </template>

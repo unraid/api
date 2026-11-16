@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ConnectConfigPersister } from '../config/config.persistence.js';
 import { emptyMyServersConfig } from '../config/connect.config.js';
+import { ConnectConfigService } from '../config/connect.config.service.js';
 import { CloudService } from '../connection-status/cloud.service.js';
 import { UrlResolverService } from '../network/url-resolver.service.js';
 import { ConnectTunnelService } from '../tunnel/connect-tunnel.service.js';
@@ -20,6 +21,7 @@ describe('cloud status', () => {
             new UrlResolverService(config),
             new EventEmitter2(),
             { reload: async () => true },
+            new ConnectConfigService(config),
             { getProviders: async () => [] } as never
         );
         const cloud = new CloudService(tunnel);

@@ -125,6 +125,14 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
         return this.updateCurrent((current) => ({ ...current, ...changes }));
     }
 
+    updateIfApiKey(expectedApiKey: string, changes: Partial<MyServersConfig>): Promise<void> {
+        return this.updateCurrent((current) => {
+            if (current.apikey !== expectedApiKey)
+                throw new Error('Connect identity changed. Retry sign-out for the current account.');
+            return { ...current, ...changes };
+        });
+    }
+
     updateIfGatewayRevision(expectedRevision: number, changes: Partial<MyServersConfig>): Promise<void> {
         return this.updateCurrent((current) => {
             if (current.gatewayServicesRevision !== expectedRevision)
