@@ -96,6 +96,18 @@ Transient client exits retry with bounded backoff after rereading shared setting
 Sign-out, shutdown, and durable connector refusals cancel retries.
 
 Application services may use the HTTPS gateway or the generic TCP transport.
+For a private rollout, set `CONNECT_GATEWAY_ENABLED=true` in the API process
+environment before configuring the first service. The cloud must also advertise
+service-route support and authorize the server's service slots. Once service
+configuration has a saved revision, the API preserves that configuration across
+restarts without requiring the rollout flag.
+
+A refused service save remains pending and stops app forwarding. Retry the same
+desired service set after resolving the refusal. To cancel it, disable tunneled
+remote access, remove or edit the pending services, then enable remote access
+to synchronize the replacement set. A server without app-proxy entitlement
+can still synchronize an empty service set.
+
 TCP services use a private `tcp://` target and the existing connector session.
 Their ingress method can use managed TLS on shared port 443, or the Minecraft
 Java handshake on shared port 25565. Managed TLS terminates at the local gateway
