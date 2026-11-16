@@ -129,5 +129,6 @@ pnpm --filter unraid-api-plugin-connect exec vitest run
 ```
 
 The vendor script verifies the toolchain, binary checksum, and shared-contract checksum.
+It omits VCS build metadata so the pinned source produces the same binary in any clean worktree.
 The TXZ builder checks the binary before packaging. Tests use temporary files and a
 loopback service; they do not establish a live Connect tunnel.

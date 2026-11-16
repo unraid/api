@@ -26,7 +26,7 @@ trap 'rm -rf "$output"' EXIT
 (
   cd "$source_repo/relay"
   GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -trimpath -ldflags='-s -w' -o "$output/presence-connector" ./cmd/presence-connector
+    go build -buildvcs=false -trimpath -ldflags='-s -w' -o "$output/presence-connector" ./cmd/presence-connector
 )
 python3 - "$manifest" "$output/presence-connector" "$source_repo/control-plane/contracts/server-overview/v1.schema.json" "$plugin_dir/../packages/unraid-api-plugin-connect/src/tunnel/contracts/server-overview-v1.schema.json" <<'PY'
 import hashlib, json, pathlib, sys
