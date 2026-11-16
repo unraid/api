@@ -41,6 +41,10 @@ export enum DynamicRemoteAccessType {
 @UsePipes(new ValidationPipe({ transform: true }))
 @InputType('MyServersConfigInput')
 export class MyServersConfig {
+    @IsOptional()
+    @IsString()
+    gatewayLanListenAddress?: string;
+
     @IsArray()
     @ArrayMaxSize(31)
     @ValidateNested({ each: true })

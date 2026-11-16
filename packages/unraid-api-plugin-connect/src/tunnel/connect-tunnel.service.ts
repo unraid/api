@@ -646,6 +646,9 @@ export class ConnectTunnelService implements OnModuleDestroy {
                 JSON.stringify({
                     version: 1,
                     gatewayServicesRevision: settings.gatewayServicesRevision,
+                    ...(settings.gatewayLanListenAddress && {
+                        lanListenAddress: settings.gatewayLanListenAddress,
+                    }),
                     issuer: new URL(
                         controlPlaneOrigin(this.config.get<string>('CONNECT_CONTROL_PLANE_URL'))
                     ).hostname.startsWith('preview.')

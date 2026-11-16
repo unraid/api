@@ -381,6 +381,23 @@ describe('native connector host integration', () => {
         expect(tunnel.settings().tunnelHostnames).toEqual([]);
         expect((await tunnel.processEnvironment())?.GATEWAY_CONFIG).toBeUndefined();
     });
+    it('preserves the opt-in LAN listener when generating the shared Go gateway config', async () => {
+        config.set('CONNECT_GATEWAY_ENABLED', 'true');
+        await setFeatures({
+            certificateManagementEnabled: true,
+            tunnelRemoteAccessEnabled: true,
+            gatewayLanListenAddress: '10.20.30.40:443',
+        });
+        const env = await tunnel.processEnvironment();
+        expect(JSON.parse(await readFile(env!.GATEWAY_CONFIG!, 'utf8'))).toMatchObject({
+            lanListenAddress: '10.20.30.40:443',
+            services: [{ purpose: 'webgui', upstream: 'http://127.0.0.1:80', auth: 'upstream' }],
+        });
+        expect(
+            (await persister.validate(JSON.parse(await readFile(persister.configPath(), 'utf8'))))
+                .gatewayLanListenAddress
+        ).toBe('10.20.30.40:443');
+    });
     const appService = {
         id: 'app-0123456789abcdef',
         name: 'Media',
