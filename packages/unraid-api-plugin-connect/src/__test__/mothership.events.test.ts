@@ -192,6 +192,19 @@ describe('MothershipHandler - Behavioral Tests', () => {
             expect(controllerStops).toHaveLength(1);
             expect(publishedMessages).toHaveLength(2);
         });
+
+        it('publishes cleared state when relay shutdown fails', async () => {
+            vi.mocked(mothershipController.stop).mockRejectedValueOnce(new Error('relay stop failed'));
+
+            await expect(handler.logout({})).rejects.toThrow();
+            expect(publishedMessages).toEqual([
+                { channel: GRAPHQL_PUBSUB_CHANNEL.SERVERS, data: { servers: [] } },
+                {
+                    channel: GRAPHQL_PUBSUB_CHANNEL.OWNER,
+                    data: { owner: { username: 'root', url: '', avatar: '' } },
+                },
+            ]);
+        });
     });
 
     describe('DDoS Prevention Behavior', () => {

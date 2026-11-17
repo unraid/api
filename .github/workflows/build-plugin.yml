@@ -133,7 +133,7 @@ jobs:
           pkgtools_dir="$(mktemp -d)"
           for script in installpkg upgradepkg removepkg; do
             curl --fail --silent --show-error --location --max-time 60 \
-              "https://mirrors.slackware.com/slackware/slackware64-current/source/a/pkgtools/scripts/$script" \
+              "https://git.slackware.nl/current/plain/source/a/pkgtools/scripts/$script?id=0fdc3ff59c3b02c3868f269bfd70cfcb2271b9c6" \
               --output "$pkgtools_dir/$script"
           done
           (

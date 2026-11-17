@@ -58,17 +58,18 @@ const status = computed((): StatusOutput | undefined => {
   return undefined;
 });
 
-const statusItemClasses = 'text-sm flex flex-row justify-start items-center gap-2 mt-2 px-2';
+const statusItemClasses =
+  'text-sm flex min-w-0 flex-row justify-start items-center gap-2 mt-2 px-2 [overflow-wrap:anywhere]';
 </script>
 
 <template>
   <li v-if="username" :class="statusItemClasses">
-    <UserCircleIcon class="h-4 w-4" aria-hidden="true" />
-    {{ username }}
+    <UserCircleIcon class="h-4 w-4 shrink-0" aria-hidden="true" />
+    <span class="min-w-0">{{ username }}</span>
   </li>
   <li v-if="status" :class="statusItemClasses">
-    <component :is="status.icon" :class="status.iconClasses" aria-hidden="true" />
-    {{ status.text }}
+    <component :is="status.icon" class="shrink-0" :class="status.iconClasses" aria-hidden="true" />
+    <span class="min-w-0">{{ status.text }}</span>
   </li>
   <li v-if="unraidApiRestartAction" class="w-full">
     <UpcDropdownItem :item="unraidApiRestartAction" />

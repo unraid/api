@@ -10,10 +10,27 @@ import { parse as parseIni } from 'ini';
 import type { MyServersConfig as LegacyConfig } from './my-servers.config.js';
 import { emptyMyServersConfig, MyServersConfig } from './connect.config.js';
 
+const pendingConnectWrites = new Map<string, Promise<void>>();
+
 @Injectable()
 export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig> {
     constructor(configService: ConfigService) {
         super(configService);
+    }
+
+    public override async persist(
+        config = this.configService.get<MyServersConfig>(this.configKey())
+    ): Promise<boolean> {
+        const path = this.configPath();
+        const previous = pendingConnectWrites.get(path) ?? Promise.resolve();
+        const write = previous.then(() => super.persist(config));
+        const settled = write.then(() => undefined, () => undefined);
+        pendingConnectWrites.set(path, settled);
+        try {
+            return await write;
+        } finally {
+            if (pendingConnectWrites.get(path) === settled) pendingConnectWrites.delete(path);
+        }
     }
 
     /**

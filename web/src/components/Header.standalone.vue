@@ -146,14 +146,18 @@ const copyLanIp = async () => {
       <div class="uh-actions flex shrink-0 items-center gap-x-1">
         <NotificationsSidebar />
 
-        <DropdownMenu v-model:open="dropdownOpen" align="end" side="bottom" :side-offset="4">
+        <DropdownMenu
+          v-model:open="dropdownOpen"
+          align="end"
+          side="bottom"
+          :side-offset="4"
+          content-class="box-border flex flex-col w-[350px] min-w-0 max-w-[calc(100vw-16px)] max-h-[var(--reka-dropdown-menu-content-available-height)] overflow-y-auto"
+        >
           <template #trigger>
             <UpcDropdownTrigger compact />
           </template>
           <template #content>
-            <div class="max-w-[350px] sm:min-w-[350px]">
-              <UpcDropdownContent @close-dropdown="dropdownOpen = false" />
-            </div>
+            <UpcDropdownContent class="w-auto min-w-0" @close-dropdown="dropdownOpen = false" />
           </template>
         </DropdownMenu>
       </div>
@@ -163,13 +167,14 @@ const copyLanIp = async () => {
 
 <style scoped>
 .unraid-header-shell {
-  --uh-header-inset: calc(var(--spacing) * 2.5);
+  --uh-header-inset: var(--unraid-header-inset, calc(var(--spacing) * 2.5));
   display: grid;
-  padding: calc(var(--spacing) * 1.25) var(--uh-header-inset);
+  padding: var(--unraid-header-padding-block, calc(var(--spacing) * 1.25)) var(--uh-header-inset);
+  padding-inline-start: var(--unraid-header-inset-start, var(--uh-header-inset));
   column-gap: 0.75rem;
   align-items: stretch;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto minmax(max-content, 1fr) auto;
+  grid-template-rows: minmax(18px, auto) minmax(48px, 1fr) auto;
 }
 
 .unraid-banner-gradient-layer {
@@ -240,13 +245,14 @@ const copyLanIp = async () => {
 
 @media (max-width: 639.98px) {
   .unraid-header-shell {
-    --uh-header-inset: calc(var(--spacing) * 2);
+    --uh-header-inset: var(--unraid-header-inset, calc(var(--spacing) * 2));
     grid-template-columns: fit-content(60vw) minmax(0, 1fr);
-    grid-template-rows: auto auto auto;
+    grid-template-rows: minmax(18px, auto) minmax(44px, auto) minmax(21px, auto);
     column-gap: var(--spacing);
     row-gap: var(--spacing);
-    padding-block: var(--spacing);
-    padding-inline: var(--uh-header-inset) !important;
+    padding-block: var(--unraid-header-padding-block, var(--spacing));
+    padding-inline: var(--uh-header-inset);
+    padding-inline-start: var(--unraid-header-inset-start, var(--uh-header-inset));
   }
 
   .uh-logo-block {
@@ -299,6 +305,7 @@ const copyLanIp = async () => {
   .uh-name > span,
   .uh-name :deep(button) {
     font-size: inherit;
+    line-height: inherit;
   }
 
   .uh-version {

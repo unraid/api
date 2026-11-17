@@ -1,5 +1,28 @@
 # Changelog
 
+## [4.37.11](https://github.com/unraid/api/compare/v4.37.10...v4.37.11) (2026-11-04)
+
+
+### Bug Fixes
+
+* **api:** avoid native CPU probing in Docker transport ([#2143](https://github.com/unraid/api/issues/2143)) ([0866820](https://github.com/unraid/api/commit/08668203b1e9108a26967a81ad6b23cf457ca39e))
+* **web:** stop double-counting notification overview after archive ([#2137](https://github.com/unraid/api/issues/2137)) ([793bbd7](https://github.com/unraid/api/commit/793bbd758c82629826ccb8408bb69c774b1d915e))
+
+## [4.37.10](https://github.com/unraid/api/compare/v4.37.9...v4.37.10) (2026-11-04)
+
+
+### Bug Fixes
+
+* **connect:** revoke cloud key on sign-out and plugin removal ([#2124](https://github.com/unraid/api/issues/2124)) ([2dd9895](https://github.com/unraid/api/commit/2dd98958d5934f0af045aea17981c69d235b9cb7))
+* **web:** resolve OS-1044 combined header QA blockers ([#2141](https://github.com/unraid/api/issues/2141)) ([cb362f4](https://github.com/unraid/api/commit/cb362f49c70694fb7e356caf84e6771743bfb75c))
+
+## [4.37.9](https://github.com/unraid/api/compare/v4.37.8...v4.37.9) (2026-10-28)
+
+
+### Bug Fixes
+
+* **graphql:** enforce introspection policy on websocket operations ([#2129](https://github.com/unraid/api/issues/2129)) ([5481db9](https://github.com/unraid/api/commit/5481db92147e2a61b91e037ee01c23cc63dfd4e3))
+
 ## [4.37.8](https://github.com/unraid/api/compare/v4.37.7...v4.37.8) (2026-10-26)
 
 

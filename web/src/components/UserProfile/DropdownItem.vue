@@ -27,6 +27,7 @@ const buttonClass = computed(() => {
     'text-left',
     'text-sm',
     'w-full',
+    'box-border',
     'flex',
     'flex-row',
     'items-center',
@@ -65,9 +66,11 @@ const buttonClass = computed(() => {
     :class="buttonClass"
     @click.stop="item?.click ? item?.click(item?.clickParams ?? []) : null"
   >
-    <span class="inline-flex flex-row items-center gap-x-2 leading-snug">
+    <span class="inline-flex min-w-0 flex-row items-center gap-x-2 leading-snug">
       <component :is="item?.icon" class="h-4 w-4 shrink-0 text-current" aria-hidden="true" />
-      {{ t(item?.text, item?.textParams ?? []) }}
+      <span class="min-w-0 [overflow-wrap:anywhere] whitespace-normal">
+        {{ t(item?.text, item?.textParams ?? []) }}
+      </span>
     </span>
     <ArrowTopRightOnSquareIcon
       v-if="showExternalIconOnHover"
