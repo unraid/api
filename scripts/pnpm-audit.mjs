@@ -5,7 +5,8 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const cwd = process.cwd();
-const args = process.argv.slice(2).filter((arg) => arg !== '--json');
+const advisoryOnly = process.argv.includes('--advisory');
+const args = process.argv.slice(2).filter((arg) => arg !== '--json' && arg !== '--advisory');
 const audit = spawnSync('pnpm', ['audit', '--json', ...args], {
   cwd,
   encoding: 'utf8',
@@ -25,7 +26,7 @@ try {
   if (audit.stdout) {
     process.stdout.write(audit.stdout);
   }
-  process.exitCode = audit.status ?? 1;
+  process.exitCode = audit.status || 1;
 }
 
 if (report && report.error) {
@@ -34,7 +35,7 @@ if (report && report.error) {
   report = undefined;
 }
 
-if (report && !isRecognizedAuditReport(report)) {
+if (report !== undefined && !isRecognizedAuditReport(report)) {
   process.stderr.write('pnpm audit returned an unrecognized report shape; failing closed.\n');
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   process.exitCode = audit.status || 1;
@@ -54,7 +55,17 @@ if (report) {
   updateVulnerabilityMetadata(report);
 
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
-  process.exitCode = Object.keys(report.advisories ?? {}).length === 0 ? 0 : (audit.status ?? 1);
+  const advisoryCount = Object.keys(report.advisories).length;
+  if (audit.error || audit.signal !== null || (audit.status !== 0 && audit.status !== 1)) {
+    process.exitCode = audit.status || 1;
+  } else if (advisoryOnly && audit.status === 1 && advisoryCount > 0) {
+    process.stderr.write(
+      `::warning title=Dependency audit::Found ${advisoryCount} advisories. See the audit report in this job.\n`,
+    );
+    process.exitCode = 0;
+  } else {
+    process.exitCode = advisoryCount === 0 ? 0 : (audit.status ?? 1);
+  }
 }
 
 function isRecognizedAuditReport(report) {
