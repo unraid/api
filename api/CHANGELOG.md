@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.37.12](https://github.com/unraid/api/compare/v4.37.11...v4.37.12) (2026-11-17)
+
+
+### Bug Fixes
+
+* **api:** persist permission-only API keys without roles ([#2152](https://github.com/unraid/api/issues/2152)) ([f24cabb](https://github.com/unraid/api/commit/f24cabbbab68ada24dae077f93abd0294bca7400))
+* **notifications:** sanitize fallback content ([#2147](https://github.com/unraid/api/issues/2147)) ([2af89ed](https://github.com/unraid/api/commit/2af89ed2d8599adb749033b4cb7cb2bc8cfa5b0d))
+* **updater:** constrain update-check requests ([#2149](https://github.com/unraid/api/issues/2149)) ([8484131](https://github.com/unraid/api/commit/8484131f7dc2565d473ca031e51d01676906f70e))
+
 ## [4.37.11](https://github.com/unraid/api/compare/v4.37.10...v4.37.11) (2026-11-04)
 
 
