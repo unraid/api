@@ -160,7 +160,7 @@ jobs:
         uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/coverage-final.json,../web/coverage/coverage-final.json,../unraid-ui/coverage/coverage-final.json,../packages/unraid-api-plugin-connect/coverage/coverage-final.json,../packages/unraid-shared/coverage/coverage-final.json
+          files: api/coverage/coverage-final.json,web/coverage/coverage-final.json,unraid-ui/coverage/coverage-final.json,packages/unraid-api-plugin-connect/coverage/coverage-final.json,packages/unraid-shared/coverage/coverage-final.json
           fail_ci_if_error: false
 
   audit:
@@ -186,7 +186,7 @@ jobs:
           node-version-file: ".nvmrc"
 
       - name: Audit production dependencies
-        run: pnpm run audit --prod
+        run: pnpm run audit --prod --advisory
 
   build-artifacts:
     name: Build All Artifacts
