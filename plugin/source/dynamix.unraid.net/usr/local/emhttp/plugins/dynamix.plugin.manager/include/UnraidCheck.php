@@ -105,11 +105,8 @@ class UnraidOsCheck
 
         $ignoredData = $this->readJsonFile(self::JSON_FILE_IGNORED);
 
-        if (is_array($ignoredData) && array_key_exists(self::JSON_FILE_IGNORED_KEY, $ignoredData)) {
-            return $ignoredData[self::JSON_FILE_IGNORED_KEY];
-        }
-
-        return [];
+        $versions = $ignoredData[self::JSON_FILE_IGNORED_KEY] ?? [];
+        return is_array($versions) ? array_values($versions) : [];
     }
 
     /**
@@ -281,8 +278,10 @@ class UnraidOsCheck
             if (file_exists(self::JSON_FILE_IGNORED)) {
                 $existingData = $this->readJsonFile(self::JSON_FILE_IGNORED);
 
-                if (isset($existingData[self::JSON_FILE_IGNORED_KEY])) {
-                    $existingData[self::JSON_FILE_IGNORED_KEY] = array_diff($existingData[self::JSON_FILE_IGNORED_KEY], [$removeVersion]);
+                if (is_array($existingData[self::JSON_FILE_IGNORED_KEY] ?? null)) {
+                    $existingData[self::JSON_FILE_IGNORED_KEY] = array_values(
+                        array_diff($existingData[self::JSON_FILE_IGNORED_KEY], [$removeVersion])
+                    );
                     $this->writeJsonFile(self::JSON_FILE_IGNORED, $existingData);
                     $this->respondWithSuccess($existingData);
                 } else {
@@ -299,17 +298,15 @@ class UnraidOsCheck
     private function ignoreVersion($version)
     {
         if ($this->isValidSemVerFormat($version)) {
-            $newData = [$this::JSON_FILE_IGNORED_KEY => [$version]];
-            $existingData = file_exists(self::JSON_FILE_IGNORED) ? $this->readJsonFile(self::JSON_FILE_IGNORED) : [];
+            $data = $this->readJsonFile(self::JSON_FILE_IGNORED);
+            $data = is_array($data) ? $data : [];
+            $versions = $data[self::JSON_FILE_IGNORED_KEY] ?? [];
+            $versions = is_array($versions) ? array_values($versions) : [];
+            $versions[] = $version;
+            $data[self::JSON_FILE_IGNORED_KEY] = $versions;
 
-            if (isset($existingData[self::JSON_FILE_IGNORED_KEY])) {
-                $existingData[self::JSON_FILE_IGNORED_KEY][] = $version;
-            } else {
-                $existingData[self::JSON_FILE_IGNORED_KEY] = [$version];
-            }
-
-            $this->writeJsonFile(self::JSON_FILE_IGNORED, $existingData);
-            $this->respondWithSuccess($existingData);
+            $this->writeJsonFile(self::JSON_FILE_IGNORED, $data);
+            $this->respondWithSuccess($data);
         } else {
             $this->respondWithError(400, "Invalid version format");
         }

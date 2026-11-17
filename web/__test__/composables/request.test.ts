@@ -9,6 +9,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { request } from '~/composables/services/request';
+import { WebguiUpdateIgnore } from '~/composables/services/webgui';
 
 const okResponse = () =>
   new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -35,6 +36,18 @@ describe('request csrf attachment', () => {
   it('attaches the page-global token on same-origin requests', async () => {
     await request.url('/plugins/dynamix.my.servers/include/unraid-api.php').post();
     expect(headerFromCall()).toBe('token-abc');
+  });
+
+  it('puts the token in the update-ignore form for WebGUI versions that only read POST fields', async () => {
+    await WebguiUpdateIgnore({ action: 'ignoreVersion', version: '7.4.99' });
+
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toBe('/plugins/dynamix.plugin.manager/include/UnraidCheck.php');
+    expect(options.method).toBe('POST');
+    const form = new URLSearchParams(options.body);
+    expect(form.get('csrf_token')).toBe('token-abc');
+    expect(form.get('action')).toBe('ignoreVersion');
+    expect(form.get('version')).toBe('7.4.99');
   });
 
   it('attaches the token on same-origin GET requests too', async () => {
