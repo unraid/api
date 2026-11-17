@@ -16,13 +16,19 @@ class UnraidUpdateCancel
     // Handle the cancellation
     $revertResult = $this->revertFiles();
     // Return JSON response for front-end client
-    $statusCode = $revertResult['success'] ? 200 : 500;
+    $statusCode = $revertResult['success'] ? 200 : (!empty($revertResult['busy']) ? 409 : 500);
     http_response_code($statusCode);
     header('Content-Type: application/json');
     echo json_encode($revertResult);
   }
 
   public function revertFiles() {
+    $mask = umask(0077);
+    $bootUpdateLock = @fopen('/var/run/unraid-boot-update.lock', 'ce');
+    umask($mask);
+    if (!$bootUpdateLock || !flock($bootUpdateLock, LOCK_EX | LOCK_NB)) {
+      return ['success' => false, 'busy' => true, 'message' => 'Another OS update operation is running'];
+    }
     try {
       $command = '/sbin/mount | grep -q "/boot/previous/bz"';
       exec($command, $output, $returnCode);
