@@ -80,15 +80,7 @@ export class RestController {
         @Res() res: FastifyReply
     ) {
         try {
-            // Validate required parameters
             const params = OidcRequestHandler.validateAuthorizeParams(providerId, state, redirectUri);
-
-            // IMPORTANT: Use the redirect_uri from query params directly
-            // Do NOT parse headers or try to build/validate against headers
-            // The frontend provides the complete redirect_uri
-            if (!params.redirectUri) {
-                return res.status(400).send('redirect_uri parameter is required');
-            }
 
             // Security validation: validate redirect_uri with support for allowed origins
             const requestInfo = OidcRequestHandler.extractRequestInfo(req);
