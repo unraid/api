@@ -33,7 +33,7 @@ const descriptionMarkup = computedAsync(async () => {
     return await Markdown.parse(props.description);
   } catch (e) {
     console.error(e);
-    return props.description;
+    return Markdown.sanitizeHtml(props.description);
   }
 }, '');
 

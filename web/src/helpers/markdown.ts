@@ -7,10 +7,7 @@ const defaultMarkedExtension: MarkedExtension = {
   hooks: {
     // must define as a function (instead of a lambda) to preserve/reflect bindings downstream
     postprocess(html) {
-      return DOMPurify.sanitize(html, {
-        FORBID_TAGS: ['style'],
-        FORBID_ATTR: ['style'],
-      });
+      return Markdown.sanitizeHtml(html);
     },
   },
 };
@@ -24,6 +21,13 @@ const defaultMarkedExtension: MarkedExtension = {
 
 export class Markdown {
   private static instance = Markdown.create();
+
+  static sanitizeHtml(html: string): string {
+    return DOMPurify.sanitize(html, {
+      FORBID_TAGS: ['style'],
+      FORBID_ATTR: ['style'],
+    });
+  }
 
   /**
    * Creates a `Marked` instance with default MarkedExtension's already added.
