@@ -26,17 +26,13 @@ class UnraidCheckExec
         ];
 
         if (isset($_GET['altUrl'])) {
-            $url = filter_var($_GET['altUrl'], FILTER_VALIDATE_URL);
-            if ($url !== false) {
-                $host = parse_url($url, PHP_URL_HOST);
-                $scheme = parse_url($url, PHP_URL_SCHEME);
-
-                if ($host && $scheme === 'https' && (
-                    $host === self::ALLOWED_DOMAIN ||
-                    str_ends_with($host, '.' . self::ALLOWED_DOMAIN)
-                )) {
-                    $params['altUrl'] = $url;
-                }
+            $url = is_string($_GET['altUrl']) ? trim($_GET['altUrl']) : '';
+            $parts = $url !== '' ? parse_url($url) : false;
+            if ($parts !== false && filter_var($url, FILTER_VALIDATE_URL) !== false &&
+                strtolower($parts['scheme'] ?? '') === 'https' &&
+                strtolower($parts['host'] ?? '') === self::ALLOWED_DOMAIN &&
+                !isset($parts['user']) && !isset($parts['pass']) && !isset($parts['port'])) {
+                $params['altUrl'] = $url;
             }
         }
 
