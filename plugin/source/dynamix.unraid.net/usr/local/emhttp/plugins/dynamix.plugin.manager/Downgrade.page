@@ -201,12 +201,15 @@ function confirmDowngrade() {
     html: true,
     type: 'warning',
     showCancelButton: true,
+    // Leave this dialog open so a fast error can replace it.
+    closeOnConfirm: false,
     confirmButtonText: "<?= _('Confirm') ?>",
     cancelButtonText: "<?= _('Cancel') ?>",
   }, function(confirm) {
     if (!confirm) {
       return false;
     }
+    swal.disableButtons();
     startDowngrade();
   });
 }

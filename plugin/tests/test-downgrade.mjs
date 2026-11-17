@@ -50,6 +50,12 @@ function harness(handler) {
         assert.ok(script);
         const posts = [];
         const dialogs = [];
+        let visibleDialog;
+        const swal = (...args) => {
+            visibleDialog = args[0];
+            dialogs.push(args);
+        };
+        swal.disableButtons = () => {};
         let refreshes = 0;
         const $ = () => ({ show() {}, hide() {} });
         $.param = (value) => new URLSearchParams(value).toString();
@@ -68,7 +74,7 @@ function harness(handler) {
             NchanSubscriber: class {
                 on() {}
             },
-            swal: (...args) => dialogs.push(args),
+            swal,
             refresh: () => {
                 refreshes++;
             },
@@ -80,6 +86,18 @@ function harness(handler) {
             start: () => runInContext('startDowngrade()', context),
             confirm: () => runInContext('confirmDowngrade()', context),
             refreshes: () => refreshes,
+            visibleDialog: () => visibleDialog,
+            clickConfirm: () => {
+                const [options, callback] = dialogs.at(-1);
+                callback(true);
+                if (options.closeOnConfirm !== false) {
+                    // SweetAlert removes visibility after running the callback.
+                    return () => {
+                        visibleDialog = undefined;
+                    };
+                }
+                return () => {};
+            },
         };
     } finally {
         rmSync(root, { recursive: true, force: true });
@@ -181,6 +199,17 @@ test('confirmation HTTP failure reports the error without refreshing', () => {
     assert.equal(h.posts.length, 2);
     assert.equal(h.refreshes(), 0);
     assert.equal(h.dialogs[0][0].text, 'Busy');
+});
+
+test('a fast busy response stays visible after the confirm dialog would have closed', () => {
+    const h = harness(marked);
+    h.confirm();
+    const finishClosing = h.clickConfirm();
+    h.posts[0].success({ success: true, nonce });
+    h.posts[1].failure({ responseJSON: { error: 'Busy' } });
+    finishClosing();
+    assert.equal(h.visibleDialog()?.text, 'Busy');
+    assert.equal(h.refreshes(), 0);
 });
 
 test('legacy HTTP failure reports the error without retrying', () => {
