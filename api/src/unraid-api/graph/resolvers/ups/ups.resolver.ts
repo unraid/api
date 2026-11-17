@@ -44,22 +44,22 @@ export class UPSResolver {
         };
     }
 
+    @Query(() => [UPSDevice])
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.CONFIG,
     })
-    @Query(() => [UPSDevice])
     async upsDevices(): Promise<UPSDevice[]> {
         const upsData = await this.upsService.getUPSData();
         // Assuming single UPS for now, but this could be expanded to support multiple devices
         return [this.createUPSDevice(upsData, upsData.MODEL || 'ups1')];
     }
 
+    @Query(() => UPSDevice, { nullable: true })
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.CONFIG,
     })
-    @Query(() => UPSDevice, { nullable: true })
     async upsDeviceById(@Args('id') id: string): Promise<UPSDevice | null> {
         const upsData = await this.upsService.getUPSData();
         const deviceId = upsData.MODEL || 'ups1';
@@ -69,11 +69,11 @@ export class UPSResolver {
         return null;
     }
 
+    @Query(() => UPSConfiguration)
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.CONFIG,
     })
-    @Query(() => UPSConfiguration)
     async upsConfiguration(): Promise<UPSConfiguration> {
         const config = await this.upsService.getCurrentConfig();
         return {
@@ -94,11 +94,11 @@ export class UPSResolver {
         };
     }
 
+    @Mutation(() => Boolean)
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.CONFIG,
     })
-    @Mutation(() => Boolean)
     async configureUps(@Args('config') config: UPSConfigInput): Promise<boolean> {
         await this.upsService.configureUPS(config);
         const updatedData = await this.upsService.getUPSData();
@@ -107,11 +107,11 @@ export class UPSResolver {
         return true;
     }
 
+    @Subscription(() => UPSDevice)
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.CONFIG,
     })
-    @Subscription(() => UPSDevice)
     upsUpdates() {
         return this.pubSub.asyncIterableIterator('upsUpdates');
     }
