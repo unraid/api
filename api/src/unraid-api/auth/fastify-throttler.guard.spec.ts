@@ -81,7 +81,7 @@ describe('FastifyThrottlerGuard client identity', () => {
         );
     });
 
-    it('keeps Unix socket clients independent and rejects missing or ambiguous identity', async () => {
+    it('keeps known Unix socket clients independent and shares one limit for unknown clients', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'api-ip-'));
         cleanups.push(() => rm(directory, { recursive: true, force: true }));
         const server = await createServer();
@@ -106,8 +106,10 @@ describe('FastifyThrottlerGuard client identity', () => {
         expect(await send('192.0.2.1')).toBe(204);
         expect(await send('192.0.2.1')).toBe(429);
         expect(await send('192.0.2.2')).toBe(204);
-        expect(await send()).toBe(400);
-        expect(await send('192.0.2.1, 192.0.2.2')).toBe(400);
-        expect(await send('invalid')).toBe(400);
+        expect(await send()).toBe(204);
+        expect(await send('192.0.2.1, 192.0.2.2')).toBe(204);
+        expect(await send('invalid')).toBe(429);
+        expect(await send()).toBe(429);
+        expect(await send('192.0.2.3')).toBe(204);
     });
 });

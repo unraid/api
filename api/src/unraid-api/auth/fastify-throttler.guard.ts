@@ -1,4 +1,4 @@
-import { BadRequestException, ExecutionContext, Inject, Injectable, Optional } from '@nestjs/common';
+import { ExecutionContext, Inject, Injectable, Optional } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import {
@@ -31,13 +31,14 @@ export class FastifyThrottlerGuard extends ThrottlerGuard {
         const peerAddress = request.raw.socket.remoteAddress;
         if (peerAddress) return peerAddress;
 
-        // Unix sockets have no peer IP. nginx overwrites this header with its TCP client address.
+        // WebGUI forwards its client IP over the Unix socket when available.
         const forwardedAddress = request.headers['x-forwarded-for'];
         if (typeof forwardedAddress === 'string' && isIP(forwardedAddress)) {
             return forwardedAddress;
         }
 
-        throw new BadRequestException('Client IP address is unavailable');
+        // Older WebGUI releases share one rate limit when the client IP is unavailable.
+        return 'unknown-client';
     }
 
     getRequestResponse(context: ExecutionContext) {
