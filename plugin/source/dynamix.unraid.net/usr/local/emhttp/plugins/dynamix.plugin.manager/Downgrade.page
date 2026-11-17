@@ -24,12 +24,29 @@ require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
 $rebootDetails = new RebootDetails();
 $rebootDetails->setPrevious();
 
+// Read the installed handler without invoking it: legacy handlers mutate boot files for every HTTP method.
+$downgradeHandler = @file_get_contents("$docroot/plugins/dynamix.plugin.manager/include/Downgrade.php");
+$downgradeProtocol = null;
+if (is_string($downgradeHandler)) {
+  if (preg_match('/^\/\/ @unraid-downgrade-protocol nonce-v1\r?$/m', $downgradeHandler)) {
+    $downgradeProtocol = 'nonce-v1';
+  } elseif (in_array(hash('sha256', $downgradeHandler), [
+    // Stock WebGUI handlers: 6.12.15 and 7.0.1 through 7.3.4.
+    'b7c9883fd74b5695c76855c9c75d590e85fb2da37815916f97c8dd65c87a8315',
+    '3c3ec52632e5e066b6db1d68154dd1201ed34afb6ddd5022af9e1cc64f4b4e4d',
+  ], true)) {
+    $downgradeProtocol = 'legacy';
+  }
+}
+
 $serverNameEscaped = htmlspecialchars(str_replace(' ', '_', strtolower($var['NAME'])));
 ?>
 
 <script>
 const nchan_diagnostics = new NchanSubscriber('/sub/diagnostics', { subscriber: 'websocket' });
 const reportUrl = new URL('https://forums.unraid.net/bug-reports/');
+const downgradeProtocol = <?= json_encode($downgradeProtocol) ?>;
+const downgradeVersion = <?= json_encode($rebootDetails->previousVersion) ?>;
 let diagnosticsFile = '';
 
 nchan_diagnostics.on('message', function(data) {
@@ -114,18 +131,67 @@ function cleanupDiagnostics() {
   setTimeout(cleanupDiagnostics, 2000);
 }
 
+function reportDowngradeError(xhr) {
+  $('div.spinner').hide('slow');
+
+  const response = xhr && xhr.responseJSON;
+  const message = response && response.error
+    ? response.error
+    : "_(Unable to complete the downgrade. Please try again.)_";
+
+  swal({
+    title: "_(Downgrade failed)_",
+    text: message,
+    type: 'error',
+    confirmButtonText: "_(Ok)_",
+  });
+}
+
 function startDowngrade() {
   $('div.spinner').show('slow');
+  const endpoint = '/plugins/dynamix.plugin.manager/include/Downgrade.php';
 
-  $.get(
-    '/plugins/dynamix.plugin.manager/include/Downgrade.php',
-    {
-      version: '<?= $rebootDetails->previousVersion ?>',
-    },
-    function() {
+  if (downgradeProtocol === 'legacy') {
+    // The stock handler reads version from the query string, even on POST.
+    $.post(endpoint + '?' + $.param({ version: downgradeVersion }), {}, function() {
       refresh();
-    }
-  );
+    }, 'text').fail(reportDowngradeError);
+    return;
+  }
+
+  if (downgradeProtocol !== 'nonce-v1') {
+    reportDowngradeError({ responseJSON: { error: "_(Downgrade is unavailable on this OS build.)_" } });
+    return;
+  }
+
+  $.post(
+    endpoint,
+    { action: 'prepare' },
+    function(prepareResponse) {
+      if (!prepareResponse || prepareResponse.success !== true ||
+          typeof prepareResponse.nonce !== 'string' || !/^[a-f0-9]{64}$/.test(prepareResponse.nonce)) {
+        reportDowngradeError({ responseJSON: prepareResponse });
+        return;
+      }
+      $.post(
+        endpoint,
+        {
+          nonce: prepareResponse.nonce,
+          confirm: 'yes',
+          version: downgradeVersion,
+        },
+        function(response) {
+          if (response && response.success === true) {
+            refresh();
+          } else {
+            reportDowngradeError({ responseJSON: response });
+          }
+        },
+        'json'
+      ).fail(reportDowngradeError);
+    },
+    'json'
+  ).fail(reportDowngradeError);
 }
 
 function confirmDowngrade() {
@@ -135,12 +201,15 @@ function confirmDowngrade() {
     html: true,
     type: 'warning',
     showCancelButton: true,
+    // Leave this dialog open so a fast error can replace it.
+    closeOnConfirm: false,
     confirmButtonText: "<?= _('Confirm') ?>",
     cancelButtonText: "<?= _('Cancel') ?>",
   }, function(confirm) {
     if (!confirm) {
       return false;
     }
+    swal.disableButtons();
     startDowngrade();
   });
 }
