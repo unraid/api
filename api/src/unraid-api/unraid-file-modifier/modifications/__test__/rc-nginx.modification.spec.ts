@@ -19,42 +19,45 @@ describe('rc.nginx client identity lifecycle', () => {
         await rm(directory, { recursive: true, force: true });
     });
 
-    it('patches integrated API versions, survives reapply, and rolls back cleanly', async () => {
-        const original = `CONNECT_CONFIG="existing"
+    it.each(['X-Forwarded-For', 'x-forwarded-for', 'x-FoRwArDeD-fOr'])(
+        'normalizes %s and survives reapply and rollback',
+        async (headerName) => {
+            const original = `CONNECT_CONFIG="existing"
 build_locations(){
   cat <<- 'EOF'
 \tlocation /graphql {
-\t    proxy_set_header X-Forwarded-For \\$http_x_forwarded_for;
+\t    proxy_set_header ${headerName} \\$http_x_forwarded_for;
 \t    proxy_pass http://unix:/var/run/unraid-api.sock:/graphql;
 \t    proxy_set_header Host \\$host;
 \t}
 \tEOF
 }
 `;
-        const file = join(directory, 'rc.nginx');
-        const previous = original.replace('CONNECT_CONFIG="existing"', 'CONNECT_CONFIG="previous"');
-        await writeFile(file, previous);
-        await writeFile(`${file}.patch`, createPatch(file, original, previous));
-        const modification = new RcNginxModification(new Logger());
-        modification.filePath = file;
-        expect((await modification.shouldApply()).shouldApply).toBe(true);
-        await modification.apply();
-        const patched = await readFile(file, 'utf8');
-        expect(patched).toContain('proxy_set_header X-Forwarded-For $remote_addr;');
-        expect(patched).not.toContain('$http_x_forwarded_for');
-        expect(patched.match(/proxy_set_header X-Forwarded-For/g)).toHaveLength(1);
-        const { stdout } = await promisify(execFile)('/bin/bash', [
-            '-c',
-            'source "$1"; build_locations',
-            'nginx-test',
-            file,
-        ]);
-        expect(stdout).toContain('proxy_set_header X-Forwarded-For $remote_addr;');
-        await modification.apply();
-        expect(await readFile(file, 'utf8')).toBe(patched);
-        await modification.rollback();
-        expect(await readFile(file, 'utf8')).toBe(original);
-    });
+            const file = join(directory, 'rc.nginx');
+            const previous = original.replace('CONNECT_CONFIG="existing"', 'CONNECT_CONFIG="previous"');
+            await writeFile(file, previous);
+            await writeFile(`${file}.patch`, createPatch(file, original, previous));
+            const modification = new RcNginxModification(new Logger());
+            modification.filePath = file;
+            expect((await modification.shouldApply()).shouldApply).toBe(true);
+            await modification.apply();
+            const patched = await readFile(file, 'utf8');
+            expect(patched).toContain('proxy_set_header X-Forwarded-For $remote_addr;');
+            expect(patched).not.toContain('$http_x_forwarded_for');
+            expect(patched.match(/proxy_set_header X-Forwarded-For/g)).toHaveLength(1);
+            const { stdout } = await promisify(execFile)('/bin/bash', [
+                '-c',
+                'source "$1"; build_locations',
+                'nginx-test',
+                file,
+            ]);
+            expect(stdout).toContain('proxy_set_header X-Forwarded-For $remote_addr;');
+            await modification.apply();
+            expect(await readFile(file, 'utf8')).toBe(patched);
+            await modification.rollback();
+            expect(await readFile(file, 'utf8')).toBe(original);
+        }
+    );
     it('emits a valid client address variable from the bundled nginx generator', async () => {
         const original = await readFile(
             new URL('./__fixtures__/downloaded/rc.nginx', import.meta.url),
@@ -87,6 +90,33 @@ build_locations(){
         expect(header.map((line) => line.trim())).toEqual([
             'proxy_set_header X-Forwarded-For $remote_addr;',
         ]);
+        await modification.apply();
+        expect(await readFile(file, 'utf8')).toBe(patched);
+        await modification.rollback();
+        expect(await readFile(file, 'utf8')).toBe(original);
+    });
+
+    it('normalizes existing headers outside the bundled patch context', async () => {
+        const fixture = await readFile(
+            new URL('./__fixtures__/downloaded/rc.nginx', import.meta.url),
+            'utf8'
+        );
+        const original = fixture.replace(
+            'proxy_intercept_errors on;',
+            'proxy_intercept_errors on;\n\t    proxy_set_header x-forwarded-for $http_x_forwarded_for;'
+        );
+        expect(original).not.toBe(fixture);
+        const file = join(directory, 'rc.nginx');
+        await writeFile(file, original);
+        const modification = new RcNginxModification(new Logger());
+        modification.filePath = file;
+
+        await modification.apply();
+
+        const patched = await readFile(file, 'utf8');
+        expect(patched.match(/proxy_set_header x-forwarded-for\s/gi)).toHaveLength(1);
+        expect(patched).toContain('proxy_set_header X-Forwarded-For $remote_addr;');
+        expect(patched).not.toContain('$http_x_forwarded_for');
         await modification.apply();
         expect(await readFile(file, 'utf8')).toBe(patched);
         await modification.rollback();

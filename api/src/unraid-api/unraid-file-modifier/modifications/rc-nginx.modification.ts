@@ -15,6 +15,11 @@ export default class RcNginxModification extends FileModification {
     public filePath: string = '/etc/rc.d/rc.nginx' as const;
     id: string = 'rc-nginx';
 
+    protected async getPregeneratedPatch(): Promise<string | null> {
+        // Existing forwarding headers can occur outside the bundled patch's context.
+        return null;
+    }
+
     protected async generatePatch(overridePath?: string): Promise<string> {
         if (!(await fileExists(this.filePath))) {
             throw new Error(`File ${this.filePath} not found.`);
@@ -84,7 +89,7 @@ check_remote_access(){
                     /^[\t ]*proxy_pass http:\/\/unix:\/var\/run\/unraid-api\.sock:\/graphql;[^\n]*\n/m;
                 if (!proxyLine.test(directives)) return match;
                 const withoutForwardedFor = directives.replace(
-                    /^[\t ]*proxy_set_header X-Forwarded-For[^\n]*\n/gm,
+                    /^[\t ]*proxy_set_header[\t ]+X-Forwarded-For[\t ]+[^\n]*\n/gim,
                     ''
                 );
                 const updated = withoutForwardedFor.replace(proxyLine, (line) => {
