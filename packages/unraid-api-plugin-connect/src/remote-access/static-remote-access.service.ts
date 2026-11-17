@@ -17,14 +17,17 @@ export class StaticRemoteAccessService {
     private logger = new Logger(StaticRemoteAccessService.name);
 
     async stopRemoteAccess() {
-        this.eventEmitter.emit(EVENTS.DISABLE_WAN_ACCESS);
+        await this.eventEmitter.emitAsync(EVENTS.DISABLE_WAN_ACCESS);
     }
 
     async beginRemoteAccess(): Promise<AccessUrl | null> {
         this.logger.log('Begin Static Remote Access');
         // enabling/disabling static remote access is a config-only change.
         // the actual forwarding must be configured on the router, outside of the API.
-        this.eventEmitter.emit(EVENTS.ENABLE_WAN_ACCESS);
+        const results: unknown[] = await this.eventEmitter.emitAsync(EVENTS.ENABLE_WAN_ACCESS);
+        if (!results.length || results.some((result) => result !== true)) {
+            throw new Error('Failed to reload nginx for Static Remote Access');
+        }
         return this.urlResolverService.getRemoteAccessUrl();
     }
 }

@@ -15,6 +15,8 @@ import BrandAvatar from '~/components/Brand/Avatar.vue';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
+const { compact = false } = defineProps<{ compact?: boolean }>();
+
 const { t } = useI18n();
 
 const { errors } = storeToRefs(useErrorsStore());
@@ -68,7 +70,9 @@ const title = computed((): string => {
       />
     </span>
 
-    <Bars3Icon class="w-5" />
+    <!-- In the combined mobile header, the alert replaces the menu glyph.
+         Keep the alert visible without adding another icon to the row. -->
+    <Bars3Icon class="w-5" :class="{ 'max-sm:!hidden': compact && errors.length && errors[0].level }" />
 
     <BrandAvatar v-if="connectPluginInstalled" />
   </Button>

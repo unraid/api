@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "ऐरे का {0}% उपयोग हुआ",
   "headerOsVersion.apiVersionCopiedToClipboard": "एपीआई संस्करण क्लिपबोर्ड में कॉपी किया गया",
   "headerOsVersion.osVersionCopiedToClipboard": "OS संस्करण क्लिपबोर्ड में कॉपी किया गया",
+  "headerOsVersion.rebootToUpdate": "अपडेट करने के लिए रीबूट करें",
   "headerOsVersion.unraidApi": "Unraid एपीआई",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} जारी किया गया",

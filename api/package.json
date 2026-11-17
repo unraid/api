@@ -1,6 +1,6 @@
 {
     "name": "@unraid/api",
-    "version": "4.37.5",
+    "version": "4.37.11",
     "main": "src/cli/index.ts",
     "type": "module",
     "corepack": {
@@ -60,6 +60,7 @@
         "@apollo/client": "3.14.0",
         "@apollo/server": "5.5.1",
         "@as-integrations/fastify": "3.1.0",
+        "@escape.tech/graphql-armor": "3.2.0",
         "@fastify/cookie": "11.0.2",
         "@fastify/helmet": "13.0.1",
         "@graphql-tools/merge": "9.1.1",
@@ -221,6 +222,7 @@
         "zx": "8.8.5"
     },
     "overrides": {
+        "ssh2": "1.17.0",
         "eslint": {
             "jiti": "2.7.0"
         },

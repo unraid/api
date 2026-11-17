@@ -1,5 +1,63 @@
 # Changelog
 
+## [4.37.11](https://github.com/unraid/api/compare/v4.37.10...v4.37.11) (2026-11-04)
+
+
+### Bug Fixes
+
+* **api:** avoid native CPU probing in Docker transport ([#2143](https://github.com/unraid/api/issues/2143)) ([0866820](https://github.com/unraid/api/commit/08668203b1e9108a26967a81ad6b23cf457ca39e))
+* **web:** stop double-counting notification overview after archive ([#2137](https://github.com/unraid/api/issues/2137)) ([793bbd7](https://github.com/unraid/api/commit/793bbd758c82629826ccb8408bb69c774b1d915e))
+
+## [4.37.10](https://github.com/unraid/api/compare/v4.37.9...v4.37.10) (2026-11-04)
+
+
+### Bug Fixes
+
+* **connect:** revoke cloud key on sign-out and plugin removal ([#2124](https://github.com/unraid/api/issues/2124)) ([2dd9895](https://github.com/unraid/api/commit/2dd98958d5934f0af045aea17981c69d235b9cb7))
+* **web:** resolve OS-1044 combined header QA blockers ([#2141](https://github.com/unraid/api/issues/2141)) ([cb362f4](https://github.com/unraid/api/commit/cb362f49c70694fb7e356caf84e6771743bfb75c))
+
+## [4.37.9](https://github.com/unraid/api/compare/v4.37.8...v4.37.9) (2026-10-28)
+
+
+### Bug Fixes
+
+* **graphql:** enforce introspection policy on websocket operations ([#2129](https://github.com/unraid/api/issues/2129)) ([5481db9](https://github.com/unraid/api/commit/5481db92147e2a61b91e037ee01c23cc63dfd4e3))
+
+## [4.37.8](https://github.com/unraid/api/compare/v4.37.7...v4.37.8) (2026-10-26)
+
+
+### Bug Fixes
+
+* **api:** preserve partial results and accurate notification counts ([#2123](https://github.com/unraid/api/issues/2123)) ([3371fd4](https://github.com/unraid/api/commit/3371fd43a354259aa2527f006d1f3d561fa3923a))
+* **auth:** limit repeated authorization requests ([#2094](https://github.com/unraid/api/issues/2094)) ([e160a4e](https://github.com/unraid/api/commit/e160a4ea136e56f7bab68ce9e3b6b8cc73b3aac7))
+* **auth:** prevent custom permission checks racing policy refresh ([#2125](https://github.com/unraid/api/issues/2125)) ([05ba1bf](https://github.com/unraid/api/commit/05ba1bfb7e4f1f1c2ba3c6af3a1037d336334b0a))
+* **graphql:** bound request size and expanded selections ([#2121](https://github.com/unraid/api/issues/2121)) ([0c60d9d](https://github.com/unraid/api/commit/0c60d9d34c88b5b146a6fc930304b3c32c5617f0))
+* **graphql:** filter schema metadata requests ([#2095](https://github.com/unraid/api/issues/2095)) ([dcd396e](https://github.com/unraid/api/commit/dcd396ede36de067724d456505924c690f0b1ee0))
+* **settings:** omit internal provider values ([#2096](https://github.com/unraid/api/issues/2096)) ([30e8d6a](https://github.com/unraid/api/commit/30e8d6a374aaffa044dcfaf6821dc08c7459cda5))
+* **updates:** embed internal OS checks on Tools page ([#2020](https://github.com/unraid/api/issues/2020)) ([b95ae92](https://github.com/unraid/api/commit/b95ae924a73b63e07d6010a09f901b8ccec1b77c))
+* **web:** restore right-side banner fade on legacy headers ([#2126](https://github.com/unraid/api/issues/2126)) ([da7b87d](https://github.com/unraid/api/commit/da7b87de9511134ec15080b7cde53a7a6bfc9a56))
+
+## [4.37.7](https://github.com/unraid/api/compare/v4.37.6...v4.37.7) (2026-10-23)
+
+
+### Bug Fixes
+
+* **runtime:** update bundled Node to 22.23.4 ([#2117](https://github.com/unraid/api/issues/2117)) ([8df285c](https://github.com/unraid/api/commit/8df285c9ad2aed90bb28032563e6987cacf0a18e))
+
+## [4.37.6](https://github.com/unraid/api/compare/v4.37.5...v4.37.6) (2026-10-20)
+
+
+### Bug Fixes
+
+* **api:** stop temperature metrics from spinning up array disks ([#2091](https://github.com/unraid/api/issues/2091)) ([b15af83](https://github.com/unraid/api/commit/b15af83c3bf91454cac2f988cd81118cffa2e4d8))
+* **callback:** validate callback requests ([#2097](https://github.com/unraid/api/issues/2097)) ([1bda4d2](https://github.com/unraid/api/commit/1bda4d28ba75b7deb93d348b5f5cc86aae9de2af))
+* **connect:** avoid restarting active static remote access ([#2110](https://github.com/unraid/api/issues/2110)) ([d19a6f4](https://github.com/unraid/api/commit/d19a6f4e5fa2a9d2142595022931b5743f2cb24d))
+* **deps:** refresh vulnerable API and web packages ([#2098](https://github.com/unraid/api/issues/2098)) ([64eac12](https://github.com/unraid/api/commit/64eac12c94039b681fd42e8afa0cfdcd2fb3cb5b))
+* **plugin:** bind component cleanup to the exact package manifest ([#2107](https://github.com/unraid/api/issues/2107)) ([89b1395](https://github.com/unraid/api/commit/89b13957c2d68b0df8150fb1b8df79edbcb5c02c))
+* **web:** align mobile header identity and update actions ([#2111](https://github.com/unraid/api/issues/2111)) ([6582cc1](https://github.com/unraid/api/commit/6582cc1eb4526a7ed7ac69655425be2322c25e1a))
+* **web:** align registration license action buttons ([#2101](https://github.com/unraid/api/issues/2101)) ([b638d29](https://github.com/unraid/api/commit/b638d29214187f13574edc50d90812dcb6ec3aa9))
+* **web:** polish combined header on mobile and desktop ([#2109](https://github.com/unraid/api/issues/2109)) ([64f1e81](https://github.com/unraid/api/commit/64f1e81006a4af791c8970f21fbdd7f429016842))
+
 ## [4.37.5](https://github.com/unraid/api/compare/v4.37.4...v4.37.5) (2026-09-16)
 
 

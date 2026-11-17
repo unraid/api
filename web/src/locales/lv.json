@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "Izmantoti {0}% no masīva",
   "headerOsVersion.apiVersionCopiedToClipboard": "API versija nokopēta klipīšdēlī",
   "headerOsVersion.osVersionCopiedToClipboard": "OS versija nokopēta klipīšdēlī",
+  "headerOsVersion.rebootToUpdate": "Restartēt, lai atjauninātu",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} Izlaists",

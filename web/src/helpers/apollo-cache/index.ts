@@ -4,10 +4,7 @@ import { mergeAndDedup } from '~/helpers/apollo-cache/merge';
 import type { InMemoryCacheConfig } from '@apollo/client/core';
 import type { NotificationOverview } from '~/composables/gql/graphql';
 
-import {
-  getNotifications,
-  notificationsOverview,
-} from '~/components/Notifications/graphql/notification.query';
+import { getNotifications } from '~/components/Notifications/graphql/notification.query';
 import { NotificationType } from '~/composables/gql/graphql';
 import { NotificationTypename } from '~/composables/gql/typename';
 
@@ -121,8 +118,11 @@ const defaultCacheConfig: InMemoryCacheConfig = {
         },
         archiveNotification: {
           /**
-           * Optimistically decrements unread total from overview &
            * Ensures newly archived notifications appear in the archive list without a page reload.
+           *
+           * Overview counts are left alone: the server publishes the new overview over the
+           * `notificationsOverview` subscription, so a local decrement would count the
+           * archive twice (e.g. an unread total of -1).
            *
            * When a notification is archived, we need to evict the cached archive list to force a refetch.
            * This ensures the archived notification appears in the correct sorted position.
@@ -133,12 +133,11 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            *
            * This function:
            *
-           * 1. Optimistically updates notification overview
-           * 2. Checks if the cache has an archive list. If not, this function is a no-op.
-           * 3. If the list has items, evicts just the archive list
-           * 4. If it is empty, evicts the entire notifications cache
-           * 5. Runs garbage collection to clean up orphaned references
-           * 6. Returns the original mutation result
+           * 1. Checks if the cache has an archive list. If not, this function is a no-op.
+           * 2. If the list has items, evicts just the archive list
+           * 3. If it is empty, evicts the entire notifications cache
+           * 4. Runs garbage collection to clean up orphaned references
+           * 5. Returns the original mutation result
            *
            * @param _ - Existing cache value (unused)
            * @param incoming - Result (i.e. the archived notification) from the server after archiving
@@ -146,13 +145,6 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            * @returns The incoming result to be cached
            */
           merge(_, incoming, { cache }) {
-            cache.updateQuery({ query: notificationsOverview }, (data) => {
-              if (!data) return;
-              const update = structuredClone(data);
-              update.notifications.overview.unread.total--;
-              return update;
-            });
-
             const archiveQuery = cache.readQuery({
               query: getNotifications,
               // @ts-expect-error the cache only uses the filter type; the limit & offset are superfluous.

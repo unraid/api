@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "アレイの{0}%が使用されています",
   "headerOsVersion.apiVersionCopiedToClipboard": "APIバージョンがクリップボードにコピーされました",
   "headerOsVersion.osVersionCopiedToClipboard": "OSバージョンがクリップボードにコピーされました",
+  "headerOsVersion.rebootToUpdate": "アップデートのため再起動する",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0}がリリースされました",

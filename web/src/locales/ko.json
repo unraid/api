@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "어레이의 {0}% 사용됨",
   "headerOsVersion.apiVersionCopiedToClipboard": "API 버전이 클립보드에 복사됨",
   "headerOsVersion.osVersionCopiedToClipboard": "OS 버전이 클립보드에 복사됨",
+  "headerOsVersion.rebootToUpdate": "업데이트하려면 재부팅",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} 릴리즈됨",

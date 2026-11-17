@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia';
 import { useLazyQuery } from '@vue/apollo-composable';
 
 import {
+  ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
   BellAlertIcon,
   ClipboardDocumentIcon,
@@ -116,10 +117,13 @@ const updateOsStatus = computed(() => {
     return {
       badge: {
         color: 'yellow',
-        icon: ExclamationTriangleIcon,
+        icon:
+          rebootType.value === 'thirdPartyDriversDownloading' ? ArrowPathIcon : ExclamationTriangleIcon,
       },
       href: rebootType.value === 'downgrade' ? WEBGUI_TOOLS_DOWNGRADE : WEBGUI_TOOLS_UPDATE,
-      text: t(rebootTypeText.value),
+      text:
+        rebootType.value === 'update' ? t('headerOsVersion.rebootToUpdate') : t(rebootTypeText.value),
+      title: rebootTypeText.value,
     };
   }
 
@@ -146,12 +150,12 @@ const updateOsStatus = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center justify-start gap-2">
+  <div class="header-version flex min-w-0 flex-wrap items-center justify-start gap-2">
     <DropdownMenuRoot @update:open="handleDropdownOpen">
       <DropdownMenuTrigger as-child>
         <Button
           variant="link"
-          class="xs:text-sm text-header-text-secondary hover:text-orange-dark focus:text-orange-dark flex h-auto flex-row items-center gap-x-1 p-0 text-xs leading-none font-semibold hover:underline focus:underline"
+          class="header-version-trigger xs:text-sm text-header-text-secondary hover:text-orange-dark focus:text-orange-dark flex h-auto flex-row items-center gap-x-1 p-0 text-xs leading-none font-semibold hover:underline focus:underline"
           :title="t('headerOsVersion.versionInformation')"
         >
           <InformationCircleIcon :style="{ width: '12px', height: '12px', flexShrink: 0 }" />
@@ -218,12 +222,18 @@ const updateOsStatus = computed(() => {
       :title="updateOsStatus.title ?? updateOsStatus.text"
       :disabled="!updateOsStatus.href && !updateOsStatus.click"
       size="sm"
+      class="header-update-status max-w-full text-start whitespace-normal max-sm:min-h-6"
+      :class="updateOsStatus.badge?.color === 'orange' ? 'text-gray-950' : ''"
       @click="handleUpdateStatusClick"
     >
       <span v-if="updateOsStatus.badge?.icon" class="inline-flex h-4 w-4 shrink-0">
-        <component :is="updateOsStatus.badge.icon" class="h-full w-full" />
+        <component
+          :is="updateOsStatus.badge.icon"
+          class="h-full w-full"
+          :class="{ 'motion-safe:animate-spin': rebootType === 'thirdPartyDriversDownloading' }"
+        />
       </span>
-      {{ updateOsStatus.text || '' }}
+      <span class="min-w-0">{{ updateOsStatus.text || '' }}</span>
     </Button>
   </div>
 
@@ -235,3 +245,19 @@ const updateOsStatus = computed(() => {
     @close="showOsReleaseNotesModal = false"
   />
 </template>
+
+<style scoped>
+.header-update-status {
+  width: fit-content;
+  padding-block: var(--spacing);
+  padding-inline: calc(var(--spacing) * 3);
+}
+
+@media (max-width: 639.98px) {
+  .header-version {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    width: 100%;
+  }
+}
+</style>

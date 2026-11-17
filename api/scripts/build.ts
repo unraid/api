@@ -38,6 +38,12 @@ const LOCAL_PATCHED_DEPENDENCIES = [
         validationPath: 'build/src/nat-upnp/client.js',
         validationMarker: 'No trusted gateway addresses found',
     },
+    {
+        packageName: 'ssh2',
+        patchPath: join(REPOSITORY_ROOT, 'patches/ssh2@1.17.0.patch'),
+        validationPath: 'lib/protocol/constants.js',
+        validationMarker: 'Use the default cipher order without native CPU probing',
+    },
 ] as const;
 
 /**
@@ -199,5 +205,5 @@ try {
         console.log(`Error: ${error.message}`);
     }
 
-    exit(error.exitCode);
+    exit(error.exitCode || 1);
 }

@@ -11,13 +11,14 @@ vi.mock('@unraid/ui', () => ({
   BrandButton: { template: '<button><slot /></button>' },
   BrandLoading: { template: '<div class="brand-loading" />' },
   cn: (...classes: string[]) => classes.filter(Boolean).join(' '),
-  ResponsiveModal: { template: '<div><slot /></div>', props: ['open'] },
+  ResponsiveModal: { template: '<div class="responsive-modal"><slot /></div>', props: ['open'] },
   ResponsiveModalFooter: { template: '<div><slot /></div>' },
-  ResponsiveModalHeader: { template: '<div><slot /></div>' },
-  ResponsiveModalTitle: { template: '<div><slot /></div>' },
+  ResponsiveModalHeader: { template: '<div class="responsive-modal-header"><slot /></div>' },
+  ResponsiveModalTitle: { template: '<h2><slot /></h2>' },
 }));
 
 vi.mock('@heroicons/vue/24/solid', () => ({
+  ArrowPathIcon: { template: '<svg />' },
   ArrowRightIcon: { template: '<svg />' },
   ArrowTopRightOnSquareIcon: { template: '<svg />' },
   KeyIcon: { template: '<svg />' },
@@ -108,6 +109,18 @@ describe('ChangelogModal iframeSrc', () => {
         plugins: [createTestI18n()],
       },
     });
+
+  it('keeps its title in the header and exposes a loading status', () => {
+    const wrapper = mount(ChangelogModal, {
+      props: { open: true, release: { version: '7.3.0' } },
+      global: { plugins: [createTestI18n()] },
+    });
+    expect(wrapper.find('.responsive-modal > .responsive-modal-header h2').text()).toBe(
+      'Unraid 7.3.0 release notes'
+    );
+    expect(wrapper.find('[role="status"]').text()).toBe('Loading release notes');
+    expect(wrapper.find('[role="status"] .brand-loading').exists()).toBe(true);
+  });
 
   beforeEach(() => {
     mockRenew.mockClear();

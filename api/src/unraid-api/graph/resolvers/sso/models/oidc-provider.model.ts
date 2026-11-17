@@ -174,3 +174,8 @@ export class OidcProvider {
     @IsOptional()
     buttonStyle?: string;
 }
+
+export const redactOidcClientSecret = (provider: OidcProvider): Omit<OidcProvider, 'clientSecret'> => {
+    const { clientSecret: _clientSecret, ...safeProvider } = provider;
+    return safeProvider;
+};

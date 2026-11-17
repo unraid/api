@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "Використано {0}% масиву",
   "headerOsVersion.apiVersionCopiedToClipboard": "Версія API скопійована в буфер обміну",
   "headerOsVersion.osVersionCopiedToClipboard": "Версія OS скопійована в буфер обміну",
+  "headerOsVersion.rebootToUpdate": "Перезавантажити для оновлення",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} випущено",

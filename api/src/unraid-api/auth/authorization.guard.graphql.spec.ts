@@ -261,4 +261,13 @@ describe('GraphQL authorization boundary', () => {
         });
         expect(JSON.stringify(result)).not.toContain(provider.clientSecret);
     });
+    it('omits persisted OIDC client secrets from every admin read path', async () => {
+        const result = await execute(
+            'query { oidcProviders { clientSecret } oidcProvider(id: "test-provider") { clientSecret } oidcConfiguration { providers { clientSecret } } settings { sso { oidcProviders { clientSecret } } unified { values } } }',
+            Role.ADMIN
+        );
+        expect(result.errors).toBeUndefined();
+        expect(JSON.stringify(result)).not.toContain(provider.clientSecret);
+        expect(result.data?.oidcProviders).toEqual([{ clientSecret: null }]);
+    });
 });

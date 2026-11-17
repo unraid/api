@@ -129,13 +129,6 @@ const overview = computed(() => {
   return result.value.notifications.overview;
 });
 
-/** This recalculates the archived count due to notifications going to archived + unread when they are in an Unread state. */
-const readArchivedCount = computed(() => {
-  if (!overview.value) return 0;
-  const { archive, unread } = overview.value;
-  return Math.max(0, archive.total - unread.total);
-});
-
 const prepareToViewNotifications = () => {
   void recalculateOverview();
 };
@@ -194,7 +187,7 @@ watch(open, (isOpen) => {
               <TabsTrigger value="archived" as-child>
                 <Button variant="ghost" size="sm" class="inline-flex items-center gap-1 px-3 py-1">
                   <span>{{ t('notifications.sidebar.archivedTab') }}</span>
-                  <span v-if="overview" class="font-normal">({{ readArchivedCount }})</span>
+                  <span v-if="overview" class="font-normal">({{ overview.archive.total }})</span>
                 </Button>
               </TabsTrigger>
             </TabsList>

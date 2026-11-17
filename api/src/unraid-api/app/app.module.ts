@@ -2,7 +2,6 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerModule } from '@nestjs/throttler';
 
 import { LoggerModule } from 'nestjs-pino';
 
@@ -51,12 +50,6 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
         CacheModule.register({ isGlobal: true }),
         GraphModule,
         RestModule,
-        ThrottlerModule.forRoot([
-            {
-                ttl: 10000, // 10 seconds
-                limit: 100, // 100 requests per 10 seconds
-            },
-        ]),
         UnraidFileModifierModule,
     ],
     controllers: [],

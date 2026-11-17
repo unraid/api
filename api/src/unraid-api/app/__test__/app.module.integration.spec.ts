@@ -4,6 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import WebSocket from 'ws';
 
 import { AppModule } from '@app/unraid-api/app/app.module.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
@@ -177,6 +178,124 @@ describe('AppModule Integration Tests', () => {
             // Either we get data or errors, but the endpoint should respond
             expect(response.body.data || response.body.errors).toBeDefined();
         });
+
+        it('rejects an amplified GraphQL request before execution', async () => {
+            const fields = Array.from({ length: 101 }, (_, index) => `a${index}: isSSOEnabled`).join(
+                ' '
+            );
+            const response = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: `{ ${fields} }` });
+
+            expect(response.status).toBe(400);
+            expect(response.body.data).toBeUndefined();
+            expect(response.body.errors).toBeDefined();
+        });
+
+        it('rejects oversized GraphQL documents during parsing', async () => {
+            const fields = Array.from({ length: 2_501 }, (_, index) => `a${index}: isSSOEnabled`).join(
+                ' '
+            );
+            const response = await request(app.getHttpServer())
+                .post('/graphql')
+                .send({ query: `{ ${fields} }` });
+
+            expect(response.status).toBe(400);
+            expect(response.body.data).toBeUndefined();
+            expect(response.body.errors).toBeDefined();
+        });
+
+        it('applies the same bounds to WebSocket operations', async () => {
+            await app.listen(0, '127.0.0.1');
+            const address = app.getHttpServer().address();
+            if (!address || typeof address === 'string') throw new Error('Expected TCP listener');
+            const socket = new WebSocket(
+                `ws://127.0.0.1:${address.port}/graphql`,
+                'graphql-transport-ws'
+            );
+            type Message = { type: string; payload?: unknown };
+            const messages: Message[] = [];
+            let waiting: ((message: Message) => void) | undefined;
+            socket.on('message', (data) => {
+                const message: Message = JSON.parse(data.toString());
+                if (waiting) {
+                    const resolve = waiting;
+                    waiting = undefined;
+                    resolve(message);
+                } else {
+                    messages.push(message);
+                }
+            });
+            const receive = () => {
+                const queued = messages.shift();
+                if (queued) return Promise.resolve(queued);
+                return new Promise<Message>((resolve, reject) => {
+                    const timer = setTimeout(() => {
+                        waiting = undefined;
+                        reject(new Error('WebSocket response timed out'));
+                    }, 5_000);
+                    waiting = (message) => {
+                        clearTimeout(timer);
+                        resolve(message);
+                    };
+                });
+            };
+
+            try {
+                await new Promise<void>((resolve, reject) => {
+                    socket.once('open', () => resolve());
+                    socket.once('error', reject);
+                });
+                const acknowledgement = receive();
+                socket.send(JSON.stringify({ type: 'connection_init' }));
+                expect((await acknowledgement).type).toBe('connection_ack');
+
+                const normalResponse = receive();
+                socket.send(
+                    JSON.stringify({
+                        id: 'normal',
+                        type: 'subscribe',
+                        payload: { query: '{ isSSOEnabled }' },
+                    })
+                );
+                expect((await normalResponse).type).toBe('next');
+                expect((await receive()).type).toBe('complete');
+
+                const aliases = Array.from(
+                    { length: 101 },
+                    (_, index) => `a${index}: isSSOEnabled`
+                ).join(' ');
+                const aliasResponse = receive();
+                socket.send(
+                    JSON.stringify({
+                        id: 'aliases',
+                        type: 'subscribe',
+                        payload: { query: `{ ${aliases} }` },
+                    })
+                );
+                const aliasMessage = await aliasResponse;
+                expect(aliasMessage.type).toBe('error');
+                expect(JSON.stringify(aliasMessage.payload)).toContain('Aliases limit');
+
+                const tokens = Array.from(
+                    { length: 2_501 },
+                    (_, index) => `a${index}: isSSOEnabled`
+                ).join(' ');
+                const tokenResponse = receive();
+                socket.send(
+                    JSON.stringify({
+                        id: 'tokens',
+                        type: 'subscribe',
+                        payload: { query: `{ ${tokens} }` },
+                    })
+                );
+                const tokenMessage = await tokenResponse;
+                expect(tokenMessage.type).toBe('error');
+                expect(JSON.stringify(tokenMessage.payload)).toContain('5000');
+            } finally {
+                socket.terminate();
+            }
+        }, 15_000);
     });
 
     describe('Service Integration', () => {

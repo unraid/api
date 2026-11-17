@@ -424,6 +424,7 @@
   "headerArrayUsage.usedOfArray": "阵列已使用 {0}%",
   "headerOsVersion.apiVersionCopiedToClipboard": "API 版本已复制到剪贴板",
   "headerOsVersion.osVersionCopiedToClipboard": "OS 版本已复制到剪贴板",
+  "headerOsVersion.rebootToUpdate": "重启以更新",
   "headerOsVersion.unraidApi": "Unraid API",
   "headerOsVersion.unraidOs": "Unraid OS",
   "headerOsVersion.unraidOsReleased": "Unraid OS {0} 已发布",

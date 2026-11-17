@@ -15,17 +15,17 @@ export class WanAccessEventHandler {
         private readonly networkService: NetworkService
     ) {}
 
-    @OnEvent(EVENTS.ENABLE_WAN_ACCESS, { async: true })
+    @OnEvent(EVENTS.ENABLE_WAN_ACCESS, { async: true, promisify: true })
     async enableWanAccess() {
         this.logger.log('Enabling WAN Access');
         this.configService.set('connect.config.wanaccess', true);
-        await this.networkService.reloadNetworkStack();
+        return this.networkService.reloadNetworkStack();
     }
 
-    @OnEvent(EVENTS.DISABLE_WAN_ACCESS, { async: true })
+    @OnEvent(EVENTS.DISABLE_WAN_ACCESS, { async: true, promisify: true })
     async disableWanAccess() {
         this.logger.log('Disabling WAN Access');
         this.configService.set('connect.config.wanaccess', false);
-        await this.networkService.reloadNetworkStack();
+        return this.networkService.reloadNetworkStack();
     }
 }

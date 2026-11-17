@@ -7,9 +7,9 @@
 @layer theme, unapi-base, components, utilities;
 
 /* Import theme and utilities only - no global preflight */
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
-@import "@nuxt/ui";
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+@import '@nuxt/ui';
 @import 'tw-animate-css';
 @import '../../../@tailwind-shared/index.css';
 
@@ -25,7 +25,7 @@
 @layer unapi-base {
   /* Scope all Tailwind preflight styles to .unapi */
   .unapi {
-    @import "tailwindcss/preflight.css";
+    @import 'tailwindcss/preflight.css';
   }
 
   /* Disable mobile-browser font-boosting (text auto-inflation) for the Vue
@@ -95,32 +95,37 @@ iframe#progressFrame {
 }
 
 /* Header banner compatibility tweaks */
-#header.image {
+#header.image:not(.unraid-consolidated-header) {
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
 }
 
-.has-banner-gradient #header.image {
-  position: relative;
-  overflow: hidden;
+.has-banner-gradient #header.image:not(.unraid-consolidated-header) {
+  --webgui-banner-color: var(
+    --header-gradient-end,
+    var(--color-header-gradient-end, var(--header-background-color))
+  );
+  isolation: isolate;
 }
 
-.has-banner-gradient #header.image::before {
+.has-banner-gradient #header.image:not(.unraid-consolidated-header)::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-repeat: no-repeat;
-  background-position: left center, right center;
-  background-size: min(30%, 320px) 100%, min(30%, 320px) 100%;
-  background-image:
-    var(--banner-gradient),
-    linear-gradient(270deg, var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 1))) 0%, var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 1))) 10%, color-mix(in srgb, var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 1))) 90%, transparent) 25%, color-mix(in srgb, var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 1))) 60%, transparent) 40%, color-mix(in srgb, var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 1))) 30%, transparent) 55%, var(--header-gradient-start, var(--color-header-gradient-start, rgba(0, 0, 0, 0))) 70%, var(--header-gradient-start, var(--color-header-gradient-start, rgba(0, 0, 0, 0))) var(--banner-gradient-stop, 30%));
-  z-index: 0;
+  background-image: linear-gradient(
+    270deg,
+    var(--webgui-banner-color) 0,
+    var(--webgui-banner-color) 20rem,
+    color-mix(in srgb, var(--webgui-banner-color) 50%, transparent) 30rem,
+    transparent 40rem
+  );
+  z-index: -1;
 }
 
-.has-banner-gradient #header.image > * {
-  position: relative;
-  z-index: 1;
+@media (max-width: 768px) {
+  .has-banner-gradient #header.image:not(.unraid-consolidated-header)::before {
+    background-image: linear-gradient(90deg, transparent 40%, var(--webgui-banner-color) 80%);
+  }
 }

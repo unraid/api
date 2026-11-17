@@ -21,7 +21,6 @@ import type {
     RemoteAccess,
     SetupRemoteAccessInput,
 } from './connect.model.js';
-
 import { ConfigType, MyServersConfig } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 import { NetworkService } from '../network/network.service.js';
@@ -215,6 +214,9 @@ export class ConnectSettingsService {
         // Currently, Dynamic Remote Access (WAN_ACCESS_TYPE.DYNAMIC) is not enabled,
         // so we treat it as disabled for this condition.
         const wanaccessEnabled = input.accessType === WAN_ACCESS_TYPE.ALWAYS;
+
+        // Settings changes must still apply even when static access is already running.
+        await this.remoteAccess.stopRemoteAccess();
 
         this.configService.set(
             'connect.config.upnpEnabled',
