@@ -1,8 +1,11 @@
+import { ValidationPipe } from '@nestjs/common';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
+import { FastifyThrottlerGuard } from '@app/unraid-api/auth/fastify-throttler.guard.js';
 import { OidcAuthorizationService } from '@app/unraid-api/graph/resolvers/sso/auth/oidc-authorization.service.js';
 import { OidcClaimsService } from '@app/unraid-api/graph/resolvers/sso/auth/oidc-claims.service.js';
 import { OidcTokenExchangeService } from '@app/unraid-api/graph/resolvers/sso/auth/oidc-token-exchange.service.js';
@@ -17,11 +20,13 @@ import {
 } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-session.service.js';
 import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state.service.js';
+import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/utils/oidc-request-handler.util.js';
 import { RestController } from '@app/unraid-api/rest/rest.controller.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
 
 describe('RestController OIDC authorize integration', () => {
     let controller: RestController;
+    let app: NestFastifyApplication;
     let oidcConfig: {
         getConfig: ReturnType<typeof vi.fn>;
         getProvider: ReturnType<typeof vi.fn>;
@@ -141,9 +146,23 @@ describe('RestController OIDC authorize integration', () => {
                     },
                 },
             ],
-        }).compile();
+        })
+            .overrideGuard(FastifyThrottlerGuard)
+            .useValue({ canActivate: () => true })
+            .compile();
 
         controller = module.get<RestController>(RestController);
+        app = module.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+        app.useGlobalPipes(
+            new ValidationPipe({
+                transform: true,
+                whitelist: true,
+                forbidNonWhitelisted: true,
+                transformOptions: { enableImplicitConversion: true },
+            })
+        );
+        await app.init();
+        await app.getHttpAdapter().getInstance().ready();
 
         statusSpy = vi.fn();
         headerSpy = vi.fn();
@@ -165,6 +184,62 @@ describe('RestController OIDC authorize integration', () => {
         }) as FastifyReply['send'];
 
         mockReply = reply;
+    });
+
+    afterEach(async () => {
+        await app?.close();
+    });
+
+    it('preserves ordinary authorization parameters through the production HTTP validation pipeline', async () => {
+        const query = new URLSearchParams({
+            state: 'client-state-123',
+            redirect_uri: 'http://localhost/graphql/api/auth/oidc/callback',
+        });
+        const response = await app.inject({
+            method: 'GET',
+            url: `/graphql/api/auth/oidc/authorize/${provider.id}?${query}`,
+        });
+        expect(response.statusCode).toBe(302);
+        expect(oidcStateService.generateSecureState).toHaveBeenCalledWith(
+            provider.id,
+            'client-state-123',
+            'http://localhost/graphql/api/auth/oidc/callback'
+        );
+    });
+
+    it.each([
+        ['repeated state', 'state=one&state=two&redirect_uri=http://localhost'],
+        [
+            'repeated redirect URI',
+            'state=one&redirect_uri=http://localhost/graphql/api/auth/oidc/callback&redirect_uri=http://localhost/graphql/api/auth/oidc/callback',
+        ],
+        ['missing state', 'redirect_uri=http://localhost'],
+        ['missing redirect URI', 'state=one'],
+        ['overlong state', `state=${'x'.repeat(257)}&redirect_uri=http://localhost`],
+        ['overlong redirect URI', `state=one&redirect_uri=http://localhost/${'x'.repeat(2048)}`],
+    ])('rejects %s before allocating authorization state', async (_name, query) => {
+        const response = await app.inject({
+            method: 'GET',
+            url: `/graphql/api/auth/oidc/authorize/${provider.id}?${query}`,
+        });
+        expect(response.statusCode).toBe(400);
+        expect(oidcStateService.generateSecureState).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['repeated code', 'code=one&code=two&state=state'],
+        ['repeated state', 'code=code&state=one&state=two'],
+        ['missing code', 'state=state'],
+        ['missing state', 'code=code'],
+    ])('rejects callback %s before routing the callback', async (_name, query) => {
+        const callback = vi.spyOn(OidcRequestHandler, 'handleCallback');
+        const response = await app.inject({
+            method: 'GET',
+            url: `/graphql/api/auth/oidc/callback?${query}`,
+        });
+        expect(response.statusCode).toBe(302);
+        expect(response.headers.location).toBe('/login#error=Authentication%20failed');
+        expect(callback).not.toHaveBeenCalled();
     });
 
     it('authorizes successfully through both redirect validation layers for proxied domains', async () => {

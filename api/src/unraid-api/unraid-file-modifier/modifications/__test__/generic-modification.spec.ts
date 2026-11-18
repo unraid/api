@@ -1,9 +1,10 @@
 import { Logger } from '@nestjs/common';
-import { readFile, writeFile } from 'fs/promises';
-import { basename, dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { copyFile, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { basename, dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, onTestFinished, test, vi } from 'vitest';
 
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification.js';
@@ -21,6 +22,19 @@ interface ModificationTestCase {
 
 const getPathToFixture = (fileName: string) =>
     resolve(dirname(fileURLToPath(import.meta.url)), `__fixtures__/downloaded/${fileName}`);
+
+async function copyFixture(fileName: string): Promise<string> {
+    const directory = await mkdtemp(join(tmpdir(), 'api-file-modification-'));
+    onTestFinished(() => rm(directory, { recursive: true, force: true }));
+    const path = join(directory, fileName);
+    try {
+        await copyFile(getPathToFixture(fileName), path);
+    } catch (error) {
+        // Add-file modifiers start with no fixture.
+        if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
+    }
+    return path;
+}
 
 /** Modifications that patch the content of an existing file in one or more places. */
 const patchTestCases: ModificationTestCase[] = [
@@ -66,7 +80,7 @@ const simpleTestCases: ModificationTestCase[] = [];
 
 async function testModification(testCase: ModificationTestCase) {
     const fileName = basename(testCase.fileUrl);
-    const filePath = getPathToFixture(fileName);
+    const filePath = await copyFixture(fileName);
     const originalContent = await readFile(filePath, 'utf-8').catch(() => '');
     const logger = new Logger();
     const patcher = await new testCase.ModificationClass(logger);
@@ -108,7 +122,7 @@ async function testInvalidModification(testCase: ModificationTestCase) {
     // @ts-expect-error - Testing invalid pregenerated patches
     patcher.getPregeneratedPatch = vi.fn().mockResolvedValue('I AM NOT A VALID PATCH');
 
-    const filePath = getPathToFixture(testCase.fileName);
+    const filePath = await copyFixture(testCase.fileName);
 
     // @ts-expect-error - Testing invalid pregenerated patches
     patcher.filePath = filePath;
