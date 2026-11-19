@@ -225,16 +225,20 @@ describe.sequential('bulk notification moves', () => {
             await vi.waitFor(() => expect(release).toBeDefined());
             const unrelated = internal.synchronizeNotifications(['unrelated.notify']);
             const deletion = service.deleteNotifications(ARCHIVE);
+            // The deletion has joined only once its own ids are in the blocked batch.
             await vi.waitFor(() =>
                 expect(
-                    (Reflect.get(service, 'pendingSynchronization') as { ids: Set<string> }).ids.size
-                ).toBeGreaterThan(1)
+                    (
+                        Reflect.get(service, 'pendingSynchronization') as { ids: Set<string> } | null
+                    )?.ids.has(ids[0])
+                ).toBe(true)
             );
             release?.();
             await blocker;
             await expect(deletion).resolves.toBeDefined();
             await expect(unrelated).resolves.toBeDefined();
         } finally {
+            release?.();
             spy.mockRestore();
         }
     });
