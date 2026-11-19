@@ -44,6 +44,7 @@ type PendingSynchronization = {
 @Injectable()
 export class NotificationsService {
     private static readonly FILE_IO_BATCH_SIZE = 32;
+    private static readonly QUIET_RESTORE_TTL_MS = 60_000;
     private logger = new Logger(NotificationsService.name);
     private static watcher: FSWatcher | null = null;
     /**
@@ -59,6 +60,8 @@ export class NotificationsService {
     private isHydratingOverview = false;
     private pendingNotificationEvents = new Map<string, NotificationFileEvent>();
     private pendingSynchronization: PendingSynchronization | null = null;
+    /** Ids restored in bulk, mapped to when their "added" announcement suppression expires. */
+    private quietRestores = new Map<string, number>();
 
     private static overview: NotificationOverview = {
         unread: {
@@ -230,11 +233,29 @@ export class NotificationsService {
         const id = basename(path);
         const { unread } = await this.synchronizeNotification(id);
         if (type === NotificationType.UNREAD) {
-            if (event === 'add' && unread) {
+            if (event === 'add' && unread && !this.isQuietRestore(id)) {
                 await pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, { notificationAdded: unread });
             }
             void this.publishWarningsAndAlerts();
         }
+    }
+
+    /**
+     * Bulk restores reuse existing ids, so their watcher "add" events are not new notifications.
+     * Counts still update; only the per-file announcement (a toast in the web UI) is skipped.
+     */
+    private markQuietRestores(ids: string[]) {
+        const now = Date.now();
+        for (const [id, expiresAt] of this.quietRestores) {
+            if (expiresAt <= now) this.quietRestores.delete(id);
+        }
+        const expiresAt = now + NotificationsService.QUIET_RESTORE_TTL_MS;
+        for (const id of ids) this.quietRestores.set(id, expiresAt);
+    }
+
+    private isQuietRestore(id: string) {
+        const expiresAt = this.quietRestores.get(id);
+        return expiresAt !== undefined && expiresAt > Date.now();
     }
 
     private enqueueOverviewUpdate<T>(action: () => Promise<T>): Promise<T> {
@@ -607,6 +628,7 @@ export class NotificationsService {
      * overview once for the whole set instead of once per file.
      */
     private async moveNotifications(ids: string[], from: NotificationType, to: NotificationType) {
+        if (to === NotificationType.UNREAD) this.markQuietRestores(ids);
         const results = await this.settleInBatches(ids, async (id) => {
             const source = this.notificationPath(id, from);
             await this.loadNotificationFile(source, from);
@@ -669,6 +691,8 @@ export class NotificationsService {
         }
 
         const notification = await this.loadNotificationFile(archivePath, NotificationType.ARCHIVE);
+        // A single restore is announced even if an earlier bulk restore quieted this id.
+        this.quietRestores.delete(id);
         await rename(archivePath, this.notificationPath(id, NotificationType.UNREAD));
         await this.synchronizeNotification(id);
         void this.publishWarningsAndAlerts();

@@ -130,4 +130,44 @@ describe.sequential('bulk notification moves', () => {
         });
         expect(service.getOverview().archive.total).toBe(1);
     }, 20_000);
+
+    it('restores in bulk without announcing each restored notification', async () => {
+        const added: string[] = [];
+        const addedSubscription = await pubsub.subscribe(
+            PUBSUB_CHANNEL.NOTIFICATION_ADDED,
+            (payload: { notificationAdded: { id: string } }) => added.push(payload.notificationAdded.id)
+        );
+        const watcher: FSWatcher = Reflect.get(NotificationsService, 'watcher');
+        let unreadAdds = 0;
+        let unreadUnlinks = 0;
+        let lastEventAt = Date.now();
+        watcher.on('all', (event, path) => {
+            lastEventAt = Date.now();
+            if (!path.startsWith(join(basePath, 'unread'))) return;
+            if (event === 'add') unreadAdds++;
+            if (event === 'unlink') unreadUnlinks++;
+        });
+        try {
+            await service.archiveAll();
+            await vi.waitFor(() => expect(unreadUnlinks).toBe(COUNT), { timeout: 10_000 });
+            await service.unarchiveAll();
+            expect(service.getOverview().unread.total).toBe(COUNT);
+
+            await vi.waitFor(() => expect(unreadAdds).toBe(COUNT), { timeout: 10_000 });
+            await vi.waitFor(() => expect(Date.now() - lastEventAt).toBeGreaterThan(1_000), {
+                timeout: 15_000,
+                interval: 100,
+            });
+            await Reflect.get(service, 'overviewUpdate');
+            expect(added).toEqual([]);
+
+            const [id] = ids;
+            await service.archiveNotification({ id });
+            await vi.waitFor(() => expect(unreadUnlinks).toBe(COUNT + 1), { timeout: 10_000 });
+            await service.markAsUnread({ id });
+            await vi.waitFor(() => expect(added).toEqual([id]), { timeout: 10_000 });
+        } finally {
+            pubsub.unsubscribe(addedSubscription);
+        }
+    }, 30_000);
 });
