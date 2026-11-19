@@ -21,6 +21,15 @@ import { NotificationsService } from '@app/unraid-api/graph/resolvers/notificati
 export class NotificationsResolver {
     constructor(readonly notificationsService: NotificationsService) {}
 
+    private checkBulkMove({ errorOccurred, successes }: { errorOccurred: boolean; successes: number }) {
+        if (errorOccurred) {
+            throw new AppError(
+                `Bulk notification move did not complete. ${successes} notification(s) moved and reconciled. Refresh notifications to see the current state.`,
+                500
+            );
+        }
+    }
+
     /**============================================
      *               Queries
      *=============================================**/
@@ -131,7 +140,8 @@ export class NotificationsResolver {
         @Args('ids', { type: () => [PrefixedID] })
         ids: string[]
     ): Promise<NotificationOverview> {
-        await this.notificationsService.archiveIds(ids);
+        const result = await this.notificationsService.archiveIds(ids);
+        this.checkBulkMove(result);
         return this.notificationsService.getOverview();
     }
 
@@ -160,8 +170,9 @@ export class NotificationsResolver {
         @Args('importance', { type: () => NotificationImportance, nullable: true })
         importance?: NotificationImportance
     ): Promise<NotificationOverview> {
-        const { overview } = await this.notificationsService.archiveAll(importance);
-        return overview;
+        const result = await this.notificationsService.archiveAll(importance);
+        this.checkBulkMove(result);
+        return result.overview;
     }
 
     @UsePermissions({
@@ -185,7 +196,8 @@ export class NotificationsResolver {
         @Args('ids', { type: () => [PrefixedID] })
         ids: string[]
     ): Promise<NotificationOverview> {
-        await this.notificationsService.unarchiveIds(ids);
+        const result = await this.notificationsService.unarchiveIds(ids);
+        this.checkBulkMove(result);
         return this.notificationsService.getOverview();
     }
 
@@ -198,8 +210,9 @@ export class NotificationsResolver {
         @Args('importance', { type: () => NotificationImportance, nullable: true })
         importance?: NotificationImportance
     ): Promise<NotificationOverview> {
-        const { overview } = await this.notificationsService.unarchiveAll(importance);
-        return overview;
+        const result = await this.notificationsService.unarchiveAll(importance);
+        this.checkBulkMove(result);
+        return result.overview;
     }
 
     @UsePermissions({

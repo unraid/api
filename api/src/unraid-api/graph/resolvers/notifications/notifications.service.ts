@@ -35,6 +35,11 @@ import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp 
 
 type NotificationFileState = Partial<Record<NotificationType, NotificationImportance>>;
 type NotificationFileEvent = 'add' | 'change' | 'unlink';
+type NotificationSyncResult = { unread: Notification | null } | { error: unknown };
+type PendingSynchronization = {
+    ids: Set<string>;
+    result: Promise<Map<string, NotificationSyncResult>>;
+};
 
 @Injectable()
 export class NotificationsService {
@@ -53,6 +58,7 @@ export class NotificationsService {
     private notificationFiles = new Map<string, NotificationFileState>();
     private isHydratingOverview = false;
     private pendingNotificationEvents = new Map<string, NotificationFileEvent>();
+    private pendingSynchronization: PendingSynchronization | null = null;
 
     private static overview: NotificationOverview = {
         unread: {
@@ -221,7 +227,8 @@ export class NotificationsService {
             return;
         }
 
-        const { unread } = await this.synchronizeNotification(basename(path));
+        const id = basename(path);
+        const { unread } = await this.synchronizeNotification(id);
         if (type === NotificationType.UNREAD) {
             if (event === 'add' && unread) {
                 await pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, { notificationAdded: unread });
@@ -245,19 +252,58 @@ export class NotificationsService {
         }
     }
 
-    private synchronizeNotification(id: string) {
-        return this.enqueueOverviewUpdate(async () => {
-            const [unread, archive] = await Promise.all([
+    private async synchronizeNotification(id: string) {
+        const result = (await this.synchronizeNotifications([id])).get(id);
+        if (!result) throw new Error(`Notification was not synchronized: ${id}`);
+        if ('error' in result) throw result.error;
+        return result;
+    }
+
+    /**
+     * Re-reads both copies of each id and applies the differences to the overview.
+     *
+     * Requests made before the queued update starts join the same batch, so a burst of
+     * watcher events or a bulk move costs one queue slot and at most one overview broadcast.
+     */
+    private synchronizeNotifications(ids: Iterable<string>) {
+        if (!this.pendingSynchronization) {
+            const batch = new Set<string>();
+            const result = this.enqueueOverviewUpdate(async () => {
+                if (this.pendingSynchronization?.ids === batch) this.pendingSynchronization = null;
+                return this.applyNotificationStates([...batch]);
+            });
+            this.pendingSynchronization = { ids: batch, result };
+        }
+        const pending = this.pendingSynchronization;
+        for (const id of ids) pending.ids.add(id);
+        return pending.result;
+    }
+
+    private async applyNotificationStates(ids: string[]) {
+        const reads = await this.settleInBatches(ids, (id) =>
+            Promise.all([
                 this.readNotificationCopy(id, NotificationType.UNREAD),
                 this.readNotificationCopy(id, NotificationType.ARCHIVE),
-            ]);
-            const changed = this.updateNotificationCounts(id, {
-                UNREAD: unread?.importance,
-                ARCHIVE: archive?.importance,
-            });
-            if (changed) await this.publishOverview();
-            return { unread };
+            ])
+        );
+        const results = new Map<string, NotificationSyncResult>();
+        let changed = false;
+        reads.forEach((read, index) => {
+            const id = ids[index];
+            if (isRejected(read)) {
+                results.set(id, { error: read.reason });
+                return;
+            }
+            const [unread, archive] = read.value;
+            changed =
+                this.updateNotificationCounts(id, {
+                    UNREAD: unread?.importance,
+                    ARCHIVE: archive?.importance,
+                }) || changed;
+            results.set(id, { unread });
         });
+        if (changed) await this.publishOverview();
+        return results;
     }
 
     private updateNotificationCounts(id: string, next: NotificationFileState): boolean {
@@ -530,7 +576,10 @@ export class NotificationsService {
             if (copies[type] !== undefined) ids.add(id);
         }
         await emptyDir(folder);
-        await Promise.all([...ids].map((id) => this.synchronizeNotification(id)));
+        const synchronized = await this.synchronizeNotifications(ids);
+        for (const result of synchronized.values()) {
+            if ('error' in result) throw result.error;
+        }
         if (type === NotificationType.UNREAD) {
             void this.publishWarningsAndAlerts();
         }
@@ -553,14 +602,37 @@ export class NotificationsService {
      *                           CRUD: Updating Notifications
      *------------------------------------------------------------------------**/
 
-    private moveNotification(params: { from: NotificationType; to: NotificationType }) {
-        const { from, to } = params;
-        return async (notification: Notification) => {
-            const currentPath = this.notificationPath(notification.id, from);
-            const targetPath = this.notificationPath(notification.id, to);
-            await rename(currentPath, targetPath);
-            // A legacy archive copy may already exist, so rename need not emit an add event.
-            await this.synchronizeNotification(notification.id);
+    /**
+     * Renames the given ids between folders with bounded file I/O, then reconciles the
+     * overview once for the whole set instead of once per file.
+     */
+    private async moveNotifications(ids: string[], from: NotificationType, to: NotificationType) {
+        const results = await this.settleInBatches(ids, async (id) => {
+            const source = this.notificationPath(id, from);
+            await this.loadNotificationFile(source, from);
+            await rename(source, this.notificationPath(id, to));
+        });
+        const moved = ids.filter((_, index) => isFulfilled(results[index]));
+        // A legacy archive copy may already exist, so rename need not emit an add event.
+        const synchronized = await this.synchronizeNotifications(moved);
+        void this.publishWarningsAndAlerts();
+
+        const errors = results.filter(isRejected).map((result) => result.reason);
+        let successes = 0;
+        for (const id of moved) {
+            const result = synchronized.get(id);
+            if (!result) {
+                errors.push(new Error(`Notification was not synchronized: ${id}`));
+            } else if ('error' in result) {
+                errors.push(result.error);
+            } else {
+                successes += 1;
+            }
+        }
+        return {
+            successes,
+            errors,
+            errorOccurred: errors.length > 0,
         };
     }
 
@@ -576,11 +648,8 @@ export class NotificationsService {
         }
 
         const notification = await this.loadNotificationFile(unreadPath, NotificationType.UNREAD);
-        const moveToArchive = this.moveNotification({
-            from: NotificationType.UNREAD,
-            to: NotificationType.ARCHIVE,
-        });
-        await moveToArchive(notification);
+        await rename(unreadPath, this.notificationPath(id, NotificationType.ARCHIVE));
+        await this.synchronizeNotification(id);
 
         void this.publishWarningsAndAlerts();
 
@@ -600,12 +669,8 @@ export class NotificationsService {
         }
 
         const notification = await this.loadNotificationFile(archivePath, NotificationType.ARCHIVE);
-        const moveToUnread = this.moveNotification({
-            from: NotificationType.ARCHIVE,
-            to: NotificationType.UNREAD,
-        });
-
-        await moveToUnread(notification);
+        await rename(archivePath, this.notificationPath(id, NotificationType.UNREAD));
+        await this.synchronizeNotification(id);
         void this.publishWarningsAndAlerts();
         return {
             ...notification,
@@ -615,45 +680,33 @@ export class NotificationsService {
 
     public async archiveAll(importance?: NotificationImportance) {
         await this.waitForInitialization();
-        const { UNREAD } = this.paths();
-
-        if (!importance) {
-            await readdir(UNREAD).then((ids) => this.archiveIds(ids));
-            return { overview: NotificationsService.overview };
-        }
-
-        const unreads = await this.listFilesInFolder(UNREAD);
-        const [notifications] = await this.loadNotificationsFromPaths(unreads, { importance });
-        const archive = this.moveNotification({
-            from: NotificationType.UNREAD,
-            to: NotificationType.ARCHIVE,
-        });
-
-        const stats = await batchProcess(notifications, archive);
-        void this.publishWarningsAndAlerts();
+        const ids = await this.listIdsToMove(NotificationType.UNREAD, importance);
+        const stats = await this.moveNotifications(
+            ids,
+            NotificationType.UNREAD,
+            NotificationType.ARCHIVE
+        );
         return { ...stats, overview: this.getOverview() };
     }
 
     public async unarchiveAll(importance?: NotificationImportance) {
         await this.waitForInitialization();
-        const { ARCHIVE } = this.paths();
-
-        if (!importance) {
-            // use arrow function to preserve `this`
-            await readdir(ARCHIVE).then((ids) => this.unarchiveIds(ids));
-            return { overview: NotificationsService.overview };
-        }
-
-        const archives = await this.listFilesInFolder(ARCHIVE);
-        const [notifications] = await this.loadNotificationsFromPaths(archives, { importance });
-        const unArchive = this.moveNotification({
-            from: NotificationType.ARCHIVE,
-            to: NotificationType.UNREAD,
-        });
-
-        const stats = await batchProcess(notifications, unArchive);
-        void this.publishWarningsAndAlerts();
+        const ids = await this.listIdsToMove(NotificationType.ARCHIVE, importance);
+        const stats = await this.moveNotifications(
+            ids,
+            NotificationType.ARCHIVE,
+            NotificationType.UNREAD
+        );
         return { ...stats, overview: this.getOverview() };
+    }
+
+    private async listIdsToMove(from: NotificationType, importance?: NotificationImportance) {
+        const folder = this.paths()[from];
+        if (!importance) return readdir(folder);
+
+        const files = await this.listFilesInFolder(folder);
+        const [notifications] = await this.loadNotificationsFromPaths(files, { importance });
+        return notifications.map((notification) => notification.id);
     }
 
     /**
@@ -666,8 +719,9 @@ export class NotificationsService {
      * @param ids a list of '*.notify' id's, which correspond to id files
      * @returns
      */
-    public archiveIds(ids: string[]) {
-        return batchProcess(ids, (id) => this.archiveNotification({ id }));
+    public async archiveIds(ids: string[]) {
+        await this.waitForInitialization();
+        return this.moveNotifications(ids, NotificationType.UNREAD, NotificationType.ARCHIVE);
     }
 
     /**
@@ -680,8 +734,9 @@ export class NotificationsService {
      * @param ids a list of '*.notify' id's, which correspond to id files
      * @returns
      */
-    public unarchiveIds(ids: string[]) {
-        return batchProcess(ids, (id) => this.markAsUnread({ id }));
+    public async unarchiveIds(ids: string[]) {
+        await this.waitForInitialization();
+        return this.moveNotifications(ids, NotificationType.ARCHIVE, NotificationType.UNREAD);
     }
 
     /**------------------------------------------------------------------------
