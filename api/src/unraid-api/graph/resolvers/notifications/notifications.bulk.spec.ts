@@ -217,28 +217,32 @@ describe.sequential('bulk notification moves', () => {
             .mockImplementation((id, type) =>
                 id === 'unrelated.notify' ? Promise.reject(new Error('read failed')) : read(id, type)
             );
+        const synchronize = internal.synchronizeNotifications.bind(service);
+        let deletionJoined = false;
+        const joinSpy = vi
+            .spyOn(internal, 'synchronizeNotifications')
+            .mockImplementation((requested: Iterable<string>) => {
+                const list = [...requested];
+                // Watcher events request one id at a time; only the deletion requests the whole folder.
+                if (list.length === COUNT) deletionJoined = true;
+                return synchronize(list);
+            });
         let release: (() => void) | undefined;
         const blocker = internal.enqueueOverviewUpdate(
             () => new Promise<void>((resolve) => (release = resolve))
         );
         try {
             await vi.waitFor(() => expect(release).toBeDefined());
-            const unrelated = internal.synchronizeNotifications(['unrelated.notify']);
+            const unrelated = synchronize(['unrelated.notify']);
             const deletion = service.deleteNotifications(ARCHIVE);
-            // The deletion has joined only once its own ids are in the blocked batch.
-            await vi.waitFor(() =>
-                expect(
-                    (
-                        Reflect.get(service, 'pendingSynchronization') as { ids: Set<string> } | null
-                    )?.ids.has(ids[0])
-                ).toBe(true)
-            );
+            await vi.waitFor(() => expect(deletionJoined).toBe(true));
             release?.();
             await blocker;
             await expect(deletion).resolves.toBeDefined();
             await expect(unrelated).resolves.toBeDefined();
         } finally {
             release?.();
+            joinSpy.mockRestore();
             spy.mockRestore();
         }
     });
