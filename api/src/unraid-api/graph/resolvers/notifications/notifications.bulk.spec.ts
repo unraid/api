@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { copyFile, mkdir, mkdtemp, readdir, rm, writeFile } from 'fs/promises';
+import { copyFile, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -7,7 +7,10 @@ import type { FSWatcher } from 'chokidar';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { NotificationType } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
+import {
+    NotificationImportance,
+    NotificationType,
+} from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
@@ -170,4 +173,69 @@ describe.sequential('bulk notification moves', () => {
             pubsub.unsubscribe(addedSubscription);
         }
     }, 30_000);
+
+    it('restores archive-only notifications without overwriting newer unread copies', async () => {
+        const [legacy, archived] = ids;
+        await service.archiveNotification({ id: archived });
+        await writeFile(
+            file(UNREAD, legacy),
+            'timestamp=1700000003\nevent=Docker\nsubject=Update\ndescription=Edited\nimportance=alert\n'
+        );
+
+        for (const importance of [NotificationImportance.INFO, undefined]) {
+            const result = await service.unarchiveAll(importance);
+            expect(result.errorOccurred).toBe(false);
+        }
+
+        expect(await readFile(file(UNREAD, legacy), 'utf8')).toContain('importance=alert');
+        expect(await readdir(join(basePath, 'archive'))).toContain(legacy);
+        expect(await readdir(join(basePath, 'unread'))).toContain(archived);
+    });
+
+    it('reports files that cannot be read while filtering a bulk move by importance', async () => {
+        await mkdir(file(UNREAD, 'unreadable.notify'));
+
+        const result = await service.archiveAll(NotificationImportance.INFO);
+
+        expect(result.successes).toBe(COUNT);
+        expect(result.errors).toHaveLength(1);
+        expect(result.errorOccurred).toBe(true);
+        await expect(
+            new NotificationsResolver(service).archiveAll(NotificationImportance.INFO)
+        ).rejects.toThrow();
+    });
+
+    it('does not fail a delete because an unrelated id in the same batch failed', async () => {
+        const internal = service as unknown as {
+            enqueueOverviewUpdate<T>(action: () => Promise<T>): Promise<T>;
+            synchronizeNotifications(ids: Iterable<string>): Promise<unknown>;
+            readNotificationCopy(id: string, type: NotificationType): Promise<unknown>;
+        };
+        const read = internal.readNotificationCopy.bind(service);
+        const spy = vi
+            .spyOn(internal, 'readNotificationCopy')
+            .mockImplementation((id, type) =>
+                id === 'unrelated.notify' ? Promise.reject(new Error('read failed')) : read(id, type)
+            );
+        let release: (() => void) | undefined;
+        const blocker = internal.enqueueOverviewUpdate(
+            () => new Promise<void>((resolve) => (release = resolve))
+        );
+        try {
+            await vi.waitFor(() => expect(release).toBeDefined());
+            const unrelated = internal.synchronizeNotifications(['unrelated.notify']);
+            const deletion = service.deleteNotifications(ARCHIVE);
+            await vi.waitFor(() =>
+                expect(
+                    (Reflect.get(service, 'pendingSynchronization') as { ids: Set<string> }).ids.size
+                ).toBeGreaterThan(1)
+            );
+            release?.();
+            await blocker;
+            await expect(deletion).resolves.toBeDefined();
+            await expect(unrelated).resolves.toBeDefined();
+        } finally {
+            spy.mockRestore();
+        }
+    });
 });

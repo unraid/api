@@ -598,8 +598,10 @@ export class NotificationsService {
         }
         await emptyDir(folder);
         const synchronized = await this.synchronizeNotifications(ids);
-        for (const result of synchronized.values()) {
-            if ('error' in result) throw result.error;
+        // The batch can include unrelated watcher requests; only this deletion's ids matter here.
+        for (const id of ids) {
+            const result = synchronized.get(id);
+            if (result && 'error' in result) throw result.error;
         }
         if (type === NotificationType.UNREAD) {
             void this.publishWarningsAndAlerts();
@@ -704,33 +706,55 @@ export class NotificationsService {
 
     public async archiveAll(importance?: NotificationImportance) {
         await this.waitForInitialization();
-        const ids = await this.listIdsToMove(NotificationType.UNREAD, importance);
-        const stats = await this.moveNotifications(
-            ids,
-            NotificationType.UNREAD,
-            NotificationType.ARCHIVE
-        );
-        return { ...stats, overview: this.getOverview() };
+        return this.moveAll(NotificationType.UNREAD, NotificationType.ARCHIVE, importance);
     }
 
     public async unarchiveAll(importance?: NotificationImportance) {
         await this.waitForInitialization();
-        const ids = await this.listIdsToMove(NotificationType.ARCHIVE, importance);
-        const stats = await this.moveNotifications(
-            ids,
-            NotificationType.ARCHIVE,
-            NotificationType.UNREAD
-        );
-        return { ...stats, overview: this.getOverview() };
+        return this.moveAll(NotificationType.ARCHIVE, NotificationType.UNREAD, importance);
     }
 
-    private async listIdsToMove(from: NotificationType, importance?: NotificationImportance) {
-        const folder = this.paths()[from];
-        if (!importance) return readdir(folder);
+    private async moveAll(
+        from: NotificationType,
+        to: NotificationType,
+        importance?: NotificationImportance
+    ) {
+        const selection = await this.selectIdsToMove(from, importance);
+        const stats = await this.moveNotifications(selection.ids, from, to);
+        const errors = [...selection.errors, ...stats.errors];
+        return {
+            successes: stats.successes,
+            errors,
+            errorOccurred: errors.length > 0,
+            overview: this.getOverview(),
+        };
+    }
 
-        const files = await this.listFilesInFolder(folder);
-        const [notifications] = await this.loadNotificationsFromPaths(files, { importance });
-        return notifications.map((notification) => notification.id);
+    /**
+     * Lists the ids a bulk move should take from `from`, plus any files that could not be read
+     * while filtering by importance.
+     *
+     * Archive copies whose id is still unread are hidden legacy copies, so they are skipped:
+     * restoring one would overwrite the newer unread file.
+     */
+    private async selectIdsToMove(from: NotificationType, importance?: NotificationImportance) {
+        const { UNREAD } = this.paths();
+        const unread =
+            from === NotificationType.ARCHIVE ? new Set(await readdir(UNREAD)) : new Set<string>();
+        const visible = (ids: string[]) => ids.filter((id) => !unread.has(id));
+        if (!importance) {
+            return { ids: visible(await readdir(this.paths()[from])), errors: [] as unknown[] };
+        }
+
+        const files = await this.listFilesInFolder(this.paths()[from], visible);
+        const [notifications, failures] = await this.loadNotificationsFromPaths(files, {
+            importance,
+            type: from,
+        });
+        return {
+            ids: notifications.map((notification) => notification.id),
+            errors: failures.filter((error) => !this.isMissingFileError(error)),
+        };
     }
 
     /**
