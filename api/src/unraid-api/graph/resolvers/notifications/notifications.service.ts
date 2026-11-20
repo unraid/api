@@ -626,30 +626,36 @@ export class NotificationsService {
      *------------------------------------------------------------------------**/
 
     /**
-     * Renames the given ids between folders with bounded file I/O, then reconciles the
+     * Moves the given ids between folders with bounded file I/O, then reconciles the
      * overview once for the whole set instead of once per file.
      */
     private async moveNotifications(ids: string[], from: NotificationType, to: NotificationType) {
-        if (to === NotificationType.UNREAD) this.markQuietRestores(ids);
-        const results = await this.settleInBatches(ids, async (id) => {
-            const source = this.notificationPath(id, from);
-            await this.loadNotificationFile(source, from);
-            await rename(source, this.notificationPath(id, to));
-        });
-        const moved = ids.filter((_, index) => isFulfilled(results[index]));
-        // A legacy archive copy may already exist, so rename need not emit an add event.
-        const synchronized = await this.synchronizeNotifications(moved);
+        const uniqueIds = [...new Set(ids)];
+        if (to === NotificationType.UNREAD) this.markQuietRestores(uniqueIds);
+        const results =
+            to === NotificationType.UNREAD
+                ? await this.restoreWithoutReplacing(uniqueIds)
+                : await this.settleInBatches(uniqueIds, async (id) => {
+                      const source = this.notificationPath(id, from);
+                      await this.loadNotificationFile(source, from);
+                      await rename(source, this.notificationPath(id, to));
+                      return true;
+                  });
+        const synchronizedIds = uniqueIds.filter((_, index) => isFulfilled(results[index]));
+        const synchronized = await this.synchronizeNotifications(synchronizedIds);
         void this.publishWarningsAndAlerts();
 
         const errors = results.filter(isRejected).map((result) => result.reason);
         let successes = 0;
-        for (const id of moved) {
+        for (const [index, move] of results.entries()) {
+            if (isRejected(move)) continue;
+            const id = uniqueIds[index];
             const result = synchronized.get(id);
             if (!result) {
                 errors.push(new Error(`Notification was not synchronized: ${id}`));
             } else if ('error' in result) {
                 errors.push(result.error);
-            } else {
+            } else if (move.value) {
                 successes += 1;
             }
         }
@@ -658,6 +664,40 @@ export class NotificationsService {
             errors,
             errorOccurred: errors.length > 0,
         };
+    }
+
+    private async restoreWithoutReplacing(ids: string[]) {
+        const { UNREAD: unread, ARCHIVE: archive } = this.paths();
+        const batchSize = NotificationsService.FILE_IO_BATCH_SIZE;
+        const results: PromiseSettledResult<boolean>[] = [];
+        for (let index = 0; index < ids.length; index += batchSize) {
+            const batch = ids.slice(index, index + batchSize);
+            const sources = await Promise.allSettled(
+                batch.map(async (id) => {
+                    const source = resolveFileInDirectory(archive, id);
+                    await this.loadNotificationFile(source, NotificationType.ARCHIVE);
+                    return source;
+                })
+            );
+            const paths = sources.filter(isFulfilled).map(({ value }) => value);
+            // GNU mv uses a no-replace rename on Unraid, including for notifications stored on FAT.
+            const move = paths.length
+                ? await execa('mv', ['-n', '--', ...paths, unread + '/'], { reject: false })
+                : undefined;
+            const restored = await Promise.allSettled(
+                sources.map(async (source) => {
+                    if (isRejected(source)) throw source.reason;
+                    const sourceStillExists = await fileExists(source.value);
+                    // GNU mv versions differ on whether a skipped move exits with an error.
+                    if (move?.failed && !(await fileExists(join(unread, basename(source.value))))) {
+                        throw move;
+                    }
+                    return !sourceStillExists;
+                })
+            );
+            results.push(...restored);
+        }
+        return results;
     }
 
     public async archiveNotification({ id }: Pick<Notification, 'id'>): Promise<Notification> {

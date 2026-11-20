@@ -86,6 +86,19 @@ describe.sequential('bulk notification moves', () => {
         expect(service.getOverview().archive.total).toBe(0);
     });
 
+    it('moves each requested id once even if the list contains duplicates', async () => {
+        const [id] = ids;
+        const resolver = new NotificationsResolver(service);
+
+        await expect(resolver.archiveNotifications([id, id])).resolves.toMatchObject({
+            archive: { total: 1 },
+        });
+        await expect(resolver.unarchiveNotifications([id, id])).resolves.toMatchObject({
+            archive: { total: 0 },
+            unread: { total: COUNT },
+        });
+    });
+
     it('leaves unread entries that cannot be loaded in place', async () => {
         const directory = 'directory.notify';
         await mkdir(file(UNREAD, directory));
@@ -190,6 +203,40 @@ describe.sequential('bulk notification moves', () => {
         expect(await readFile(file(UNREAD, legacy), 'utf8')).toContain('importance=alert');
         expect(await readdir(join(basePath, 'archive'))).toContain(legacy);
         expect(await readdir(join(basePath, 'unread'))).toContain(archived);
+    });
+
+    it('preserves an unread copy that appeared after bulk restore selection', async () => {
+        const [id, restorable] = ids;
+        await service.archiveIds([id, restorable]);
+        const internal = service as unknown as {
+            selectIdsToMove(type: NotificationType): Promise<unknown>;
+        };
+        const select = internal.selectIdsToMove.bind(service);
+        const selection = vi.spyOn(internal, 'selectIdsToMove').mockImplementationOnce(async (type) => {
+            const selected = await select(type);
+            await writeFile(
+                file(UNREAD, id),
+                'timestamp=1700000003\nevent=Docker\nsubject=Newer\ndescription=Edited\nimportance=alert\n'
+            );
+            return selected;
+        });
+
+        try {
+            await expect(service.unarchiveAll()).resolves.toMatchObject({
+                successes: 1,
+                errorOccurred: false,
+                overview: { unread: { alert: 1, total: COUNT }, archive: { total: 0 } },
+            });
+            await expect(service.unarchiveIds([id])).resolves.toMatchObject({
+                successes: 0,
+                errorOccurred: false,
+            });
+            expect(await readFile(file(UNREAD, id), 'utf8')).toContain('subject=Newer');
+            expect(await readFile(file(ARCHIVE, id), 'utf8')).toContain('subject=Update');
+            expect(await readdir(join(basePath, 'archive'))).not.toContain(restorable);
+        } finally {
+            selection.mockRestore();
+        }
     });
 
     it('reports files that cannot be read while filtering a bulk move by importance', async () => {
