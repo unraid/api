@@ -1,11 +1,17 @@
+import { provideApolloClient } from '@vue/apollo-composable';
+
+import { ApolloClient, ApolloLink, Observable } from '@apollo/client/core';
 import { createApolloCache } from '~/helpers/apollo-cache';
+import { GraphQLError } from 'graphql';
 import { describe, expect, it } from 'vitest';
 
 import {
   archiveNotification,
+  getNotifications,
   NOTIFICATION_FRAGMENT,
   notificationsOverview,
 } from '~/components/Notifications/graphql/notification.query';
+import { useArchiveAllNotifications } from '~/composables/api/use-notifications';
 import { makeFragmentData } from '~/composables/gql/fragment-masking';
 import { NotificationImportance, NotificationType } from '~/composables/gql/graphql';
 
@@ -55,6 +61,64 @@ const writeArchiveResult = (cache: ReturnType<typeof createApolloCache>) =>
 
 const readOverview = (cache: ReturnType<typeof createApolloCache>) =>
   cache.readQuery({ query: notificationsOverview })?.notifications.overview;
+
+describe('Archive All cache invalidation', () => {
+  it('refetches the unread and archived lists after a partially completed archive', async () => {
+    const cache = createApolloCache();
+    cache.writeQuery({ query: notificationsOverview, data: overview(1, 0) });
+    let archiveAttempted = false;
+    const link = new ApolloLink(
+      (operation) =>
+        new Observable((observer) => {
+          if (operation.operationName === 'ArchiveAllNotifications') {
+            archiveAttempted = true;
+            cache.writeQuery({ query: notificationsOverview, data: overview(0, 1) });
+            observer.next({ data: null, errors: [new GraphQLError('Partial completion')] });
+          } else {
+            const archive = operation.variables.filter.type === NotificationType.ARCHIVE;
+            const notification = archive
+              ? archivedNotification
+              : { ...archivedNotification, type: NotificationType.UNREAD };
+            observer.next({
+              data: {
+                notifications: {
+                  __typename: 'Notifications',
+                  id: 'notifications',
+                  list: archive === archiveAttempted ? [notification] : [],
+                },
+              },
+            });
+          }
+          observer.complete();
+        })
+    );
+    const client = new ApolloClient({ cache, link });
+    const { mutate } = provideApolloClient(client)(useArchiveAllNotifications);
+    const watchList = (type: NotificationType) => {
+      const list: { total?: number } = {};
+      const subscription = client
+        .watchQuery({ query: getNotifications, variables: { filter: { type, limit: 15, offset: 0 } } })
+        .subscribe(({ data }) => {
+          list.total = data.notifications?.list.length;
+        });
+      return { list, subscription };
+    };
+    const unread = watchList(NotificationType.UNREAD);
+    const archive = watchList(NotificationType.ARCHIVE);
+
+    try {
+      await expect.poll(() => [unread.list.total, archive.list.total]).toEqual([1, 0]);
+
+      await expect(mutate()).rejects.toThrow('Partial completion');
+
+      await expect.poll(() => [unread.list.total, archive.list.total]).toEqual([0, 1]);
+    } finally {
+      unread.subscription.unsubscribe();
+      archive.subscription.unsubscribe();
+      client.stop();
+    }
+  });
+});
 
 describe('archiveNotification cache policy', () => {
   it('keeps the server overview when the subscription arrives before the mutation result', () => {

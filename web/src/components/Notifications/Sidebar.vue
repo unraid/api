@@ -23,7 +23,6 @@ import { Settings } from 'lucide-vue-next';
 
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {
-  archiveAllNotifications,
   deleteArchivedNotifications,
   NOTIFICATION_FRAGMENT,
   notificationsOverview,
@@ -35,12 +34,15 @@ import {
 } from '~/components/Notifications/graphql/notification.subscription';
 import NotificationsIndicator from '~/components/Notifications/Indicator.vue';
 import NotificationsList from '~/components/Notifications/List.vue';
-import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
+import {
+  useArchiveAllNotifications,
+  useTrackLatestSeenNotification,
+} from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
 import { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
 import { useConfirm } from '~/composables/useConfirm';
 
-const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
+const { mutate: archiveAll, loading: loadingArchiveAll } = useArchiveAllNotifications();
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
 const { mutate: recalculateOverview } = useMutation(resetOverview);
 const { confirm } = useConfirm();
