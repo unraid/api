@@ -1,10 +1,12 @@
 import { computed, onUnmounted, ref, watchEffect } from 'vue';
-import { useQuery } from '@vue/apollo-composable';
+import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable';
 import { useStorage, watchOnce } from '@vueuse/core';
 
 import { NotificationType } from '@/composables/gql/graphql';
+import { invalidateNotificationQueries } from '~/helpers/apollo-cache';
 
 import {
+  archiveAllNotifications,
   getNotifications,
   NOTIFICATION_FRAGMENT,
 } from '~/components/Notifications/graphql/notification.query';
@@ -12,6 +14,13 @@ import { useFragment } from '~/composables/gql/fragment-masking';
 
 const LATEST_SEEN_TIMESTAMP_KEY = 'latest-seen-notification-timestamp';
 const HAVE_SEEN_NOTIFICATIONS_KEY = 'have-seen-notifications';
+
+export function useArchiveAllNotifications() {
+  const { client } = useApolloClient();
+  const mutation = useMutation(archiveAllNotifications, { throws: 'always' });
+  mutation.onError(() => invalidateNotificationQueries(client.cache));
+  return mutation;
+}
 
 /**
  * Composable for managing user's state of having seen notifications.

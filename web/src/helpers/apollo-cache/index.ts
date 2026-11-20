@@ -1,7 +1,7 @@
 import { InMemoryCache } from '@apollo/client/core';
 import { mergeAndDedup } from '~/helpers/apollo-cache/merge';
 
-import type { InMemoryCacheConfig } from '@apollo/client/core';
+import type { ApolloCache, InMemoryCacheConfig } from '@apollo/client/core';
 import type { NotificationOverview } from '~/composables/gql/graphql';
 
 import { getNotifications } from '~/components/Notifications/graphql/notification.query';
@@ -12,6 +12,11 @@ import { NotificationTypename } from '~/composables/gql/typename';
 const isDefined = <T>(value: T | null | undefined): value is T => {
   return value !== null && value !== undefined;
 };
+
+export function invalidateNotificationQueries(cache: Pick<ApolloCache<unknown>, 'evict' | 'gc'>) {
+  cache.evict({ fieldName: 'notifications' });
+  cache.gc();
+}
 
 /**------------------------------------------------------------------------
  * !                    Understanding Cache Type Policies
@@ -111,8 +116,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            * @returns the value to cache for this operation
            */
           merge(_, incoming, { cache }) {
-            cache.evict({ fieldName: 'notifications' });
-            cache.gc(); // Run garbage collection to prevent orphans & incorrect cache state
+            invalidateNotificationQueries(cache);
             return incoming; // Return the incoming data so Apollo knows the result of the mutation
           },
         },
