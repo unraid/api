@@ -7,6 +7,7 @@ import retry from 'p-retry';
 import { AppError } from '@app/core/errors/app-error.js';
 import { appLogger } from '@app/core/log.js';
 import { LooseObject } from '@app/core/types/global.js';
+import { StorageCommandError } from '@app/core/utils/clients/storage-command-error.js';
 import { store } from '@app/store/index.js';
 import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
 import { StateFileKey } from '@app/store/types.js';
@@ -121,6 +122,14 @@ export const emcmd = async (
             throwHttpErrors: false,
         });
 
+        if (response.statusCode === 500) {
+            const failure = StorageCommandError.fromReply(
+                commands,
+                response.headers?.['x-unraid-command-result'],
+                response.headers?.['x-unraid-storage-slot']
+            );
+            if (failure) throw failure;
+        }
         if (response.statusCode >= 400) {
             throw new Error(`emcmd request failed with status ${response.statusCode}`);
         }

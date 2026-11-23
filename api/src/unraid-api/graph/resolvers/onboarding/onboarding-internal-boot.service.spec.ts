@@ -4,6 +4,7 @@ import { execa } from 'execa';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { StorageCommandError } from '@app/core/utils/clients/storage-command-error.js';
 import { getShares } from '@app/core/utils/shares/get-shares.js';
 import { getters } from '@app/store/index.js';
 import { loadStateFileSync } from '@app/store/services/state-file-loader.js';
@@ -470,5 +471,24 @@ describe('OnboardingInternalBootService', () => {
         expect(result.output).toContain('mkbootpool: command failed or timed out');
         expect(result.output).toContain('socket failure');
         expect(internalBootStateService.invalidateCachedInternalBootDeviceState).not.toHaveBeenCalled();
+    });
+    it('returns only the actionable native reason after a boot setup failure', async () => {
+        const service = createService();
+        vi.mocked(emcmd).mockResolvedValueOnce({} as Awaited<ReturnType<typeof emcmd>>);
+        vi.mocked(emcmd).mockRejectedValueOnce(
+            new StorageCommandError('Stop storage before creating pool "cache".')
+        );
+        const result = await service.createInternalBootPool({
+            poolName: 'cache',
+            devices: ['disk-1'],
+            bootSizeMiB: 8192,
+            updateBios: false,
+        });
+        expect(result).toEqual({
+            ok: false,
+            code: 1,
+            output: 'Stop storage before creating pool "cache".',
+        });
+        expect(vi.mocked(emcmd)).toHaveBeenCalledTimes(2);
     });
 });
