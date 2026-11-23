@@ -82,6 +82,36 @@ describe('emcmd', () => {
         );
     });
 
+    it.each([
+        [
+            'create-pool-storage-active',
+            { cmdCreatePool: 'apply', poolName: 'cache' },
+            'Stop storage before creating pool "cache".',
+        ],
+        [
+            'make-bootable-size',
+            { cmdMakeBootable: 'apply', poolName: 'cache' },
+            'Check the reserved boot size and available drive space for pool "cache" (storage slot 30).',
+        ],
+        [
+            'make-bootable-size',
+            { cmdCreatePool: 'apply', poolName: 'cache' },
+            'emcmd request failed with status 500',
+        ],
+        [
+            'unrecognized',
+            { cmdMakeBootable: 'apply', poolName: 'cache' },
+            'emcmd request failed with status 500',
+        ],
+    ] as const)('renders the matching native failure %s', async (result, command, expected) => {
+        vi.mocked(got.post).mockResolvedValue({
+            body: 'private daemon diagnostic',
+            statusCode: 500,
+            headers: { 'x-unraid-command-result': result, 'x-unraid-storage-slot': '30' },
+        } as unknown as Awaited<ReturnType<typeof got.post>>);
+        await expect(emcmd(command)).rejects.toMatchObject({ message: expected });
+    });
+
     it('throws on http failures reported by got', async () => {
         vi.mocked(got.post).mockResolvedValue({
             body: '',

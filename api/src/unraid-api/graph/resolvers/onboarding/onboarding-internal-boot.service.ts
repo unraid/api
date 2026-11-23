@@ -10,6 +10,7 @@ import type {
     OnboardingInternalBootResult,
 } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { StorageCommandError } from '@app/core/utils/clients/storage-command-error.js';
 import { withTimeout } from '@app/core/utils/misc/with-timeout.js';
 import { getShares } from '@app/core/utils/shares/get-shares.js';
 import { getters } from '@app/store/index.js';
@@ -605,6 +606,9 @@ export class OnboardingInternalBootService {
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             this.logger.warn(`createInternalBootPool failed with error='${message}'`);
+            if (error instanceof StorageCommandError) {
+                return { ok: false, code: 1, output: error.message };
+            }
             output.push('mkbootpool: command failed or timed out');
             output.push(message);
             return {
