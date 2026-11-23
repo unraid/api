@@ -1,0 +1,15 @@
+{
+  "disposition": "PATCH",
+  "expected_structural_delta": "Small response projection and colocated tests. No new transports or onboarding operations.",
+  "minimum_design": "For a 500 checked reply, pair a recognized result with the submitted onboarding command and validated pool name, then render a fixed message. Preserve previous generic wording when the daemon lacks the result.",
+  "outcome": "Show actionable native pool creation and internal boot failure reasons in the existing onboarding result.",
+  "reuse_decisions": [
+    {
+      "decision": "extend",
+      "name": "emcmd and onboarding runStep",
+      "rationale": "The typed response can flow through the existing caught Error to the GraphQL result already rendered by the UI."
+    }
+  ],
+  "schema": "limetech.ai-review-marker.v2",
+  "stage": "forecast"
+}
