@@ -48,6 +48,18 @@ export class StorageCommandError extends Error {
                     return new StorageCommandError(
                         `Check the reserved boot size and available drive space for ${device}.`
                     );
+                case 'make-bootable-target-missing':
+                    return new StorageCommandError(
+                        `The selected drive for ${device} disappeared before boot setup began. Check its connection and assignment.`
+                    );
+                case 'make-bootable-partial':
+                    return new StorageCommandError(
+                        `Boot setup may have changed a drive in ${device}. Check the drive partitions, boot pool and pending transfer before retrying.`
+                    );
+                case 'make-bootable-transfer-pending':
+                    return new StorageCommandError(
+                        `A boot transfer is already pending. Check the existing boot setup before changing ${device}.`
+                    );
                 case 'make-bootable-refresh-failed':
                     return new StorageCommandError(
                         `Storage could not refresh after boot setup for ${device}. Reload Storage and check the boot configuration before retrying.`
